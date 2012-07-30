@@ -9,6 +9,159 @@
 -define (TEST_SQLS, [
 "
 select 
+	a
+	,b
+	,c
+from 
+	abc
+	, def
+where
+	eva	
+		eva	a
+				in	(
+					select
+						b
+					from
+						def
+					)
+		and	c=d 
+		and	e=f
+	or	g=h
+"
+,
+"
+select 
+	a
+	,b
+	,c
+from 
+	abc
+	, def
+where
+	eva	
+		eva	a
+				in	(
+					select
+						b
+					from
+						def
+					)
+		and	c=d 
+		and	e=f
+	or	g between h and i
+"
+]).
+
+%% +select a, b, c from abc, def where a in (select b from def) and c=d and e=f or g=h
+%% 
+%% -select 
+%% 	a
+%% 	, b
+%% 	, c
+%% +from abc, def
+%% +where a in (select b from def) and c=d and e=f or g=h
+%% 
+%% -select 
+%% 	a
+%% 	, b
+%% 	, c
+%% -from 
+%% 	abc
+%% 	, def
+%% -where
+%% 	+	a in (select b from def) and c=d  and e=f
+%% 	+or	g=h
+%% 
+%% -select 
+%% 	a
+%% 	, b
+%% 	, c
+%% -from 
+%% 	abc
+%% 	, def
+%% -where
+%% 		+	a in (select b from def)
+%% 		+and 	c=d 
+%% 		+and 	e=f
+%% 	-or	
+%% 		g
+%% 		=
+%% 		h
+%% 
+%% -select 
+%% 	a
+%% 	, b
+%% 	, c
+%% +from abc, def
+%% -where
+%% 		-	a
+%% 			+	in (select b from def)
+%% 		-and	
+%% 			c
+%% 			=
+%% 			d 
+%% 		-and	
+%% 			e
+%% 			=
+%% 			f
+%% 	-or	
+%% 		g
+%% 		=
+%% 		h
+%% 	
+%% +select a, b, c
+%% +from  abc, def
+%% -where
+%% 		 -	a
+%% 			-	in	(
+%% 					select
+%% 						b
+%% 					from
+%% 						def
+%% 					)
+%% 		-and	
+%% 			c
+%% 			=
+%% 			d 
+%% 		+and	e=f
+%% 	-or	
+%% 		g
+%% 		=
+%% 		h
+%%
+%% +select a, b, c
+%% +from  abc, def
+%% -where
+%% 	+	a in (select b from def) and c=d  and e=f
+%% 	+or	g between h and i
+%%
+%%
+%% +select a, b, c
+%% +from  abc, def
+%% -where
+%% 	+	a in (select b from def) and c=d  and e=f
+%% 	-or	
+%% 		g
+%% 		between	
+%%		h 
+%%		and 
+%%		i
+%%
+%% +select a, b, c
+%% +from  abc, def
+%% -where
+%% 	+	a in (select b from def) and c=d  and e=f
+%% 	-or	
+%% 		g
+%% 		between
+%% 		-	h	
+%%			and
+%%			i
+	
+
+-define (TEST_SQLS1, [
+"
+select 
 	*
 from 
 	abc 
@@ -404,11 +557,14 @@ where
 "
 ]).
 
-parse_test() -> test_parse(?TEST_SQLS).		% TODO: Replace "eva" by "" in ?TEST_SQLS
+remove_eva(S) ->
+	re:replace(S, "([ \t]eva[ \t])", " ", [global, {return, list}]).
+
+parse_test() -> test_parse(?TEST_SQLS).		
 test_parse([]) -> ok;
 test_parse([S|Sqls]) ->
     io:format(user, "===============================~nSql: ~p~n...............................~nParseTree:~n", [S]),
-    {ok, Tokens, _} = sql_lex:string(S ++ ";"),
+    {ok, Tokens, _} = sql_lex:string(remove_eva(S) ++ ";"),
     case sql_parse:parse(Tokens) of
         {ok, [ParseTree|_]} -> io:format(user, "~p~n", [ParseTree]);
         Error -> io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens])

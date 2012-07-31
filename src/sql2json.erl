@@ -43,6 +43,12 @@ process_value({in, L, R}, Buf) when is_list(L), is_tuple(R) ->
     Buf ++
     "{id:\""++ref()++"\", name:\"in\", data:{}, children:[\n\t"
     ++ "{id:\""++ref()++"\", name:\""++L++"\", data:{}, children:[]}," ++ parse_tree_json(tuple_to_list(R)) ++ "]}";
+process_value({in, L, R}, Buf) when is_list(L) ->
+    Buf ++
+    "{id:\""++ref()++"\", name:\"in\", data:{}, children:[\n\t"
+    ++ "{id:\""++ref()++"\", name:\""++L++"\", data:{}, children:[]}, {id:\""++ref()++"\", name:\"\", data:{}, children:["
+    ++ process_value(R, "")
+    ++ "]}]}";
 process_value({where, {C,L,R}}, Buf) ->
     Buf ++
     "{id:\""++ref()++"\", name:\""++atom_to_list(C)++"\", data:{}, children:[\n\t"
@@ -71,6 +77,8 @@ ref() -> re:replace(erlang:ref_to_list(erlang:make_ref()),"([#><.])","_",[global
 % sql2json:to_json("select a,b,c from def").
 
 % sql2json:to_json("select a,b,c from abc, def where a in (select b from def) and c=d and e=f or g between h and i").
+ 
+% sql2json:to_json("select fun(a),b,c from abc, def where a in(a, b, c) and c=d and e = f or g between h and i").
 
 % {ok, Tokens, _} = sql_lex:string("select a,b,c from abc, def where a  in (a, b, c) and c=d and e=f or g between h and i;").
 

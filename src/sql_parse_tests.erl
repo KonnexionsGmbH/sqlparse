@@ -14,14 +14,14 @@ select
 	a
 	,b
 	,c
-	from 
-		abc
-		, def
-	where
+from 
+	abc
+	, def
+where
+	eva	
 		eva	
-			eva	
-				a
-				in(
+			a
+			in(
 				select
 					b
 				from
@@ -32,28 +32,25 @@ select
 						h
 						=
 						0
-				)
-			and	
-				upper
-				(
-					c
-				)
-				=
-				'D' 
-			and	
-				e
-				in
-				(
-					1
-					,2
-					,3
-				)
-		or	
-			g
+			)
+		and	
+			upper(
+				c
+			)
 			=
-			h
-"
-,
+			'D' 
+		and	
+			e
+			in(
+				1
+				,2
+				,3
+			)
+	or	
+		g
+		=
+		h
+",
 "
 select 
 	a
@@ -89,24 +86,36 @@ where
 "
 ,
 "
-select 
-	a
-	,b
-	,c
-from 
-	abc
-	, def
-where
-	eva	
-		eva	a
-				in	(
+	select 
+		a
+		,b
+		,c
+	from 
+		abc
+		, def
+	where
+		eva	
+			eva	
+				a
+				in(
 					a
 					, b
 					, c
-					)
-		and	c=d 
-		and	e=f
-	or	g between h and i
+				)
+			and	
+				c
+				=
+				d 
+			and	
+				e
+				=
+				f
+		or	
+			g 
+			between 
+			h 
+			and 
+			i
 "
 ]).
 

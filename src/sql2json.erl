@@ -69,5 +69,10 @@ process_value(DList, Buf) ->
 ref() -> re:replace(erlang:ref_to_list(erlang:make_ref()),"([#><.])","_",[global,{return, list}]).
 
 % sql2json:to_json("select a,b,c from def").
+
 % sql2json:to_json("select a,b,c from abc, def where a in (select b from def) and c=d and e=f or g between h and i").
+
+% {ok, Tokens, _} = sql_lex:string("select a,b,c from abc, def where a  in (a, b, c) and c=d and e=f or g between h and i;").
+
+% sql_parse:parse(Tokens).
 

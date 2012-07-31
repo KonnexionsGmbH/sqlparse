@@ -7,7 +7,7 @@ Rules.
 
 (AVG|avg|MIN|min|MAX|max|SUM|sum|COUNT|count)
                                 :				{token, {'AMMSC', TokenLine, list_to_atom(TokenChars)}}.
-(To_Char|TO_CHAR|to_char|NVL|nvl|DECODE|decode|ltrim|LTRIM|to_date|TO_DATE)
+(To_Char|TO_CHAR|to_char|NVL|nvl|DECODE|decode|ltrim|LTRIM|to_date|TO_DATE|upper|UPPER|lower|LOWER|trunc|TRUNC|sydate|SYSDATE)
                                 :				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
 (BOOL_AND|bool_and|BOOL_OR|bool_or|SELECTIVITY|selectivity|STDDEV_POP|stddev_pop)
                                 :				{token, {'UFUN', TokenLine, list_to_atom(TokenChars)}}.

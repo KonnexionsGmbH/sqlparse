@@ -34,13 +34,12 @@ select
 						0
 				)
 			and	
-				fun
+				upper
 				(
 					c
-					,d
 				)
 				=
-				d 
+				'D' 
 			and	
 				e
 				in

@@ -52,6 +52,27 @@ where
 		and	e=f
 	or	g between h and i
 "
+,
+"
+select 
+	a
+	,b
+	,c
+from 
+	abc
+	, def
+where
+	eva	
+		eva	a
+				in	(
+					a
+					, b
+					, c
+					)
+		and	c=d 
+		and	e=f
+	or	g between h and i
+"
 ]).
 
 %% +select a, b, c from abc, def where a in (select b from def) and c=d and e=f or g=h

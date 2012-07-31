@@ -53,6 +53,10 @@ process_value({between=C,L,{L1,R1}}, Buf) ->
             "\n\t{id:\""++ref()++"\", name:\""++L1++"\", data:{}, children:[]}, {id:\""++ref()++"\", name:\""++R1++"\", data:{}, children:[]}"
         ++ "]}"
     ++"]}";
+process_value({fields,L,R}, Buf) when is_list(L), is_list(R) ->
+    Buf ++
+    "{id:\""++ref()++"\", name:\"\", data:{}, children:[\n\t"
+    ++ "{id:\""++ref()++"\", name:\""++L++"\", data:{}, children:[]} , {id:\""++ref()++"\", name:\""++R++"\", data:{}, children:[]}]}";
 process_value({C,L,R}, Buf) when is_atom(C), is_list(L), is_list(R) ->
     Buf ++
     "{id:\""++ref()++"\", name:\""++atom_to_list(C)++"\", data:{}, children:[\n\t"

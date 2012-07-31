@@ -19,7 +19,7 @@ parse_tree_json([select|ParseTree]) ->
     string:join(lists:foldl(fun(Elm, Acc) ->
                                 case process_simple_list(Elm) of
                                     Val when length(Val) > 0 ->
-                                        Acc ++ [process_simple_list(Elm)];
+                                        Acc ++ [Val];
                                     _ -> Acc
                                  end
                             end,
@@ -29,10 +29,12 @@ parse_tree_json([select|ParseTree]) ->
     "]}".
 
 process_simple_list({E,V}) ->
-    case process_value(V) of
-        undefined -> "";
-        Val -> "{id:\""++ref()++"\", name:\""++atom_to_list(E)++"\", data:{}, children:[\n\t"
-               ++ Val ++ "]}"
+    case {process_value(V), E} of
+        {undefined, _} -> "";
+        {Val, fields} ->
+            "{id:\""++ref()++"\", name:\"\", data:{}, children:[\n\t" ++ Val ++ "]}";
+        {Val,_} ->
+            "{id:\""++ref()++"\", name:\""++atom_to_list(E)++"\", data:{}, children:[\n\t" ++ Val ++ "]}"
     end.
 
 process_value([]) -> undefined;
@@ -53,10 +55,6 @@ process_value({between=C,L,{L1,R1}}, Buf) ->
             "\n\t{id:\""++ref()++"\", name:\""++L1++"\", data:{}, children:[]}, {id:\""++ref()++"\", name:\""++R1++"\", data:{}, children:[]}"
         ++ "]}"
     ++"]}";
-process_value({fields,L,R}, Buf) when is_list(L), is_list(R) ->
-    Buf ++
-    "{id:\""++ref()++"\", name:\"\", data:{}, children:[\n\t"
-    ++ "{id:\""++ref()++"\", name:\""++L++"\", data:{}, children:[]} , {id:\""++ref()++"\", name:\""++R++"\", data:{}, children:[]}]}";
 process_value({C,L,R}, Buf) when is_atom(C), is_list(L), is_list(R) ->
     Buf ++
     "{id:\""++ref()++"\", name:\""++atom_to_list(C)++"\", data:{}, children:[\n\t"

@@ -1,8 +1,10 @@
 -module(sql_parse_tests).
+-compile(export_all).
 
 %
 % TEST CASES %
 %
+
 
 -include_lib("eunit/include/eunit.hrl").
 
@@ -558,13 +560,14 @@ where
 ]).
 
 remove_eva(S) ->
-	re:replace(S, "([ \t]eva[ \t])", " ", [global, {return, list}]).
+	re:replace(S, "([ \t]eva[ \t])", "\t\t", [global, {return, list}]).
 
 parse_test() -> test_parse(?TEST_SQLS).		
 test_parse([]) -> ok;
 test_parse([S|Sqls]) ->
-    io:format(user, "===============================~nSql: ~p~n...............................~nParseTree:~n", [S]),
-    {ok, Tokens, _} = sql_lex:string(remove_eva(S) ++ ";"),
+    Sql = remove_eva(S) ++ ";",
+    io:format(user, "===============================~nSql: "++Sql++"~n...............................~nParseTree:~n", []),
+    {ok, Tokens, _} = sql_lex:string(Sql),
     case sql_parse:parse(Tokens) of
         {ok, [ParseTree|_]} -> io:format(user, "~p~n", [ParseTree]);
         Error -> io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens])

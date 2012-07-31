@@ -3,7 +3,7 @@
 -export([to_json/1]).
 
 to_json(Sql) ->
-    Sql0 = string:strip(Sql, both),
+    Sql0 = sql_parse_tests:remove_eva(string:strip(Sql, both)),
     {ok, Tokens, _} = sql_lex:string(Sql0 ++ ";"),
     case sql_parse:parse(Tokens) of
         {ok, [ParseTree|_]} ->
@@ -49,7 +49,7 @@ process_value({between=C,L,{L1,R1}}, Buf) ->
     Buf ++
     "{id:\""++ref()++"\", name:\""++atom_to_list(C)++"\", data:{}, children:[\n\t"
         ++ "{id:\""++ref()++"\", name:\""++L++"\", data:{}, children:[]},"
-        ++ "{id:\""++ref()++"\", name:\".\", data:{}, children:["++
+        ++ "{id:\""++ref()++"\", name:\"and\", data:{}, children:["++
             "\n\t{id:\""++ref()++"\", name:\""++L1++"\", data:{}, children:[]}, {id:\""++ref()++"\", name:\""++R1++"\", data:{}, children:[]}"
         ++ "]}"
     ++"]}";

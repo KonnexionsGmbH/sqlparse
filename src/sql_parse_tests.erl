@@ -14,21 +14,45 @@ select
 	a
 	,b
 	,c
-from 
-	abc
-	, def
-where
-	eva	
-		eva	a
-				in	(
-					select
-						b
-					from
-						def
-					)
-		and	c=d 
-		and	e=f
-	or	g=h
+	from 
+		abc
+		, def
+	where
+		eva	
+			eva	
+				a
+				in(
+				select
+					b
+				from
+					def
+					,ghi
+				where
+					eva
+						h
+						=
+						0
+				)
+			and	
+				fun
+				(
+					c
+					,d
+				)
+				=
+				d 
+			and	
+				e
+				in
+				(
+					1
+					,2
+					,3
+				)
+		or	
+			g
+			=
+			h
 "
 ,
 "
@@ -41,16 +65,28 @@ from
 	, def
 where
 	eva	
-		eva	a
-				in	(
-					select
-						b
-					from
-						def
-					)
-		and	c=d 
-		and	e=f
-	or	g between h and i
+		eva	
+			a
+			in	(
+			select
+				b
+			from
+				def
+			)
+		and	
+			c
+			=
+			d 
+		and	
+			e
+			=
+			f
+	or	
+		g 
+		between 
+		h 
+		and 
+		i
 "
 ,
 "

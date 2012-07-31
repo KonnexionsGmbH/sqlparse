@@ -474,8 +474,8 @@ test_for_null -> column_ref IS NULLX                                            
 
 in_predicate -> scalar_exp NOT IN '(' subquery ')'                                              : {'not_in', '$1', '$5'}.
 in_predicate -> scalar_exp IN '(' subquery ')'                                                  : {'in', '$1', '$4'}.
-in_predicate -> scalar_exp NOT IN '(' atom_commalist ')'                                        : {'not_in', '$1', '$5'}.
-in_predicate -> scalar_exp IN '(' atom_commalist ')'                                            : {'in', '$1', '$4'}.
+in_predicate -> scalar_exp NOT IN '(' scalar_exp_commalist ')'                                        : {'not_in', '$1', '$5'}.
+in_predicate -> scalar_exp IN '(' scalar_exp_commalist ')'                                            : {'in', '$1', '$4'}.
 
 atom_commalist -> atom                                                                          : ['$1'].
 atom_commalist -> atom_commalist ',' atom                                                       : '$1' ++ ['$2'].

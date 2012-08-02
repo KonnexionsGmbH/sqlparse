@@ -3,8 +3,7 @@
 -export([to_json/1]).
 
 to_json(Sql) ->
-    Sql0 = sql_parse_tests:remove_eva(string:strip(Sql, both)),
-    {ok, Tokens, _} = sql_lex:string(Sql0 ++ ";"),
+    {ok, Tokens, _} = sql_lex:string(Sql ++ ";"),
     case sql_parse:parse(Tokens) of
         {ok, [ParseTree|_]} ->
            Json = parse_tree_json(tuple_to_list(ParseTree)),

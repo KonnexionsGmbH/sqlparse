@@ -17,40 +17,24 @@ select
 from 
 	abc
 	, def
+"
+,
+"
+select
+	a
+	,b
+	,c
+from
+	abc
 where
-	eva	
-		eva	
-			a
-			in(
-				select
-					b
-				from
-					def
-					,ghi
-				where
-					eva
-						h
-						=
-						0
-			)
-		and	
-			upper(
-				c
-			)
-			=
-			'D' 
-		and	
-			e
-			in(
-				1
-				,2
-				,3
-			)
-	or	
-		g
-		=
-		h
-",
+        	
+        		a=b 
+        	and	
+        		not	c=d 
+	or	e=f
+	or	g=h
+"
+,
 "
 select 
 	a
@@ -60,14 +44,31 @@ from
 	abc
 	, def
 where
-	eva	
-		eva	
+		a
+		=
+		b
+	or
+		c
+		=
+		d
+"
+,
+"
+select 
+	a
+	,b
+	,c
+from 
+	abc
+	, def
+where
+		
+			
 			a
-			in	(
-			select
-				b
-			from
-				def
+			in(
+				a
+				, b
+				, c
 			)
 		and	
 			c
@@ -86,36 +87,133 @@ where
 "
 ,
 "
-	select 
+select 
+	*
+from 
+	abc
+	, def
+where
+	(
 		a
-		,b
-		,c
-	from 
-		abc
-		, def
-	where
-		eva	
-			eva	
+		=
+		b
+	or
+		c
+		=
+		d
+	)
+	and
+		e
+		=
+		f
+"
+,
+"
+select 
+	a
+	,b
+	,c
+from 
+	abc
+	, def
+where
+		
+			
+			a
+			in(
+				select
+					b
+				from
+					def
+					,ghi
+				where
+					
+						h
+						=
+						0
+			)
+		and	
+			c
+			=
+			d 
+		and	
+			e
+			in(
+				1
+				,2
+				,3
+			)
+	or	
+		g
+		=
+		h
+"
+,
+"
+select 
+	a
+	,b
+	,c
+from 
+	abc
+	, def
+where
+		
+			
+			a
+			in(
+				select
+					b
+				from
+					def
+			)
+		and	
+			c
+			=
+			d 
+		and	
+			e
+			=
+			f
+	or	
+		g 
+		between 
+		h 
+		and 
+		i
+"
+,
+"
+select 
+	*
+from 
+	abc
+	, def
+where
+		
+			
+			c
+			=
+			d 
+		and(	
 				a
 				in(
-					a
-					, b
-					, c
+					select
+						b
+					from
+						def
 				)
-			and	
-				c
-				=
-				d 
-			and	
+			or	
 				e
 				=
 				f
-		or	
-			g 
-			between 
-			h 
-			and 
-			i
+		)
+	or	
+		g 
+		between 
+		h 
+		and 
+		i
 "
 ]).
 
@@ -233,7 +331,7 @@ select
 from 
 	abc 
 where 
-	eva	a=b
+		a=b
 "
 ,
 "
@@ -242,7 +340,7 @@ select
 from 
 	abc
 where 
-	eva	a=b 
+		a=b 
 	and	c=d
 "
 ,
@@ -252,7 +350,7 @@ select
 from 
 	abc
 where	
-	eva	a=b 
+		a=b 
 	and	c=d 
 	and	e=f
 	and	g=h
@@ -276,7 +374,7 @@ select
 from
 	abc
 where
-	eva	a=b 
+		a=b 
 	and	
 		not	c=d 
 	and	e=f
@@ -289,7 +387,7 @@ select
 from 
 	abc
 where
-	eva	a=b
+		a=b
 	and	c=d 
 	and	e=f
 	and	
@@ -302,8 +400,8 @@ select
 from 
 	abc
 where
-	eva	
-		eva	a=b 
+		
+			a=b 
 		and	c=d 
 		and	e=f
 	or	g=h
@@ -315,7 +413,7 @@ select
 from
 	abc
 where
-	eva	eva	a=b 
+			a=b 
 		and	c=d 
 	or	e=f
 	or	g=h
@@ -327,7 +425,7 @@ select
 from
 	abc
 where
-	eva	
+		
 		not	a=b 
 		and	c=d 
 	or	e=f
@@ -340,8 +438,8 @@ select
 from
 	abc
 where
-        eva	
-        	eva	a=b 
+        	
+        		a=b 
         	and	
         		not	c=d 
 	or	e=f
@@ -354,7 +452,7 @@ select
 from
 	abc
 where
-	eva	
+		
 		not	a=b 
 		and	
 			not	c=d 
@@ -368,8 +466,8 @@ select
 from
 	abc
 where
-	eva	
-		eva	a=b 
+		
+			a=b 
 		and	c=d 
 	or
 		not	e=f
@@ -383,7 +481,7 @@ select
 from
 	abc
 where
-	eva	a=b 
+		a=b 
 	or	c=d 
 	or
 		not	e=f
@@ -397,7 +495,7 @@ from
 	abc
 where
 	not	(
-			eva	a=b 
+				a=b 
 			and	c=d
 		)
 	or	e=f
@@ -410,7 +508,7 @@ select
 from
 	abc
 where
-	eva	
+		
 		not a=b 
 		and c=d
 	or	e=f
@@ -423,9 +521,9 @@ select
 from
 	abc
 where
-	eva
-		eva	(
-				eva	a=b 
+	
+			(
+					a=b 
 				or	c=d
         	  	)
 		and	e=f
@@ -438,8 +536,8 @@ select
 from
 	abc
 where
-	eva	(	
-			eva	a=b 
+		(	
+				a=b 
 			or	c=d
 		) 
 	and	e=f
@@ -452,9 +550,9 @@ select
 from
 	abc
 where
-	eva	a=b 
+		a=b 
 	or 
-		eva	c=d 
+			c=d 
 		and
 			not	e=f
 	or	g=h
@@ -466,9 +564,9 @@ select
 from
 	abc
 where
-	eva	a=b 
+		a=b 
 	or
-		eva	c=d 
+			c=d 
 		and	e=f 
 		and	g=h
 "
@@ -479,7 +577,7 @@ select
 from
 	abc
 where
-	eva	a between b and c  
+		a between b and c  
 	and	d between e and f 
 	and	g=h
 "
@@ -490,9 +588,9 @@ select
 from
 	abc
 where
-	eva	a between b and c 
+		a between b and c 
 	or 
-		eva	d between e and f 
+			d between e and f 
           	and	g=h
 "
 ,
@@ -512,8 +610,8 @@ select
 	*
 from	abc
 where
-	eva
-		eva	a between b and c
+	
+			a between b and c
 		and	d between e and f 
 	or g=h
 "
@@ -524,12 +622,12 @@ select
 from
 	abc
 where
-	eva	(
-			eva	a=b 
+		(
+				a=b 
 			or	c=d
 		) 
 	and 	(
-			eva	e=f 
+				e=f 
 			or	g=h
 		)
 "
@@ -540,11 +638,11 @@ select
 from
 	abc
 where
-	eva	a=b 
+		a=b 
 	or 
-		eva	c=d 
+			c=d 
 		and 	(
-				eva	e=f 
+					e=f 
 				or	g=h
 			)
 "
@@ -556,7 +654,7 @@ select
 from
 	abc
 where
-	eva	a=b
+		a=b
 "
 ,
 "
@@ -587,7 +685,7 @@ from
 	, MMSC_EVENTDISPTYPE
 	, MMSC_MSGTYPE
 where	
-	eva	BD_CDRRECTYPE=MMSCCRT_ID(+) 
+		BD_CDRRECTYPE=MMSCCRT_ID(+) 
 	and	ltrim(to_char(BD_EVENTDISP))=MMSCET_ID(+)
 	and	ltrim(to_char(BD_MSGTYPE))=MMSCMT_ID(+)
 	and	BD_UMSGGRPID='mj78yk7r307fga5a01'
@@ -619,7 +717,7 @@ from
 	ACCOUNT
 	, SYSPARAMETERS
 where
-	eva	AC_ESID='A'
+		AC_ESID='A'
 	and	AC_SHORT='ADMIN'
 "
 ]).
@@ -629,12 +727,15 @@ remove_eva(S) ->
 
 parse_test() -> test_parse(?TEST_SQLS).		
 test_parse([]) -> ok;
-test_parse([S|Sqls]) ->
-    Sql = remove_eva(S) ++ ";",
-    io:format(user, "===============================~nSql: "++Sql++"~n...............................~nParseTree:~n", []),
-    {ok, Tokens, _} = sql_lex:string(Sql),
+test_parse([Sql|Sqls]) ->
+    io:format(user, "===============================~nSql: "++Sql++"~n", []),
+    {ok, Tokens, _} = sql_lex:string(Sql ++ ";"),
     case sql_parse:parse(Tokens) of
-        {ok, [ParseTree|_]} -> io:format(user, "~p~n", [ParseTree]);
+        {ok, [ParseTree|_]} -> 
+        	io:format(user, "-------------------------------~nParseTree:~n", []),
+        	io:format(user, "~p~n", [ParseTree]),
+        	io:format(user, "-------------------------------~n", []),
+        	sql2json:to_json(Sql);
         Error -> io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens])
     end,
     test_parse(Sqls).

@@ -12,8 +12,12 @@ to_json(Sql) ->
                     "parsetree.json = function() {\n"++
                         "\tJson =\n" ++
                         Json ++ ";\n" ++
-                        "\treturn Json;\n"++
-                   "}"
+                        "\treturn Json;\n" ++
+                    "}\n" ++
+                    "parsetree.sql = function() {\n" ++
+                        "sql = " ++ io_lib:format("~p", [Sql]) ++ ";\n" ++
+                        "return sql;\n" ++
+                    "}"
                )),
            io:format(user, "Json = ~n"++Json++"~n", []);
         Error ->
@@ -46,6 +50,10 @@ process_simple_list({E,V}) ->
 
 process_value([]) -> undefined;
 process_value(D) -> process_value(D, "").
+process_value({'not', E}, Buf) ->
+    Buf ++
+    "{id:\""++ref()++"\", name:\"not\", data:{}, children:[\n\t"
+    ++ process_value(E, Buf) ++ "]}";
 process_value({in, L, R}, Buf) when is_list(L), is_tuple(R) ->
     Buf ++
     "{id:\""++ref()++"\", name:\"in\", data:{}, children:[\n\t"
@@ -85,9 +93,42 @@ ref() -> re:replace(erlang:ref_to_list(erlang:make_ref()),"([#><.])","_",[global
 
 % sql2json:to_json("select a,b,c from abc, def where a in (select b from def) and c=d and e=f or g between h and i").
  
-% sql2json:to_json("select fun(a),b,c from abc, def where a in(a, b, c) and c=d and e = f or g between h and i").
+%sql2json:to_json("
+%select
+%	*
+%from
+%	abc
+%where
+%	not	(
+%				a=b 
+%			and	c=d
+%		)
+%	or	e=f
+%	or	g=h
+%").
 
-% {ok, Tokens, _} = sql_lex:string("select a,b,c from abc, def where a  in (a, b, c) and c=d and e=f or g between h and i;").
+% {ok, Tokens, _} = sql_lex:string("select
+%	a
+%	,b
+%	,c
+%from
+%	abc
+%where
+%        	
+%        		a=b 
+%        	and	
+%        		not	c=d 
+%	or	e=f
+%	or	g=h;").
+%
+%sql2json:to_json("
+%select 
+%	a
+%	,b
+%	,c
+%from 
+%	abc
+%	, def
+%").
 
 % sql_parse:parse(Tokens).
-

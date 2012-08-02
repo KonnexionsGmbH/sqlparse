@@ -8,6 +8,14 @@ to_json(Sql) ->
     case sql_parse:parse(Tokens) of
         {ok, [ParseTree|_]} ->
            Json = parse_tree_json(tuple_to_list(ParseTree)),
+           file:write_file("./priv/www/sql.js", list_to_binary(
+                    "var parsetree = new Object();\n"++
+                    "parsetree.json = function() {\n"++
+                        "\tJson =\n" ++
+                        Json ++ ";\n" ++
+                        "\treturn Json;\n"++
+                   "}"
+               )),
            io:format(user, "Json = ~n"++Json++"~n", []);
         Error ->
            io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens])

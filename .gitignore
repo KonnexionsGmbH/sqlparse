@@ -7,3 +7,4 @@ ebin
 *.swp
 sql_lex.erl
 sql_parse.erl
+sql.js

@@ -10,6 +10,25 @@
 
 -define (TEST_SQLS, [
 "
+select
+	a
+	,b
+	,c
+from
+	abc
+where
+        	
+        		a=b 
+        	and	
+        		not	c=d 
+	or	e=f
+	or	g=h
+"
+]).
+
+
+-define (TEST_SQLS1, [
+"
 select 
 	a
 	,b
@@ -151,12 +170,9 @@ where
 ,
 "
 select 
-	a
-	,b
-	,c
+	*
 from 
 	abc
-	, def
 where
 		
 			
@@ -172,15 +188,15 @@ where
 			=
 			d 
 		and	
-			e
-			=
-			f
+			g 
+			between 
+			h 
+			and 
+			i
 	or	
-		g 
-		between 
-		h 
-		and 
-		i
+		e
+		=
+		f
 "
 ,
 "
@@ -215,116 +231,7 @@ where
 		and 
 		i
 "
-]).
-
-%% +select a, b, c from abc, def where a in (select b from def) and c=d and e=f or g=h
-%% 
-%% -select 
-%% 	a
-%% 	, b
-%% 	, c
-%% +from abc, def
-%% +where a in (select b from def) and c=d and e=f or g=h
-%% 
-%% -select 
-%% 	a
-%% 	, b
-%% 	, c
-%% -from 
-%% 	abc
-%% 	, def
-%% -where
-%% 	+	a in (select b from def) and c=d  and e=f
-%% 	+or	g=h
-%% 
-%% -select 
-%% 	a
-%% 	, b
-%% 	, c
-%% -from 
-%% 	abc
-%% 	, def
-%% -where
-%% 		+	a in (select b from def)
-%% 		+and 	c=d 
-%% 		+and 	e=f
-%% 	-or	
-%% 		g
-%% 		=
-%% 		h
-%% 
-%% -select 
-%% 	a
-%% 	, b
-%% 	, c
-%% +from abc, def
-%% -where
-%% 		-	a
-%% 			+	in (select b from def)
-%% 		-and	
-%% 			c
-%% 			=
-%% 			d 
-%% 		-and	
-%% 			e
-%% 			=
-%% 			f
-%% 	-or	
-%% 		g
-%% 		=
-%% 		h
-%% 	
-%% +select a, b, c
-%% +from  abc, def
-%% -where
-%% 		 -	a
-%% 			-	in	(
-%% 					select
-%% 						b
-%% 					from
-%% 						def
-%% 					)
-%% 		-and	
-%% 			c
-%% 			=
-%% 			d 
-%% 		+and	e=f
-%% 	-or	
-%% 		g
-%% 		=
-%% 		h
-%%
-%% +select a, b, c
-%% +from  abc, def
-%% -where
-%% 	+	a in (select b from def) and c=d  and e=f
-%% 	+or	g between h and i
-%%
-%%
-%% +select a, b, c
-%% +from  abc, def
-%% -where
-%% 	+	a in (select b from def) and c=d  and e=f
-%% 	-or	
-%% 		g
-%% 		between	
-%%		h 
-%%		and 
-%%		i
-%%
-%% +select a, b, c
-%% +from  abc, def
-%% -where
-%% 	+	a in (select b from def) and c=d  and e=f
-%% 	-or	
-%% 		g
-%% 		between
-%% 		-	h	
-%%			and
-%%			i
-	
-
--define (TEST_SQLS1, [
+,
 "
 select 
 	*
@@ -741,3 +648,110 @@ test_parse([Sql|Sqls]) ->
     test_parse(Sqls).
 
 % TODO: render_test() must parse and render and return the original string ?TEST_SQLS
+
+%% +select a, b, c from abc, def where a in (select b from def) and c=d and e=f or g=h
+%% 
+%% -select 
+%% 	a
+%% 	, b
+%% 	, c
+%% +from abc, def
+%% +where a in (select b from def) and c=d and e=f or g=h
+%% 
+%% -select 
+%% 	a
+%% 	, b
+%% 	, c
+%% -from 
+%% 	abc
+%% 	, def
+%% -where
+%% 	+	a in (select b from def) and c=d  and e=f
+%% 	+or	g=h
+%% 
+%% -select 
+%% 	a
+%% 	, b
+%% 	, c
+%% -from 
+%% 	abc
+%% 	, def
+%% -where
+%% 		+	a in (select b from def)
+%% 		+and 	c=d 
+%% 		+and 	e=f
+%% 	-or	
+%% 		g
+%% 		=
+%% 		h
+%% 
+%% -select 
+%% 	a
+%% 	, b
+%% 	, c
+%% +from abc, def
+%% -where
+%% 		-	a
+%% 			+	in (select b from def)
+%% 		-and	
+%% 			c
+%% 			=
+%% 			d 
+%% 		-and	
+%% 			e
+%% 			=
+%% 			f
+%% 	-or	
+%% 		g
+%% 		=
+%% 		h
+%% 	
+%% +select a, b, c
+%% +from  abc, def
+%% -where
+%% 		 -	a
+%% 			-	in	(
+%% 					select
+%% 						b
+%% 					from
+%% 						def
+%% 					)
+%% 		-and	
+%% 			c
+%% 			=
+%% 			d 
+%% 		+and	e=f
+%% 	-or	
+%% 		g
+%% 		=
+%% 		h
+%%
+%% +select a, b, c
+%% +from  abc, def
+%% -where
+%% 	+	a in (select b from def) and c=d  and e=f
+%% 	+or	g between h and i
+%%
+%%
+%% +select a, b, c
+%% +from  abc, def
+%% -where
+%% 	+	a in (select b from def) and c=d  and e=f
+%% 	-or	
+%% 		g
+%% 		between	
+%%		h 
+%%		and 
+%%		i
+%%
+%% +select a, b, c
+%% +from  abc, def
+%% -where
+%% 	+	a in (select b from def) and c=d  and e=f
+%% 	-or	
+%% 		g
+%% 		between
+%% 		-	h	
+%%			and
+%%			i
+	

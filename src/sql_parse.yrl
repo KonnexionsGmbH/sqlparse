@@ -460,10 +460,10 @@ predicate -> existence_test                                                     
 comparison_predicate -> scalar_exp COMPARISON scalar_exp                                        : {unwrap('$2'), '$1', '$3'}.
 comparison_predicate -> scalar_exp COMPARISON subquery                                          : {unwrap('$2'), '$1', '$3'}.
 
-between_predicate -> scalar_exp NOT BETWEEN scalar_exp AND scalar_exp                           : {'not_between', '$1', {'$4', '$6'}}.
+between_predicate -> scalar_exp NOT BETWEEN scalar_exp AND scalar_exp                           : {'not', {'between', '$1', {'$4', '$6'}}}.
 between_predicate -> scalar_exp BETWEEN scalar_exp AND scalar_exp                               : {'between', '$1', {'$3', '$5'}}.
 
-like_predicate -> scalar_exp NOT LIKE atom opt_escape                                           : {'not_like', '$1', {'$4', '$5'}}.
+like_predicate -> scalar_exp NOT LIKE atom opt_escape                                           : {'not', {'like', '$1', {'$4', '$5'}}}.
 like_predicate -> scalar_exp LIKE atom opt_escape                                               : {'like', '$1', {'$3', '$4'}}.
 
 opt_escape -> '$empty'                                                                          : [].

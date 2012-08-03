@@ -8,3 +8,6 @@ ebin
 sql_lex.erl
 sql_parse.erl
 sql.js
+priv/3rdParty
+*.sql
+sqls.js

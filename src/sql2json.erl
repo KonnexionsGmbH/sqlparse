@@ -1,13 +1,21 @@
 -module(sql2json).
 
--export([to_json/1]).
+-export([to_json/1
+        , to_json/2
+        , json_tree/1]).
 
-to_json(Sql) ->
+to_json(Sql) -> to_json(Sql, "Query").
+to_json(Sql,File) ->
     {ok, Tokens, _} = sql_lex:string(Sql ++ ";"),
     case sql_parse:parse(Tokens) of
         {ok, [ParseTree|_]} ->
            Json = parse_tree_json(tuple_to_list(ParseTree)),
-           file:write_file("./priv/www/sql.js", list_to_binary(
+           PathPrefix = case lists:last(filename:split(filename:absname(""))) of
+               ".eunit" -> "../priv/www/";
+               _ -> "./priv/www/"
+           end,
+           NewFile = PathPrefix++File++".sql",           
+           file:write_file(NewFile, list_to_binary(
                     "var parsetree = new Object();\n"++
                     "parsetree.json = function() {\n"++
                         "\tJson =\n" ++
@@ -19,10 +27,21 @@ to_json(Sql) ->
                         "return sql;\n" ++
                     "}"
                )),
-           io:format(user, "Json = ~n"++Json++"~n", []);
+           file:write_file(PathPrefix++"sqls.js", list_to_binary(
+                   "var sqlFiles=new Array(\n" ++
+                   string:join(["\t\"" ++ filename:absname(X) ++ "\"" || X <- filelib:wildcard(PathPrefix++"*.sql")], ",\n") ++
+                   "\n);"
+               ));
         Error ->
            io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens])
     end.
+
+json_tree(Sql) when is_tuple(Sql) -> json_tree(tuple_to_list(Sql));
+json_tree([]) -> "";
+json_tree([Op|Args]) when is_atom(Op) ->
+    Children = string:join(json_tree(Args), ","),
+    "{\"name\":\""++atom_to_list(Op)++"\", \"children\":["++Children++"]}";
+json_tree([Op|Args]) when is_tuple(Op) -> json_tree(lists:flatten([tuple_to_list(Op)|Args])).
 
 parse_tree_json([select|ParseTree]) ->
     "{id:\""++ref()++"\", name:\"select\", data:{}, children:[\n\t"
@@ -131,4 +150,4 @@ ref() -> re:replace(erlang:ref_to_list(erlang:make_ref()),"([#><.])","_",[global
 %	, def
 %").
 
-% sql_parse:parse(Tokens).
+% {ok, [P|_]} = sql_parse:parse(Tokens).

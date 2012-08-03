@@ -632,9 +632,9 @@ where
 remove_eva(S) ->
 	re:replace(S, "([ \t]eva[ \t])", "\t\t", [global, {return, list}]).
 
-parse_test() -> test_parse(?TEST_SQLS).		
-test_parse([]) -> ok;
-test_parse([Sql|Sqls]) ->
+parse_test() -> test_parse(?TEST_SQLS, 0).
+test_parse([], _) -> ok;
+test_parse([Sql|Sqls], N) ->
     io:format(user, "===============================~nSql: "++Sql++"~n", []),
     {ok, Tokens, _} = sql_lex:string(Sql ++ ";"),
     case sql_parse:parse(Tokens) of
@@ -642,10 +642,10 @@ test_parse([Sql|Sqls]) ->
         	io:format(user, "-------------------------------~nParseTree:~n", []),
         	io:format(user, "~p~n", [ParseTree]),
         	io:format(user, "-------------------------------~n", []),
-        	sql2json:to_json(Sql);
+        	sql2json:to_json(Sql, "Query" ++ integer_to_list(N));
         Error -> io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens])
     end,
-    test_parse(Sqls).
+    test_parse(Sqls, N+1).
 
 % TODO: render_test() must parse and render and return the original string ?TEST_SQLS
 

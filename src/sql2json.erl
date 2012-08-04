@@ -36,12 +36,39 @@ to_json(Sql,File) ->
            io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens])
     end.
 
+json_tree({_,[]}) -> "";
 json_tree(Sql) when is_tuple(Sql) -> json_tree(tuple_to_list(Sql));
-json_tree([]) -> "";
 json_tree([Op|Args]) when is_atom(Op) ->
     Children = string:join(json_tree(Args), ","),
-    "{\"name\":\""++atom_to_list(Op)++"\", \"children\":["++Children++"]}";
-json_tree([Op|Args]) when is_tuple(Op) -> json_tree(lists:flatten([tuple_to_list(Op)|Args])).
+    ["{\"name\":\""++atom_to_list(Op)++"\", \"children\":["++Children++"]}"];
+json_tree([Op|Args]) when is_tuple(Op) -> json_tree(Op)++json_tree(Args);
+json_tree([[Op|_]=F|Args]) when is_atom(Op) ->
+    json_tree(F) ++ json_tree(Args);
+json_tree(Ts) when is_list(Ts) ->
+    R = lists:foldl(fun(E, AccIn) ->
+                    case is_string(E) of
+                        true -> ["{\"name\":\""++E++"\", \"children\":[]}"|AccIn];
+                        _ ->
+                            io:format(user, ".... ~p~n", [E]),
+                            [json_tree(E)|AccIn]
+                    end
+                end,
+                [],
+                Ts),
+    io:format(user, "-- ~p~n", [R]),
+    R.
+
+is_string(XY) ->            
+    case is_list(XY) of           
+        false -> false;           
+        true ->
+            lists:all(fun(XX) ->         
+                        if XX < 0 -> false;  
+                           XX > 255 -> false;
+                           true -> true      
+                        end                  
+                      end, XY)
+    end.
 
 parse_tree_json([select|ParseTree]) ->
     "{id:\""++ref()++"\", name:\"select\", data:{}, children:[\n\t"
@@ -125,20 +152,6 @@ ref() -> re:replace(erlang:ref_to_list(erlang:make_ref()),"([#><.])","_",[global
 %	or	e=f
 %	or	g=h
 %").
-
-% {ok, Tokens, _} = sql_lex:string("select
-%	a
-%	,b
-%	,c
-%from
-%	abc
-%where
-%        	
-%        		a=b 
-%        	and	
-%        		not	c=d 
-%	or	e=f
-%	or	g=h;").
 %
 %sql2json:to_json("
 %select 
@@ -150,4 +163,24 @@ ref() -> re:replace(erlang:ref_to_list(erlang:make_ref()),"([#><.])","_",[global
 %	, def
 %").
 
-% {ok, [P|_]} = sql_parse:parse(Tokens).
+%   dbg:start().
+%   dbg:tracer().
+%   dbg:tp(sql2json,[]).
+%   dbg:tpl(sql2json,[]).
+%   dbg:p(all,c).             
+
+%   {ok, Tokens, _} = sql_lex:string("select
+%   	a
+%   	,b
+%   	,c
+%   from
+%   	abc
+%   where
+%           	
+%           		a=b 
+%           	and	
+%           		not	c=d 
+%   	or	e=f
+%   	or	g=h;").
+%    {ok, [P|_]} = sql_parse:parse(Tokens).           
+% sql2json:json_tree(P).

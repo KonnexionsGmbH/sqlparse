@@ -10,6 +10,16 @@
 
 -define (TEST_SQLS, [
 "
+select 
+	a
+	,b
+	,c
+from 
+	abc
+	, def
+"
+,
+"
 select
 	a
 	,b
@@ -28,16 +38,6 @@ where
 
 
 -define (TEST_SQLS1, [
-"
-select 
-	a
-	,b
-	,c
-from 
-	abc
-	, def
-"
-,
 "
 select
 	a

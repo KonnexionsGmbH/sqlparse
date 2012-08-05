@@ -36,41 +36,9 @@ to_json(Sql,File) ->
            io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens])
     end.
 
-json_tree({_,[]}) -> "";
-json_tree(Sql) when is_tuple(Sql) -> json_tree(tuple_to_list(Sql));
-json_tree([Op|Args]) when is_atom(Op) ->
-    Children = string:join(json_tree(Args), ","),
-    ["{\"name\":\""++atom_to_list(Op)++"\", \"children\":["++Children++"]}"];
-json_tree([Op|Args]) when is_tuple(Op) -> json_tree(Op)++json_tree(Args);
-json_tree([[Op|_]=F|Args]) when is_atom(Op) ->
-    json_tree(F) ++ json_tree(Args);
-json_tree(Ts) when is_list(Ts) ->
-    R = lists:foldl(fun(E, AccIn) ->
-                    case is_string(E) of
-                        true -> ["{\"name\":\""++E++"\", \"children\":[]}"|AccIn];
-                        _ ->
-                            io:format(user, ".... ~p~n", [E]),
-                            [json_tree(E)|AccIn]
-                    end
-                end,
-                [],
-                Ts),
-    io:format(user, "-- ~p~n", [R]),
-    R.
-
-is_string(XY) ->            
-    case is_list(XY) of           
-        false -> false;           
-        true ->
-            lists:all(fun(XX) ->         
-                        if XX < 0 -> false;  
-                           XX > 255 -> false;
-                           true -> true      
-                        end                  
-                      end, XY)
-    end.
 
 parse_tree_json([select|ParseTree]) ->
+    [PT|_] = ParseTree,
     "{id:\""++ref()++"\", name:\"select\", data:{}, children:[\n\t"
     ++
     string:join(lists:foldl(fun(Elm, Acc) ->
@@ -81,7 +49,7 @@ parse_tree_json([select|ParseTree]) ->
                                  end
                             end,
                 [],
-                ParseTree), ",")
+                PT), ",")
     ++
     "]}".
 
@@ -95,6 +63,7 @@ process_simple_list({E,V}) ->
     end.
 
 process_value([]) -> undefined;
+process_value({}) -> undefined;
 process_value(D) -> process_value(D, "").
 process_value({'not', E}, Buf) ->
     Buf ++
@@ -134,6 +103,40 @@ process_value(DList, Buf) ->
     Buf ++ string:join(["{id:\""++ref()++"\", name:\""++D++"\", data:{}, children:[]}" || D <- DList], ",").
 
 ref() -> re:replace(erlang:ref_to_list(erlang:make_ref()),"([#><.])","_",[global,{return, list}]).
+
+json_tree({_,[]}) -> "";
+json_tree(Sql) when is_tuple(Sql) -> json_tree(tuple_to_list(Sql));
+json_tree([Op|Args]) when is_atom(Op) ->
+    Children = string:join(json_tree(Args), ","),
+    ["{\"name\":\""++atom_to_list(Op)++"\", \"children\":["++Children++"]}"];
+json_tree([Op|Args]) when is_tuple(Op) -> json_tree(Op)++json_tree(Args);
+json_tree([[Op|_]=F|Args]) when is_atom(Op) ->
+    json_tree(F) ++ json_tree(Args);
+json_tree(Ts) when is_list(Ts) ->
+    R = lists:foldl(fun(E, AccIn) ->
+                    case is_string(E) of
+                        true -> ["{\"name\":\""++E++"\", \"children\":[]}"|AccIn];
+                        _ ->
+                            io:format(user, ".... ~p~n", [E]),
+                            [json_tree(E)|AccIn]
+                    end
+                end,
+                [],
+                Ts),
+    io:format(user, "-- ~p~n", [R]),
+    R.
+
+is_string(XY) ->            
+    case is_list(XY) of           
+        false -> false;           
+        true ->
+            lists:all(fun(XX) ->         
+                        if XX < 0 -> false;  
+                           XX > 255 -> false;
+                           true -> true      
+                        end                  
+                      end, XY)
+    end.
 
 % sql2json:to_json("select a,b,c from def").
 

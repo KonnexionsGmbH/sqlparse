@@ -75,7 +75,6 @@ Nonterminals
  opt_escape
  test_for_null
  in_predicate
- atom_commalist
  all_or_any_predicate
  any_all_some
  existence_test
@@ -203,7 +202,6 @@ Terminals
  ','
  '='
  '.'
- '||'
 .
 
 Rootsymbol sql_list.
@@ -314,8 +312,8 @@ sql -> cursor_def                                                               
 
 cursor_def -> DECLARE cursor CURSOR FOR query_exp opt_order_by_clause                           : {'declare', '$2', {'cur_for', '$5'}, '$6'}.
 
-opt_order_by_clause -> '$empty'                                                                 : {'order_by', []}.
-opt_order_by_clause -> ORDER BY ordering_spec_commalist                                         : {'order_by', '$3'}.
+opt_order_by_clause -> '$empty'                                                                 : {'order by', []}.
+opt_order_by_clause -> ORDER BY ordering_spec_commalist                                         : {'order by', '$3'}.
 
 ordering_spec_commalist -> ordering_spec                                                        : ['$1'].
 ordering_spec_commalist -> ordering_spec_commalist ',' ordering_spec                            : '$1' ++ ['$3'].
@@ -370,8 +368,8 @@ rollback_statement -> ROLLBACK WORK                                             
 
 select_statement -> SELECT opt_hint opt_all_distinct selection INTO target_commalist table_exp
                  : case '$2' of
-                     {hint, ""} -> list_to_tuple([select, '$3', '$4', '$6'] ++ '$7');
-                     _          -> list_to_tuple([select, '$2', '$3', '$4', '$6'] ++ '$7')
+                     {hint, ""} -> list_to_tuple([select, ['$3', '$4', '$6'] ++ '$7']);
+                     _          -> list_to_tuple([select, ['$2', '$3', '$4', '$6'] ++ '$7'])
                    end.
 select_statement -> query_spec                                                                  : '$1'.
 
@@ -411,8 +409,8 @@ query_term -> '(' query_exp ')'                                                 
 
 query_spec -> SELECT opt_hint opt_all_distinct selection table_exp
            : case '$2' of
-               {hint, ""} -> list_to_tuple([select, '$3', {fields, '$4'}, {into, []}] ++ '$5');
-               _          -> list_to_tuple([select, '$2', '$3', {fields, '$4'}, {into, []}] ++ '$5')
+               {hint, ""} -> list_to_tuple([select, ['$3', {fields, '$4'}, {into, []}] ++ '$5']);
+               _          -> list_to_tuple([select, ['$2', '$3', {fields, '$4'}, {into, []}] ++ '$5'])
              end.
 
 selection -> scalar_exp_commalist                                                               : '$1'.
@@ -432,13 +430,13 @@ table_ref -> table range_variable                                               
 
 where_clause -> WHERE search_condition                                                          : {'where', '$2'}.
 
-opt_group_by_clause  -> '$empty'                                                                : {'group_by', []}.
-opt_group_by_clause  -> GROUP BY column_ref_commalist                                           : {'group_by', '$2'}.
+opt_group_by_clause  -> '$empty'                                                                : {'group by', []}.
+opt_group_by_clause  -> GROUP BY column_ref_commalist                                           : {'group by', '$2'}.
 
 column_ref_commalist -> column_ref                                                              : ['$1'].
 column_ref_commalist -> column_ref_commalist ',' column_ref                                     : '$1' ++ ['$3'].
 
-opt_having_clause -> '$empty'                                                                   : {'having', []}.
+opt_having_clause -> '$empty'                                                                   : {'having', {}}.
 opt_having_clause -> HAVING search_condition                                                    : {'having', '$2'}.
 
     %% search conditions
@@ -477,9 +475,6 @@ in_predicate -> scalar_exp IN '(' subquery ')'                                  
 in_predicate -> scalar_exp NOT IN '(' scalar_exp_commalist ')'                                  : {'not_in', '$1', '$5'}.
 in_predicate -> scalar_exp IN '(' scalar_exp_commalist ')'                                      : {'in', '$1', '$4'}.
 
-atom_commalist -> atom                                                                          : ['$1'].
-atom_commalist -> atom_commalist ',' atom                                                       : '$1' ++ ['$2'].
-
 all_or_any_predicate -> scalar_exp COMPARISON any_all_some subquery                             : {unwrap('$2'), '$1', {'$3', '$4'}}.
            
 any_all_some -> ANY                                                                             : 'ANY'.
@@ -507,11 +502,7 @@ scalar_exp -> APPROXNUM NAME                                                    
 scalar_exp -> atom                                                                              : '$1'.
 scalar_exp -> column_ref                                                                        : '$1'.
 scalar_exp -> function_ref                                                                      : '$1'.
-%scalar_exp -> concat_list                                                                       : {'||','$1'}.
 scalar_exp -> '(' scalar_exp ')'                                                                : ['$2'].
-
-%concat_list -> scalar_exp '||' scalar_exp                                                       : '$1'.
-%concat_list -> concat_list '||' scalar_exp                                                     : '$1' ++ ['$3'].
 
 scalar_exp_commalist -> scalar_exp                                                              : ['$1'].
 scalar_exp_commalist -> scalar_exp_commalist ',' scalar_exp                                     : '$1' ++ ['$3'].

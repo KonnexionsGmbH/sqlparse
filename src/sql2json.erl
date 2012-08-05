@@ -91,7 +91,9 @@ process_value({between=C,L,{L1,R1}}, Buf) ->
             "\n\t{id:\""++ref()++"\", name:\""++L1++"\", data:{}, children:[]}, {id:\""++ref()++"\", name:\""++R1++"\", data:{}, children:[]}"
         ++ "]}"
     ++"]}";
-process_value({C,L,R}, Buf) when is_atom(C), is_list(L), is_list(R) ->
+process_value({C,L,R}, Buf) when is_atom(C), is_number(L), is_list(R) -> process_value({C,number_to_list(L),R}, Buf);
+process_value({C,L,R}, Buf) when is_atom(C), is_list(L), is_number(R) -> process_value({C,L,number_to_list(R)}, Buf);
+process_value({C,L,R}, Buf) when is_atom(C), is_list(L), is_list(R)  ->
     Buf ++
     "{id:\""++ref()++"\", name:\""++atom_to_list(C)++"\", data:{}, children:[\n\t"
     ++ "{id:\""++ref()++"\", name:\""++L++"\", data:{}, children:[]} , {id:\""++ref()++"\", name:\""++R++"\", data:{}, children:[]}]}";
@@ -103,6 +105,9 @@ process_value(DList, Buf) ->
     Buf ++ string:join(["{id:\""++ref()++"\", name:\""++D++"\", data:{}, children:[]}" || D <- DList], ",").
 
 ref() -> re:replace(erlang:ref_to_list(erlang:make_ref()),"([#><.])","_",[global,{return, list}]).
+
+number_to_list(L) when is_float(L) -> float_to_list(L);
+number_to_list(L) when is_integer(L) -> integer_to_list(L).
 
 json_tree({_,[]}) -> "";
 json_tree(Sql) when is_tuple(Sql) -> json_tree(tuple_to_list(Sql));
@@ -140,7 +145,7 @@ is_string(XY) ->
 
 % sql2json:to_json("select a,b,c from def").
 
-% sql2json:to_json("select a,b,c from abc, def where a in (select b from def) and c=d and e=f or g between h and i").
+% sql2json:to_json("select a,b,c from abc, def where a in (select b from def) and c=12.5 and e=f or g between h and i").
  
 %sql2json:to_json("
 %select

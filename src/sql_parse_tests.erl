@@ -9,6 +9,24 @@
 -include_lib("eunit/include/eunit.hrl").
 
 -define (TEST_SQLS, [
+"select * from abc where a = 10 and b = 10.5 and c = -10 and e = -10.5 and -10.6 = g"
+,
+"
+select
+         a
+         ,b
+         ,c
+ from
+         abc
+ where
+ 
+                         a=b
+                 and
+                         not     c=d
+         or      e=12.5
+         or      g=h
+"
+,
 "
 select 
 	a

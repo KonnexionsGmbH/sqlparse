@@ -93,27 +93,23 @@ Rules.
 (WITH|with)						:				{token, {'WITH', TokenLine}}.
 (WORK|work)						:				{token, {'WORK', TokenLine}}.
 
-    %% hint
+
+% hint
 ((\/\*).*(\*\/))        : {token, {'HINT', TokenLine, TokenChars}}.
 
-	%% punctuation
+% punctuation
+(=|<>|<|>|<=|>=)                                                                         : {token, {'COMPARISON', TokenLine, list_to_atom(TokenChars)}}.
+([\|\-\+\*\/\(\)\,\.\;]|(\|\|))                                                          : {token, {list_to_atom(TokenChars), TokenLine}}.
 
-(=|<>|<|>|<=|>=)        : {token, {'COMPARISON', TokenLine, list_to_atom(TokenChars)}}.
+% names
+[A-Za-z][A-Za-z0-9_]*                                                                    : {token, {'NAME', TokenLen, TokenChars}}.
 
-([\|\-\+\*\/\(\)\,\.\;]|(\|\|))    : {token, {list_to_atom(TokenChars), TokenLine}}.
+% parameters
+(\:[A-Za-z][A-Za-z0-9_]*)                                                                : {token, {'PARAMETER', TokenLine, TokenChars}}.
 
-	%% names
-[A-Za-z][A-Za-z0-9_]*   : {token, {'NAME', TokenLen, TokenChars}}.
-
-	%% parameters
-(\:[A-Za-z][A-Za-z0-9_]*)   : {token, {'PARAMETER', TokenLine, TokenChars}}.
-
-	%% numbers
-
-(([0-9]+)|([0-9]+\.[0-9]*)|(\.[0-9]*))  : {token, {'INTNUM', TokenLine, list_to_integer(TokenChars)}}.
-
-
-([0-9]+[eE][\+\-]?[0-9]+)|([0-9]+\.[0-9]*[eE][\+\-]?[0-9]+)|(\.[0-9]*[eE][\+\-]?[0-9]+)  : {token, {'APPROXNUM', TokenLine, TokenChars}}.
+% numbers
+(([\+\-]?)([0-9]+\.[0-9]+([eE][\+\-]?[0-9]+)*))                                          : {token, {'APPROXNUM', TokenLine, list_to_float(TokenChars)}}.
+([\+\-]?[0-9]+)                                                                          : {token, {'INTNUM', TokenLine, list_to_integer(TokenChars)}}.
 
 	%% strings
 

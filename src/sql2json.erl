@@ -65,10 +65,20 @@ process_simple_list({E,V}) ->
 process_value([]) -> undefined;
 process_value({}) -> undefined;
 process_value(D) -> process_value(D, "").
+process_value(B, Buf) when is_binary(B) ->
+    Buf ++ "{id:\""++ref()++"\", name:\"" ++ binary_to_list(B) ++ "\", data:{}, children:[]}";
 process_value({'not', E}, Buf) ->
     Buf ++
     "{id:\""++ref()++"\", name:\"not\", data:{}, children:[\n\t"
     ++ process_value(E, Buf) ++ "]}";
+process_value({'fun', N, Args}, Buf) when is_atom(N) ->
+    Buf ++
+    "{id:\""++ref()++"\", name:\""++atom_to_list(N)++"()\", data:{}, children:[\n\t"
+    ++ string:join([process_value(A, Buf) || A <- Args], ",") ++ "]}";
+process_value({as, L, R}, Buf) ->
+    Buf ++
+    "{id:\""++ref()++"\", name:\"as\", data:{}, children:[\n\t"
+    ++ process_value(L, Buf) ++ "," ++ process_value(R, Buf) ++ "]}";
 process_value({in, L, R}, Buf) when is_list(L), is_tuple(R) ->
     Buf ++
     "{id:\""++ref()++"\", name:\"in\", data:{}, children:[\n\t"
@@ -100,7 +110,11 @@ process_value({C,L,R}, Buf) when is_atom(C), is_tuple(L), is_tuple(R)  ->
     "{id:\""++ref()++"\", name:\""++atom_to_list(C)++"\", data:{}, children:[\n\t"
     ++ process_value(L, Buf) ++ "," ++ process_value(R, Buf) ++ "]}";
 process_value(DList, Buf) ->
-    Buf ++ string:join(["{id:\""++ref()++"\", name:\""++binary_to_list(D)++"\", data:{}, children:[]}" || D <- DList], ",").
+    Buf ++ string:join([if is_tuple(D) -> process_value(tuple_to_list(D), Buf);
+                           is_binary(D) -> "{id:\""++ref()++"\", name:\""++binary_to_list(D)++"\", data:{}, children:[]}";
+                           true -> ""
+                       end
+                       || D <- DList], ",").
 
 ref() -> re:replace(erlang:ref_to_list(erlang:make_ref()),"([#><.])","_",[global,{return, list}]).
 

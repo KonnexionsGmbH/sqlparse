@@ -8,7 +8,7 @@
 
 -include_lib("eunit/include/eunit.hrl").
 
--define (TEST_SQLS, [
+-define (TEST_SQLS1, [
 "select * from abc where a = 10 and b = 10.5 and c = -10 and e = -10.5 and -10.6 = g"
 ,
 "
@@ -55,7 +55,7 @@ where
 ]).
 
 
--define (TEST_SQLS1, [
+-define (TEST_SQLS, [
 "select * from abc where a = 10 and b = 10.5 and c = -10 and e = -10.5 and -10.6 = g"
 ,
 "
@@ -663,10 +663,8 @@ test_parse([Sql|Sqls], N) ->
         	io:format(user, "-------------------------------~nParseTree:~n", []),
         	io:format(user, "~p~n", [ParseTree]),
         	io:format(user, "-------------------------------~n", []),
-            case (catch sql2json:to_json(Sql, "Query" ++ integer_to_list(N))) of
-                {'EXIt', Error} -> io:format(user, "to_json error : ~p~n", [Error]);
-                _ -> ok
-            end;
+            Result = (catch sql2json:to_json(Sql, "Query" ++ integer_to_list(N))),
+            io:format(user, "to_json result : ~p~n", [Result]);
         Error -> io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens])
     end,
     test_parse(Sqls, N+1).

@@ -73,6 +73,13 @@
 %% -record('and',{left,right}).
 %% -record('or',{left,right}).
 
+% sql_box record
+
+-record(sql_box_rec, {
+        name,
+        children = []
+    }).
+
 fold_tree(ParseTree, Fun, Acc) -> fold_tree(0, 0, undefined, ParseTree, Fun, Acc).
 
 fold_tree(_Indent, _Index, _Parent, {_,[]}, _Fun, Acc) -> 
@@ -171,6 +178,25 @@ binding('and') -> 2;
 binding('or') -> 1;
 binding(_) -> 0.
 
+sql_box(_Indent, _Index, _Parent, _Children, prefix, _, Acc)                     -> Acc ++ "(" ;
+sql_box(_Indent, _Index, _Parent, _Children, suffix, _, Acc)                     -> Acc ++ ")" ;
+sql_box(_Indent, _Index, _Parent, _Children, visit, hints, Acc)                  -> Acc;
+sql_box(_Indent, _Index, _Parent, _Children, visit, fields, Acc)                 -> Acc;
+sql_box(_Indent, _Index, _Parent, [], visit, A, Acc) when is_atom(A)             -> Acc;
+sql_box(_Indent, _Index, _Parent, {}, visit, A, Acc) when is_atom(A)             -> Acc;
+sql_box(_Indent, _Index, _Parent, <<>>, visit, A, Acc) when is_atom(A)           -> Acc;
+sql_box(_Indent, _Index, _Parent, _Children, visit, A, Acc) when is_atom(A)      -> Acc#sql_box_rec{name=atom_to_list(A)};
+sql_box(_Indent, _Index, _Parent, _Children, visit, A, Acc) when is_atom(A)      -> Acc ++ " " ++ atom_to_list(A);
+sql_box(_Indent, 0, _Parent, _Children, visit, B, Acc) when is_binary(B)         -> Acc#sql_box_rec{children=Acc#sql_box_rec.children ++ [#sql_box_rec{name=binary_to_list(B)}]};
+sql_box(_Indent, _Index, 'fields', _Children, visit, B, Acc) when is_binary(B)   -> Acc ++ " ," ++ binary_to_list(B);
+sql_box(_Indent, _Index, 'from', _Children, visit, B, Acc) when is_binary(B)     -> Acc ++ " ," ++ binary_to_list(B);
+sql_box(_Indent, _Index, 'group by', _Children, visit, B, Acc) when is_binary(B) -> Acc ++ " ," ++ binary_to_list(B);
+sql_box(_Indent, _Index, 'order by', _Children, visit, B, Acc) when is_binary(B) -> Acc ++ " ," ++ binary_to_list(B);
+sql_box(_Indent, _Index, _Parent, _Children, visit, B, Acc) when is_binary(B)    -> Acc ++ " " ++ binary_to_list(B);
+sql_box(_Indent, _Index, _Parent, _Children, visit, X, Acc) -> 
+	io:format(user, "~n---Fun ignores ~p~n", [X]),
+	Acc.
+
 
 sqlstring(_Indent, _Index, _Parent, _Children, prefix, _, Acc) -> Acc ++ "(" ;
 sqlstring(_Indent, _Index, _Parent, _Children, suffix, _, Acc) -> Acc ++ ")" ;
@@ -195,11 +221,11 @@ sqlstring(_Indent, _Index, _Parent, _Children, visit, X, Acc) ->
 sql_test() -> 
        	io:format(user, "--fold_tree()--sql_test()------~nParseTree:~n", []),
       	io:format(user, "~p~n", [?TEST_PT]),
-	F = fun (Indent, Index, Parent, Children, Mode, Node, Acc) ->
-		sqlstring(Indent, Index, Parent, Children, Mode, Node, Acc)
-	end,
-	Sql = fold_tree(?TEST_PT, F, []),
+	Sql = fold_tree(?TEST_PT, fun sqlstring/7, []),
        	io:format(user, "-------------------------------~nSql:~n", []),
       	io:format(user, "~p~n", [Sql]),
+    %Sql2 = fold_tree(?TEST_PT, fun sql_box/7, #sql_box_rec{}),
+    %   	io:format(user, "-------------------------------~nSql:~n", []),
+    %  	io:format(user, "~p~n", [Sql2]),
 	ok.
 

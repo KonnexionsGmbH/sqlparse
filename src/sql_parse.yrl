@@ -374,8 +374,8 @@ select_statement -> SELECT opt_hint opt_all_distinct selection INTO target_comma
                    end.
 select_statement -> query_spec                                                                  : '$1'.
 
-opt_hint -> '$empty'                                                                            : {hint, <<>>}.
-opt_hint -> HINT                                                                                : {hint, unwrap_bin('$1')}.
+opt_hint -> '$empty'                                                                            : {hints, <<>>}.
+opt_hint -> HINT                                                                                : {hints, unwrap_bin('$1')}.
 
 opt_all_distinct -> '$empty'                                                                    : {opt, []}.
 opt_all_distinct -> ALL                                                                         : {opt, 'ALL'}.

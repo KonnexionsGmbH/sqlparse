@@ -56,6 +56,8 @@ where
 
 
 -define (TEST_SQLS1, [
+"select * from abc where a = 10 and b = 10.5 and c = -10 and e = -10.5 and -10.6 = g"
+,
 "
 select
 	a
@@ -582,6 +584,7 @@ where
 		a=b
 "
 ,
+%	, decode(BD_MSGTYPE||BD_EVENTDISP,01,'Y',012,'Y','N') ISDELIV
 "
 select
 	/*+ index(BDETAIL6 IDX_BD_UMSGGRPID) */
@@ -597,7 +600,7 @@ select
 	, nvl(MMSCCRT_LANG01,BD_CDRRECTYPE) TYPE
 	, nvl(MMSCCRT_VALUE1,BD_CDRRECTYPE) TYPE_TT1
 	, nvl(MMSCCRT_VALUE2,BD_CDRRECTYPE) TYPE_TT2
-	, decode(BD_MSGTYPE||BD_EVENTDISP,01,'Y',012,'Y','N') ISDELIV
+	, decode(BD_MSGTYPE,01,'Y',012,'Y','N') ISDELIV
 	, nvl(MMSCET_LANG02,BD_EVENTDISP) EVENTDISP_STATCODE
 	, nvl(MMSCMT_LANG02,BD_MSGTYPE) MSGTYPE_ERRCODE
 	, nvl(MMSCET_VALUE2,BD_EVENTDISP) EVENTDISP_TT
@@ -610,13 +613,13 @@ from
 	, MMSC_EVENTDISPTYPE
 	, MMSC_MSGTYPE
 where	
-		BD_CDRRECTYPE=MMSCCRT_ID(+) 
-	and	ltrim(to_char(BD_EVENTDISP))=MMSCET_ID(+)
-	and	ltrim(to_char(BD_MSGTYPE))=MMSCMT_ID(+)
+		BD_CDRRECTYPE=MMSCCRT_ID
+	and	ltrim(to_char(BD_EVENTDISP))=MMSCET_ID
+	and	ltrim(to_char(BD_MSGTYPE))=MMSCMT_ID
 	and	BD_UMSGGRPID='mj78yk7r307fga5a01'
 	and	BD_MSISDN_B='41796187332'
-	and	BD_DATETIME>=to_date('19.06.12 11:15:09','DD.MM.YY HH24:MI:SS')-14
-	and	BD_DATETIME<=to_date('19.06.12 11:15:09','DD.MM.YY HH24:MI:SS')+14
+	and	BD_DATETIME>=to_date('19.06.12 11:15:09','DD.MM.YY HH24:MI:SS') - 14
+	and	BD_DATETIME<=to_date('19.06.12 11:15:09','DD.MM.YY HH24:MI:SS') + 14
 order by
 	BD_DATETIME
 	, nvl(BD_DATEDELIVERY,BD_DATETIME)
@@ -653,14 +656,17 @@ remove_eva(S) ->
 parse_test() -> test_parse(?TEST_SQLS, 0).
 test_parse([], _) -> ok;
 test_parse([Sql|Sqls], N) ->
-    io:format(user, "===============================~nSql: "++Sql++"~n", []),
+    io:format(user, "[~p]===============================~nSql: "++Sql++"~n", [N]),
     {ok, Tokens, _} = sql_lex:string(Sql ++ ";"),
     case sql_parse:parse(Tokens) of
         {ok, [ParseTree|_]} -> 
         	io:format(user, "-------------------------------~nParseTree:~n", []),
         	io:format(user, "~p~n", [ParseTree]),
         	io:format(user, "-------------------------------~n", []),
-        	sql2json:to_json(Sql, "Query" ++ integer_to_list(N));
+            case (catch sql2json:to_json(Sql, "Query" ++ integer_to_list(N))) of
+                {'EXIt', Error} -> io:format(user, "to_json error : ~p~n", [Error]);
+                _ -> ok
+            end;
         Error -> io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens])
     end,
     test_parse(Sqls, N+1).

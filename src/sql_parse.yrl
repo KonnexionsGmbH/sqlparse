@@ -320,6 +320,7 @@ ordering_spec_commalist -> ordering_spec_commalist ',' ordering_spec            
 
 ordering_spec -> INTNUM opt_asc_desc                                                            : {'intnum', '$2'}.
 ordering_spec -> column_ref opt_asc_desc                                                        : {'$1', '$2'}.
+ordering_spec -> function_ref opt_asc_desc                                                      : {'$1', '$2'}.
 
 opt_asc_desc -> '$empty'                                                                        : [].
 opt_asc_desc -> ASC                                                                             : 'ASC'.
@@ -414,7 +415,7 @@ query_spec -> SELECT opt_hint opt_all_distinct selection table_exp
              end.
 
 selection -> scalar_exp_commalist                                                               : '$1'.
-selection -> '*'                                                                                : ["*"].
+selection -> '*'                                                                                : [<<"*">>].
 
 table_exp ->
      from_clause opt_where_clause opt_group_by_clause opt_having_clause opt_order_by_clause     : ['$1', '$2', '$3', '$4', '$5'].
@@ -467,12 +468,12 @@ like_predicate -> scalar_exp LIKE atom opt_escape                               
 opt_escape -> '$empty'                                                                          : [].
 opt_escape -> ESCAPE atom                                                                       : {escape, '$2'}.
 
-test_for_null -> column_ref IS NOT NULLX                                                        : {'is_not_nullx', '$1'}.
+test_for_null -> column_ref IS NOT NULLX                                                        : {'not', {'is_nullx', '$1'}}.
 test_for_null -> column_ref IS NULLX                                                            : {'is_nullx', '$1'}.
 
-in_predicate -> scalar_exp NOT IN '(' subquery ')'                                              : {'not_in', '$1', '$5'}.
+in_predicate -> scalar_exp NOT IN '(' subquery ')'                                              : {'not', {'in', '$1', '$5'}}.
 in_predicate -> scalar_exp IN '(' subquery ')'                                                  : {'in', '$1', '$4'}.
-in_predicate -> scalar_exp NOT IN '(' scalar_exp_commalist ')'                                  : {'not_in', '$1', '$5'}.
+in_predicate -> scalar_exp NOT IN '(' scalar_exp_commalist ')'                                  : {'not', {'in', '$1', '$5'}}.
 in_predicate -> scalar_exp IN '(' scalar_exp_commalist ')'                                      : {'in', '$1', '$4'}.
 
 all_or_any_predicate -> scalar_exp COMPARISON any_all_some subquery                             : {unwrap('$2'), '$1', {'$3', '$4'}}.
@@ -493,15 +494,17 @@ scalar_exp -> scalar_exp '*' scalar_exp                                         
 scalar_exp -> scalar_exp '/' scalar_exp                                                         : {'/','$1','$3'}.
 scalar_exp -> '+' scalar_exp                                                                    : {'+','$1'}. %prec UMINU
 scalar_exp -> '-' scalar_exp                                                                    : {'-','$1'}. %prec UMINU
-scalar_exp -> scalar_exp NAME                                                                   : {as, '$1', unwrap('$2')}.
-scalar_exp -> NULLX NAME                                                                        : {as, "NULL", unwrap('$2')}.
-scalar_exp -> NAME NAME                                                                         : {as, unwrap('$1'), unwrap('$2')}.
-scalar_exp -> STRING NAME                                                                       : {as, unwrap('$1'), unwrap('$2')}.
-scalar_exp -> INTNUM NAME                                                                       : {as, unwrap('$1'), unwrap('$2')}.
-scalar_exp -> APPROXNUM NAME                                                                    : {as, unwrap('$1'), unwrap('$2')}.
+scalar_exp -> scalar_exp NAME                                                                   : {as, '$1', unwrap_bin('$2')}.
+scalar_exp -> NULLX NAME                                                                        : {as, <<"NULL">>, unwrap_bin('$2')}.
+scalar_exp -> NAME NAME                                                                         : {as, unwrap_bin('$1'), unwrap_bin('$2')}.
+scalar_exp -> STRING NAME                                                                       : {as, unwrap_bin('$1'), unwrap_bin('$2')}.
+scalar_exp -> INTNUM NAME                                                                       : {as, unwrap_bin('$1'), unwrap_bin('$2')}.
+scalar_exp -> APPROXNUM NAME                                                                    : {as, unwrap_bin('$1'), unwrap_bin('$2')}.
 scalar_exp -> atom                                                                              : '$1'.
 scalar_exp -> column_ref                                                                        : '$1'.
+scalar_exp -> column_ref NAME                                                                   : {as, '$1', unwrap_bin('$2')}.
 scalar_exp -> function_ref                                                                      : '$1'.
+scalar_exp -> function_ref NAME                                                                 : {as, '$1', unwrap_bin('$2')}.
 scalar_exp -> '(' scalar_exp ')'                                                                : ['$2'].
 
 scalar_exp_commalist -> scalar_exp                                                              : ['$1'].
@@ -518,28 +521,30 @@ parameter_ref -> parameter INDICATOR parameter                                  
 function_ref -> NAME  '(' fun_args ')'                                                          : {'fun', unwrap('$1'), '$3'}.
 function_ref -> FUNS  '(' fun_args ')'                                                          : {'fun', unwrap('$1'), '$3'}.
 
-function_ref -> AMMSC '(' '*' ')'                                                               : {'fun', unwrap('$1'), {}}.
-function_ref -> AMMSC '(' DISTINCT column_ref ')'                                               : {'fun', unwrap('$1'), {'distinct', '$4'}}.
-function_ref -> AMMSC '(' ALL scalar_exp ')'                                                    : {'fun', unwrap('$1'), {'all', '$4'}}.
-function_ref -> AMMSC '(' scalar_exp ')'                                                        : {'fun', unwrap('$1'), {'$4'}}.
+function_ref -> AMMSC '(' '*' ')'                                                               : {'fun', unwrap_bin('$1'), {}}.
+function_ref -> AMMSC '(' DISTINCT column_ref ')'                                               : {'fun', unwrap_bin('$1'), {'distinct', '$4'}}.
+function_ref -> AMMSC '(' ALL scalar_exp ')'                                                    : {'fun', unwrap_bin('$1'), {'all', '$4'}}.
+function_ref -> AMMSC '(' scalar_exp ')'                                                        : {'fun', unwrap_bin('$1'), {'$4'}}.
 
-fun_args -> NAME                                                                                : unwrap('$1').
-fun_args -> STRING                                                                              : unwrap('$1').
+fun_args -> NAME                                                                                : [unwrap_bin('$1')].
+fun_args -> STRING                                                                              : [unwrap_bin('$1')].
+fun_args -> INTNUM                                                                              : [unwrap_bin('$1')].
+fun_args -> APPROXNUM                                                                           : [unwrap_bin('$1')].
 fun_args -> function_ref                                                                        : ['$1'].
 fun_args -> fun_args ',' fun_args                                                               : '$1' ++ '$3'.
 
-literal -> STRING                                                                               : unwrap('$1').
-literal -> INTNUM                                                                               : unwrap('$1').
-literal -> APPROXNUM                                                                            : unwrap('$1').
+literal -> STRING                                                                               : unwrap_bin('$1').
+literal -> INTNUM                                                                               : unwrap_bin('$1').
+literal -> APPROXNUM                                                                            : unwrap_bin('$1').
 
     %% miscellaneous
 
-table -> NAME                                                                                   : unwrap('$1').
-table -> NAME '.' NAME                                                                          : unwrap('$1') ++ "." ++ unwrap('$3').
+table -> NAME                                                                                   : unwrap_bin('$1').
+table -> NAME '.' NAME                                                                          : list_to_binary(unwrap('$1') ++ "." ++ unwrap('$3')).
 
-column_ref -> NAME                                                                              : unwrap('$1').
-column_ref -> NAME '.' NAME                                                                     : unwrap('$1') ++ "." ++ unwrap('$3').
-column_ref -> NAME '.' NAME '.' NAME                                                            : unwrap('$1') ++ "." ++ unwrap('$3') ++ "." ++ unwrap('$5').
+column_ref -> NAME                                                                              : unwrap_bin('$1').
+column_ref -> NAME '.' NAME                                                                     : list_to_binary(unwrap('$1') ++ "." ++ unwrap('$3')).
+column_ref -> NAME '.' NAME '.' NAME                                                            : list_to_binary(unwrap('$1') ++ "." ++ unwrap('$3') ++ "." ++ unwrap('$5')).
 
         %% data types
 
@@ -583,6 +588,4 @@ when_action -> CONTINUE                                                         
 Erlang code.
 
 unwrap({_,_,X}) -> X.
-
-%%op_json(Op, [], ArgsList)       -> "{\"operation\":\"" ++ Op ++ "\", \"args\":[" ++ string:sunstring(ArgsList, 1, length(ArgsList)-1) ++ "]}";
-%%op_json(Op, [A|Args], ArgsList) -> op_json(Op, Args, ArgsList ++ "\"" ++ A ++ "\"" ++ ",").
+unwrap_bin({_,_,X}) -> list_to_binary(X).

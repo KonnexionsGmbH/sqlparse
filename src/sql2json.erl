@@ -213,7 +213,7 @@ sql2json_test() ->
 test_parse([], _) -> ok;
 test_parse([Sql|Sqls], N) ->
     io:format(user, "[~p]===============================~nSql: "++Sql++"~n", [N]),
-    Result = (catch sql2json:to_json(Sql, "Query" ++ integer_to_list(N))),
+    Result = (catch to_json(Sql, "Query" ++ integer_to_list(N))),
     ?assertMatch(ok, Result),
     io:format(user, "-------------------------------~n", []),
     test_parse(Sqls, N+1).

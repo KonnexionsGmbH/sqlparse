@@ -4,6 +4,7 @@
 
 -include_lib("eunit/include/eunit.hrl").
 -include("sql_box.hrl").
+-include("sql_tests.hrl").
 
 walk_tree(SqlParseTree) -> walk_tree(SqlParseTree, #sql_box_rec{}).
 
@@ -68,3 +69,20 @@ walk_tree({Op,L,R}, Acc) ->
 
 leaf_to_rec(L) when is_binary(L) -> #sql_box_rec{name=binary_to_list(L), children=[]}.
 
+walk_test() ->
+    io:format(user, "=================================~n", []),
+    io:format(user, "|  S Q L   P A R S E   W A L K  |~n", []),
+    io:format(user, "=================================~n", []),
+    test_loop(?TEST_SQLS0, 0).
+test_loop([], _) -> ok;
+test_loop([Sql|Sqls], N) ->
+    io:format(user, "[~p]===============================~nSql: "++Sql++"~n", [N]),
+    {ok, Tokens, _} = sql_lex:string(Sql ++ ";"),
+    case sql_parse:parse(Tokens) of
+        {ok, [ParseTree|_]} -> 
+        	io:format(user, "-------------------------------~nParseRec:~n", []),
+        	io:format(user, "~p~n", [walk_tree(ParseTree)]),
+        	io:format(user, "-------------------------------~n", []);
+        Error -> io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens])
+    end,
+    test_loop(Sqls, N+1).

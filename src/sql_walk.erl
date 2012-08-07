@@ -65,6 +65,13 @@ walk_tree({Op,L,R}, Acc) ->
     [walk_tree(L, Acc)                           % 1st child is left sub-tree
     , #sql_box_rec{ name=atom_to_list(Op)        % 2nd child is operator
                   , children=walk_tree(R, Acc)}  % 1st child of operator is right sub-tree
+    ];
+
+% recursive uninary tree walk
+walk_tree({Op,D}, Acc) ->
+    Acc ++
+    [#sql_box_rec{ name=atom_to_list(Op)         % 1st child is operator
+                  , children=walk_tree(D, Acc)}  % 1st child of operator is only sibling
     ].
 
 leaf_to_rec(L) when is_binary(L) -> #sql_box_rec{name=binary_to_list(L), children=[]}.
@@ -73,7 +80,7 @@ walk_test() ->
     io:format(user, "=================================~n", []),
     io:format(user, "|  S Q L   P A R S E   W A L K  |~n", []),
     io:format(user, "=================================~n", []),
-    test_loop(?TEST_SQLS0, 0).
+    test_loop(?TEST_SQLS, 0).
 test_loop([], _) -> ok;
 test_loop([Sql|Sqls], N) ->
     io:format(user, "[~p]===============================~nSql: "++Sql++"~n", [N]),

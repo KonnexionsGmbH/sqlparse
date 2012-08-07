@@ -53,6 +53,7 @@ parse_tree_json([select|ParseTree]) ->
     ++
     "]}".
 
+process_simple_list({hints,<<>>}) -> [];
 process_simple_list({E,V}) ->
     case {process_value(V), E} of
         {undefined, _} -> "";
@@ -79,27 +80,28 @@ process_value({as, L, R}, Buf) ->
     Buf ++
     "{id:\""++ref()++"\", name:\"as\", data:{}, children:[\n\t"
     ++ process_value(L, Buf) ++ "," ++ process_value(R, Buf) ++ "]}";
-process_value({in, L, R}, Buf) when is_list(L), is_tuple(R) ->
+process_value({in, L, {list, R}}, Buf) when is_binary(L) ->
+    process_value({in, L, R}, Buf);
+process_value({in, L, R}, Buf) when is_binary(L), is_tuple(R) ->
     Buf ++
     "{id:\""++ref()++"\", name:\"in\", data:{}, children:[\n\t"
-    ++ "{id:\""++ref()++"\", name:\""++L++"\", data:{}, children:[]}," ++ parse_tree_json(tuple_to_list(R)) ++ "]}";
-process_value({in, L, R}, Buf) when is_list(L) ->
+    ++ "{id:\""++ref()++"\", name:\""++binary_to_list(L)++"\", data:{}, children:[]}," ++ parse_tree_json(tuple_to_list(R)) ++ "]}";
+process_value({in, L, R}, Buf) when is_binary(L) ->
     Buf ++
     "{id:\""++ref()++"\", name:\"in\", data:{}, children:[\n\t"
-    ++ "{id:\""++ref()++"\", name:\""++L++"\", data:{}, children:[]}, {id:\""++ref()++"\", name:\"\", data:{}, children:["
+    ++ "{id:\""++ref()++"\", name:\""++binary_to_list(L)++"\", data:{}, children:[]}, {id:\""++ref()++"\", name:\"\", data:{}, children:["
     ++ process_value(R, "")
     ++ "]}]}";
 process_value({where, {C,L,R}}, Buf) ->
     Buf ++
     "{id:\""++ref()++"\", name:\""++atom_to_list(C)++"\", data:{}, children:[\n\t"
     ++ process_value(L, Buf) ++ "," ++ process_value(R, Buf) ++ "]}";
-process_value({between=C,L,{L1,R1}}, Buf) ->
+process_value({between=C,L,L1,R1}, Buf) ->
     Buf ++
     "{id:\""++ref()++"\", name:\""++atom_to_list(C)++"\", data:{}, children:[\n\t"
-        ++ "{id:\""++ref()++"\", name:\""++L++"\", data:{}, children:[]},"
-        ++ "{id:\""++ref()++"\", name:\"and\", data:{}, children:["++
-            "\n\t{id:\""++ref()++"\", name:\""++L1++"\", data:{}, children:[]}, {id:\""++ref()++"\", name:\""++R1++"\", data:{}, children:[]}"
-        ++ "]}"
+        ++ "{id:\""++ref()++"\", name:\""++binary_to_list(L)++"\", data:{}, children:[]},"
+        ++ "{id:\""++ref()++"\", name:\""++binary_to_list(L1)++"\", data:{}, children:[]},"
+        ++ "{id:\""++ref()++"\", name:\""++binary_to_list(R1)++"\", data:{}, children:[]}"
     ++"]}";
 process_value({C,L,R}, Buf) when is_atom(C), is_binary(L), is_binary(R)  ->
     Buf ++
@@ -213,7 +215,11 @@ sql2json_test() ->
 test_parse([], _) -> ok;
 test_parse([Sql|Sqls], N) ->
     io:format(user, "[~p]===============================~nSql: "++Sql++"~n", [N]),
-    Result = (catch to_json(Sql, "Query" ++ integer_to_list(N))),
-    ?assertMatch(ok, Result),
+    case (catch to_json(Sql, "Query" ++ integer_to_list(N))) of
+        {'EXIT', Error} ->
+            io:format(user, "Error ~p~n", [Error]),
+            ?assertEqual(ok, Error);
+        Result -> ok
+    end,
     io:format(user, "-------------------------------~n", []),
     test_parse(Sqls, N+1).

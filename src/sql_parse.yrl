@@ -495,16 +495,24 @@ scalar_exp -> scalar_exp '/' scalar_exp                                         
 scalar_exp -> '+' scalar_exp                                                                    : {'+','$1'}. %prec UMINU
 scalar_exp -> '-' scalar_exp                                                                    : {'-','$1'}. %prec UMINU
 scalar_exp -> scalar_exp NAME                                                                   : {as, '$1', unwrap_bin('$2')}.
+scalar_exp -> scalar_exp AS NAME                                                                : {as, '$1', unwrap_bin('$3')}.
 scalar_exp -> NULLX NAME                                                                        : {as, <<"NULL">>, unwrap_bin('$2')}.
+scalar_exp -> NULLX AS NAME                                                                     : {as, <<"NULL">>, unwrap_bin('$3')}.
 scalar_exp -> NAME NAME                                                                         : {as, unwrap_bin('$1'), unwrap_bin('$2')}.
+scalar_exp -> NAME AS NAME                                                                      : {as, unwrap_bin('$1'), unwrap_bin('$3')}.
 scalar_exp -> STRING NAME                                                                       : {as, unwrap_bin('$1'), unwrap_bin('$2')}.
+scalar_exp -> STRING AS NAME                                                                    : {as, unwrap_bin('$1'), unwrap_bin('$3')}.
 scalar_exp -> INTNUM NAME                                                                       : {as, unwrap_bin('$1'), unwrap_bin('$2')}.
+scalar_exp -> INTNUM AS NAME                                                                    : {as, unwrap_bin('$1'), unwrap_bin('$3')}.
 scalar_exp -> APPROXNUM NAME                                                                    : {as, unwrap_bin('$1'), unwrap_bin('$2')}.
+scalar_exp -> APPROXNUM AS NAME                                                                 : {as, unwrap_bin('$1'), unwrap_bin('$3')}.
 scalar_exp -> atom                                                                              : '$1'.
 scalar_exp -> column_ref                                                                        : '$1'.
 scalar_exp -> column_ref NAME                                                                   : {as, '$1', unwrap_bin('$2')}.
+scalar_exp -> column_ref AS NAME                                                                : {as, '$1', unwrap_bin('$3')}.
 scalar_exp -> function_ref                                                                      : '$1'.
 scalar_exp -> function_ref NAME                                                                 : {as, '$1', unwrap_bin('$2')}.
+scalar_exp -> function_ref AS NAME                                                              : {as, '$1', unwrap_bin('$3')}.
 scalar_exp -> '(' scalar_exp ')'                                                                : ['$2'].
 
 scalar_exp_commalist -> scalar_exp                                                              : ['$1'].
@@ -599,7 +607,8 @@ collapse(SqlStr0) ->
     SqlStr1 = re:replace(SqlStr0, "([\n\r\t ]+)", " ", [{return, list}, global]),
     SqlStr2 = re:replace(SqlStr1, "(^[ ]+)|([ ]+$)", "", [{return, list}, global]),
     SqlStr3 = re:replace(SqlStr2, "([ ]*)([\(\),])([ ]*)", "\\2", [{return, list}, global]),
-    SqlStr3.
+    SqlStr4 = re:replace(SqlStr3, "([ ]*)([\*\+\-\/\=\<\>])([ ]*)", "\\2", [{return, list}, global]),
+    SqlStr4.
 
 %remove_eva(S) ->
 %	re:replace(S, "([ \t]eva[ \t])", "\t\t", [global, {return, list}]).

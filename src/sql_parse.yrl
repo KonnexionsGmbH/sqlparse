@@ -459,8 +459,8 @@ predicate -> existence_test                                                     
 comparison_predicate -> scalar_exp COMPARISON scalar_exp                                        : {unwrap('$2'), '$1', '$3'}.
 comparison_predicate -> scalar_exp COMPARISON subquery                                          : {unwrap('$2'), '$1', '$3'}.
 
-between_predicate -> scalar_exp NOT BETWEEN scalar_exp AND scalar_exp                           : {'not', {'between', '$1', {'$4', '$6'}}}.
-between_predicate -> scalar_exp BETWEEN scalar_exp AND scalar_exp                               : {'between', '$1', {'$3', '$5'}}.
+between_predicate -> scalar_exp NOT BETWEEN scalar_exp AND scalar_exp                           : {'not', {'between', '$1', '$4', '$6'}}.
+between_predicate -> scalar_exp BETWEEN scalar_exp AND scalar_exp                               : {'between', '$1', '$3', '$5'}.
 
 like_predicate -> scalar_exp NOT LIKE atom opt_escape                                           : {'not', {'like', '$1', {'$4', '$5'}}}.
 like_predicate -> scalar_exp LIKE atom opt_escape                                               : {'like', '$1', {'$3', '$4'}}.
@@ -473,8 +473,8 @@ test_for_null -> column_ref IS NULLX                                            
 
 in_predicate -> scalar_exp NOT IN '(' subquery ')'                                              : {'not', {'in', '$1', '$5'}}.
 in_predicate -> scalar_exp IN '(' subquery ')'                                                  : {'in', '$1', '$4'}.
-in_predicate -> scalar_exp NOT IN '(' scalar_exp_commalist ')'                                  : {'not', {'in', '$1', '$5'}}.
-in_predicate -> scalar_exp IN '(' scalar_exp_commalist ')'                                      : {'in', '$1', '$4'}.
+in_predicate -> scalar_exp NOT IN '(' scalar_exp_commalist ')'                                  : {'not', {'in', '$1', {'list', '$5'}}}.
+in_predicate -> scalar_exp IN '(' scalar_exp_commalist ')'                                      : {'in', '$1', {'list', '$4'}}.
 
 all_or_any_predicate -> scalar_exp COMPARISON any_all_some subquery                             : {unwrap('$2'), '$1', {'$3', '$4'}}.
            
@@ -589,3 +589,27 @@ Erlang code.
 
 unwrap({_,_,X}) -> X.
 unwrap_bin({_,_,X}) -> list_to_binary(X).
+
+-include_lib("eunit/include/eunit.hrl").
+-include("sql_tests.hrl").
+
+%remove_eva(S) ->
+%	re:replace(S, "([ \t]eva[ \t])", "\t\t", [global, {return, list}]).
+
+parse_test() ->
+    io:format(user, "===============================~n", []),
+    io:format(user, "|    S Q L   P A R S I N G    |~n", []),
+    io:format(user, "===============================~n", []),
+    test_parse(?TEST_SQLS, 0).
+test_parse([], _) -> ok;
+test_parse([Sql|Sqls], N) ->
+    io:format(user, "[~p]===============================~nSql: "++Sql++"~n", [N]),
+    {ok, Tokens, _} = sql_lex:string(Sql ++ ";"),
+    case sql_parse:parse(Tokens) of
+        {ok, [ParseTree|_]} -> 
+        	io:format(user, "-------------------------------~nParseTree:~n", []),
+        	io:format(user, "~p~n", [ParseTree]),
+        	io:format(user, "-------------------------------~n", []);
+        Error -> io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens])
+    end,
+    test_parse(Sqls, N+1).

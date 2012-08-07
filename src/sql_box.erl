@@ -10,6 +10,22 @@
 -define (TEST_PT, 
 {select,[{hints,<<>>},
          {opt,[]},
+         {fields,[<<"a">>,<<"b">>,<<"c">>]},
+         {into,[]},
+         {from,[<<"abc">>,<<"def">>]},
+         {where,{'or',{'and',{'and',{in,<<"a">>,{'list',[<<"a">>,<<"b">>,<<"c">>]}},
+                                    {'=',<<"c">>,<<"d">>}},
+                             {'=',<<"e">>,<<"f">>}},
+                      {between,<<"g">>,<<"h">>,<<"i">>}}},
+         {'group by',[]},
+         {having,{}},
+         {'order by',[]}]
+}
+).
+
+-define (TEST_PT1, 
+{select,[{hints,<<>>},
+         {opt,[]},
          {fields,[<<"*">>]},
          {into,[]},
          {from,[<<"abc">>]},
@@ -21,260 +37,132 @@
 }
 ).        
 
-walk_tree_test() -> walk_tree(?TEST_PT).
-
-walk_tree(SqlParseTree) -> walk_tree(SqlParseTree, #sql_box_rec{}).
-
-% ignore empty fields
-walk_tree({_, <<>>}, _Acc) -> [];
-walk_tree({_, []}, _Acc) -> [];
-walk_tree({_, {}}, _Acc) -> [];
-
-% process non biary tree leaves
-walk_tree(L, Acc) when is_binary(L) -> Acc#sql_box_rec{name=binary_to_list(L), children=[]};
-
-% Args as list used as a non-binary walk detection
-walk_tree({Op, Args}, Acc) when is_list(Args), length(Args) > 0 ->
-    Childs = lists:foldl(fun(E, A) ->
-                A ++ [walk_tree(E,#sql_box_rec{})]
-                end,
-                [],
-                Args),
-    Acc#sql_box_rec{name=atom_to_list(Op), children=lists:flatten(Childs)};
-
-% begning of binary walk
-walk_tree({Op, {Op1,L,R}}, Acc) ->
-    Acc#sql_box_rec{ name=atom_to_list(Op)
-                 , children=lists:flatten([
-                         walk_tree(L, [])                            % 1st child is left sub-tree
-                         , #sql_box_rec{ name=atom_to_list(Op1)      % 2nd child is operator
-                                       , children=walk_tree(R, [])}  % 1st child of operator is right sub-tree
-                 ])};
-
-% both leaf
-walk_tree({Op,L,R}, Acc) when is_binary(L), is_binary(R) ->
-    Acc ++
-    [leaf_to_rec(L)                              % 1st child is left sub-tree
-    , #sql_box_rec{ name=atom_to_list(Op)        % 2nd child is operator
-                  , children=[leaf_to_rec(R)]}   % 1st child of operator is right sub-tree
-    ];
-
-
-% left leaf
-walk_tree({Op,L,R}, Acc) when is_binary(L) ->
-    Acc ++
-    [leaf_to_rec(L)                              % 1st child is left sub-tree
-    , #sql_box_rec{ name=atom_to_list(Op)        % 2nd child is operator
-                  , children=walk_tree(R, Acc)}  % 1st child of operator is right sub-tree
-    ];
-
-% right leaf
-walk_tree({Op,L,R}, Acc) when is_binary(R) ->
-    Acc ++
-    [walk_tree(L, Acc)                           % 1st child is left sub-tree
-    , #sql_box_rec{ name=atom_to_list(Op)        % 2nd child is operator
-                  , children=[leaf_to_rec(R)]}   % 1st child of operator is right sub-tree
-    ];
-
-% recursive binary tree walk
-walk_tree({Op,L,R}, Acc) ->
-    Acc ++
-    [walk_tree(L, Acc)                           % 1st child is left sub-tree
-    , #sql_box_rec{ name=atom_to_list(Op)        % 2nd child is operator
-                  , children=walk_tree(R, Acc)}  % 1st child of operator is right sub-tree
-    ].
-
-leaf_to_rec(L) when is_binary(L) -> #sql_box_rec{name=binary_to_list(L), children=[]}.
-
-%% -------------------------------
-%% Example Sql:
-%% select 
-%% 	*
-%% from 
-%% 	abc
-%% 	, def
-%% where
-%% 	(
-%% 		a
-%% 		=
-%% 		b
-%% 	or
-%% 		c
-%% 		=
-%% 		d
-%% 	)
-%% 	and
-%% 		e
-%% 		=
-%% 		f
-%% -------------------------------
-%% Example ParseTree:
-%% {select,[{hints,<<"/*+ index (table column) */">>},
-%%          {opt,[]},
-%%          {fields,[<<"*">>]},
-%%          {into,[]},
-%%          {from,[<<"abc">>,<<"def">>]},
-%%          {where,{'and',{'or',{'=',<<"a">>,<<"b">>},{'=',<<"c">>,<<"d">>}},
-%%                        {'=',<<"e">>,<<"f">>}}},
-%%          {'group by',[]},
-%%          {having,{}},
-%%          {'order by',[]}]
-%% }
-%% -------------------------------
-
-
-%% -- in-order parse tree nodes (all others are pre-order nodes) --
-
--define(inOrderNodes, ['=',is,'<','>','<>','<=','>=',in,between,and,or]).
-
-%% -record('=',{left,right}).
-%% -record('is',{left,right}).
-%% -record('<',{left,right}).
-%% -record('>',{left,right}).
-%% -record('<>',{left,right}).
-%% -record('<=',{left,right}).
-%% -record('>=',{left,right}).
-%% -record('in',{left,right}).
-%% -record('between',{left,right}).
-%% -record('and',{left,right}).
-%% -record('or',{left,right}).
-
-% sql_box record
 
 fold_tree(ParseTree, Fun, Acc) -> fold_tree(0, 0, undefined, ParseTree, Fun, Acc).
 
-fold_tree(_Indent, _Index, _Parent, {_,[]}, _Fun, Acc) -> 
-	Acc;	%% pre-order element with empty content 
-fold_tree(_Indent, _Index, _Parent, [], _Fun, Acc) -> 
-	Acc;	%% pre-order content traversal complete 
-fold_tree(_Indent, _Index, _Parent, {_,<<>>}, _Fun, Acc) -> 
-	Acc;	%% pre-order empty hints 
-fold_tree(Indent, Index, Parent, [B|Rest], Fun, Acc0) when is_binary(B) ->
-	%% pre-order terminal content
-   io:format(user, "~n~p,~p,~p,~p~n", [Indent, Index, Parent, B]),
-	Acc1 = Fun(Indent, Index, Parent, [], visit, B, Acc0),			%% visit list node
-	fold_tree(Indent, Index+1, Parent, Rest, Fun, Acc1);			%% visit rest of list
-fold_tree(Indent, Index, Parent, B, Fun, Acc) when is_binary(B) ->
-	%% in-order terminal content
-   io:format(user, "~n~p,~p,~p,~p~n", [Indent, Index, Parent, B]),
-	Fun(Indent, Index, Parent, [], visit, B, Acc);				%% visit in-order terminal
-fold_tree(Indent, Index, Parent, [{Name, Children}|Rest], Fun, Acc0) when is_list(Children) ->
-	%% pre-order traversal recurse
-   io:format(user, "~n~p,~p,~p,~p~n", [Indent, Index, Parent, Name]),
-	Acc1 = Fun(Indent, 0, Parent, Children, visit, Name, Acc0),		%% visit node
-	NewIndent = Indent+1,
-	Acc2 = fold_tree(NewIndent, 0 , Name, Children, Fun, Acc1),		%% visit first child
-	fold_tree(Indent, Index+1 , Parent, Rest, Fun, Acc2);			%% visit remaining children	
-fold_tree(Indent, Index, Parent, [{Name, {}}|Rest], Fun, Acc0) ->
-	%% pre-order to empty in-order transition
-   io:format(user, "~n~p,~p,~p,~p~n", [Indent, Index, Parent, Name]),
-	Acc1 = Fun(Indent, 0, Parent, {}, visit, Name, Acc0),			%% visit pre-order node
-	fold_tree(Indent, Index+1, Parent, Rest, Fun, Acc1);			%% resume pre-order processing
-fold_tree(Indent, Index, Parent, [{Name, <<>>}|Rest], Fun, Acc0) ->
-	%% pre-order empty hints
-   io:format(user, "~n~p,~p,~p,~p~n", [Indent, Index, Parent, Name]),
-	Acc1 = Fun(Indent, 0, Parent, <<>>, visit, Name, Acc0),			%% visit pre-order node
-	fold_tree(Indent, Index+1, Parent, Rest, Fun, Acc1);			%% resume pre-order processing
-fold_tree(Indent, Index, Parent, [{Name, B}|Rest], Fun, Acc0) when is_binary(B) ->
-	%% pre-order hints
-   io:format(user, "~n~p,~p,~p,~p~n", [Indent, Index, Parent, Name]),
-	Acc1 = Fun(Indent, 0, Parent, B, visit, Name, Acc0),			%% visit pre-order node
-	Acc2 = Fun(Indent+1, 1, Name, <<>>, visit, B, Acc1),			%% visit pre-order node
-	fold_tree(Indent, Index+1, Parent, Rest, Fun, Acc2);			%% resume pre-order processing
-fold_tree(Indent, Index, Parent, [{Name, {Child, Unary}}|Rest], Fun, Acc0) ->
-	%% pre-order to unary in-order transition
-   io:format(user, "~n~p,~p,~p,~p~n", [Indent, Index, Parent, Name]),
-	Acc1 = Fun(Indent, 0, Parent, {Child, Unary}, visit, Name, Acc0),	%% visit pre-order node
-	NewIndent = Indent+1,
-	Acc2 = fold_tree(NewIndent, 0, Name, {Child, Unary}, Fun, Acc1),	%% visit in-order unary child
-	fold_tree(Indent, Index+1, Parent, Rest, Fun, Acc2);			%% resume pre-order processing
-fold_tree(Indent, Index, Parent, [{Name, {Child, Left, Right}}|Rest], Fun, Acc0) ->
-	%% pre-order to binary in-order transition
-   io:format(user, "~n~p,~p,~p,~p~n", [Indent, Index, Parent, Name]),
-	Acc1 = Fun(Indent, 0, Parent, {Child, Left, Right}, visit, Name, Acc0),	%% visit pre-order node
-	NewIndent = Indent+1,
-	Acc2 = fold_tree(NewIndent, 0, Name, {Child, Left, Right}, Fun, Acc1),	%% visit in-order children
-	fold_tree(Indent, Index+1, Parent, Rest, Fun, Acc2);			%% resume pre-order processing
-fold_tree(Indent, _Index, Parent, {Name, Left, Right}, Fun, Acc0) ->
-	%% in-order recurse
-	case binding(Left) > binding(Name) of
+fold_tree(_Ind, _Idx, _Parent, {_,[]}, _Fun, Acc) -> Acc;									%% pre-order element with empty content 
+fold_tree(_Ind, _Idx, _Parent, [], _Fun, Acc) -> Acc;										%% pre-order content traversal complete 
+fold_tree(_Ind, _Idx, _Parent, {_,<<>>}, _Fun, Acc) -> Acc;									%% pre-order empty hints 
+
+fold_tree(Ind, Idx, Parent, [B|Rest], Fun, Acc0) when is_binary(B) ->						%% pre-order terminal content
+   io:format(user, "~n~p,~p,~p,~p~n", [Ind, Idx, Parent, B]),
+	Acc1 = Fun(Ind, Idx, Parent, [], visit, B, Acc0),					
+	fold_tree(Ind, Idx+1, Parent, Rest, Fun, Acc1);						
+
+fold_tree(Ind, Idx, Parent, B, Fun, Acc) when is_binary(B) ->								%% in-order terminal content
+   io:format(user, "~n~p,~p,~p,~p~n", [Ind, Idx, Parent, B]),
+	Fun(Ind, Idx, Parent, [], visit, B, Acc);							
+	
+fold_tree(Ind, Idx, Parent, [{Name, Children}|Rest], Fun, Acc0) when is_list(Children) ->	%% pre-order traversal recurse
+   io:format(user, "~n~p,~p,~p,~p~n", [Ind, Idx, Parent, Name]),
+	Acc1 = Fun(Ind, 0, Parent, Children, visit, Name, Acc0),				
+	NewInd = Ind+1,
+	Acc2 = fold_tree(NewInd, 0 , Name, Children, Fun, Acc1),				
+	fold_tree(Ind, Idx+1 , Parent, Rest, Fun, Acc2);					
+	
+fold_tree(Ind, Idx, Parent, [{Name, B}|Rest], Fun, Acc0) when is_binary(B) ->	%% pre-order hints
+   io:format(user, "~n~p,~p,~p,~p~n", [Ind, Idx, Parent, Name]),
+	Acc1 = Fun(Ind, 0, Parent, B, visit, Name, Acc0),					
+	Acc2 = Fun(Ind+1, 1, Name, <<>>, visit, B, Acc1),				
+	fold_tree(Ind, Idx+1, Parent, Rest, Fun, Acc2);				
+	
+fold_tree(Ind, Idx, Parent, {Name, List}, Fun, Acc0) when is_list(List) ->					%% pre-order traversal recurse
+   io:format(user, "~n~p,~p,~p,~p~n", [Ind, Idx, Parent, Name]),
+	Acc1 = Fun(Ind, 0, Parent, List, visit, Name, Acc0),			
+	fold_tree(Ind, 0 , Name, List, Fun, Acc1);
+	
+fold_tree(Ind, Idx, Parent, [{Name, {}}|Rest], Fun, Acc0) ->								%% pre-order -> empty in-order
+   io:format(user, "~n~p,~p,~p,~p~n", [Ind, Idx, Parent, Name]),
+	Acc1 = Fun(Ind, 0, Parent, {}, visit, Name, Acc0),			
+	fold_tree(Ind, Idx+1, Parent, Rest, Fun, Acc1);			
+	
+fold_tree(Ind, Idx, Parent, [{Name, {Child, Unary}}|Rest], Fun, Acc0) ->	%% pre-order to unary in-order transition
+   io:format(user, "~n~p,~p,~p,~p~n", [Ind, Idx, Parent, Name]),
+	Acc1 = Fun(Ind, 0, Parent, {Child, Unary}, visit, Name, Acc0),	
+	NewInd = Ind+1,
+	Acc2 = fold_tree(NewInd, 0, Name, {Child, Unary}, Fun, Acc1),	
+	fold_tree(Ind, Idx+1, Parent, Rest, Fun, Acc2);			
+	
+fold_tree(Ind, Idx, Parent, [{Name, {Child, Left, Right}}|Rest], Fun, Acc0) ->		%% pre-order to binary in-order transition
+   io:format(user, "~n~p,~p,~p,~p~n", [Ind, Idx, Parent, Name]),
+	Acc1 = Fun(Ind, 0, Parent, {Child, Left, Right}, visit, Name, Acc0),			
+	NewInd = Ind+1,
+	Acc2 = fold_tree(NewInd, 0, Name, {Child, Left, Right}, Fun, Acc1),			
+	fold_tree(Ind, Idx+1, Parent, Rest, Fun, Acc2);					
+	
+fold_tree(Ind, Idx, Parent, [{Name, {Child, Left, Middle, Right}}|Rest], Fun, Acc0) ->	%% pre-order to ternary in-order transition
+   io:format(user, "~n~p,~p,~p,~p~n", [Ind, Idx, Parent, Name]),
+	Acc1 = Fun(Ind, 0, Parent, {Child, Left, Middle, Right}, visit, Name, Acc0),		
+	NewInd = Ind+1,
+	Acc2 = fold_tree(NewInd, 0, Name, {Child, Left, Middle, Right}, Fun, Acc1),		
+	fold_tree(Ind, Idx+1, Parent, Rest, Fun, Acc2);					
+	
+fold_tree(Ind, _Idx, Parent, {Name, Unary}, Fun, Acc0) when is_tuple(Unary) ->	%% in-order unary recurse
+   io:format(user, "~n~p,~p,~p,~p~n", [Ind, 0, Parent, Name]),
+	Acc1 = Fun(Ind, 0, Parent, Unary, visit, Name, Acc0),		
+	fold_tree(Ind, 1, Name, Unary, Fun, Acc1);				
+
+fold_tree(Ind, Idx, Parent, {Name, Left, Right}, Fun, Acc0) ->				%% in-order binary recurse
+	case binding(Left) < binding(Name) of
 		true	->
-			Acc1 = Fun(Indent, 0, Name, undefined, suffix, Left, 
-				fold_tree(Indent, 1, Name, Left, Fun, 
-					Fun(Indent, 0, Name, undefined, prefix, Left, Acc0)
+   io:format(user, "~n~p,~p,~p,~p (~n", [Ind, Idx, Parent, Name]),
+			Acc1 = Fun(Ind, 0, Name, undefined, suffix, Left, 
+				fold_tree(Ind, 0, Name, Left, Fun, 
+					Fun(Ind, 0, Name, undefined, prefix, Left, Acc0)
 					)
 				);
 		false	->
-			Acc1 = fold_tree(Indent, 1, Name, Left, Fun, Acc0)		%% visit left child
+			Acc1 = fold_tree(Ind, 0, Name, Left, Fun, Acc0)		
 	end,
-   io:format(user, "~n~p,~p,~p,~p~n", [Indent, 0, Parent, Name]),
-	Acc2 = Fun(Indent, 0, Parent, {Left, Right}, visit, Name, Acc1),		%% visit middle node
-	case binding(Right) > binding(Name) of
+   io:format(user, "~n~p,~p,~p,~p~n", [Ind, 0, Parent, Name]),
+	Acc2 = Fun(Ind, 0, Parent, {Left, Right}, visit, Name, Acc1),		
+	case binding(Right) < binding(Name) of
 		true	->
-			Fun(Indent, 0, Name, undefined, suffix, Right,
-				fold_tree(Indent, 2, Name, Right, Fun, 
-				Fun(Indent, 0, Name, undefined, prefix, Right, Acc2)	%% visit right child
+   io:format(user, "~n~p,~p,~p,~p )~n", [Ind, Idx, Parent, Name]),
+			Fun(Ind, 0, Name, undefined, suffix, Right,
+				fold_tree(Ind, 0, Name, Right, Fun, 
+				Fun(Ind, 0, Name, undefined, prefix, Right, Acc2)	
 				)
 			);
 		false	->
-			fold_tree(Indent, 2, Name, Right, Fun, Acc2)		%% visit right child
+			fold_tree(Ind, 0, Name, Right, Fun, Acc2)		
 	end;
-fold_tree(Indent, Index, Parent, {Name, List}, Fun, Acc0) when is_list(List) ->
-	%% pre-order traversal recurse
-   io:format(user, "~n~p,~p,~p,~p~n", [Indent, Index, Parent, Name]),
-	Acc1 = Fun(Indent, 0, Parent, List, visit, Name, Acc0),			%% visit node
-	fold_tree(Indent, 0 , Name, List, Fun, Acc1);				%% visit children	
-fold_tree(Indent, _Index, Parent, {Name, Unary}, Fun, Acc0) when is_tuple(Unary) ->
-	%% in-order unary recurse
-   io:format(user, "~n~p,~p,~p,~p~n", [Indent, 0, Parent, Name]),
-	Acc1 = Fun(Indent, 0, Parent, Unary, visit, Name, Acc0),		%% visit node
-	fold_tree(Indent, 1, Name, Unary, Fun, Acc1);				%% visit unary child
-fold_tree(_Indent, _Index, _Parent, T, _Fun, Acc)-> 
-	%% catch remaining
+	
+fold_tree(_Ind, _Idx, _Parent, T, _Fun, Acc)-> 									%% catch remaining
    io:format(user, "~n----remaining term---------~n~p~n", [T]),
 	Acc. 
 
-binding('not') -> 3;
-binding('and') -> 2;
-binding('or') -> 1;
+binding({'=',_,_}) -> 5;
+binding({'<=',_,_}) -> 5;
+binding({'>=',_,_}) -> 5;
+binding({'<>',_,_}) -> 5;
+binding({'<',_,_}) -> 5;
+binding({'>',_,_}) -> 5;
+binding({'between',_,_}) -> 5;
+binding({'in',_,_}) -> 4;
+binding({'not',_}) -> 3;
+binding({'and',_,_}) -> 2;
+binding({'or',_,_}) -> 1;
 binding(_) -> 0.
 
-sql_box(_Indent, _Index, _Parent, _Children, prefix, _, Acc)                     -> Acc ++ "(" ;
-sql_box(_Indent, _Index, _Parent, _Children, suffix, _, Acc)                     -> Acc ++ ")" ;
-sql_box(_Indent, _Index, _Parent, _Children, visit, hints, Acc)                  -> Acc;
-sql_box(_Indent, _Index, _Parent, _Children, visit, fields, Acc)                 -> Acc;
-sql_box(_Indent, _Index, _Parent, [], visit, A, Acc) when is_atom(A)             -> Acc;
-sql_box(_Indent, _Index, _Parent, {}, visit, A, Acc) when is_atom(A)             -> Acc;
-sql_box(_Indent, _Index, _Parent, <<>>, visit, A, Acc) when is_atom(A)           -> Acc;
-sql_box(_Indent, _Index, _Parent, _Children, visit, A, Acc) when is_atom(A)      -> Acc#sql_box_rec{name=atom_to_list(A)};
-sql_box(_Indent, _Index, _Parent, _Children, visit, A, Acc) when is_atom(A)      -> Acc ++ " " ++ atom_to_list(A);
-sql_box(_Indent, 0, _Parent, _Children, visit, B, Acc) when is_binary(B)         -> Acc#sql_box_rec{children=Acc#sql_box_rec.children ++ [#sql_box_rec{name=binary_to_list(B)}]};
-sql_box(_Indent, _Index, 'fields', _Children, visit, B, Acc) when is_binary(B)   -> Acc ++ " ," ++ binary_to_list(B);
-sql_box(_Indent, _Index, 'from', _Children, visit, B, Acc) when is_binary(B)     -> Acc ++ " ," ++ binary_to_list(B);
-sql_box(_Indent, _Index, 'group by', _Children, visit, B, Acc) when is_binary(B) -> Acc ++ " ," ++ binary_to_list(B);
-sql_box(_Indent, _Index, 'order by', _Children, visit, B, Acc) when is_binary(B) -> Acc ++ " ," ++ binary_to_list(B);
-sql_box(_Indent, _Index, _Parent, _Children, visit, B, Acc) when is_binary(B)    -> Acc ++ " " ++ binary_to_list(B);
-sql_box(_Indent, _Index, _Parent, _Children, visit, X, Acc) -> 
-	io:format(user, "~n---Fun ignores ~p~n", [X]),
-	Acc.
 
-
-sqlstring(_Indent, _Index, _Parent, _Children, prefix, _, Acc) -> Acc ++ "(" ;
-sqlstring(_Indent, _Index, _Parent, _Children, suffix, _, Acc) -> Acc ++ ")" ;
-sqlstring(_Indent, _Index, _Parent, _Children, visit, hints, Acc) -> Acc;
-sqlstring(_Indent, _Index, _Parent, _Children, visit, fields, Acc) -> Acc;
-sqlstring(_Indent, _Index, _Parent, [], visit, A, Acc) when is_atom(A) -> Acc;
-sqlstring(_Indent, _Index, _Parent, {}, visit, A, Acc) when is_atom(A) -> Acc;
-sqlstring(_Indent, _Index, _Parent, <<>>, visit, A, Acc) when is_atom(A) -> Acc;
-sqlstring(_Indent, _Index, _Parent, _Children, visit, A, Acc) when is_atom(A) -> Acc ++ " " ++ atom_to_list(A);
-sqlstring(_Indent, _Index, _Parent, _Children, visit, A, Acc) when is_atom(A) -> Acc ++ " " ++ atom_to_list(A);
-sqlstring(_Indent, 0, _Parent, _Children, visit, B, Acc) when is_binary(B) -> Acc ++ " " ++ binary_to_list(B);
-sqlstring(_Indent, _Index, 'fields', _Children, visit, B, Acc) when is_binary(B) -> Acc ++ " ," ++ binary_to_list(B);
-sqlstring(_Indent, _Index, 'from', _Children, visit, B, Acc) when is_binary(B) -> Acc ++ " ," ++ binary_to_list(B);
-sqlstring(_Indent, _Index, 'group by', _Children, visit, B, Acc) when is_binary(B) -> Acc ++ " ," ++ binary_to_list(B);
-sqlstring(_Indent, _Index, 'order by', _Children, visit, B, Acc) when is_binary(B) -> Acc ++ " ," ++ binary_to_list(B);
-sqlstring(_Indent, _Index, _Parent, _Children, visit, B, Acc) when is_binary(B) -> Acc ++ " " ++ binary_to_list(B);
-sqlstring(_Indent, _Index, _Parent, _Children, visit, X, Acc) -> 
+sqlstring(_Ind, _Idx, _Parent, _Children, prefix, _, Acc) -> Acc ++ " (" ;
+sqlstring(_Ind, _Idx, _Parent, _Children, suffix, _, Acc) -> Acc ++ " )" ;
+sqlstring(_Ind, _Idx, _Parent, _Children, visit, hints, Acc) -> Acc;
+sqlstring(_Ind, _Idx, _Parent, _Children, visit, fields, Acc) -> Acc;
+sqlstring(_Ind, _Idx, _Parent, [], visit, A, Acc) when is_atom(A) -> Acc;
+sqlstring(_Ind, _Idx, _Parent, {}, visit, A, Acc) when is_atom(A) -> Acc;
+sqlstring(_Ind, _Idx, _Parent, <<>>, visit, A, Acc) when is_atom(A) -> Acc;
+sqlstring(_Ind, _Idx, _Parent, _Children, visit, A, Acc) when is_atom(A) -> Acc ++ " " ++ atom_to_list(A);
+sqlstring(_Ind, _Idx, _Parent, _Children, visit, A, Acc) when is_atom(A) -> Acc ++ " " ++ atom_to_list(A);
+sqlstring(_Ind, 0, _Parent, _Children, visit, B, Acc) when is_binary(B) -> Acc ++ " " ++ binary_to_list(B);
+sqlstring(_Ind, _Idx, 'fields', _Children, visit, B, Acc) when is_binary(B) -> Acc ++ " ," ++ binary_to_list(B);
+sqlstring(_Ind, _Idx, 'from', _Children, visit, B, Acc) when is_binary(B) -> Acc ++ " ," ++ binary_to_list(B);
+sqlstring(_Ind, _Idx, 'in', _Children, visit, B, Acc) when is_binary(B) -> Acc ++ " ," ++ binary_to_list(B);
+sqlstring(_Ind, _Idx, 'group by', _Children, visit, B, Acc) when is_binary(B) -> Acc ++ " ," ++ binary_to_list(B);
+sqlstring(_Ind, _Idx, 'order by', _Children, visit, B, Acc) when is_binary(B) -> Acc ++ " ," ++ binary_to_list(B);
+sqlstring(_Ind, _Idx, _Parent, _Children, visit, B, Acc) when is_binary(B) -> Acc ++ " " ++ binary_to_list(B);
+sqlstring(_Ind, _Idx, _Parent, _Children, visit, X, Acc) -> 
 	io:format(user, "~n---Fun ignores ~p~n", [X]),
 	Acc.
 	

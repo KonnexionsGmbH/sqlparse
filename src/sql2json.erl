@@ -201,3 +201,19 @@ is_string(XY) ->
 %   	or	g=h;").
 %    {ok, [P|_]} = sql_parse:parse(Tokens).           
 % sql2json:json_tree(P).
+
+-include_lib("eunit/include/eunit.hrl").
+-include("sql_tests.hrl").
+
+sql2json_test() ->
+    io:format(user, "=========================================~n", []),
+    io:format(user, "|  T O   J S O N   P A R S E   T R E E  |~n", []),
+    io:format(user, "=========================================~n", []),
+    test_parse(?TEST_SQLS, 0).
+test_parse([], _) -> ok;
+test_parse([Sql|Sqls], N) ->
+    io:format(user, "[~p]===============================~nSql: "++Sql++"~n", [N]),
+    Result = (catch sql2json:to_json(Sql, "Query" ++ integer_to_list(N))),
+    ?assertMatch(ok, Result),
+    io:format(user, "-------------------------------~n", []),
+    test_parse(Sqls, N+1).

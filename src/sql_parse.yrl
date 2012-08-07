@@ -603,13 +603,19 @@ Erlang code.
 unwrap({_,_,X}) -> X.
 unwrap_bin({_,_,X}) -> list_to_binary(X).
 
-collapse(SqlStr0) ->
-    SqlStr1 = re:replace(SqlStr0, "([\n\r\t ]+)", " ", [{return, list}, global]),
-    SqlStr2 = re:replace(SqlStr1, "(^[ ]+)|([ ]+$)", "", [{return, list}, global]),
-    SqlStr3 = re:replace(SqlStr2, "([ ]*)([\(\),])([ ]*)", "\\2", [{return, list}, global]),
-    %SqlStr4 = re:replace(SqlStr3, "([ ]*)([\*\+\-\/\=\<\>])([ ]*)", "\\2", [{return, list}, global]),
-    SqlStr4 = re:replace(SqlStr3, "([ ]*)(( \* )|( \+ )|( \- )|( \/ )|( \= )|( \< )|( \> ))([ ]*)", "\\2", [{return, list}, global]),
-    SqlStr4.
+-define(REG_LST, [
+    {"([\n\r\t ]+)",                                                    " "}    % \r,\n or spaces               -> single space
+  , {"(^[ ]+)|([ ]+$)",                                                 ""}     % leading or trailing spaces    -> removed
+  , {"([ ]*)([\(\),])([ ]*)",                                           "\\2"}  % spaces before or after ( or ) -> single space
+  , {"([ ]*)(( \* )|( \+ )|( \- )|( \/ )|( \= )|( \< )|( \> ))([ ]*)",  "\\2"}  % spaces around math operators  -> removed
+% , {"([\)])([ ]*)",                                                    "\\1 "} % no space after )              -> added one space
+]).
+
+collapse(Sql) ->
+    lists:foldl(
+        fun({Re,R}, S) -> re:replace(S, Re, R, [{return, list}, global]) end,
+        Sql,
+        ?REG_LST).
 
 %remove_eva(S) ->
 %	re:replace(S, "([ \t]eva[ \t])", "\t\t", [global, {return, list}]).

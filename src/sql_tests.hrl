@@ -1,4 +1,22 @@
--define (TEST_SQLS0, [
+-define (TEST_SQLS, [
+"
+select 
+	a
+	,b
+	,c
+from 
+	abc
+	, def
+where
+		a
+		=
+		b
+	or
+		c
+		=
+		d
+"
+,
 "
 select
 	*
@@ -17,7 +35,7 @@ where
 ]).
 
 
--define (TEST_SQLS, [
+-define (TEST_SQLS0, [
 "select * from abc where a = 10 and b = 10.5 and c = -10 and e = -10.5 and -10.6 = g"
 ,
 "

@@ -1,6 +1,6 @@
 -module(sql_walk).
 
--export([walk_tree/1]).
+-export([walk_tree/1, walk_tree/2]).
 
 -include_lib("eunit/include/eunit.hrl").
 -include("sql_box.hrl").
@@ -13,10 +13,19 @@ walk_tree({_, <<>>}, _Acc) -> [];
 walk_tree({_, []}, _Acc) -> [];
 walk_tree({_, {}}, _Acc) -> [];
 
+% create record
+walk_tree({Op, Args}, undefined) when is_list(Args), length(Args) > 0   -> walk_tree({Op, Args}, #sql_box_rec{});
+walk_tree({Op, {Op1,L,R}}, undefined)                                   -> walk_tree({Op, {Op1,L,R}}, #sql_box_rec{});
+walk_tree(L, undefined) when is_binary(L)                               -> walk_tree(L, #sql_box_rec{});
+walk_tree({Op,Con,D0,D1,D2}, undefined)                                 -> walk_tree({Op,Con,D0,D1,D2}, #sql_box_rec{});
+walk_tree({Op,L,R}, undefined)                                          -> walk_tree({Op,L,R}, #sql_box_rec{});
+walk_tree({Op,D}, undefined)                                            -> walk_tree({Op,D}, #sql_box_rec{});
+
+
 % Args as list used as a generic walk detection
 walk_tree({Op, Args}, Acc) when is_list(Args), length(Args) > 0 ->
     Childs = lists:foldl(fun(E, A) ->
-                A ++ [walk_tree(E,#sql_box_rec{})]
+                A ++ [walk_tree(E,undefined)]
                 end,
                 [],
                 Args),
@@ -26,14 +35,20 @@ walk_tree({Op, Args}, Acc) when is_list(Args), length(Args) > 0 ->
 walk_tree({Op, {Op1,L,R}}, Acc) ->
     Acc#sql_box_rec{ name=atom_to_list(Op)
                    , children=lists:flatten([
-                         walk_tree(L, #sql_box_rec{})                               % 1st child is left sub-tree
-                         , #sql_box_rec{ name=atom_to_list(Op1)                     % 2nd child is operator
-                                       , children=[walk_tree(R, #sql_box_rec{})]}   % 1st child of operator is right sub-tree
+                         walk_tree(L, undefined)                               % 1st child is left sub-tree
+                         , #sql_box_rec{ name=atom_to_list(Op1)                % 2nd child is operator
+                                       , children=[walk_tree(R, undefined)]}   % 1st child of operator is right sub-tree
                  ])};
 
-% process non tree leaves
+% process single tree leaves
 walk_tree(L, Acc) when is_binary(L) ->
    Acc#sql_box_rec{name=binary_to_list(L), children=[]};
+
+%% process tree leaves pair (smallest tree)
+%walk_tree({O,L,R}, _Acc) when is_atom(O), is_binary(L), is_binary(R) ->
+%   [#sql_box_rec{name=binary_to_list(L), children=[]}
+%   ,#sql_box_rec{name=atom_to_list(O), children=[]}
+%   ,#sql_box_rec{name=binary_to_list(R), children=[]}];
 
 % recursive ternary tree walk
 walk_tree({between,D0,D1,D2}, Acc) -> walk_tree({between,'and',D0,D1,D2}, Acc); %(e.g. - D0 between D1 and D2)
@@ -46,14 +61,32 @@ walk_tree({Op,Con,D0,D1,D2}, Acc) ->
         , walk_tree(D2, Acc)                         % 5th child is D2
     ]};
 
+%% recursive binary tree walk
+%walk_tree({'fun',L,R}, Acc) -> walk_tree({L,R}, Acc); %(functions triggers generic walk)
+%walk_tree({Op,L,R}, Acc) ->
+%    OpRec = #sql_box_rec{name=atom_to_list(Op), children=[]},
+%    Acc#sql_box_rec{children=[
+%        walk_tree(L, Acc)       % 1st child is left sub-tree
+%        , walk_tree(R, OpRec)   % 2nd child is operator with right sub-tree as child
+%    ]};
+
 % recursive binary tree walk
 walk_tree({'fun',L,R}, Acc) -> walk_tree({L,R}, Acc); %(functions triggers generic walk)
 walk_tree({Op,L,R}, Acc) ->
     Acc#sql_box_rec{children=[
-        walk_tree(L, Acc)                               % 1st child is left sub-tree
-        , #sql_box_rec{ name=atom_to_list(Op)           % 2nd child is operator
-                      , children=[walk_tree(R, Acc)]}   % 1st child of operator is right sub-tree
+        walk_tree(L, Acc)                       % 1st child is left sub-tree
+        , #sql_box_rec{ name=atom_to_list(Op)   % 2nd child is operator
+            , children=[walk_tree(R, Acc)]}     % 1st child of operator is right sub-tree
     ]};
+
+%% recursive binary tree walk
+%walk_tree({'fun',L,R}, Acc) -> walk_tree({L,R}, Acc); %(functions triggers generic walk)
+%walk_tree({Op,L,R}, Acc) ->
+%    Acc#sql_box_rec{children=[
+%        walk_tree(L, Acc)                               % 1st child is left sub-tree
+%        , #sql_box_rec{ name=atom_to_list(Op)           % 2nd child is operator
+%                      , children=[walk_tree(R, Acc)]}   % 1st child of operator is right sub-tree
+%    ]};
 
 % recursive uninary tree walk
 walk_tree({Op,D}, Acc) ->
@@ -82,17 +115,19 @@ rec_sav_json(Sql, Rec, File) ->
        )),
    file:write_file(PathPrefix++"sqls.js", list_to_binary(
            "var sqlFiles=new Array(\n" ++
-           string:join(["\t\"" ++ filename:absname(X) ++ "\"" || X <- filelib:wildcard(PathPrefix++"*.sql")], ",\n") ++
+           string:join(["\t\"" ++ filename:basename(X) ++ "\"" || X <- filelib:wildcard(PathPrefix++"*.sql")], ",\n") ++
            "\n);"
        )).
 
-rec2json(Rec) -> rec2json(Rec, "").
-rec2json(#sql_box_rec{name=N,children=[]}, _Json) ->
-    "{name:"++N++"\", top:0, height:0, children:[]}";
-rec2json(#sql_box_rec{name=N,children=Childs}, Json) ->
-    "{name:\""++N++"\", top:0, height:0, children:["++
-     string:join([rec2json(C, Json) || C <- Childs], ",")
-    ++"]}".
+rec2json(Rec) -> rec2json(Rec, "", 0).
+rec2json(#sql_box_rec{name="fields"}=Rec, Json, T) ->
+    rec2json(Rec#sql_box_rec{name=""}, Json, T);
+rec2json(#sql_box_rec{name=N,children=[]}, _Json, T) ->
+    lists:duplicate(T, $\t)++"{name:\""++N++"\", top:0, height:0, children:[]}";
+rec2json(#sql_box_rec{name=N,children=Childs}, Json, T) ->
+    lists:duplicate(T, $\t)++"{name:\""++N++"\", top:0, height:0, children:[\n"++
+     string:join([rec2json(C, Json,T+1) || C <- Childs], ",\n")
+    ++"\n"++lists:duplicate(T, $\t)++"]}".
 
 walk_test() ->
     io:format(user, "=================================~n", []),

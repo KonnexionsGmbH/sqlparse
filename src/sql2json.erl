@@ -219,7 +219,7 @@ test_parse([Sql|Sqls], N) ->
         {'EXIT', Error} ->
             io:format(user, "Error ~p~n", [Error]),
             ?assertEqual(ok, Error);
-        Result -> ok
+        _ -> ok
     end,
     io:format(user, "-------------------------------~n", []),
     test_parse(Sqls, N+1).

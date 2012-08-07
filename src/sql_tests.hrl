@@ -22,8 +22,8 @@ where
 ,
 "
 select
-	a
-	,b
+	a as f
+	,b d
 	,c
 from
 	abc
@@ -591,6 +591,7 @@ order by
 "
 select
 	/*+ INDEX(ACCOUNT IDXU_AC_SHORT)*/
+    DISTINCT
 	AC_ID
 	, AC_NAME
 	, AC_ETID

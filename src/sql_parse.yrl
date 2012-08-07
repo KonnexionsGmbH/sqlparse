@@ -377,9 +377,9 @@ select_statement -> query_spec                                                  
 opt_hint -> '$empty'                                                                            : {hints, <<>>}.
 opt_hint -> HINT                                                                                : {hints, unwrap_bin('$1')}.
 
-opt_all_distinct -> '$empty'                                                                    : {opt, []}.
-opt_all_distinct -> ALL                                                                         : {opt, 'ALL'}.
-opt_all_distinct -> DISTINCT                                                                    : {opt, 'DISTINCT'}.
+opt_all_distinct -> '$empty'                                                                    : {opt, <<>>}.
+opt_all_distinct -> ALL                                                                         : {opt, <<"all">>}.
+opt_all_distinct -> DISTINCT                                                                    : {opt, <<"distinct">>}.
 
 update_statement_positioned -> UPDATE table SET assignment_commalist WHERE CURRENT OF cursor    : {'update', '$2', {'set', '$4'}, {'where_cur_of', '$8'}}.
 
@@ -462,14 +462,14 @@ comparison_predicate -> scalar_exp COMPARISON subquery                          
 between_predicate -> scalar_exp NOT BETWEEN scalar_exp AND scalar_exp                           : {'not', {'between', '$1', '$4', '$6'}}.
 between_predicate -> scalar_exp BETWEEN scalar_exp AND scalar_exp                               : {'between', '$1', '$3', '$5'}.
 
-like_predicate -> scalar_exp NOT LIKE atom opt_escape                                           : {'not', {'like', '$1', {'$4', '$5'}}}.
-like_predicate -> scalar_exp LIKE atom opt_escape                                               : {'like', '$1', {'$3', '$4'}}.
+like_predicate -> scalar_exp NOT LIKE atom opt_escape                                           : {'not', {'like', '$1', '$4', '$5'}}.
+like_predicate -> scalar_exp LIKE atom opt_escape                                               : {'like', '$1', '$3', '$4'}.
 
-opt_escape -> '$empty'                                                                          : [].
-opt_escape -> ESCAPE atom                                                                       : {escape, '$2'}.
+opt_escape -> '$empty'                                                                          : <<>>.
+opt_escape -> ESCAPE atom                                                                       : '$2'.
 
-test_for_null -> column_ref IS NOT NULLX                                                        : {'not', {'is_nullx', '$1'}}.
-test_for_null -> column_ref IS NULLX                                                            : {'is_nullx', '$1'}.
+test_for_null -> column_ref IS NOT NULLX                                                        : {'not', {'is', '$1', <<"null">>}}.
+test_for_null -> column_ref IS NULLX                                                            : {'is', '$1', <<"null">>}.
 
 in_predicate -> scalar_exp NOT IN '(' subquery ')'                                              : {'not', {'in', '$1', '$5'}}.
 in_predicate -> scalar_exp IN '(' subquery ')'                                                  : {'in', '$1', '$4'}.
@@ -520,7 +520,7 @@ scalar_exp_commalist -> scalar_exp_commalist ',' scalar_exp                     
 
 atom -> parameter_ref                                                                           : '$1'.
 atom -> literal                                                                                 : '$1'.
-atom -> USER                                                                                    : 'user'.
+atom -> USER                                                                                    : <<"user">>.
 
 parameter_ref -> parameter                                                                      : '$1'.
 parameter_ref -> parameter parameter                                                            : {'$1', '$2'}.
@@ -607,7 +607,8 @@ collapse(SqlStr0) ->
     SqlStr1 = re:replace(SqlStr0, "([\n\r\t ]+)", " ", [{return, list}, global]),
     SqlStr2 = re:replace(SqlStr1, "(^[ ]+)|([ ]+$)", "", [{return, list}, global]),
     SqlStr3 = re:replace(SqlStr2, "([ ]*)([\(\),])([ ]*)", "\\2", [{return, list}, global]),
-    SqlStr4 = re:replace(SqlStr3, "([ ]*)([\*\+\-\/\=\<\>])([ ]*)", "\\2", [{return, list}, global]),
+    %SqlStr4 = re:replace(SqlStr3, "([ ]*)([\*\+\-\/\=\<\>])([ ]*)", "\\2", [{return, list}, global]),
+    SqlStr4 = re:replace(SqlStr3, "([ ]*)(( \* )|( \+ )|( \- )|( \/ )|( \= )|( \< )|( \> ))([ ]*)", "\\2", [{return, list}, global]),
     SqlStr4.
 
 %remove_eva(S) ->
@@ -623,6 +624,7 @@ parse_test() ->
 test_parse([], _) -> ok;
 test_parse([Sql|Sqls], N) ->
     io:format(user, "[~p]===============================~nSql: "++Sql++"~n", [N]),
+    io:format(user, "Sql collapsed:~n~p~n", [collapse(Sql)]),
     {ok, Tokens, _} = sql_lex:string(Sql ++ ";"),
     case sql_parse:parse(Tokens) of
         {ok, [ParseTree|_]} -> 

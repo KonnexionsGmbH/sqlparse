@@ -1,10 +1,33 @@
 -module(sql_walk).
 
--export([walk_tree/1, walk_tree/2]).
+-export([walk_tree/1, walk_tree/2, to_json/1]).
 
 -include_lib("eunit/include/eunit.hrl").
 -include("sql_box.hrl").
 -include("sql_tests.hrl").
+
+to_json(Sql0) ->
+    Sql1 = string:strip(Sql0, both),
+    Sql = case lists:nth(length(Sql1), Sql1) of
+        $; -> Sql1;
+        _ -> Sql1 ++ ";"
+    end,
+    case sql_lex:string(Sql) of
+        {error, Error} = Error -> Error;
+        {ok, Tokens, _} ->
+            case sql_parse:parse(Tokens) of
+                {error, Error} = Error -> Error;
+                {ok, [ParseTree|_]} ->
+                    case (catch walk_tree(ParseTree)) of
+                        {'EXIT', Error} -> {error, Error};
+                        Rec ->
+                            case (catch rec2json(Rec, no_format)) of
+                                {'EXIT', Error} -> {error, Error};
+                                Json -> Json
+                            end
+                    end
+            end
+    end.
 
 walk_tree(SqlParseTree) -> walk_tree(SqlParseTree, #sql_box_rec{}).
 
@@ -104,8 +127,8 @@ rec_sav_json(Sql, Rec, File) ->
    file:write_file(NewFile, list_to_binary(
             "var parsetree = new Object();\n"++
             "parsetree.json = function() {\n"++
-                "\tJson =\n" ++
-                rec2json(Rec) ++ ";\n" ++
+                "\tJson =JSON.parse(\n" ++
+                rec2json(Rec, format) ++ "'\n);\n" ++
                 "\treturn Json;\n" ++
             "}\n" ++
             "parsetree.sql = function() {\n" ++
@@ -119,15 +142,20 @@ rec_sav_json(Sql, Rec, File) ->
            "\n);"
        )).
 
-rec2json(Rec) -> rec2json(Rec, "", 0).
-rec2json(#sql_box_rec{name="fields"}=Rec, Json, T) ->
-    rec2json(Rec#sql_box_rec{name=""}, Json, T);
-rec2json(#sql_box_rec{name=N,children=[]}, _Json, T) ->
-    lists:duplicate(T, $\t)++"{name:\""++N++"\", top:0, height:0, children:[]}";
-rec2json(#sql_box_rec{name=N,children=Childs}, Json, T) ->
-    lists:duplicate(T, $\t)++"{name:\""++N++"\", top:0, height:0, children:[\n"++
-     string:join([rec2json(C, Json,T+1) || C <- Childs], ",\n")
-    ++"\n"++lists:duplicate(T, $\t)++"]}".
+rec2json(Rec, Format) -> rec2json(Rec, "", 0, Format).
+rec2json(#sql_box_rec{name="fields"}=Rec, Json, T, Format) -> rec2json(Rec#sql_box_rec{name=""}, Json, T, Format);
+
+rec2json(#sql_box_rec{name=N,children=[]}, _Json, _, no_format) -> "{\"name\":\""++N++"\", \"top\":0, \"height\":0, \"children\":[]}";
+rec2json(#sql_box_rec{name=N,children=Childs}, Json, T, no_format) ->
+    "{\"name\":\""++N++"\", \"top\":0, \"height\":0, \"children\":["++
+     string:join([rec2json(C, Json, T+1, no_format) || C <- Childs], ",")
+    ++"]}";
+
+rec2json(#sql_box_rec{name=N,children=[]}, _Json, T, format)    -> lists:duplicate(T, $\t)++"'{\"name\":\""++N++"\", \"top\":0, \"height\":0, \"children\":[]}";
+rec2json(#sql_box_rec{name=N,children=Childs}, Json, T, format) ->
+    lists:duplicate(T, $\t)++"'{\"name\":\""++N++"\", \"top\":0, \"height\":0, \"children\":['\n+"++
+     string:join([rec2json(C, Json, T+1, format) || C <- Childs], ",'\n+")
+    ++"'\n+"++lists:duplicate(T, $\t)++"']}".
 
 walk_test() ->
     io:format(user, "=================================~n", []),

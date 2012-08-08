@@ -1,47 +1,55 @@
--define (TEST_SQLS, [
+-define (TEST_SQLS0, [
 "
-select 
-	a
-	,b
-	,c
+select  /*+ 010 */
+	to_date(a)
 from 
-	abc
-	, def
-where
-		a
-		=
-		b
-	or
-		c
-		=
-		d
+	abc 
+where 
+		a=b
 "
 ,
 "
-select
+select  /*+ 011 */ 
 	*
-from
+from 
 	abc
-where
-		(
-				a=b 
-			or	c=d
-		) 
-	and 	(
-				e=f 
-			or	g=h
-		)
+where 
+		a=b 
+	and	c=d
 "
 ]).
 
 
--define (TEST_SQLS0, [
-"select * from abc where a = 10 and b = 10.5 and c = -10 and e = -10.5 and -10.6 = g"
+-define (TEST_SQLS, [
+"
+select  /*+ 000 */ 
+	*
+from 
+	abc
+where 
+		a=b 
+	and	c=d
+"
 ,
 "
-select
-	a as f
-	,b d
+select /*+ 001 */
+	field1 as a 
+from
+	abc
+where
+	not	( 
+			to_date(c) = d
+			or
+			e=f
+		)
+"	
+,
+"select /*+ 002 */ * from abc where a = 10 and b = 10.5 and c = -10 and e = -10.5 and -10.6 = g"
+,
+"
+select /*+ 003 */
+	a
+	,b as bb
 	,c
 from
 	abc
@@ -56,9 +64,10 @@ where
 ,
 "
 select 
+	/*+ 004 */ 
 	a
 	,b
-	,c
+	,c as cc
 from 
 	abc
 	, def
@@ -73,8 +82,8 @@ where
 "
 ,
 "
-select 
-	a
+select  /*+ 005 */
+	a as aa
 	,b
 	,c
 from 
@@ -106,7 +115,7 @@ where
 "
 ,
 "
-select 
+select  /*+ 006 */
 	*
 from 
 	abc
@@ -128,7 +137,8 @@ where
 "
 ,
 "
-select 
+select  /*+ 007 */
+	distinct
 	a
 	,b
 	,c
@@ -169,7 +179,7 @@ where
 "
 ,
 "
-select 
+select  /*+ 008 */
 	*
 from 
 	abc
@@ -200,8 +210,8 @@ where
 "
 ,
 "
-select 
-	*
+select  /*+ 009 */
+	NVL(a) as a
 from 
 	abc
 	, def
@@ -233,8 +243,8 @@ where
 "
 ,
 "
-select 
-	*
+select  /*+ 010 */
+	to_date(a) + to_date(b)
 from 
 	abc 
 where 
@@ -242,7 +252,7 @@ where
 "
 ,
 "
-select 
+select  /*+ 011 */ 
 	*
 from 
 	abc
@@ -252,7 +262,7 @@ where
 "
 ,
 "
-select 
+select  /*+ 012 */ 
 	*
 from 
 	abc
@@ -264,7 +274,7 @@ where
 "
 ,
 "
-select 
+select  /*+ 013 */ 
 	*
 from 
 	abc
@@ -276,7 +286,7 @@ where
 "  
 ,
 "
-select 
+select  /*+ 014 */ 
 	*
 from
 	abc
@@ -289,7 +299,7 @@ where
 "  
 , 
 "
-select 
+select  /*+ 015 */ 
 	*
 from 
 	abc
@@ -302,7 +312,7 @@ where
 "
 ,
 "
-select 
+select  /*+ 016 */ 
 	*
 from 
 	abc
@@ -315,7 +325,7 @@ where
 "
 ,
 "
-select
+select  /*+ 017 */
 	*
 from
 	abc
@@ -327,7 +337,7 @@ where
 "  
 ,
 "
-select
+select  /*+ 018 */
 	*
 from
 	abc
@@ -340,7 +350,7 @@ where
 "
 ,
 "
-select
+select  /*+ 019 */
 	*
 from
 	abc
@@ -354,7 +364,7 @@ where
 "
 ,
 "
-select
+select  /*+ 020 */
 	*
 from
 	abc
@@ -368,7 +378,7 @@ where
 "  
 ,
 "
-select
+select  /*+ 021 */
 	*
 from
 	abc
@@ -383,7 +393,7 @@ where
 "  
 ,
 "
-select
+select  /*+ 022 */
 	*
 from
 	abc
@@ -396,7 +406,7 @@ where
 "  
 ,
 "
-select
+select  /*+ 023 */
 	*
 from
 	abc
@@ -410,7 +420,7 @@ where
 "  
 ,
 "
-select
+select  /*+ 024 */
 	*
 from
 	abc
@@ -423,7 +433,7 @@ where
 "  
 ,
 "
-select
+select  /*+ 025 */
 	*
 from
 	abc
@@ -438,7 +448,7 @@ where
 "  
 ,
 "
-select
+select  /*+ 026 */
 	*
 from
 	abc
@@ -452,7 +462,7 @@ where
 "
 ,
 "
-select
+select  /*+ 027 */
 	*
 from
 	abc
@@ -466,7 +476,7 @@ where
 "  
 ,
 "
-select
+select  /*+ 028 */
 	*
 from
 	abc
@@ -479,7 +489,7 @@ where
 "
 ,
 "
-select
+select  /*+ 029 */
 	*
 from
 	abc
@@ -490,7 +500,7 @@ where
 "
 ,
 "
-select
+select  /*+ 030 */
 	*
 from
 	abc
@@ -502,7 +512,7 @@ where
 "
 ,
 "
-select
+select  /*+ 031 */
 	*
 from
 	abc
@@ -513,7 +523,7 @@ where
 "
 ,
 "
-select
+select  /*+ 032 */
 	*
 from	abc
 where
@@ -524,7 +534,7 @@ where
 "
 ,
 "
-select
+select  /*+ 033 */
 	*
 from
 	abc
@@ -540,7 +550,7 @@ where
 "
 ,
 "
-select
+select  /*+ 034 */
 	*
 from
 	abc
@@ -555,7 +565,7 @@ where
 "
 ,
 "
-select
+select  /*+ 035 */
 	/*+ index(t1 t1_abc) */
 	*
 from
@@ -566,27 +576,26 @@ where
 ,
 %	, decode(BD_MSGTYPE||BD_EVENTDISP,01,'Y',012,'Y','N') ISDELIV
 "
-select
-	/*+ index(BDETAIL6 IDX_BD_UMSGGRPID) */
-	NULL ROW_ID_S
-	, BDETAIL6.ROWID ROW_ID_M
-	, BD_UMSGGRPID MSGID
-	, to_char(BD_DATESUBMIT,'DD.MM.YYYY HH24:MI:SS') SUBMITTIME
-	, to_char(BD_DATEEXPIRE,'DD.MM.YYYY HH24:MI:SS') EXPIRETIME
-	, to_char(BD_DATEDELIVERY,'DD.MM.YYYY HH24:MI:SS') RECTIME
-	, BD_MSISDN_A SENDER
-	, BD_MSISDN_B RECEIVER
-	, BD_MSGSIZE MSGLEN
-	, nvl(MMSCCRT_LANG01,BD_CDRRECTYPE) TYPE
-	, nvl(MMSCCRT_VALUE1,BD_CDRRECTYPE) TYPE_TT1
-	, nvl(MMSCCRT_VALUE2,BD_CDRRECTYPE) TYPE_TT2
-	, decode(BD_MSGTYPE,01,'Y',012,'Y','N') ISDELIV
-	, nvl(MMSCET_LANG02,BD_EVENTDISP) EVENTDISP_STATCODE
-	, nvl(MMSCMT_LANG02,BD_MSGTYPE) MSGTYPE_ERRCODE
-	, nvl(MMSCET_VALUE2,BD_EVENTDISP) EVENTDISP_TT
-	, nvl(MMSCMT_VALUE2,BD_MSGTYPE) MSGTYPE_TT
-	, 'MMS' ROWTYPE
-	, to_char(BD_DATETIME,'DD.MM.YYYY HH24:MI:SS') DATETIME
+select  /*+ 036 */
+	NULL as ROW_ID_S
+	, BDETAIL6.ROWID as ROW_ID_M
+	, BD_UMSGGRPID as MSGID
+	, to_char(BD_DATESUBMIT,'DD.MM.YYYY HH24:MI:SS') as SUBMITTIME
+	, to_char(BD_DATEEXPIRE,'DD.MM.YYYY HH24:MI:SS') as EXPIRETIME
+	, to_char(BD_DATEDELIVERY,'DD.MM.YYYY HH24:MI:SS') as RECTIME
+	, BD_MSISDN_A as SENDER
+	, BD_MSISDN_B as RECEIVER
+	, BD_MSGSIZE as MSGLEN
+	, nvl(MMSCCRT_LANG01,BD_CDRRECTYPE) as TYPE
+	, nvl(MMSCCRT_VALUE1,BD_CDRRECTYPE) as TYPE_TT1
+	, nvl(MMSCCRT_VALUE2,BD_CDRRECTYPE) as TYPE_TT2
+	, decode(BD_MSGTYPE,01,'Y',012,'Y','N') as ISDELIV
+	, nvl(MMSCET_LANG02,BD_EVENTDISP) as EVENTDISP_STATCODE
+	, nvl(MMSCMT_LANG02,BD_MSGTYPE) as MSGTYPE_ERRCODE
+	, nvl(MMSCET_VALUE2,BD_EVENTDISP) as EVENTDISP_TT
+	, nvl(MMSCMT_VALUE2,BD_MSGTYPE) as MSGTYPE_TT
+	, 'MMS' as ROWTYPE
+	, to_char(BD_DATETIME,'DD.MM.YYYY HH24:MI:SS') as DATETIME
 from
 	BDETAIL6
 	, MMSC_CDRRECTYPE
@@ -605,137 +614,26 @@ order by
 	, nvl(BD_DATEDELIVERY,BD_DATETIME)
 	, BD_MSGTYPE
 "
-,
-"
-select
-	/*+ INDEX(ACCOUNT IDXU_AC_SHORT)*/
-    DISTINCT
-	AC_ID
-	, AC_NAME
-	, AC_ETID
-	, AC_SHORT
-	, AC_DEPTID
-	, AC_LANGID
-	, AC_LOGRET
-	, nvl(AC_MAXLOG, SYS_MAXLOG) MAXLOG
-	, AC_LASTLOGINTIME
-	, AC_IPMASK
-	, AC_REMOTEADDR
-	, (sysdate-nvl(AC_LASTLOGINTIME,sysdate))*24*60-nvl(SYS_DELAY,3) TIME_DIFF
-from 
-	ACCOUNT
-	, SYSPARAMETERS
-where
-		AC_ESID='A'
-	and	AC_SHORT='ADMIN'
-"
+%% ,
+%% "
+%% select  /*+ 037 */
+%% 	AC_ID
+%% 	, AC_NAME
+%% 	, AC_ETID
+%% 	, AC_SHORT
+%% 	, AC_DEPTID
+%% 	, AC_LANGID
+%% 	, AC_LOGRET
+%% 	, nvl(AC_MAXLOG, SYS_MAXLOG) as MAXLOG
+%% 	, AC_LASTLOGINTIME
+%% 	, AC_IPMASK
+%% 	, AC_REMOTEADDR
+%% 	, (sysdate-nvl(AC_LASTLOGINTIME,sysdate))*24*60-nvl(SYS_DELAY,3)
+%% from 
+%% 	ACCOUNT
+%% 	, SYSPARAMETERS
+%% where
+%% 		AC_ESID='A'
+%% 	and	AC_SHORT='ADMIN'
+%% "
 ]).
-
-% TODO: render_test() must parse and render and return the original string ?TEST_SQLS
-
-%% +select a, b, c from abc, def where a in (select b from def) and c=d and e=f or g=h
-%% 
-%% -select 
-%% 	a
-%% 	, b
-%% 	, c
-%% +from abc, def
-%% +where a in (select b from def) and c=d and e=f or g=h
-%% 
-%% -select 
-%% 	a
-%% 	, b
-%% 	, c
-%% -from 
-%% 	abc
-%% 	, def
-%% -where
-%% 	+	a in (select b from def) and c=d  and e=f
-%% 	+or	g=h
-%% 
-%% -select 
-%% 	a
-%% 	, b
-%% 	, c
-%% -from 
-%% 	abc
-%% 	, def
-%% -where
-%% 		+	a in (select b from def)
-%% 		+and 	c=d 
-%% 		+and 	e=f
-%% 	-or	
-%% 		g
-%% 		=
-%% 		h
-%% 
-%% -select 
-%% 	a
-%% 	, b
-%% 	, c
-%% +from abc, def
-%% -where
-%% 		-	a
-%% 			+	in (select b from def)
-%% 		-and	
-%% 			c
-%% 			=
-%% 			d 
-%% 		-and	
-%% 			e
-%% 			=
-%% 			f
-%% 	-or	
-%% 		g
-%% 		=
-%% 		h
-%% 	
-%% +select a, b, c
-%% +from  abc, def
-%% -where
-%% 		 -	a
-%% 			-	in	(
-%% 					select
-%% 						b
-%% 					from
-%% 						def
-%% 					)
-%% 		-and	
-%% 			c
-%% 			=
-%% 			d 
-%% 		+and	e=f
-%% 	-or	
-%% 		g
-%% 		=
-%% 		h
-%%
-%% +select a, b, c
-%% +from  abc, def
-%% -where
-%% 	+	a in (select b from def) and c=d  and e=f
-%% 	+or	g between h and i
-%%
-%%
-%% +select a, b, c
-%% +from  abc, def
-%% -where
-%% 	+	a in (select b from def) and c=d  and e=f
-%% 	-or	
-%% 		g
-%% 		between	
-%%		h 
-%%		and 
-%%		i
-%%
-%% +select a, b, c
-%% +from  abc, def
-%% -where
-%% 	+	a in (select b from def) and c=d  and e=f
-%% 	-or	
-%% 		g
-%% 		between
-%% 		-	h	
-%%			and
-%%			i
-	

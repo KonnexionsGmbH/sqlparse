@@ -322,9 +322,9 @@ ordering_spec -> INTNUM opt_asc_desc                                            
 ordering_spec -> column_ref opt_asc_desc                                                        : {'$1', '$2'}.
 ordering_spec -> function_ref opt_asc_desc                                                      : {'$1', '$2'}.
 
-opt_asc_desc -> '$empty'                                                                        : [].
-opt_asc_desc -> ASC                                                                             : 'ASC'.
-opt_asc_desc -> DESC                                                                            : 'DESC'.
+opt_asc_desc -> '$empty'                                                                        : <<>>.
+opt_asc_desc -> ASC                                                                             : <<"asc">>.
+opt_asc_desc -> DESC                                                                            : <<"desc">>.
 
     %% manipulative statements
 

@@ -13,10 +13,10 @@ to_json(Sql0) ->
         _ -> Sql1 ++ ";"
     end,
     case sql_lex:string(Sql) of
-        {error, Error} = Error -> Error;
+        {error, Error} -> {error, Error};
         {ok, Tokens, _} ->
             case sql_parse:parse(Tokens) of
-                {error, Error} = Error -> Error;
+                {error, Error} -> {error, Error};
                 {ok, [ParseTree|_]} ->
                     case (catch walk_tree(ParseTree)) of
                         {'EXIT', Error} -> {error, Error};

@@ -4,6 +4,8 @@
 
 -export([test_sqls/0, test_sqlp/0]).
 
+-export([test_sqlr/0]). % Added to handle warning -- Bikram
+
 -include_lib("eunit/include/eunit.hrl").
 -include("sql_tests.hrl").
 
@@ -211,6 +213,7 @@ sqlp(_Ind, _Idx, _Parent, _Children, visit, X, Acc) ->
 sql_box_test() ->
 	test_sqls(),	
 	test_sqlp(),
+	%test_sqlr(),
 	ok.
 	
 test_sqls() ->
@@ -264,3 +267,75 @@ sqlp_loop([Sql|Rest], N) ->
     end,
     sqlp_loop(Rest, N+1).
 
+%%%%%%%%%%%%%%%% WIP: To nested box structute %%%%%%%%%%%%%%%%
+
+-include("sql_box.hrl").
+
+sqlr(_Ind, _Idx, _Parent, _Children, open, _, Acc) -> Acc#sql_box_rec{children= Acc#sql_box_rec.children ++ [#sql_box_rec{name="(", children=[]}]};
+sqlr(_Ind, _Idx, _Parent, _Children, close, _, Acc) -> Acc#sql_box_rec{children= Acc#sql_box_rec.children ++ [#sql_box_rec{name=")", children=[]}]};
+sqlr(_Ind, _Idx, _Parent, _Children, 'between and', _, Acc) -> Acc#sql_box_rec{children= Acc#sql_box_rec.children ++ [#sql_box_rec{name="and", children=[]}]};
+sqlr(_Ind, _Idx, _Parent, _Children, visit, 'fun', Acc) -> Acc;
+sqlr(_Ind, _Idx, _Parent, _Children, visit, 'opt', Acc) -> Acc;
+sqlr(_Ind, _Idx, _Parent, _Children, visit, 'list', Acc) -> Acc;
+sqlr(_Ind, _Idx, _Parent, _Children, visit, 'hints', Acc) -> Acc;
+sqlr(_Ind, _Idx, _Parent, _Children, visit, 'fields', Acc) -> Acc;
+sqlr(_Ind, _Idx, _Parent, [], visit, A, Acc) when is_atom(A) -> Acc;
+sqlr(_Ind, _Idx, _Parent, {}, visit, A, Acc) when is_atom(A) -> Acc;
+sqlr(_Ind, _Idx, _Parent, <<>>, visit, A, Acc) when is_atom(A) -> Acc;
+
+sqlr(_Ind, 0, _Parent, _Children, visit, A, Acc) when is_atom(A) -> Acc#sql_box_rec{children= Acc#sql_box_rec.children ++ [#sql_box_rec{name=atom_to_list(A), children=[]}]};
+%sqlr(_Ind, 0, _Parent, _Children, visit, A, Acc) when is_atom(A) -> Acc#sql_box_rec{name=atom_to_list(A)};
+
+sqlr(_Ind, _Idx, 'fun', _Children, visit, A, Acc) when is_atom(A) -> Acc#sql_box_rec{children= Acc#sql_box_rec.children ++ [#sql_box_rec{name=atom_to_list(A), children=[]}]};
+sqlr(_Ind, _Idx, 'fields', _Children, visit, A, Acc) when is_atom(A) -> Acc#sql_box_rec{children= Acc#sql_box_rec.children ++ [#sql_box_rec{name=atom_to_list(A), children=[]}]};
+sqlr(_Ind, _Idx, 'from', _Children, visit, A, Acc) when is_atom(A) -> Acc#sql_box_rec{children= Acc#sql_box_rec.children ++ [#sql_box_rec{name=atom_to_list(A), children=[]}]};
+sqlr(_Ind, _Idx, 'list', _Children, visit, A, Acc) when is_atom(A) -> Acc#sql_box_rec{children= Acc#sql_box_rec.children ++ [#sql_box_rec{name=atom_to_list(A), children=[]}]};
+sqlr(_Ind, _Idx, 'group by', _Children, visit, A, Acc) when is_atom(A) -> Acc#sql_box_rec{children= Acc#sql_box_rec.children ++ [#sql_box_rec{name=atom_to_list(A), children=[]}]};
+sqlr(_Ind, _Idx, 'order by', _Children, visit, A, Acc) when is_atom(A) -> Acc#sql_box_rec{children= Acc#sql_box_rec.children ++ [#sql_box_rec{name=atom_to_list(A), children=[]}]};
+
+sqlr(_Ind, _Idx, _Parent, _Children, visit, A, Acc) when is_atom(A) -> Acc#sql_box_rec{children= Acc#sql_box_rec.children ++ [#sql_box_rec{name=atom_to_list(A), children=[]}]};
+sqlr(_Ind, 0, _Parent, _Children, visit, B, Acc) when is_binary(B) -> Acc#sql_box_rec{children= Acc#sql_box_rec.children ++ [#sql_box_rec{name=binary_to_list(B), children=[]}]};
+%%sqlr(_Ind, _Idx, _Parent, _Children, visit, A, Acc) when is_atom(A) -> Acc#sql_box_rec{name=atom_to_list(A)};
+%%sqlr(_Ind, 0, _Parent, _Children, visit, B, Acc) when is_binary(B) -> Acc#sql_box_rec{name=binary_to_list(B)};
+
+sqlr(_Ind, _Idx, 'fun', _Children, visit, B, Acc) when is_binary(B) -> Acc#sql_box_rec{children= Acc#sql_box_rec.children ++ [#sql_box_rec{name=binary_to_list(B), children=[]}]};
+sqlr(_Ind, _Idx, 'fields', _Children, visit, B, Acc) when is_binary(B) -> Acc#sql_box_rec{children= Acc#sql_box_rec.children ++ [#sql_box_rec{name=binary_to_list(B), children=[]}]};
+sqlr(_Ind, _Idx, 'from', _Children, visit, B, Acc) when is_binary(B) -> Acc#sql_box_rec{children= Acc#sql_box_rec.children ++ [#sql_box_rec{name=binary_to_list(B), children=[]}]};
+sqlr(_Ind, _Idx, 'list', _Children, visit, B, Acc) when is_binary(B) -> Acc#sql_box_rec{children= Acc#sql_box_rec.children ++ [#sql_box_rec{name=binary_to_list(B), children=[]}]};
+sqlr(_Ind, _Idx, 'group by', _Children, visit, B, Acc) when is_binary(B) -> Acc#sql_box_rec{children= Acc#sql_box_rec.children ++ [#sql_box_rec{name=binary_to_list(B), children=[]}]};
+sqlr(_Ind, _Idx, 'order by', _Children, visit, B, Acc) when is_binary(B) -> Acc#sql_box_rec{children= Acc#sql_box_rec.children ++ [#sql_box_rec{name=binary_to_list(B), children=[]}]};
+
+sqlr(_Ind, _Idx, _Parent, _Children, visit, B, Acc) when is_binary(B) -> Acc#sql_box_rec{children= Acc#sql_box_rec.children ++ [#sql_box_rec{name=binary_to_list(B), children=[]}]};
+%sqlr(_Ind, _Idx, _Parent, _Children, visit, B, Acc) when is_binary(B) -> Acc#sql_box_rec{name=binary_to_list(B)};
+
+sqlr(_Ind, _Idx, _Parent, _Children, visit, X, Acc) -> 
+	io:format(user, "~n---Fun ignores ~p~n", [X]),
+	Acc.
+
+test_sqlr() ->
+    io:format(user, "===========================================~n", []),
+    io:format(user, "|  S Q L  R E C O R D  S T R U C T U R E  |~n", []),
+    io:format(user, "===========================================~n", []),
+    sqlr_loop(?TEST_SQLS, 0).
+
+sqlr_loop([], _) -> ok;
+sqlr_loop([Sql|Rest], N) ->
+    io:format(user, "[~p]===============================~nSql: "++Sql++"~n", [N]),
+    {ok, Tokens, _} = sql_lex:string(Sql ++ ";"),
+    case sql_parse:parse(Tokens) of
+        {ok, [ParseTree|_]} -> 
+        	io:format(user, "-------------------------------~nParseTree:~n", []),
+        	io:format(user, "~p~n", [ParseTree]),
+        	io:format(user, "-------------------------------~n", []),
+            case (catch fold_tree(ParseTree, fun sqlr/7, #sql_box_rec{})) of
+                {'EXIT', Error} ->
+        	        io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens]),
+        	        ?assertEqual(ok, Error);
+                SqlRec ->
+               		io:format(user, "~n-------------------------------~nSqlRec:~n~p~n", [SqlRec])
+            end;
+        Error -> 
+        	io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens]),
+        	?assertEqual(ok, Error)
+    end,
+    sqlr_loop(Rest, N+1).

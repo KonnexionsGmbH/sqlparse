@@ -145,16 +145,16 @@ rec_sav_json(Sql, Rec, File) ->
 rec2json(Rec, Format) -> rec2json(Rec, "", 0, Format).
 rec2json(#sql_box_rec{name="fields"}=Rec, Json, T, Format) -> rec2json(Rec#sql_box_rec{name=""}, Json, T, Format);
 
-rec2json(#sql_box_rec{name=N,children=[]}, _Json, _, no_format) -> "{\"name\":\""++N++"\", \"top\":0, \"height\":0, \"children\":[]}";
+rec2json(#sql_box_rec{name=N,children=[]}, _Json, _, no_format) -> "{\"name\":\""++N++"\", \"children\":[]}";
 rec2json(#sql_box_rec{name=N,children=Childs}, Json, T, no_format) ->
-    "{\"name\":\""++N++"\", \"top\":0, \"height\":0, \"children\":["++
+    "{\"name\":\""++N++"\", \"children\":["++
      string:join([rec2json(C, Json, T+1, no_format) || C <- Childs], ",")
     ++"]}";
 
-rec2json(#sql_box_rec{name=N,children=[]}, _Json, T, format)    -> lists:duplicate(T, $\t)++"'{\"name\":\""++N++"\", \"top\":0, \"height\":0, \"children\":[]}";
+rec2json(#sql_box_rec{children=[]}=Rec, Json, T, format) -> lists:duplicate(T, $\t)++"'"++rec2json(Rec, Json, T, no_format);
 rec2json(#sql_box_rec{name=N,children=Childs}, Json, T, format) ->
-    lists:duplicate(T, $\t)++"'{\"name\":\""++N++"\", \"top\":0, \"height\":0, \"children\":['\n+"++
-     string:join([rec2json(C, Json, T+1, format) || C <- Childs], ",'\n+")
+    lists:duplicate(T, $\t)++"'{\"name\":\""++N++"\", \"children\":['\n+"++
+    string:join([rec2json(C, Json, T+1, format) || C <- Childs], ",'\n+")
     ++"'\n+"++lists:duplicate(T, $\t)++"']}".
 
 walk_test() ->

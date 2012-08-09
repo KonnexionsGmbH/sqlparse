@@ -47,13 +47,9 @@ walk_tree({Op,D}, undefined)                                            -> walk_
 
 % Args as list used as a generic walk detection
 walk_tree({Op, Args}, Acc) when is_list(Args), length(Args) > 0 ->    
-    Childs0 = lists:foldl(fun(E, A) ->
-                A ++ [walk_tree(E,undefined)]
-                end,
-                [],
-                Args),
+    Childs0 = [walk_tree(E,undefined) || E <- Args],
     Childs = if (Op =:= 'fields')  or (Op =:= 'from') ->
-                lists:nthtail(1,lists:flatten([[#sql_box_rec{name=","}, C] || C <- Childs0]));
+                comma(Childs0);
                 true -> Childs0
     end,
     Acc#sql_box_rec{name=atom_to_list(Op), children=lists:flatten(Childs)};
@@ -103,6 +99,11 @@ walk_tree({Op,Con,D0,D1,D2}, Acc) ->
         , #sql_box_rec{name=atom_to_list(Con)}       % 4th child is connector
         , walk_tree(D2, Acc)                         % 5th child is D2
     ]}.
+
+comma(L)                                    -> comma(L,[]).
+comma([], Acc)                              -> Acc;
+comma([E|Rest], Acc) when length(Acc) == 0  -> comma(Rest, Acc ++ [E]);
+comma([#sql_box_rec{name=N}=E|Rest], Acc)   -> comma(Rest, Acc ++ [E#sql_box_rec{name=", "++N}]).
 
 rec_sav_json(Sql, Rec, File) ->
    PathPrefix = case lists:last(filename:split(filename:absname(""))) of

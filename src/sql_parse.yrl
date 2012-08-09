@@ -595,7 +595,7 @@ when_action -> CONTINUE                                                         
 
 Erlang code.
 
--export([collapse/1]).
+-export([collapse/1, clean_cr/1, trim_nl/1]).
 
 -include_lib("eunit/include/eunit.hrl").
 -include("sql_tests.hrl").
@@ -603,7 +603,7 @@ Erlang code.
 unwrap({_,_,X}) -> X.
 unwrap_bin({_,_,X}) -> list_to_binary(X).
 
--define(REG_LST, [
+-define(REG_COL, [
     {"([\n\r\t ]+)",                    " "}    % \r,\n or spaces               -> single space
   , {"(^[ ]+)|([ ]+$)",                 ""}     % leading or trailing spaces    -> removed
   , {"([ ]*)([\(\),])([ ]*)",           "\\2"}  % spaces before or after ( or ) -> single space
@@ -611,11 +611,32 @@ unwrap_bin({_,_,X}) -> list_to_binary(X).
 % , {"([\)])([ ]*)",                    "\\1 "} % no space after )              -> added one space
 ]).
 
+-define(REG_CR, [
+    {"(\r)",                 		""}     % all carriage returns		-> removed
+]).
+
+-define(REG_NL, [
+    {"(^[\r\n]+)",             		""}     % leading newline    		-> removed
+  , {"([\r\n]+$)",             		""}     % trailing newline    		-> removed
+]).
+
 collapse(Sql) ->
     lists:foldl(
         fun({Re,R}, S) -> re:replace(S, Re, R, [{return, list}, global]) end,
         Sql,
-        ?REG_LST).
+        ?REG_COL).
+
+clean_cr(Sql) ->
+    lists:foldl(
+        fun({Re,R}, S) -> re:replace(S, Re, R, [{return, list}, global]) end,
+        Sql,
+        ?REG_CR).
+
+trim_nl(Sql) ->
+    lists:foldl(
+        fun({Re,R}, S) -> re:replace(S, Re, R, [{return, list}, global]) end,
+        Sql,
+        ?REG_NL).
 
 %remove_eva(S) ->
 %	re:replace(S, "([ \t]eva[ \t])", "\t\t", [global, {return, list}]).

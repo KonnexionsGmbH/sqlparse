@@ -29,6 +29,33 @@ to_json(Sql0) ->
             end
     end.
 
+precedence(A) when is_atom(A) ->
+    {_,P} = lists:keyfind(A, 1,
+        [
+            {'u+',9},
+            {'u-',9},
+            {'fun',8},
+            {'*',7},
+            {'/',7},
+            {'+',6},
+            {'-',6},
+            {'=',5},
+            {'<=',5},
+            {'>=',5},
+            {'<>',5},
+            {'<',5},
+            {'>',5},
+            {'like',5},
+            {'is',5},
+            {'between',5},
+            {'in',4},
+            {'not',3},
+            {'and',2},
+            {'or',1}
+        ]
+    ),
+    P.
+
 walk_tree(SqlParseTree) -> walk_tree(SqlParseTree, #sql_box_rec{}).
 
 % ignore empty fields
@@ -54,14 +81,17 @@ walk_tree({Op, Args}, Acc) when is_list(Args), length(Args) > 0 ->
     end,
     Acc#sql_box_rec{name=atom_to_list(Op), children=lists:flatten(Childs)};
 
+%%% begning of 1,2,3-tree walk
+%%walk_tree({Op, {Op1,L,R}}, Acc) ->
+%%    Acc#sql_box_rec{ name=atom_to_list(Op)
+%%                   , children=lists:flatten([
+%%                         walk_tree(L, undefined)                               % 1st child is left sub-tree
+%%                         , #sql_box_rec{ name=atom_to_list(Op1)                % 2nd child is operator
+%%                                       , children=[walk_tree(R, undefined)]}   % 1st child of operator is right sub-tree
+%%                 ])};
 % begning of 1,2,3-tree walk
-walk_tree({Op, {Op1,L,R}}, Acc) ->
-    Acc#sql_box_rec{ name=atom_to_list(Op)
-                   , children=lists:flatten([
-                         walk_tree(L, undefined)                               % 1st child is left sub-tree
-                         , #sql_box_rec{ name=atom_to_list(Op1)                % 2nd child is operator
-                                       , children=[walk_tree(R, undefined)]}   % 1st child of operator is right sub-tree
-                 ])};
+walk_tree({Op, {_,_,_}=D}, Acc) ->
+    Acc#sql_box_rec{name=atom_to_list(Op), children=lists:flatten([walk_tree(D, undefined)])};
 
 % process single tree leaves
 walk_tree(L, Acc) when is_binary(L) ->
@@ -69,12 +99,71 @@ walk_tree(L, Acc) when is_binary(L) ->
 
 % recursive binary tree walk
 walk_tree({'fun',L,R}, Acc) -> walk_tree({L,R}, Acc); %(functions triggers generic walk)
+walk_tree({Op0,L,{Op1,_,_}=R}, Acc) when is_atom(Op0), is_atom(Op1), is_binary(L)->
+    P0 = precedence(Op0),
+    P1 = precedence(Op1),
+    io:format(user, "Prece - ~p ~p~n", [{Op0,Op1},{P0,P1}]),
+    Childs = if
+        (P0 > P1) ->
+            [ walk_tree(L, Acc)
+            , #sql_box_rec{ name=atom_to_list(Op0)}
+            , #sql_box_rec{children=[#sql_box_rec{name="("}, walk_tree(R, Acc), #sql_box_rec{name=")"}]}
+            ];
+        (P0 =< P1) ->
+            [ walk_tree(L, Acc)
+            , #sql_box_rec{ name=atom_to_list(Op0)}
+            , walk_tree(R, Acc)
+            ]
+    end,
+    Acc#sql_box_rec{children=Childs};
+walk_tree({Op0,{Op1,_,_}=L,R}, Acc) when is_atom(Op0), is_atom(Op1), is_binary(R)->
+    P0 = precedence(Op0),
+    P1 = precedence(Op1),
+    io:format(user, "Prece - ~p ~p~n", [{Op0,Op1},{P0,P1}]),
+    Childs = if
+        (P0 > P1) ->
+            [ #sql_box_rec{children=[#sql_box_rec{name="("}, walk_tree(L, Acc), #sql_box_rec{name=")"}]}
+            , #sql_box_rec{ name=atom_to_list(Op0)}
+            , walk_tree(R, Acc)
+            ];
+        (P0 =< P1) ->
+            [ walk_tree(L, Acc)
+            , #sql_box_rec{ name=atom_to_list(Op0)}
+            , walk_tree(R, Acc)
+            ]
+    end,
+    Acc#sql_box_rec{children=Childs};
 walk_tree({Op,L,R}, Acc) when is_binary(R) ->
+    io:format(user, "Right sub Bin ~p~n", [{Op,L,R}]),
     Acc#sql_box_rec{children=[
         walk_tree(L, Acc)                       % 1st child is left sub-tree
         , #sql_box_rec{name=atom_to_list(Op)}   % 2nd child is operator
-        , walk_tree(R, Acc)                     % 1st child of operator is right sub-tree
+        , walk_tree(R, Acc)                     % 3rd child is right sub-tree
     ]};
+walk_tree({Op0,{Op1,_,_}=L,{Op2,_,_}=R}, Acc) when is_atom(Op0), is_atom(Op1), is_atom(Op2)->
+    P0 = precedence(Op0),
+    P1 = precedence(Op1),
+    P2 = precedence(Op2),
+    io:format(user, "Prece - ~p ~p~n", [{Op0,Op1,Op2},{P0,P1,P2}]),
+    Childs = if
+        (P0 > P1) and (P0 > P2) ->
+            [ #sql_box_rec{children=[#sql_box_rec{name="("}, walk_tree(L, Acc), #sql_box_rec{name=")"}]}
+            , #sql_box_rec{ name=atom_to_list(Op0), children=[#sql_box_rec{children=[#sql_box_rec{name="("}, walk_tree(R, Acc), #sql_box_rec{name=")"}]}]}
+            ];
+        (P0 > P1) and (P0 =< P2) ->
+            [ #sql_box_rec{children=[#sql_box_rec{name="("}, walk_tree(L, Acc), #sql_box_rec{name=")"}]}
+            , #sql_box_rec{ name=atom_to_list(Op0), children=[walk_tree(R, Acc)]}
+            ];
+        (P0 =< P1) and (P0 > P2) ->
+            [ #sql_box_rec{children=[walk_tree(L, Acc)]}
+            , #sql_box_rec{ name=atom_to_list(Op0), children=[#sql_box_rec{children=[#sql_box_rec{name="("}, walk_tree(R, Acc), #sql_box_rec{name=")"}]}]}
+            ];
+        true ->
+            [ #sql_box_rec{children=[walk_tree(L, Acc)]}
+            , #sql_box_rec{ name=atom_to_list(Op0), children=[walk_tree(R, Acc)]}
+            ]
+    end,
+    Acc#sql_box_rec{children=Childs};
 walk_tree({Op,L,R}, Acc) ->
     Acc#sql_box_rec{children=[
         walk_tree(L, Acc)                       % 1st child is left sub-tree

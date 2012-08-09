@@ -492,8 +492,8 @@ scalar_exp -> scalar_exp '+' scalar_exp                                         
 scalar_exp -> scalar_exp '-' scalar_exp                                                         : {'-','$1','$3'}.
 scalar_exp -> scalar_exp '*' scalar_exp                                                         : {'*','$1','$3'}.
 scalar_exp -> scalar_exp '/' scalar_exp                                                         : {'/','$1','$3'}.
-scalar_exp -> '+' scalar_exp                                                                    : {'+','$1'}. %prec UMINU
-scalar_exp -> '-' scalar_exp                                                                    : {'-','$1'}. %prec UMINU
+scalar_exp -> '+' scalar_exp                                                                    : {'+','$2'}. %prec UMINU
+scalar_exp -> '-' scalar_exp                                                                    : {'-','$2'}. %prec UMINU
 scalar_exp -> scalar_exp NAME                                                                   : {as, '$1', unwrap_bin('$2')}.
 scalar_exp -> scalar_exp AS NAME                                                                : {as, '$1', unwrap_bin('$3')}.
 scalar_exp -> NULLX NAME                                                                        : {as, <<"NULL">>, unwrap_bin('$2')}.
@@ -507,13 +507,14 @@ scalar_exp -> INTNUM AS NAME                                                    
 scalar_exp -> APPROXNUM NAME                                                                    : {as, unwrap_bin('$1'), unwrap_bin('$2')}.
 scalar_exp -> APPROXNUM AS NAME                                                                 : {as, unwrap_bin('$1'), unwrap_bin('$3')}.
 scalar_exp -> atom                                                                              : '$1'.
+scalar_exp -> subquery                                                                          : '$1'.
 scalar_exp -> column_ref                                                                        : '$1'.
 scalar_exp -> column_ref NAME                                                                   : {as, '$1', unwrap_bin('$2')}.
 scalar_exp -> column_ref AS NAME                                                                : {as, '$1', unwrap_bin('$3')}.
 scalar_exp -> function_ref                                                                      : '$1'.
 scalar_exp -> function_ref NAME                                                                 : {as, '$1', unwrap_bin('$2')}.
 scalar_exp -> function_ref AS NAME                                                              : {as, '$1', unwrap_bin('$3')}.
-scalar_exp -> '(' scalar_exp ')'                                                                : ['$2'].
+scalar_exp -> '(' scalar_exp ')'                                                                : '$2'.
 
 scalar_exp_commalist -> scalar_exp                                                              : ['$1'].
 scalar_exp_commalist -> scalar_exp_commalist ',' scalar_exp                                     : '$1' ++ ['$3'].
@@ -652,12 +653,22 @@ test_parse([], _) -> ok;
 test_parse([Sql|Sqls], N) ->
     io:format(user, "[~p]===============================~nSql: "++Sql++"~n", [N]),
     io:format(user, "Sql collapsed:~n~p~n", [collapse(Sql)]),
-    {ok, Tokens, _} = sql_lex:string(Sql ++ ";"),
-    case sql_parse:parse(Tokens) of
-        {ok, [ParseTree|_]} -> 
-        	io:format(user, "-------------------------------~nParseTree:~n", []),
-        	io:format(user, "~p~n", [ParseTree]),
-        	io:format(user, "-------------------------------~n", []);
-        Error -> io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens])
+    case (catch sql_lex:string(Sql ++ ";")) of
+        {ok, Tokens, _} ->
+            case (catch sql_parse:parse(Tokens)) of
+                {ok, [ParseTree|_]} -> 
+                	io:format(user, "-------------------------------~nParseTree:~n", []),
+                	io:format(user, "~p~n", [ParseTree]),
+                	io:format(user, "-------------------------------~n", []);
+                {'EXIT', Error} ->
+                    io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens]),
+                    ?assertEqual(ok, Error);
+                Error ->
+                    io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens]),
+                    ?assertEqual(ok, Error)
+            end;
+        {'EXIT', Error} ->
+            io:format(user, "Failed ~p~n", [Error]),
+            ?assertEqual(ok, Error)
     end,
     test_parse(Sqls, N+1).

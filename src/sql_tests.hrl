@@ -650,26 +650,28 @@ order by
 	, nvl(BD_DATEDELIVERY,BD_DATETIME)
 	, BD_MSGTYPE
 "
-%% ,
-%% "
-%% select  /*+ 037 */
-%% 	AC_ID
-%% 	, AC_NAME
-%% 	, AC_ETID
-%% 	, AC_SHORT
-%% 	, AC_DEPTID
-%% 	, AC_LANGID
-%% 	, AC_LOGRET
-%% 	, nvl(AC_MAXLOG, SYS_MAXLOG) as MAXLOG
-%% 	, AC_LASTLOGINTIME
-%% 	, AC_IPMASK
-%% 	, AC_REMOTEADDR
-%% 	, (sysdate-nvl(AC_LASTLOGINTIME,sysdate))*24*60-nvl(SYS_DELAY,3)
-%% from 
-%% 	ACCOUNT
-%% 	, SYSPARAMETERS
-%% where
-%% 		AC_ESID='A'
-%% 	and	AC_SHORT='ADMIN'
-%% "
+,
+"
+select  /*+ 037 */
+	AC_ID
+	, AC_NAME
+	, AC_ETID
+	, AC_SHORT
+	, AC_DEPTID
+	, AC_LANGID
+	, AC_LOGRET
+	, nvl(AC_MAXLOG, SYS_MAXLOG) as MAXLOG
+	, AC_LASTLOGINTIME
+	, AC_IPMASK
+	, AC_REMOTEADDR
+	, (sysdate-nvl(AC_LASTLOGINTIME,sysdate))*24*60-nvl(SYS_DELAY,3)
+from 
+	ACCOUNT
+	, SYSPARAMETERS
+where
+		AC_ESID='A'
+	and	AC_SHORT='ADMIN'
+    and 1+(-4)=-3
+    and +2=5-3
+"
 ]).

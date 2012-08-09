@@ -166,7 +166,8 @@ test_loop([], _) -> ok;
 test_loop([Sql|Sqls], N) ->
     io:format(user, "[~p]===============================~nSql: "++Sql++"~n", [N]),
     {ok, Tokens, _} = sql_lex:string(Sql ++ ";"),
-    case sql_parse:parse(Tokens) of
+    io:format(user, "-------------------------------~nlex ok:~n", []),
+    case (catch sql_parse:parse(Tokens)) of
         {ok, [ParseTree|_]} -> 
         	io:format(user, "-------------------------------~nParseRec:~n", []),
             case (catch walk_tree(ParseTree)) of
@@ -184,6 +185,11 @@ test_loop([Sql|Sqls], N) ->
                     end
             end,
         	io:format(user, "-------------------------------~n", []);
-        Error -> io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens])
+        {'EXIT', Error} ->
+            io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens]),
+            ?assertEqual(ok, Error);
+        Err ->
+            io:format(user, "Failed ~p~nTokens~p~n", [Err, Tokens]),
+            ?assertEqual(ok, Err)
     end,
     test_loop(Sqls, N+1).

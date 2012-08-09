@@ -1,212 +1,248 @@
 -define (TEST_SQLS0, [
 "
 select  /*+ 010 */
+	/*+ index(t1 t1_abc) */
 	to_date(a)
 from 
 	abc 
 where 
 		a=b
 "
-,
-"
-select  /*+ 011 */ 
-	*
-from 
-	abc
-where 
-		a=b 
-	and	c=d
-"
 ]).
 
 
 -define (TEST_SQLS, [
 "
-select  /*+ 000 */ 
-	*
-from 
-	abc
-where 
-		a=b 
-	and	c=d
+select
+	/*+ 000 */
+		*
+	from
+		abc
 "
 ,
-"
-select /*+ 001 */
-	field1 as a 
-from
-	abc
-where
-	not	( 
-			to_date(c) = d
-			or
-			e=f
-		)
-"	
-,
-"select /*+ 002 */ * from abc where a = 10 and b = 10.5 and c = -10 and e = -10.5 and -10.6 = g"
-,
-"
-select /*+ 003 */
-	a
-	,b as bb
-	,c
-from
-	abc
-where
-        	
-        		a=b 
-        	and	
-        		not	c=d 
-	or	e=f
-	or	g=h
-"
-,
-"
-select 
-	/*+ 004 */ 
-	a
-	,b
-	,c as cc
-from 
-	abc
-	, def
-where
-		a
-		=
-		b
-	or
-		c
-		=
-		d
-"
-,
-"
-select  /*+ 005 */
-	a as aa
-	,b
-	,c
-from 
-	abc
-	, def
-where
-		
-			
+"select
+	/*+ 001 */
+		*
+	from
+		abc
+	where
 			a
-			in(
-				a
-				, b
-				, c
-			)
-		and	
+			=
+			10
+		and
+			b
+			=
+			10.5
+		and
 			c
 			=
-			d 
-		and	
+			-10
+		and
+			e
+			=
+			-10.5
+		and
+			-10.6
+			=
+			g
+"
+,
+"
+select
+	/*+ 002 */
+		a
+		,b
+	from
+		abc
+	where
+				a
+				=
+				b
+			and
+				not
+					c
+					=
+					d
+		or
 			e
 			=
 			f
-	or	
-		g 
-		between 
-		h 
-		and 
-		i
+		or
+			g
+			=
+			h
 "
 ,
 "
-select  /*+ 006 */
-	*
-from 
-	abc
-	, def
-where
-	(
+select
+	/*+ 003 */
 		a
-		=
-		b
-	or
-		c
-		=
-		d
-	)
-	and
-		e
-		=
-		f
+		,b as bb
+		,c
+	from
+		abc
+		,def
+	where
+			a
+			=
+			b
+		or
+			nvl
+				(
+					a
+					,0
+				)
+			=
+			0
 "
 ,
 "
-select  /*+ 007 */
-	distinct
-	a
-	,b
-	,c
-from 
-	abc
-	, def
-where
-		
-			
-			a
-			in(
-				select
-					b
-				from
-					def
-					,ghi
-				where
-					
-						h
-						=
-						0
+select
+	/*+ 004 */
+		a
+		,b
+		,c
+	from
+		abc
+	where
+		not
+			(
+					to_date
+						(
+							c
+						)
+					=
+					d
+				or
+					e
+					=
+					f
 			)
-		and	
-			c
-			=
-			d 
-		and	
-			e
-			in(
-				1
-				,2
-				,3
-			)
-	or	
-		g
-		=
-		h
 "
 ,
 "
-select  /*+ 008 */
-	*
-from 
-	abc
-where
-		
-			
-			a
-			in(
-				select
-					b
-				from
-					def
-			)
-		and	
-			c
-			=
-			d 
-		and	
-			g 
-			between 
-			h 
-			and 
+select
+	/*+ 005 */
+		a as aa
+		,b
+		,c
+	from
+		abc
+		,def
+	where
+				a
+				in
+					(
+						a
+						,b
+						,c
+					)
+			and
+				c
+				=
+				d
+			and
+				e
+				=
+				f
+		or
+			g
+			between
+			h
+			and
 			i
-	or	
-		e
+"
+,
+"
+select
+	/*+ 006 */
+		*
+	from
+		abc
+		,def
+	where
+			(
+					a
+					=
+					b
+				or
+					c
+					=
+					d
+			)
+		and
+			e
+			=
+			f
+"
+,
+"
+select
+	/*+ 007 */
+		(
+			select
+					c
+				from
+					def
+		)
+	from 
+		(
+			select
+					d
+				from
+					ghi
+		)
+	where
+		(
+			select
+					b
+				from
+					def
+		)
 		=
-		f
+		d 
+"
+,
+"
+select
+	/*+ 008 */
+		distinct
+		a
+		,b
+		,c
+	from 
+		abc
+		,def
+	where
+				a
+				in
+					(
+						select
+								b
+							from
+								def
+								,ghi
+							where
+								h
+								=
+								0
+					)
+			and
+				c
+				=
+				d 
+			and	
+				e
+				in
+					(
+						1
+						,2
+						,3
+					)
+		or
+			g
+			=
+			h
 "
 ,
 "
@@ -221,19 +257,20 @@ where
 			c
 			=
 			d 
-		and(	
-				a
-				in(
-					select
-						b
-					from
-						def
-				)
-			or	
-				e
-				=
-				f
-		)
+		and
+			(	
+					a
+					in	(
+							select
+									b
+								from
+									def
+						)
+				or	
+					e
+					=
+					f
+			)
 	or	
 		g 
 		between 
@@ -566,7 +603,6 @@ where
 ,
 "
 select  /*+ 035 */
-	/*+ index(t1 t1_abc) */
 	*
 from
 	abc

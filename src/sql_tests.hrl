@@ -3,10 +3,12 @@
 select
 	/*+010*/
 		to_date(a)
-from 
-	abc 
-where 
-		a=b
+	from
+		abc
+	where
+			a
+			=
+			b
 "
 ]).
 
@@ -179,28 +181,154 @@ select
 "
 select
 	/*+007*/
-		a
-		,
-			(
-				select
-						c
-					from
-						def
-			)
+		*
 	from
-		(
-			select
-					d
-				from
-					ghi
-		)
+		abc
 	where
-		(
-			select
-					b
-				from
-					def
-		)
+				a
+				=
+				b
+			and
+				c
+				=
+				d
+		or
+			e
+			=
+			f
+		or
+			g
+			=
+			h
+" 
+,
+"
+select
+	/*+010*/
+			to_date(a)
+		+
+			to_date(b)
+	from
+		abc
+	where
+			a
+			=
+			b
+"
+,
+"
+select
+	/*+011*/
+		*
+	from
+		abc
+	where
+			a
+			=
+			b
+		and	
+			c
+			=
+			d
+"
+,
+"
+select
+	/*+012*/
+		*
+	from
+		abc
+	where	
+			a
+			=
+			b
+		and
+			c
+			=
+			d
+		and
+			e
+			=
+			f
+		and
+			g
+			=
+			h
+"
+,
+"
+select
+	/*+013*/
+		*
+	from
+		abc
+	where
+		not	
+			a
+			=
+			b
+		and
+			c
+			=
+			d
+		and
+			e
+			=
+			f
+		and
+			g
+			=
+			h
+"
+,
+"
+select
+	/*+014*/
+		*
+	from
+		abc
+	where
+			a
+			=
+			b
+		and
+			not
+				c
+				=
+				d
+		and
+			e
+			=
+			f
+		and
+			g
+			=
+			h
+" 
+,
+"
+select
+	/*+015*/
+		*
+	from
+		abc
+	where
+			a
+			=
+			b
+		and
+			c
+			=
+			d
+		and
+			e
+			=
+			f
+		and
+			not
+				g
+				=
+				h
 "
 ,
 "
@@ -234,7 +362,9 @@ select
 						from
 							def
 				)
-			and	
+				=
+				10
+			and
 				e
 				in
 					(
@@ -252,13 +382,13 @@ select
 select
 	/*+009*/
 		NVL(a) as a
-	from 
+	from
 		abc
 		,def
 	where
 				c
 				=
-				d 
+				d
 			and
 				(	
 						a
@@ -274,156 +404,27 @@ select
 						f
 				)
 		or	
-			g 
-			between 
-			h 
-			and 
+			g
+			between
+			h
+			and
 			i
 "
 ,
 "
 select
-	/*+010*/
-			to_date(a)
-		+
-			to_date(b)
-	from
-		abc 
-	where 
-			a
-			=
-			b
-"
-,
-"
-select
-	/*+011*/ 
-		*
-	from
-		abc
-	where 
-			a
-			=
-			b 
-		and	
-			c
-			=
-			d
-"
-,
-"
-select
-	/*+012*/
-		*
-	from
-		abc
-	where	
-			a
-			=
-			b 
-		and
-			c
-			=
-			d 
-		and
-			e
-			=
-			f
-		and
-			g
-			=
-			h
-"
-,
-"
-select
-	/*+013*/ 
-		*
-	from
-		abc
-	where
-		not	
-			a
-			=
-			b 
-		and
-			c
-			=
-			d 
-		and
-			e
-			=
-			f
-		and
-			g
-			=
-			h
-"
-,
-"
-select
-	/*+014*/ 
-		*
-	from
-		abc
-	where
-			a
-			=
-			b 
-		and
-			not
-				c
-				=
-				d 
-		and
-			e
-			=
-			f
-		and
-			g
-			=
-			h
-"  
-,
-"
-select
-	/*+015*/ 
-		*
-	from 
-		abc
-	where
-			a
-			=
-			b
-		and
-			c
-			=
-			d 
-		and
-			e
-			=
-			f
-		and
-			not
-				g
-				=
-				h
-"
-,
-"
-select
-	/*+016*/ 
+	/*+016*/
 	*
 	from
 		abc
 	where
 				a
 				=
-				b 
+				b
 			and
 				c
 				=
-				d 
+				d
 			and
 				e
 				=
@@ -437,26 +438,31 @@ select
 "
 select
 	/*+017*/
-		*
+		a
+		,
+			(
+				select
+						c
+					from
+						def
+			)
 	from
-		abc
+		(
+			select
+					d
+				from
+					ghi
+		)
 	where
-				a
-				=
-				b 
-			and
-				c
-				=
-				d 
-		or
-			e
-			=
-			f
-		or
-			g
-			=
-			h
-"  
+			(
+				select
+						b
+					from
+						def
+			)
+		=
+		b
+"
 ,
 "
 select
@@ -468,11 +474,11 @@ select
 			not
 				a
 				=
-				b 
+				b
 			and
 				c
 				=
-				d 
+				d
 		or
 			e
 			=
@@ -492,12 +498,12 @@ select
 	where
 					a
 					=
-					b 
+					b
 				and
 					not
 						c
 						=
-						d 
+						d
 		or
 			e
 			=
@@ -519,12 +525,12 @@ select
 			not
 				a
 				=
-				b 
+				b
 			and
 				not
 					c
 					=
-					d 
+					d
 		or
 			e
 			=
@@ -533,7 +539,7 @@ select
 			g
 			=
 			h
-"  
+" 
 ,
 "
 select
@@ -545,11 +551,11 @@ select
 
 				a
 				=
-				b 
+				b
 			and
 				c
 				=
-				d 
+				d
 		or
 			not
 				e
@@ -560,7 +566,7 @@ select
 				g
 				=
 				h
-"  
+" 
 ,
 "
 select
@@ -571,11 +577,11 @@ select
 	where
 			a
 			=
-			b 
+			b
 		or
 			c
 			=
-			d 
+			d
 		or
 			not
 				e
@@ -585,7 +591,7 @@ select
 			g
 			=
 			h
-"  
+" 
 ,
 "
 select
@@ -598,7 +604,7 @@ select
 				(
 						a
 						=
-						b 
+						b
 					and
 						c
 						=
@@ -612,7 +618,7 @@ select
 			g
 			=
 			h
-"  
+" 
 ,
 "
 select
@@ -624,7 +630,7 @@ select
 			not
 				a
 				=
-				b 
+				b
 			and
 				c
 				=
@@ -637,7 +643,7 @@ select
 			g
 			=
 			h
-"  
+" 
 ,
 "
 select
@@ -649,7 +655,7 @@ select
 				(
 						a
 						=
-						b 
+						b
 					or
 						c
 						=
@@ -663,7 +669,7 @@ select
 			g
 			=
 			h
-"  
+" 
 ,
 "
 select
@@ -675,7 +681,7 @@ select
 			(
 					a
 					<
-					b 
+					b
 				or
 					c
 					<=
@@ -704,7 +710,7 @@ select
 		or
 				c
 				=
-				d 
+				d
 			and
 				not
 					e
@@ -714,7 +720,7 @@ select
 			g
 			=
 			h
-"  
+" 
 ,
 "
 select
@@ -729,11 +735,11 @@ select
 		or
 				c
 				=
-				d 
+				d
 			and
 				e
 				=
-				f 
+				f
 			and
 				g
 				=
@@ -782,11 +788,11 @@ select
 						from
 							klm
 				)
-			between 
+			between
 			b
 			and
 			c
-		or 
+		or
 				d
 				between
 				e
@@ -857,7 +863,7 @@ select
 			(
 					a
 					=
-					b 
+					b
 				or
 					c
 					=
@@ -867,7 +873,7 @@ select
 			(
 					e
 					=
-					f 
+					f
 				or
 					g
 					=
@@ -884,16 +890,16 @@ select
 	where
 			a
 			=
-			b 
+			b
 		or
 				c
 				=
-				d 
+				d
 			and
 				(
 						e
 						=
-						f 
+						f
 					or
 						g
 						=

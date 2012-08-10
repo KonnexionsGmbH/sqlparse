@@ -598,7 +598,7 @@ when_action -> CONTINUE                                                         
 
 Erlang code.
 
--export([collapse/1, clean_cr/1, trim_nl/1]).
+-export([collapse/1, clean_cr/1, trim_nl/1, str_diff/2]).
 
 -include_lib("eunit/include/eunit.hrl").
 -include("sql_tests.hrl").
@@ -622,6 +622,12 @@ unwrap_bin({_,_,X}) -> list_to_binary(X).
     {"(^[\r\n]+)",             		""}     % leading newline    		-> removed
   , {"([\r\n]+$)",             		""}     % trailing newline    		-> removed
 ]).
+
+str_diff([], [])                                            -> same;
+str_diff(String1, []) when length(String1) > 0              -> {String1, ""};
+str_diff([], String2) when length(String2) > 0              -> {"", String2};
+str_diff([S0|_] = String1, [S1|_] = String2) when S0 =/= S1 -> {String1, String2};
+str_diff([_|String1], [_|String2])                          -> str_diff(String1, String2).
 
 collapse(Sql) ->
     lists:foldl(

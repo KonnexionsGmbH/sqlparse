@@ -605,11 +605,11 @@ unwrap({_,_,X}) -> X.
 unwrap_bin({_,_,X}) -> list_to_binary(X).
 
 -define(REG_COL, [
-    {"([\n\r\t ]+)",                    " "}    % \r,\n or spaces               -> single space
-  , {"(^[ ]+)|([ ]+$)",                 ""}     % leading or trailing spaces    -> removed
-  , {"([ ]*)([\(\),])([ ]*)",           "\\2"}  % spaces before or after ( or ) -> single space
-  , {"([ ]*)([\/\*\+\-\=\<\>]+)([ ]*)", "\\2"}  % spaces around math operators  -> removed
-% , {"([\)])([ ]*)",                    "\\1 "} % no space after )              -> added one space
+    {"([\n\r\t ]+)",                              " "}    % \r,\n or spaces               -> single space
+  , {"(^[ ]+)|([ ]+$)",                           ""}     % leading or trailing spaces    -> removed
+  , {"([ ]*)([\(\),])([ ]*)",                     "\\2"}  % spaces before or after ( or ) -> removed
+  , {"([ ]*)([\\/\\*\\+\\-\\=\\<\\>]+)([ ]*)",    "\\2"}  % spaces around math operators  -> removed
+% , {"([\)])([ ]*)",                              "\\1 "} % no space after )              -> added one space
 ]).
 
 -define(REG_CR, [

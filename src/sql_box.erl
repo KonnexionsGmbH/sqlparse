@@ -30,8 +30,8 @@ binding('in') -> 140;
 binding('not') -> 130;
 binding('and') -> 120;
 binding('or') -> 100;
+binding('as') -> 90;
 binding('fields') -> 80;
-binding('as') -> 80;
 binding('into') -> 80;
 binding('hints') -> 80;
 binding('opt') -> 80;
@@ -94,9 +94,13 @@ fold_node(Ind, Idx, Parent, {Node, {}}, Ch, Fun, Acc0) ->					%% pre-order -> em
 	io:format(user, "~n~p,~p,(~p),~p,~p", [Ind+1, Idx, Node, Parent, ct(Ch)]),
 	Fun(Ind+1, 0, Parent, {}, visit, Node, Acc0);			
 	
-fold_node(Ind, 0, Parent, {Node, Unary}, _, Fun, Acc0) when is_tuple(Unary) ->	%% in-order unary recurse
-	Acc1 = fold_node(Ind+1, 0 , Parent, Node, Unary, Fun, Acc0),		 		
-	fold_in(Ind+1, 0, Node, Unary, undefined, Fun, Acc1);			
+fold_node(Ind, _, Parent, {Node, Child={'as',_,_}}, _, Fun, Acc0) ->					%% in-order unary recurse
+	Acc1 = fold_node(Ind, 0 , Parent, Node, Child, Fun, Acc0),		 		
+	fold_node(Ind, 0, Node, Child, undefined, Fun, Acc1);			
+
+fold_node(Ind, _, Parent, {Node='not', Child}, _, Fun, Acc0) ->					%% in-order unary recurse
+	Acc1 = fold_node(Ind+1, 0 , Parent, Node, Child, Fun, Acc0),		 		
+	fold_in(Ind+1, 0, Node, Child, undefined, Fun, Acc1);			
 
 fold_node(Ind, Idx, Parent, {Node, T}, _, Fun, Acc0) when is_tuple(T) ->	%% pre-order to in-order transition
 	Acc1 = fold_in(Ind, Idx , Parent, Node, T, Fun, Acc0),		 		
@@ -118,9 +122,9 @@ fold_node(Ind, _, Parent, {Node, Left, Middle, Right}, Ch, Fun, Acc0) ->	%% {_,_
 	Acc4 = Fun(Ind+1, 0, Parent, <<>>, 'between and', Node, Acc3),		
 	fold_in(Ind+1, 0, Node, Right, undefined, Fun, Acc4);
 	
-fold_node(Ind, Idx, Parent, {'as', Node, Alias}, Ch, Fun, Acc0) -> 			%% {_,_,_} alias for fields
-	Acc1 = fold_node(Ind, Idx, Parent, Node, Ch, Fun, Acc0),
-	Acc2 = Fun(Ind, 0, Parent, Alias, visit, 'as', Acc1),
+fold_node(Ind, Idx, _Parent, {'as', Node, Alias}, Ch, Fun, Acc0) -> 			%% {_,_,_} alias for fields
+	Acc1 = fold_node(Ind, Idx, 'as', Node, Ch, Fun, Acc0),
+	Acc2 = Fun(Ind, 0, 'as', Alias, visit, 'as', Acc1),
 	Fun(Ind, 0, 'as', Alias, visit, Alias, Acc2);
 
 fold_node(Ind, Idx, Node, {Node, Left, Right}, _, Fun, Acc0) ->				%% {_,_,_} in-order binary recurse
@@ -128,12 +132,16 @@ fold_node(Ind, Idx, Node, {Node, Left, Right}, _, Fun, Acc0) ->				%% {_,_,_} in
 	Acc2 = fold_node(Ind, 0, Node, Node, {Left, Right}, Fun, Acc1),
 	fold_in(Ind, 0, Node, Right, undefined, Fun, Acc2);
 
+fold_node(Ind, Idx, Parent='fields', {Node, Left, Right}, _, Fun, Acc0)->				%% {_,_,_} in-order binary recurse
+	Acc1 = fold_in(Ind, Idx, Node, Left, undefined, Fun, Acc0),
+	Acc2 = fold_node(Ind, 0, Parent, Node, {Left, Right}, Fun, Acc1),
+	fold_in(Ind, 0, Node, Right, undefined, Fun, Acc2);
+	
 fold_node(Ind, Idx, Parent, {Node, Left, Right}, _, Fun, Acc0)->				%% {_,_,_} in-order binary recurse
 	Acc1 = fold_in(Ind+1, Idx, Node, Left, undefined, Fun, Acc0),
 	Acc2 = fold_node(Ind+1, 0, Parent, Node, {Left, Right}, Fun, Acc1),
 	fold_in(Ind+1, 0, Node, Right, undefined, Fun, Acc2);
 	
-
 fold_node(_Ind, _Idx, _Parent, T, _, _Fun, Acc)-> 							%% catch remaining
 	io:format(user, "~n----remaining term---------~n~p~n", [T]),
 	Acc. 
@@ -149,6 +157,8 @@ fold_fun(Ind, 0, Parent, Node, Children, Fun, Acc0)  ->
 	io:format(user, "~n~p,~p )", [Ind, 0]),
 	Acc1.
 
+fold_in(Ind, Idx, Parent='as', Node, Children, Fun, Acc0)  ->
+	fold_node(Ind, Idx, Parent, Node, Children, Fun, Acc0);
 fold_in(Ind, Idx, Parent, Node, Children, Fun, Acc0)  ->
 	case binding(Node) < binding(Parent) of
 		true ->

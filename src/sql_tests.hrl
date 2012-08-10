@@ -24,7 +24,7 @@ select
 ,
 "select
 	/*+001*/
-		*
+		a
 	from
 		abc
 	where
@@ -101,33 +101,8 @@ select
 "
 select
 	/*+004*/
-		a
-		,b
-		,c
-	from
-		abc
-	where
-		not
-			(
-					to_date
-						(
-							c
-						)
-					=
-					d
-				or
-					e
-					=
-					f
-			)
-"
-,
-"
-select
-	/*+005*/
-		a as aa
-		,b
-		,c
+		-
+		c
 	from
 		abc
 		,def
@@ -157,8 +132,33 @@ select
 ,
 "
 select
+	/*+005*/
+			a
+		+
+			b
+	from
+		abc
+	where
+		not
+			(
+					to_date
+						(
+							c
+						)
+					=
+					d
+				or
+					e
+					=
+					f
+			)
+"
+,
+"
+select
 	/*+006*/
-		*
+		-
+			c as cc
 	from
 		abc
 		,def
@@ -205,9 +205,15 @@ select
 "
 select
 	/*+010*/
-			to_date(a)
+			to_date
+				(
+					a
+				)
 		+
-			to_date(b)
+			to_date
+				(
+					b
+				)
 	from
 		abc
 	where
@@ -219,7 +225,17 @@ select
 "
 select
 	/*+011*/
-		*
+			a
+			+
+			1
+		,
+			b
+			*
+			c
+		,
+			f
+			-
+			h as fh
 	from
 		abc
 	where

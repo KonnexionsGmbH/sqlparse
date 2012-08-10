@@ -1,11 +1,12 @@
 -module(sql_walk).
 
--export([walk_tree/1, walk_tree/2, to_json/1]).
+-export([walk_tree/1, walk_tree/3, to_json/1]).
 
 -include_lib("eunit/include/eunit.hrl").
 -include("sql_box.hrl").
 -include("sql_tests.hrl").
 
+% Webmachine safe interface
 to_json(Sql0) ->
     Sql1 = string:strip(Sql0, both),
     Sql = case lists:nth(length(Sql1), Sql1) of
@@ -32,161 +33,195 @@ to_json(Sql0) ->
 precedence(A) when is_atom(A) ->
     {_,P} = lists:keyfind(A, 1,
         [
-            {'u+',9},
-            {'u-',9},
-            {'fun',8},
-            {'*',7},
-            {'/',7},
-            {'+',6},
-            {'-',6},
-            {'=',5},
-            {'<=',5},
-            {'>=',5},
-            {'<>',5},
-            {'<',5},
-            {'>',5},
-            {'like',5},
-            {'is',5},
-            {'between',5},
-            {'in',4},
-            {'not',3},
-            {'and',2},
-            {'or',1}
+             {'u+',9}
+            ,{'u-',9}
+            ,{'fun',8}
+            ,{'*',7}
+            ,{'/',7}
+            ,{'+',6}
+            ,{'-',6}
+            ,{'as',5}
+            ,{'=',5}
+            ,{'<=',5}
+            ,{'>=',5}
+            ,{'<>',5}
+            ,{'<',5}
+            ,{'>',5}
+            ,{'like',5}
+            ,{'is',5}
+            ,{'between',5}
+            ,{'in',4}
+            ,{'not',3}
+            ,{'and',2}
+            ,{'or',1}
         ]
     ),
     P.
 
-walk_tree(SqlParseTree) -> walk_tree(SqlParseTree, #sql_box_rec{}).
+walk_tree(SqlParseTree) -> walk_tree(SqlParseTree, #sql_box_rec{}, 0).
 
 % ignore empty fields
-walk_tree({_, <<>>}, _Acc) -> [];
-walk_tree({_, []}, _Acc) -> [];
-walk_tree({_, {}}, _Acc) -> [];
+walk_tree({_, <<>>}, _Acc, _) -> [];
+walk_tree({_, []},   _Acc, _) -> [];
+walk_tree({_, {}},   _Acc, _) -> [];
 
 % create record
-walk_tree({Op, Args}, undefined) when is_list(Args), length(Args) > 0   -> walk_tree({Op, Args}, #sql_box_rec{});
-walk_tree({Op, {Op1,L,R}}, undefined)                                   -> walk_tree({Op, {Op1,L,R}}, #sql_box_rec{});
-walk_tree(L, undefined) when is_binary(L)                               -> walk_tree(L, #sql_box_rec{});
-walk_tree({Op,Con,D0,D1,D2}, undefined)                                 -> walk_tree({Op,Con,D0,D1,D2}, #sql_box_rec{});
-walk_tree({Op,L,R}, undefined)                                          -> walk_tree({Op,L,R}, #sql_box_rec{});
-walk_tree({Op,D}, undefined)                                            -> walk_tree({Op,D}, #sql_box_rec{});
+walk_tree({Op, Args}, undefined, Dep) when is_list(Args), length(Args) > 0   -> walk_tree({Op, Args}, #sql_box_rec{}, Dep);
+walk_tree({Op, {Op1,L,R}}, undefined, Dep)                                   -> walk_tree({Op, {Op1,L,R}}, #sql_box_rec{}, Dep);
+walk_tree(L, undefined, Dep) when is_binary(L)                               -> walk_tree(L, #sql_box_rec{}, Dep);
+walk_tree({Op,Con,D0,D1,D2}, undefined, Dep)                                 -> walk_tree({Op,Con,D0,D1,D2}, #sql_box_rec{}, Dep);
+walk_tree({Op,L,R}, undefined, Dep)                                          -> walk_tree({Op,L,R}, #sql_box_rec{}, Dep);
+walk_tree({Op,D}, undefined, Dep)                                            -> walk_tree({Op,D}, #sql_box_rec{}, Dep);
 
 
 % Args as list used as a generic walk detection
-walk_tree({Op, Args}, Acc) when is_list(Args), length(Args) > 0 ->    
-    Childs0 = [walk_tree(E,undefined) || E <- Args],
-    Childs = if (Op =:= 'fields')  or (Op =:= 'from') ->
-                comma(Childs0);
-                true -> Childs0
+walk_tree({Op0, Args}, Acc, Dep) when is_list(Args), length(Args) > 0 ->    
+    Childs0 = [walk_tree(E,undefined, Dep+1) || E <- Args],
+    {Op, Childs} = case Op0 of
+        'fields'    -> {atom_to_list(Op0), lists:flatten(comma(Childs0))};
+        'from'      -> {atom_to_list(Op0), lists:flatten(comma(Childs0))};
+        'order by'  -> {atom_to_list(Op0), lists:flatten(comma(Childs0))};
+        'list'      -> {"",                lists:flatten([#sql_box_rec{name="("}, comma(Childs0), #sql_box_rec{name=")"}])};
+        {'fun',Op1} -> {atom_to_list(Op1), lists:flatten([#sql_box_rec{name="("}, comma(Childs0), #sql_box_rec{name=")"}])};
+        _           -> {atom_to_list(Op0), lists:flatten(Childs0)}
     end,
-    Acc#sql_box_rec{name=atom_to_list(Op), children=lists:flatten(Childs)};
+    case Op of
+        "select" when Dep > 0 -> Acc#sql_box_rec{children=[ #sql_box_rec{name="("}
+                                             , #sql_box_rec{name=Op, children=Childs}
+                                             , #sql_box_rec{name=")"}
+                                             ]};
+        _        -> Acc#sql_box_rec{name=Op, children=Childs}
+    end;
 
 %%% begning of 1,2,3-tree walk
-%%walk_tree({Op, {Op1,L,R}}, Acc) ->
+%%walk_tree({Op, {Op1,L,R}, Dep}, Acc) ->
 %%    Acc#sql_box_rec{ name=atom_to_list(Op)
 %%                   , children=lists:flatten([
-%%                         walk_tree(L, undefined)                               % 1st child is left sub-tree
+%%                         walk_tree(L, undefined, Dep+1)                               % 1st child is left sub-tree
 %%                         , #sql_box_rec{ name=atom_to_list(Op1)                % 2nd child is operator
-%%                                       , children=[walk_tree(R, undefined)]}   % 1st child of operator is right sub-tree
+%%                                       , children=[walk_tree(R, undefined, Dep+1)]}   % 1st child of operator is right sub-tree
 %%                 ])};
 % begning of 1,2,3-tree walk
-walk_tree({Op, {_,_,_}=D}, Acc) ->
-    Acc#sql_box_rec{name=atom_to_list(Op), children=lists:flatten([walk_tree(D, undefined)])};
+walk_tree({Op, {_,_,_}=D}, Acc, Dep) when (Op =:= 'where') or (Op =:= 'having') ->
+    Acc#sql_box_rec{name=atom_to_list(Op), children=lists:flatten([walk_tree(D, undefined, Dep+1)])};
 
 % process single tree leaves
-walk_tree(L, Acc) when is_binary(L) ->
+walk_tree(L, Acc, _) when is_binary(L) ->
    Acc#sql_box_rec{name=binary_to_list(L), children=[]};
 
 % recursive binary tree walk
-walk_tree({'fun',L,R}, Acc) -> walk_tree({L,R}, Acc); %(functions triggers generic walk)
-walk_tree({Op0,L,{Op1,_,_}=R}, Acc) when is_atom(Op0), is_atom(Op1), is_binary(L)->
+walk_tree({'fun',L,R}, Acc, Dep) -> walk_tree({{'fun',L},R}, Acc, Dep+1); %(functions triggers generic walk)
+walk_tree({Op0,L,{Op1,_,_}=R}, Acc, Dep) when is_atom(Op0), is_atom(Op1), is_binary(L)->
+    io:format(user, "Prece - ~p", [{Op0,Op1}]),
     P0 = precedence(Op0),
     P1 = precedence(Op1),
-    io:format(user, "Prece - ~p ~p~n", [{Op0,Op1},{P0,P1}]),
+    io:format(user, " ~p~n", [{P0,P1}]),
     Childs = if
         (P0 > P1) ->
-            [ walk_tree(L, Acc)
+            [ walk_tree(L, Acc, Dep+1)
             , #sql_box_rec{ name=atom_to_list(Op0)}
-            , #sql_box_rec{children=[#sql_box_rec{name="("}, walk_tree(R, Acc), #sql_box_rec{name=")"}]}
+            , #sql_box_rec{children=[#sql_box_rec{name="("}, walk_tree(R, Acc, Dep+1), #sql_box_rec{name=")"}]}
             ];
         (P0 =< P1) ->
-            [ walk_tree(L, Acc)
+            [ walk_tree(L, Acc, Dep+1)
             , #sql_box_rec{ name=atom_to_list(Op0)}
-            , walk_tree(R, Acc)
+            , walk_tree(R, Acc, Dep+1)
             ]
     end,
     Acc#sql_box_rec{children=Childs};
-walk_tree({Op0,{Op1,_,_}=L,R}, Acc) when is_atom(Op0), is_atom(Op1), is_binary(R)->
+walk_tree({Op0,{Op1,_,_}=L,R}, Acc, Dep) when is_atom(Op0), is_atom(Op1), is_binary(R)->
+    io:format(user, "Prece - ~p", [{Op0,Op1}]),
     P0 = precedence(Op0),
     P1 = precedence(Op1),
-    io:format(user, "Prece - ~p ~p~n", [{Op0,Op1},{P0,P1}]),
+    io:format(user, " ~p~n", [{P0,P1}]),
     Childs = if
         (P0 > P1) ->
-            [ #sql_box_rec{children=[#sql_box_rec{name="("}, walk_tree(L, Acc), #sql_box_rec{name=")"}]}
+            [ #sql_box_rec{children=[#sql_box_rec{name="("}, walk_tree(L, Acc, Dep+1), #sql_box_rec{name=")"}]}
             , #sql_box_rec{ name=atom_to_list(Op0)}
-            , walk_tree(R, Acc)
+            , walk_tree(R, Acc, Dep+1)
             ];
         (P0 =< P1) ->
-            [ walk_tree(L, Acc)
+            [ walk_tree(L, Acc, Dep+1)
             , #sql_box_rec{ name=atom_to_list(Op0)}
-            , walk_tree(R, Acc)
+            , walk_tree(R, Acc, Dep+1)
             ]
     end,
     Acc#sql_box_rec{children=Childs};
-walk_tree({Op,L,R}, Acc) when is_binary(R) ->
+walk_tree({Op,L,R}, Acc, Dep) when is_binary(R) ->
     io:format(user, "Right sub Bin ~p~n", [{Op,L,R}]),
     Acc#sql_box_rec{children=[
-        walk_tree(L, Acc)                       % 1st child is left sub-tree
+        walk_tree(L, Acc, Dep+1)                       % 1st child is left sub-tree
         , #sql_box_rec{name=atom_to_list(Op)}   % 2nd child is operator
-        , walk_tree(R, Acc)                     % 3rd child is right sub-tree
+        , walk_tree(R, Acc, Dep+1)                     % 3rd child is right sub-tree
     ]};
-walk_tree({Op0,{Op1,_,_}=L,{Op2,_,_}=R}, Acc) when is_atom(Op0), is_atom(Op1), is_atom(Op2)->
+walk_tree({Op0,{Op1,_,_}=L,{Op2,_,_}=R}, Acc, Dep) when is_atom(Op0), is_atom(Op1), is_atom(Op2)->
+    io:format(user, "Prece - ~p", [{Op0,Op1,Op2}]),
     P0 = precedence(Op0),
     P1 = precedence(Op1),
     P2 = precedence(Op2),
-    io:format(user, "Prece - ~p ~p~n", [{Op0,Op1,Op2},{P0,P1,P2}]),
+    io:format(user, " ~p~n", [{P0,P1,P2}]),
     Childs = if
         (P0 > P1) and (P0 > P2) ->
-            [ #sql_box_rec{children=[#sql_box_rec{name="("}, walk_tree(L, Acc), #sql_box_rec{name=")"}]}
-            , #sql_box_rec{ name=atom_to_list(Op0), children=[#sql_box_rec{children=[#sql_box_rec{name="("}, walk_tree(R, Acc), #sql_box_rec{name=")"}]}]}
+            [ #sql_box_rec{children=[#sql_box_rec{name="("}, walk_tree(L, Acc, Dep+1), #sql_box_rec{name=")"}]}
+            , #sql_box_rec{ name=atom_to_list(Op0), children=[#sql_box_rec{children=[#sql_box_rec{name="("}, walk_tree(R, Acc, Dep+1), #sql_box_rec{name=")"}]}]}
             ];
         (P0 > P1) and (P0 =< P2) ->
-            [ #sql_box_rec{children=[#sql_box_rec{name="("}, walk_tree(L, Acc), #sql_box_rec{name=")"}]}
-            , #sql_box_rec{ name=atom_to_list(Op0), children=[walk_tree(R, Acc)]}
+            [ #sql_box_rec{children=[#sql_box_rec{name="("}, walk_tree(L, Acc, Dep+1), #sql_box_rec{name=")"}]}
+            , #sql_box_rec{ name=atom_to_list(Op0), children=[walk_tree(R, Acc, Dep+1)]}
             ];
         (P0 =< P1) and (P0 > P2) ->
-            [ #sql_box_rec{children=[walk_tree(L, Acc)]}
-            , #sql_box_rec{ name=atom_to_list(Op0), children=[#sql_box_rec{children=[#sql_box_rec{name="("}, walk_tree(R, Acc), #sql_box_rec{name=")"}]}]}
+            [ #sql_box_rec{children=[walk_tree(L, Acc, Dep+1)]}
+            , #sql_box_rec{ name=atom_to_list(Op0), children=[#sql_box_rec{children=[#sql_box_rec{name="("}, walk_tree(R, Acc, Dep+1), #sql_box_rec{name=")"}]}]}
             ];
         true ->
-            [ #sql_box_rec{children=[walk_tree(L, Acc)]}
-            , #sql_box_rec{ name=atom_to_list(Op0), children=[walk_tree(R, Acc)]}
+            [ #sql_box_rec{children=[walk_tree(L, Acc, Dep+1)]}
+            , #sql_box_rec{ name=atom_to_list(Op0), children=[walk_tree(R, Acc, Dep+1)]}
             ]
     end,
     Acc#sql_box_rec{children=Childs};
-walk_tree({Op,L,R}, Acc) ->
+walk_tree({Op,L,R}, Acc, Dep) ->
     Acc#sql_box_rec{children=[
-        walk_tree(L, Acc)                       % 1st child is left sub-tree
+        walk_tree(L, Acc, Dep+1)                       % 1st child is left sub-tree
         , #sql_box_rec{ name=atom_to_list(Op)   % 2nd child is operator
-            , children=[walk_tree(R, Acc)]}     % 1st child of operator is right sub-tree
+            , children=[walk_tree(R, Acc, Dep+1)]}     % 1st child of operator is right sub-tree
     ]};
 
-% recursive uninary tree walk
-walk_tree({Op,D}, Acc) ->
+% recursive unary tree walk
+% - precedence check
+walk_tree({Op0,{Op1,_,_}=D}, Acc, Dep) when is_atom(Op0), is_atom(Op1) ->
+    io:format(user, "Prece - ~p", [{Op0,Op1}]),
+    P0 = precedence(Op0),
+    P1 = precedence(Op1),
+    io:format(user, " ~p~n", [{P0,P1}]),
+    Childs = if
+        (P0 > P1) ->
+            [#sql_box_rec{name=atom_to_list(Op0)}
+            , #sql_box_rec{children=[#sql_box_rec{name="("}, walk_tree(D, Acc, Dep+1), #sql_box_rec{name=")"}]}
+            ];
+        (P0 =< P1) ->
+            [#sql_box_rec{name=atom_to_list(Op0)}
+            , walk_tree(D, Acc, Dep+1)
+            ]
+    end,
+    Acc#sql_box_rec{children=Childs};
+% - handling {atom,binary} pattern atom is ignored in specific cases
+walk_tree({'opt',D}, Acc, _) when is_binary(D) -> Acc#sql_box_rec{name=binary_to_list(D)};
+% - generic unary processing
+walk_tree({Op,D}, Acc, Dep) ->
     Acc#sql_box_rec{children=[
         #sql_box_rec{ name=atom_to_list(Op)         % 1st child is operator
-                    , children=[walk_tree(D, Acc)]} % 1st child of operator is only sibling
+                    , children=[walk_tree(D, Acc, Dep)]} % 1st child of operator is only sibling
     ]};
 
 % recursive ternary tree walk
-walk_tree({between,D0,D1,D2}, Acc) -> walk_tree({between,'and',D0,D1,D2}, Acc); %(e.g. - D0 between D1 and D2)
-walk_tree({Op,Con,D0,D1,D2}, Acc) ->
+walk_tree({between,D0,D1,D2}, Acc, Dep) -> walk_tree({between,'and',D0,D1,D2}, Acc, Dep+1); %(e.g. - D0 between D1 and D2)
+walk_tree({Op,Con,D0,D1,D2}, Acc, Dep) ->
     Acc#sql_box_rec{children=[
-        walk_tree(D0, Acc)                           % 1st child is D0
+        walk_tree(D0, Acc, Dep+1)                           % 1st child is D0
         , #sql_box_rec{name=atom_to_list(Op)}        % 2nd child is operator
-        , walk_tree(D1, Acc)                         % 3rd child is D1
+        , walk_tree(D1, Acc, Dep+1)                         % 3rd child is D1
         , #sql_box_rec{name=atom_to_list(Con)}       % 4th child is connector
-        , walk_tree(D2, Acc)                         % 5th child is D2
+        , walk_tree(D2, Acc, Dep+1)                         % 5th child is D2
     ]}.
 
 comma(L)                                    -> comma(L,[]).
@@ -220,6 +255,7 @@ rec_sav_json(Sql, Rec, File) ->
 
 rec2json(Rec, Format) -> rec2json(Rec, "", 0, Format).
 rec2json(#sql_box_rec{name="fields"}=Rec, Json, T, Format) -> rec2json(Rec#sql_box_rec{name=""}, Json, T, Format);
+rec2json(#sql_box_rec{name="hints"}=Rec, Json, T, Format)  -> rec2json(Rec#sql_box_rec{name=""}, Json, T, Format);
 
 rec2json(#sql_box_rec{name=N,children=[]}, _Json, _, no_format) -> "{\"name\":\""++N++"\", \"children\":[]}";
 rec2json(#sql_box_rec{name=N,children=Childs}, Json, T, no_format) ->
@@ -233,6 +269,18 @@ rec2json(#sql_box_rec{name=N,children=Childs}, Json, T, format) ->
     string:join([rec2json(C, Json, T+1, format) || C <- Childs], ",'\n+")
     ++"'\n+"++lists:duplicate(T, $\t)++"']}".
 
+rec2sql(Rec, Format) -> rec2sql(Rec, "", 0, Format).
+rec2sql(#sql_box_rec{name="fields"}=Rec, Str, T, Format) -> rec2sql(Rec#sql_box_rec{name=""}, Str, T, Format);
+rec2sql(#sql_box_rec{name="hints"}=Rec, Str, T, Format) -> rec2sql(Rec#sql_box_rec{name=""}, Str, T, Format);
+
+rec2sql(#sql_box_rec{name=N,children=[]}, _Json, _, no_format) -> N;
+rec2sql(#sql_box_rec{name=N,children=Childs}, Str, T, no_format) ->
+     N ++ " " ++ string:join([rec2sql(C, Str, T+1, no_format) || C <- Childs], " ");
+
+rec2sql(#sql_box_rec{children=[]}=Rec, Str, T, format) -> lists:duplicate(T, $\t)++" "++rec2sql(Rec, Str, T, no_format);
+rec2sql(#sql_box_rec{name=N,children=Childs}, Str, T, format) ->
+    N ++ "\n" ++ lists:duplicate(T, $\t) ++ string:join([rec2sql(C, Str, T+1, format) || C <- Childs], "\n").
+
 walk_test() ->
     io:format(user, "=================================~n", []),
     io:format(user, "|  S Q L   P A R S E   W A L K  |~n", []),
@@ -242,23 +290,48 @@ test_loop([], _) -> ok;
 test_loop([Sql|Sqls], N) ->
     io:format(user, "[~p]===============================~nSql: "++Sql++"~n", [N]),
     {ok, Tokens, _} = sql_lex:string(Sql ++ ";"),
-    io:format(user, "-------------------------------~nlex ok:~n", []),
+    io:format(user, "-------------------------------~nlex: ok~n", []),
     case (catch sql_parse:parse(Tokens)) of
         {ok, [ParseTree|_]} -> 
         	io:format(user, "-------------------------------~nParseRec:~n", []),
             case (catch walk_tree(ParseTree)) of
                 {'EXIT', Error} ->
                     io:format(user, "Error ~p~n~p~n", [Error, ParseTree]),
-                    ?assertEqual(ok, Error);
+                    ?assertEqual(ok, nok);
                 Result ->
                     io:format(user, "Rec~n~p~n", [Result]),
                     case (catch rec_sav_json(Sql, Result, "Query" ++ integer_to_list(N))) of
-                        {'EXIT', Error} ->
-                            io:format(user, "Error ~p~n~p~n", [Error, Result]),
-                            ?assertEqual(ok, Error);
+                        {'EXIT', Error0} ->
+                            io:format(user, "Error ~p~n~p~n", [Error0, Result]),
+                            ?assertEqual(ok, nok);
                         Json ->
-                            io:format(user, "Json~n~p~n", [Json])
+        	                io:format(user, "-------------------------------~n", []),
+                            io:format(user, "Json: ~p~n", [Json])
+                    end,
+                    case (catch rec2sql(Result, no_format)) of
+                        {'EXIT', Error1} ->
+                            io:format(user, "Error ~p~n~p~n", [Error1, Result]),
+                            ?assertEqual(ok, nok);
+                        StrPlain ->
+        	                io:format(user, "-------------------------------~n", []),
+                            io:format(user, "StrPlain~n~p~n", [StrPlain]),
+                            Orig = sql_parse:collapse(Sql),
+                            Genr = sql_parse:collapse(StrPlain),
+                            case Genr of
+                                Orig -> ok;
+                                _ ->
+                                    io:format(user, "Error ~p~n", [ParseTree]),
+                                    ?assertEqual(Orig, Genr)
+                            end
                     end
+                    %case (catch rec2sql(Result, format)) of
+                    %    {'EXIT', Error2} ->
+                    %        io:format(user, "Error ~p~n~p~n", [Error2, Result]),
+                    %        ?assertEqual(ok, nok);
+                    %    Str ->
+        	        %        io:format(user, "-------------------------------~n", []),
+                    %        io:format(user, "Str~n"++Str++"~n", [])
+                    %end
             end,
         	io:format(user, "-------------------------------~n", []);
         {'EXIT', Error} ->

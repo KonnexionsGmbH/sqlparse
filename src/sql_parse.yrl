@@ -494,6 +494,8 @@ scalar_exp -> scalar_exp '*' scalar_exp                                         
 scalar_exp -> scalar_exp '/' scalar_exp                                                         : {'/','$1','$3'}.
 scalar_exp -> '+' scalar_exp                                                                    : {'+','$2'}. %prec UMINU
 scalar_exp -> '-' scalar_exp                                                                    : {'-','$2'}. %prec UMINU
+scalar_exp -> '+' literal                                                                       : '$2'.
+scalar_exp -> '-' literal                                                                       : list_to_binary(["-",'$2']).
 scalar_exp -> scalar_exp NAME                                                                   : {as, '$1', unwrap_bin('$2')}.
 scalar_exp -> scalar_exp AS NAME                                                                : {as, '$1', unwrap_bin('$3')}.
 scalar_exp -> NULLX NAME                                                                        : {as, <<"NULL">>, unwrap_bin('$2')}.

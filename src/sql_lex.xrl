@@ -110,7 +110,7 @@ Rules.
 % numbers
 %(([\+\-]?)([0-9]+\.[0-9]+([eE][\+\-]?[0-9]+)*))                                          : {token, {'APPROXNUM', TokenLine, list_to_float(TokenChars)}}.
 %([\+\-]?[0-9]+)                                                                          : {token, {'INTNUM', TokenLine, list_to_integer(TokenChars)}}.
-(([\+\-]?)([0-9]+\.[0-9]+([eE][\+\-]?[0-9]+)*))                                          : {token, {'APPROXNUM', TokenLine, TokenChars}}.
+(([0-9]+\.[0-9]+([eE][\+\-]?[0-9]+)*))                                                   : {token, {'APPROXNUM', TokenLine, TokenChars}}.
 ([0-9]+)                                                                                 : {token, {'INTNUM', TokenLine, TokenChars}}.
 
 	%% strings

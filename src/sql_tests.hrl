@@ -652,26 +652,110 @@ order by
 "
 ,
 "
-select  /*+ 037 */
-	AC_ID
-	, AC_NAME
-	, AC_ETID
-	, AC_SHORT
-	, AC_DEPTID
-	, AC_LANGID
-	, AC_LOGRET
-	, nvl(AC_MAXLOG, SYS_MAXLOG) as MAXLOG
-	, AC_LASTLOGINTIME
-	, AC_IPMASK
-	, AC_REMOTEADDR
-	, (sysdate-nvl(AC_LASTLOGINTIME,sysdate))*24*60-nvl(SYS_DELAY,3)
-from 
-	ACCOUNT
-	, SYSPARAMETERS
-where
-		AC_ESID='A'
-	and	AC_SHORT='ADMIN'
-    and 1+(-4)=-3
-    and +2=5-3
+select
+	/*+ 037 */
+		AC_ID
+		,
+			15
+			*
+			3
+		,
+			sysdate
+			-
+				nvl
+					(
+						AC_LASTLOGINTIME
+						,sysdate
+					)
+	from
+		ACCOUNT
+		,SYSPARAMETERS
+	where
+			AC_ESID
+			=
+			'A'
+		and
+			AC_SHORT
+			=
+			'ADMIN'
+		and
+				1
+			+
+					-
+					4
+			=
+			-3
+		and
+				+
+				2
+			=
+				5
+				-
+				3
+"
+,
+"
+select
+	/*+ 038 */
+		AC_ID
+		,AC_NAME
+		,AC_ETID
+		,AC_SHORT
+		,AC_DEPTID
+		,AC_LANGID
+		,AC_LOGRET
+		,nvl
+			(
+				AC_MAXLOG
+				,SYS_MAXLOG
+			) as MAXLOG
+		,AC_LASTLOGINTIME
+		,AC_IPMASK
+		,AC_REMOTEADDR
+		,
+					(
+							sysdate
+						-
+							nvl
+								(
+									AC_LASTLOGINTIME
+									,sysdate
+								)
+					)
+				*
+					24
+				*
+					60
+			-
+				nvl
+					(
+						SYS_DELAY
+						,3
+					)
+	from
+		ACCOUNT
+		,SYSPARAMETERS
+	where
+			AC_ESID
+			=
+			'A'
+		and
+			AC_SHORT
+			=
+			'ADMIN'
+		and
+				1
+			+
+					-
+					4
+			=
+			-3
+		and
+				+
+				2
+			=
+				5
+				-
+				3
 "
 ]).

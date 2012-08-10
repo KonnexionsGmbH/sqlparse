@@ -6,6 +6,14 @@
 -include("sql_box.hrl").
 -include("sql_tests.hrl").
 
+%-define(logf, ok).
+
+-ifdef(logf).
+-define(LOG(F, A), io:format(user, "{~p,~p}:"++F, [?MODULE,?LINE,A])).
+-else.
+-define(LOG(F, A), true).
+-endif.
+
 % Webmachine safe interface
 to_json(Sql0) ->
     Sql1 = string:strip(Sql0, both),
@@ -80,7 +88,15 @@ walk_tree({Op0, Args}, Acc, Dep) when is_list(Args), length(Args) > 0 ->
     {Op, Childs} = case Op0 of
         'fields'    -> {atom_to_list(Op0), lists:flatten(comma(Childs0))};
         'from'      -> {atom_to_list(Op0), lists:flatten(comma(Childs0))};
-        'order by'  -> {atom_to_list(Op0), lists:flatten(comma(Childs0))};
+        'order by'  ->
+            Childs1 = [
+                case O of
+                    <<>> -> walk_tree(E,undefined, Dep+1);
+                    _ -> walk_tree(E,undefined, Dep+1)
+                end
+            || {E, O} <- Args
+            ],
+            {atom_to_list(Op0), lists:flatten(comma(Childs1))};
         'list'      -> {"",                lists:flatten([#sql_box_rec{name="("}, comma(Childs0), #sql_box_rec{name=")"}])};
         {'fun',Op1} -> {atom_to_list(Op1), lists:flatten([#sql_box_rec{name="("}, comma(Childs0), #sql_box_rec{name=")"}])};
         _           -> {atom_to_list(Op0), lists:flatten(Childs0)}
@@ -112,10 +128,10 @@ walk_tree(L, Acc, _) when is_binary(L) ->
 % recursive binary tree walk
 walk_tree({'fun',L,R}, Acc, Dep) -> walk_tree({{'fun',L},R}, Acc, Dep+1); %(functions triggers generic walk)
 walk_tree({Op0,L,{Op1,_,_}=R}, Acc, Dep) when is_atom(Op0), is_atom(Op1), is_binary(L)->
-    io:format(user, "Prece - ~p", [{Op0,Op1}]),
+    ?LOG("Prece - ~p", [{Op0,Op1}]),
     P0 = precedence(Op0),
     P1 = precedence(Op1),
-    io:format(user, " ~p~n", [{P0,P1}]),
+    ?LOG(" ~p~n", [{P0,P1}]),
     Childs = if
         (P0 > P1) ->
             [ walk_tree(L, Acc, Dep+1)
@@ -130,10 +146,10 @@ walk_tree({Op0,L,{Op1,_,_}=R}, Acc, Dep) when is_atom(Op0), is_atom(Op1), is_bin
     end,
     Acc#sql_box_rec{children=Childs};
 walk_tree({Op0,{Op1,_,_}=L,R}, Acc, Dep) when is_atom(Op0), is_atom(Op1), is_binary(R)->
-    io:format(user, "Prece - ~p", [{Op0,Op1}]),
+    ?LOG("Prece - ~p", [{Op0,Op1}]),
     P0 = precedence(Op0),
     P1 = precedence(Op1),
-    io:format(user, " ~p~n", [{P0,P1}]),
+    ?LOG(" ~p~n", [{P0,P1}]),
     Childs = if
         (P0 > P1) ->
             [ #sql_box_rec{children=[#sql_box_rec{name="("}, walk_tree(L, Acc, Dep+1), #sql_box_rec{name=")"}]}
@@ -148,18 +164,18 @@ walk_tree({Op0,{Op1,_,_}=L,R}, Acc, Dep) when is_atom(Op0), is_atom(Op1), is_bin
     end,
     Acc#sql_box_rec{children=Childs};
 walk_tree({Op,L,R}, Acc, Dep) when is_binary(R) ->
-    io:format(user, "Right sub Bin ~p~n", [{Op,L,R}]),
+    ?LOG("Right sub Bin ~p~n", [{Op,L,R}]),
     Acc#sql_box_rec{children=[
         walk_tree(L, Acc, Dep+1)                       % 1st child is left sub-tree
         , #sql_box_rec{name=atom_to_list(Op)}   % 2nd child is operator
         , walk_tree(R, Acc, Dep+1)                     % 3rd child is right sub-tree
     ]};
 walk_tree({Op0,{Op1,_,_}=L,{Op2,_,_}=R}, Acc, Dep) when is_atom(Op0), is_atom(Op1), is_atom(Op2)->
-    io:format(user, "Prece - ~p", [{Op0,Op1,Op2}]),
+    ?LOG("Prece - ~p", [{Op0,Op1,Op2}]),
     P0 = precedence(Op0),
     P1 = precedence(Op1),
     P2 = precedence(Op2),
-    io:format(user, " ~p~n", [{P0,P1,P2}]),
+    ?LOG(" ~p~n", [{P0,P1,P2}]),
     Childs = if
         (P0 > P1) and (P0 > P2) ->
             [ #sql_box_rec{children=[#sql_box_rec{name="("}, walk_tree(L, Acc, Dep+1), #sql_box_rec{name=")"}]}
@@ -189,10 +205,10 @@ walk_tree({Op,L,R}, Acc, Dep) ->
 % recursive unary tree walk
 % - precedence check
 walk_tree({Op0,{Op1,_,_}=D}, Acc, Dep) when is_atom(Op0), is_atom(Op1) ->
-    io:format(user, "Prece - ~p", [{Op0,Op1}]),
+    ?LOG("Prece - ~p", [{Op0,Op1}]),
     P0 = precedence(Op0),
     P1 = precedence(Op1),
-    io:format(user, " ~p~n", [{P0,P1}]),
+    ?LOG(" ~p~n", [{P0,P1}]),
     Childs = if
         (P0 > P1) ->
             [#sql_box_rec{name=atom_to_list(Op0)}
@@ -224,10 +240,17 @@ walk_tree({Op,Con,D0,D1,D2}, Acc, Dep) ->
         , walk_tree(D2, Acc, Dep+1)                         % 5th child is D2
     ]}.
 
-comma(L)                                    -> comma(L,[]).
-comma([], Acc)                              -> Acc;
-comma([E|Rest], Acc) when length(Acc) == 0  -> comma(Rest, Acc ++ [E]);
-comma([#sql_box_rec{name=N}=E|Rest], Acc)   -> comma(Rest, Acc ++ [E#sql_box_rec{name=", "++N}]).
+comma(L)                                    ->
+    case (catch comma(L,[])) of
+        {'EXIT', _Error} ->
+            io:format(user, "comma : error, param ~p~n", [L]),
+            throw(comma_error);
+        C -> C
+    end.
+comma([], Acc)                                              -> Acc;
+comma([E|Rest], Acc) when length(Acc) == 0                  -> comma(Rest, Acc ++ [E]);
+comma([E|Rest], Acc) when is_list(E), length(E) == 0        -> comma(Rest, Acc ++ [E]);
+comma([#sql_box_rec{name=N}=E|Rest], Acc)                   -> comma(Rest, Acc ++ [E#sql_box_rec{name=", "++N}]).
 
 rec_sav_json(Sql, Rec, File) ->
    PathPrefix = case lists:last(filename:split(filename:absname(""))) of
@@ -270,16 +293,22 @@ rec2json(#sql_box_rec{name=N,children=Childs}, Json, T, format) ->
     ++"'\n+"++lists:duplicate(T, $\t)++"']}".
 
 rec2sql(Rec, Format) -> rec2sql(Rec, "", 0, Format).
-rec2sql(#sql_box_rec{name="fields"}=Rec, Str, T, Format) -> rec2sql(Rec#sql_box_rec{name=""}, Str, T, Format);
-rec2sql(#sql_box_rec{name="hints"}=Rec, Str, T, Format) -> rec2sql(Rec#sql_box_rec{name=""}, Str, T, Format);
+rec2sql(#sql_box_rec{name="fields"}=Rec, Str, T, Format) -> rec2sql(Rec#sql_box_rec{name=""}, Str, T+1, Format);
+rec2sql(#sql_box_rec{name="hints"}=Rec, Str, T, Format)  -> rec2sql(Rec#sql_box_rec{name=""}, Str, T-2, Format);
 
-rec2sql(#sql_box_rec{name=N,children=[]}, _Json, _, no_format) -> N;
+rec2sql(#sql_box_rec{name=N,children=[]}, _Str, _, no_format) -> N;
 rec2sql(#sql_box_rec{name=N,children=Childs}, Str, T, no_format) ->
      N ++ " " ++ string:join([rec2sql(C, Str, T+1, no_format) || C <- Childs], " ");
 
-rec2sql(#sql_box_rec{children=[]}=Rec, Str, T, format) -> lists:duplicate(T, $\t)++" "++rec2sql(Rec, Str, T, no_format);
+rec2sql(#sql_box_rec{name=N,children=[]}, _Str, _, format) -> N;
 rec2sql(#sql_box_rec{name=N,children=Childs}, Str, T, format) ->
-    N ++ "\n" ++ lists:duplicate(T, $\t) ++ string:join([rec2sql(C, Str, T+1, format) || C <- Childs], "\n").
+    if length(N) > 0 -> N ++ "\n"; true -> "" end
+    ++
+    lists:duplicate(T, $\t)
+    ++
+    string:join([rec2sql(C, Str, T+1, format) || C <- Childs], "\n")
+    ++
+    "\t".
 
 walk_test() ->
     io:format(user, "=================================~n", []),
@@ -293,13 +322,13 @@ test_loop([Sql|Sqls], N) ->
     io:format(user, "-------------------------------~nlex: ok~n", []),
     case (catch sql_parse:parse(Tokens)) of
         {ok, [ParseTree|_]} -> 
-        	io:format(user, "-------------------------------~nParseRec:~n", []),
+        	io:format(user, "-------------------------------~nparse: ok~n", []),
             case (catch walk_tree(ParseTree)) of
                 {'EXIT', Error} ->
                     io:format(user, "Error ~p~n~p~n", [Error, ParseTree]),
                     ?assertEqual(ok, nok);
                 Result ->
-                    io:format(user, "Rec~n~p~n", [Result]),
+        	        io:format(user, "-------------------------------~nbox: ok~n", []),
                     case (catch rec_sav_json(Sql, Result, "Query" ++ integer_to_list(N))) of
                         {'EXIT', Error0} ->
                             io:format(user, "Error ~p~n~p~n", [Error0, Result]),
@@ -314,13 +343,19 @@ test_loop([Sql|Sqls], N) ->
                             ?assertEqual(ok, nok);
                         StrPlain ->
         	                io:format(user, "-------------------------------~n", []),
-                            io:format(user, "StrPlain~n~p~n", [StrPlain]),
+                            io:format(user, "Sql Plain~n~p~n", [StrPlain]),
                             Orig = sql_parse:collapse(Sql),
                             Genr = sql_parse:collapse(StrPlain),
                             case Genr of
                                 Orig -> ok;
                                 _ ->
                                     io:format(user, "Error ~p~n", [ParseTree]),
+        	                        io:format(user, "-------------------------------~n", []),
+                                    {S1, S2} = sql_parse:str_diff(Orig,Genr),
+                                    io:format(user, "Diff ~p~n     ~p~n", [S1, S2]),
+                                    io:format(user, "Src ~p~n", [Orig]),
+                                    io:format(user, "Dst ~p~n", [Genr]),
+        	                        io:format(user, "-------------------------------~n", []),
                                     ?assertEqual(Orig, Genr)
                             end
                     end
@@ -330,7 +365,21 @@ test_loop([Sql|Sqls], N) ->
                     %        ?assertEqual(ok, nok);
                     %    Str ->
         	        %        io:format(user, "-------------------------------~n", []),
-                    %        io:format(user, "Str~n"++Str++"~n", [])
+                    %        io:format(user, "Sql Pretty~n"++Str++"~n", []),
+                    %        Src = sql_parse:trim_nl(sql_parse:clean_cr(Sql)),
+                    %        Dst = sql_parse:trim_nl(sql_parse:clean_cr(Str)),
+                    %        case Dst of
+                    %            Src -> ok;
+                    %            _ ->
+                    %                io:format(user, "Error ~p~n", [ParseTree]),
+        	        %                io:format(user, "-------------------------------~n", []),
+                    %                {S1, S2} = sql_parse:str_diff(Src,Dst),
+                    %                io:format(user, "Diff ~p~n     ~p~n", [S1, S2]),
+                    %                io:format(user, "Src ~p~n", [Src]),
+                    %                io:format(user, "Dst ~p~n", [Dst]),
+        	        %                io:format(user, "-------------------------------~n", []),
+                    %                ?assertEqual(Src, Dst)
+                    %        end
                     %end
             end,
         	io:format(user, "-------------------------------~n", []);

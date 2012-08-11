@@ -80,6 +80,7 @@ Nonterminals
  existence_test
  subquery
  scalar_exp
+ scalar_sub_exp
  scalar_exp_commalist
  atom
  parameter_ref
@@ -209,9 +210,9 @@ Rootsymbol sql_list.
 
     %% operators
 
-Left        100 'OR'.
-Left        110 'AND'.
-Left        120 'NOT'.
+Left        110 'OR'.
+Left        120 'AND'.
+Left        130 'NOT'.
 Nonassoc    200 COMPARISON. %% = <> < > <= >=
 Left        300 '+' '-'.
 Left        400 '*' '/'.
@@ -387,7 +388,6 @@ assignment_commalist -> assignment                                              
 assignment_commalist -> assignment_commalist ',' assignment                                     : '$1' ++ ['$3'].
 
 assignment -> column '=' scalar_exp                                                             : {'=', '$1', '$3'}.
-assignment -> column '=' NULLX                                                                  : {'=', '$1', "NULLX"}.
 
 update_statement_searched -> UPDATE table SET assignment_commalist opt_where_clause             : {'update', '$2', {'set', '$4'}, '$5'}.
 
@@ -488,35 +488,24 @@ subquery -> query_spec                                                          
 
     %% scalar expressions
 
-scalar_exp -> scalar_exp '+' scalar_exp                                                         : {'+','$1','$3'}.
-scalar_exp -> scalar_exp '-' scalar_exp                                                         : {'-','$1','$3'}.
-scalar_exp -> scalar_exp '*' scalar_exp                                                         : {'*','$1','$3'}.
-scalar_exp -> scalar_exp '/' scalar_exp                                                         : {'/','$1','$3'}.
-scalar_exp -> '+' scalar_exp                                                                    : {'+','$2'}. %prec UMINU
-scalar_exp -> '-' scalar_exp                                                                    : {'-','$2'}. %prec UMINU
-scalar_exp -> '+' literal                                                                       : '$2'.
-scalar_exp -> '-' literal                                                                       : list_to_binary(["-",'$2']).
-scalar_exp -> scalar_exp NAME                                                                   : {as, '$1', unwrap_bin('$2')}.
-scalar_exp -> scalar_exp AS NAME                                                                : {as, '$1', unwrap_bin('$3')}.
-scalar_exp -> NULLX NAME                                                                        : {as, <<"NULL">>, unwrap_bin('$2')}.
-scalar_exp -> NULLX AS NAME                                                                     : {as, <<"NULL">>, unwrap_bin('$3')}.
-scalar_exp -> NAME NAME                                                                         : {as, unwrap_bin('$1'), unwrap_bin('$2')}.
-scalar_exp -> NAME AS NAME                                                                      : {as, unwrap_bin('$1'), unwrap_bin('$3')}.
-scalar_exp -> STRING NAME                                                                       : {as, unwrap_bin('$1'), unwrap_bin('$2')}.
-scalar_exp -> STRING AS NAME                                                                    : {as, unwrap_bin('$1'), unwrap_bin('$3')}.
-scalar_exp -> INTNUM NAME                                                                       : {as, unwrap_bin('$1'), unwrap_bin('$2')}.
-scalar_exp -> INTNUM AS NAME                                                                    : {as, unwrap_bin('$1'), unwrap_bin('$3')}.
-scalar_exp -> APPROXNUM NAME                                                                    : {as, unwrap_bin('$1'), unwrap_bin('$2')}.
-scalar_exp -> APPROXNUM AS NAME                                                                 : {as, unwrap_bin('$1'), unwrap_bin('$3')}.
-scalar_exp -> atom                                                                              : '$1'.
-scalar_exp -> subquery                                                                          : '$1'.
-scalar_exp -> column_ref                                                                        : '$1'.
-scalar_exp -> column_ref NAME                                                                   : {as, '$1', unwrap_bin('$2')}.
-scalar_exp -> column_ref AS NAME                                                                : {as, '$1', unwrap_bin('$3')}.
-scalar_exp -> function_ref                                                                      : '$1'.
-scalar_exp -> function_ref NAME                                                                 : {as, '$1', unwrap_bin('$2')}.
-scalar_exp -> function_ref AS NAME                                                              : {as, '$1', unwrap_bin('$3')}.
-scalar_exp -> '(' scalar_exp ')'                                                                : '$2'.
+scalar_exp -> scalar_sub_exp                                                                    : '$1'.
+scalar_exp -> scalar_sub_exp NAME                                                               : {as, '$1', unwrap_bin('$2')}. 
+scalar_exp -> scalar_sub_exp AS NAME                                                            : {as, '$1', unwrap_bin('$3')}. 
+
+scalar_sub_exp -> scalar_sub_exp '+' scalar_sub_exp                                             : {'+','$1','$3'}.
+scalar_sub_exp -> scalar_sub_exp '-' scalar_sub_exp                                             : {'-','$1','$3'}.
+scalar_sub_exp -> scalar_sub_exp '*' scalar_sub_exp                                             : {'*','$1','$3'}.
+scalar_sub_exp -> scalar_sub_exp '/' scalar_sub_exp                                             : {'/','$1','$3'}.
+scalar_sub_exp -> '+' scalar_sub_exp                                                            : {'+','$2'}. %prec UMINU
+scalar_sub_exp -> '-' scalar_sub_exp                                                            : {'-','$2'}. %prec UMINU
+scalar_sub_exp -> '+' literal                                                                   : '$2'.
+scalar_sub_exp -> '-' literal                                                                   : list_to_binary(["-",'$2']).
+scalar_sub_exp -> NULLX                                                                         : <<"NULL">>.
+scalar_sub_exp -> atom                                                                          : '$1'.
+scalar_sub_exp -> subquery                                                                      : '$1'.
+scalar_sub_exp -> column_ref                                                                    : '$1'.
+scalar_sub_exp -> function_ref                                                                  : '$1'.
+scalar_sub_exp -> '(' scalar_sub_exp ')'                                                        : '$2'.
 
 scalar_exp_commalist -> scalar_exp                                                              : ['$1'].
 scalar_exp_commalist -> scalar_exp_commalist ',' scalar_exp                                     : '$1' ++ ['$3'].

@@ -897,7 +897,10 @@ select
 "
 select
 	/*+033*/
-		*
+	distinct
+		a
+		,
+		b
 	from
 		abc
 	where
@@ -920,6 +923,12 @@ select
 					=
 					h
 			)
+	order by
+		c
+		,
+		d desc
+		,
+		e
 "
 ,
 "

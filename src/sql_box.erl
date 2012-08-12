@@ -94,10 +94,6 @@ fold_node(Ind, Idx, Parent, {Node, {}}, Ch, Fun, Acc0) ->					%% pre-order -> em
 	io:format(user, "~n~p,~p,(~p),~p,~p", [Ind+1, Idx, Node, Parent, ct(Ch)]),
 	Fun(Ind+1, 0, Parent, {}, visit, Node, Acc0);			
 	
-fold_node(Ind, _, Parent, {Node, Child={'as',_,_}}, _, Fun, Acc0) ->					%% in-order unary recurse
-	Acc1 = fold_node(Ind, 0 , Parent, Node, Child, Fun, Acc0),		 		
-	fold_node(Ind, 0, Node, Child, undefined, Fun, Acc1);			
-
 fold_node(Ind, _, Parent, {Node='not', Child}, _, Fun, Acc0) ->					%% in-order unary recurse
 	Acc1 = fold_node(Ind+1, 0 , Parent, Node, Child, Fun, Acc0),		 		
 	fold_in(Ind+1, 0, Node, Child, undefined, Fun, Acc1);			
@@ -106,13 +102,35 @@ fold_node(Ind, Idx, Parent, {Node, T}, _, Fun, Acc0) when is_tuple(T) ->	%% pre-
 	Acc1 = fold_in(Ind, Idx , Parent, Node, T, Fun, Acc0),		 		
 	fold_in(Ind, 0, Node, T, undefined, Fun, Acc1);			
 
+fold_node(Ind, Idx=0, Parent, [Node|Rest], _, Fun, Acc0) ->					%% pre-order list traversal
+	Acc1 = fold_in(Ind, Idx, Parent, Node, undefined, Fun, Acc0),					
+	fold_node(Ind, Idx+1, Parent, Rest, undefined, Fun, Acc1);						
+
+fold_node(Ind, Idx, Parent='fun', [Node|Rest], _, Fun, Acc) ->					%% pre-order list traversal
+	fold_comma(Ind, Idx, Parent, [Node|Rest], undefined, Fun, Acc);						
+
+fold_node(Ind, Idx, Parent='fields', [Node|Rest], _, Fun, Acc) ->					%% pre-order list traversal
+	fold_comma(Ind, Idx, Parent, [Node|Rest], undefined, Fun, Acc);						
+
+fold_node(Ind, Idx, Parent='from', [Node|Rest], _, Fun, Acc) ->					%% pre-order list traversal
+	fold_comma(Ind, Idx, Parent, [Node|Rest], undefined, Fun, Acc);						
+
+fold_node(Ind, Idx, Parent='list', [Node|Rest], _, Fun, Acc) ->					%% pre-order list traversal
+	fold_comma(Ind, Idx, Parent, [Node|Rest], undefined, Fun, Acc);						
+
+fold_node(Ind, Idx, Parent='group by', [Node|Rest], _, Fun, Acc) ->					%% pre-order list traversal
+	fold_comma(Ind, Idx, Parent, [Node|Rest], undefined, Fun, Acc);						
+
+fold_node(Ind, Idx, Parent='order by', [Node|Rest], _, Fun, Acc) ->					%% pre-order list traversal
+	fold_comma(Ind, Idx, Parent, [Node|Rest], undefined, Fun, Acc);						
+
 fold_node(Ind, Idx, Parent, [Node|Rest], _, Fun, Acc0) ->					%% pre-order list traversal
 	Acc1 = fold_in(Ind, Idx, Parent, Node, undefined, Fun, Acc0),					
 	fold_node(Ind, Idx+1, Parent, Rest, undefined, Fun, Acc1);						
 
 fold_node(Ind, Idx, Parent, {'fun', Node, Parameters}, _, Fun, Acc0) -> 	%% function evaluation
-	Acc1 = fold_node(Ind, Idx , Parent, Node, Parameters, Fun, Acc0),		
-	fold_fun(Ind+1, 0, 'fun', Parameters, undefined, Fun, Acc1);
+	Acc1 = fold_node(Ind+1, Idx , Parent, Node, Parameters, Fun, Acc0),		
+	fold_fun(Ind+2, 0, 'fun', Parameters, undefined, Fun, Acc1);
 	
 fold_node(Ind, _, Parent, {Node, Left, Middle, Right}, Ch, Fun, Acc0) ->	%% {_,_,_,_} in-order ternary recurse
 	Acc1 = fold_in(Ind+1, 0, Node, Left, undefined, Fun, Acc0),
@@ -122,9 +140,11 @@ fold_node(Ind, _, Parent, {Node, Left, Middle, Right}, Ch, Fun, Acc0) ->	%% {_,_
 	Acc4 = Fun(Ind+1, 0, Parent, <<>>, 'between and', Node, Acc3),		
 	fold_in(Ind+1, 0, Node, Right, undefined, Fun, Acc4);
 	
-fold_node(Ind, Idx, _Parent, {'as', Node, Alias}, Ch, Fun, Acc0) -> 			%% {_,_,_} alias for fields
-	Acc1 = fold_node(Ind, Idx, 'as', Node, Ch, Fun, Acc0),
+fold_node(Ind, Idx, Parent, {'as', Node, Alias}, Ch, Fun, Acc0) -> 			%% {_,_,_} alias for fields
+	Acc1 = fold_node(Ind, Idx, Parent, Node, Ch, Fun, Acc0),
+	io:format(user, "~n~p,~p,(~p),~p,~p", [Ind, 0, 'as', 'as', ct(Ch)]),
 	Acc2 = Fun(Ind, 0, 'as', Alias, visit, 'as', Acc1),
+	io:format(user, "~n~p,~p,(~p),~p,~p", [Ind, 0, 'as', Alias, ct(Ch)]),
 	Fun(Ind, 0, 'as', Alias, visit, Alias, Acc2);
 
 fold_node(Ind, Idx, Node, {Node, Left, Right}, _, Fun, Acc0) ->				%% {_,_,_} in-order binary recurse
@@ -132,11 +152,6 @@ fold_node(Ind, Idx, Node, {Node, Left, Right}, _, Fun, Acc0) ->				%% {_,_,_} in
 	Acc2 = fold_node(Ind, 0, Node, Node, {Left, Right}, Fun, Acc1),
 	fold_in(Ind, 0, Node, Right, undefined, Fun, Acc2);
 
-fold_node(Ind, Idx, Parent='fields', {Node, Left, Right}, _, Fun, Acc0)->				%% {_,_,_} in-order binary recurse
-	Acc1 = fold_in(Ind, Idx, Node, Left, undefined, Fun, Acc0),
-	Acc2 = fold_node(Ind, 0, Parent, Node, {Left, Right}, Fun, Acc1),
-	fold_in(Ind, 0, Node, Right, undefined, Fun, Acc2);
-	
 fold_node(Ind, Idx, Parent, {Node, Left, Right}, _, Fun, Acc0)->				%% {_,_,_} in-order binary recurse
 	Acc1 = fold_in(Ind+1, Idx, Node, Left, undefined, Fun, Acc0),
 	Acc2 = fold_node(Ind+1, 0, Parent, Node, {Left, Right}, Fun, Acc1),
@@ -146,6 +161,11 @@ fold_node(_Ind, _Idx, _Parent, T, _, _Fun, Acc)-> 							%% catch remaining
 	io:format(user, "~n----remaining term---------~n~p~n", [T]),
 	Acc. 
 
+fold_comma(Ind, Idx, Parent, [Node|Rest], _, Fun, Acc0) ->					%% pre-order list traversal
+	io:format(user, "~n~p,~p,(~p),~p,~p", [Ind, Idx, ',', Parent, undefined]),
+	Acc1 = Fun(Ind, Idx, Parent, undefined, visit, ',', Acc0),
+	Acc2 = fold_in(Ind, Idx, Parent, Node, undefined, Fun, Acc1),					
+	fold_node(Ind, Idx+1, Parent, Rest, undefined, Fun, Acc2).						
 
 fold_fun(Ind, 0, Parent, Node, Children, Fun, Acc0)  ->
 	io:format(user, "~n~p,~p (", [Ind, 0]),
@@ -174,38 +194,18 @@ fold_in(Ind, Idx, Parent, Node, Children, Fun, Acc0)  ->
 			fold_node(Ind, Idx, Parent, Node, Children, Fun, Acc0)
 	end.
 
-sqls(_Ind, 0, _Parent, _Children, open, _, Acc) -> Acc ++ "(" ;
-sqls(_Ind, _Idx, _Parent, _Children, open, _, Acc) -> Acc ++ ",(" ;
+sqls(_Ind, _Idx, _Parent, _Children, open, _, Acc) -> Acc ++ "(" ;
 sqls(_Ind, _Idx, _Parent, _Children, close, _, Acc) -> Acc ++ ")" ;
 sqls(_Ind, _Idx, _Parent, _Children, 'between and', _, Acc) -> Acc ++ " and" ;
-%% sqls(_Ind, _Idx, _Parent, _Children, visit, 'fun', Acc) -> Acc;
-%% sqls(_Ind, _Idx, _Parent, _Children, visit, 'fun', Acc) -> Acc ++ ","; 
 sqls(_Ind, _Idx, _Parent, _Children, visit, 'opt', Acc) -> Acc;
 sqls(_Ind, _Idx, _Parent, _Children, visit, 'list', Acc) -> Acc;
 sqls(_Ind, _Idx, _Parent, _Children, visit, 'hints', Acc) -> Acc;
 sqls(_Ind, _Idx, _Parent, _Children, visit, 'fields', Acc) -> Acc;
-
 sqls(_Ind, _Idx, _Parent, [], visit, A, Acc) when is_atom(A) -> Acc;
 sqls(_Ind, _Idx, _Parent, {}, visit, A, Acc) when is_atom(A) -> Acc;
 sqls(_Ind, _Idx, _Parent, <<>>, visit, A, Acc) when is_atom(A) -> Acc;
-sqls(_Ind, 0, _Parent, _Children, visit, A, Acc) when is_atom(A) -> Acc ++ " " ++ atom_to_list(A);
-sqls(_Ind, _Idx, 'fun', _Children, visit, A, Acc) when is_atom(A) -> Acc ++ "," ++ atom_to_list(A);
-sqls(_Ind, _Idx, 'fields', _Children, visit, A, Acc) when is_atom(A) -> Acc ++ "," ++ atom_to_list(A);
-sqls(_Ind, _Idx, 'from', _Children, visit, A, Acc) when is_atom(A) -> Acc ++ "," ++ atom_to_list(A);
-sqls(_Ind, _Idx, 'list', _Children, visit, A, Acc) when is_atom(A) -> Acc ++ "," ++ atom_to_list(A);
-sqls(_Ind, _Idx, 'group by', _Children, visit, A, Acc) when is_atom(A) -> Acc ++ "," ++ atom_to_list(A);
-sqls(_Ind, _Idx, 'order by', _Children, visit, A, Acc) when is_atom(A) -> Acc ++ "," ++ atom_to_list(A);
 sqls(_Ind, _Idx, _Parent, _Children, visit, A, Acc) when is_atom(A) -> Acc ++ " " ++ atom_to_list(A);
-
-sqls(_Ind, 0, _Parent, _Children, visit, B, Acc) when is_binary(B) -> Acc ++ " " ++ binary_to_list(B);
-%% sqls(_Ind, _Idx, 'fun', _Children, visit, B, Acc) when is_binary(B) -> Acc ++ "," ++ binary_to_list(B);
-%% sqls(_Ind, _Idx, 'fields', _Children, visit, B, Acc) when is_binary(B) -> Acc ++ "," ++ binary_to_list(B);
-%% sqls(_Ind, _Idx, 'from', _Children, visit, B, Acc) when is_binary(B) -> Acc ++ "," ++ binary_to_list(B);
-%% sqls(_Ind, _Idx, 'list', _Children, visit, B, Acc) when is_binary(B) -> Acc ++ "," ++ binary_to_list(B);
-%% sqls(_Ind, _Idx, 'group by', _Children, visit, B, Acc) when is_binary(B) -> Acc ++ "," ++ binary_to_list(B);
-%% sqls(_Ind, _Idx, 'order by', _Children, visit, B, Acc) when is_binary(B) -> Acc ++ "," ++ binary_to_list(B);
-sqls(_Ind, _Idx, _Parent, _Children, visit, B, Acc) when is_binary(B) -> Acc ++ "," ++ binary_to_list(B);
-
+sqls(_Ind, _Idx, _Parent, _Children, visit, B, Acc) when is_binary(B) -> Acc ++ " " ++ binary_to_list(B);
 sqls(_Ind, _Idx, _Parent, _Children, visit, X, Acc) -> 
 	io:format(user, "~n---Fun ignores ~p~n", [X]),
 	Acc.
@@ -213,7 +213,6 @@ sqls(_Ind, _Idx, _Parent, _Children, visit, X, Acc) ->
 indent(N) -> [$\r|[$\n|lists:duplicate(N, $\t)]].
 
 sqlp(_Ind, _Idx, _Parent, _Children, visit, <<>>, Acc) -> Acc;
-%% sqlp(_Ind, _Idx, _Parent, _Children, visit, 'fun', Acc) -> Acc;
 sqlp(_Ind, _Idx, _Parent, _Children, visit, 'opt', Acc) -> Acc;
 sqlp(_Ind, _Idx, _Parent, _Children, visit, 'list', Acc) -> Acc;
 sqlp(_Ind, _Idx, _Parent, _Children, visit, 'hints', Acc) -> Acc;
@@ -222,38 +221,21 @@ sqlp(_Ind, _Idx, _Parent, [], visit, A, Acc) when is_atom(A) -> Acc;
 sqlp(_Ind, _Idx, _Parent, {}, visit, A, Acc) when is_atom(A) -> Acc;
 sqlp(_Ind, _Idx, _Parent, <<>>, visit, A, Acc) when is_atom(A) -> Acc;
 sqlp(_Ind, _Idx, opt, <<>>, visit, B, Acc) when is_binary(B) -> Acc;
-
-sqlp(Ind, 0, _Parent, _Children, open, _, Acc) -> Acc ++ indent(Ind) ++ "(" ;
-sqlp(Ind, _Idx, _Parent, _Children, open, _, Acc) -> Acc ++ indent(Ind-1) ++ "," ++ indent(Ind) ++ "(" ;
+sqlp(Ind, _Idx, _Parent, _Children, open, _, Acc) -> Acc ++ indent(Ind) ++ "(" ;
 sqlp(Ind, _Idx, _Parent, _Children, close, _, Acc) -> Acc ++ indent(Ind) ++ ")" ;
 sqlp(Ind, _Idx, _Parent, _Children, 'between and', _, Acc) -> Acc ++ indent(Ind) ++ "and" ;
 sqlp(_Ind, _Idx, _Parent, _Children, visit, 'as', Acc) -> Acc ++ " as";
-sqlp(Ind, 0, _Parent, _Children, visit, A, Acc) when is_atom(A) -> Acc ++ indent(Ind) ++ atom_to_list(A);
-sqlp(Ind, _Idx, 'fun', _Children, visit, A, Acc) when is_atom(A) -> Acc ++ indent(Ind) ++ "," ++ atom_to_list(A);
-sqlp(Ind, _Idx, 'fields', _Children, visit, A, Acc) when is_atom(A) -> Acc ++ indent(Ind) ++ "," ++ atom_to_list(A);
-sqlp(Ind, _Idx, 'from', _Children, visit, A, Acc) when is_atom(A) -> Acc ++ indent(Ind) ++ "," ++ atom_to_list(A);
-sqlp(Ind, _Idx, 'list', _Children, visit, A, Acc) when is_atom(A) -> Acc ++ indent(Ind) ++ "," ++ atom_to_list(A);
-sqlp(Ind, _Idx, 'group by', _Children, visit, A, Acc) when is_atom(A) -> Acc ++ indent(Ind) ++ "," ++ atom_to_list(A);
-sqlp(Ind, _Idx, 'order by', _Children, visit, A, Acc) when is_atom(A) -> Acc ++ indent(Ind) ++ "," ++ atom_to_list(A);
+sqlp(_Ind, _Idx, 'as', _Children, visit, A, Acc) when is_atom(A) -> Acc ++ " " ++ atom_to_list(A);
 sqlp(Ind, _Idx, _Parent, _Children, visit, A, Acc) when is_atom(A) -> Acc ++ indent(Ind) ++ atom_to_list(A);
 sqlp(_Ind, _Idx, 'as', _Children, visit, B, Acc) when is_binary(B) -> Acc ++ " " ++ binary_to_list(B);
-
-sqlp(Ind, 0, _Parent, _Children, visit, B, Acc) when is_binary(B) -> Acc ++ indent(Ind) ++ binary_to_list(B);
-%% sqlp(Ind, _Idx, 'fun', _Children, visit, B, Acc) when is_binary(B) -> Acc ++ indent(Ind) ++ "," ++ binary_to_list(B);
-%% sqlp(Ind, _Idx, 'fields', _Children, visit, B, Acc) when is_binary(B) -> Acc ++ indent(Ind) ++ "," ++ binary_to_list(B);
-%% sqlp(Ind, _Idx, 'from', _Children, visit, B, Acc) when is_binary(B) -> Acc ++ indent(Ind) ++ "," ++ binary_to_list(B);
-%% sqlp(Ind, _Idx, 'list', _Children, visit, B, Acc) when is_binary(B) -> Acc ++ indent(Ind) ++ "," ++ binary_to_list(B);
-%% sqlp(Ind, _Idx, 'group by', _Children, visit, B, Acc) when is_binary(B) -> Acc ++ indent(Ind) ++ "," ++ binary_to_list(B);
-%% sqlp(Ind, _Idx, 'order by', _Children, visit, B, Acc) when is_binary(B) -> Acc ++ indent(Ind) ++ "," ++ binary_to_list(B);
-sqlp(Ind, _Idx, _Parent, _Children, visit, B, Acc) when is_binary(B) -> Acc ++ indent(Ind) ++ "," ++ binary_to_list(B);
+sqlp(Ind, _Idx, _Parent, _Children, visit, B, Acc) when is_binary(B) -> Acc ++ indent(Ind) ++ binary_to_list(B);
 
 sqlp(_Ind, _Idx, _Parent, _Children, visit, X, Acc) -> 
 	io:format(user, "~n---Fun ignores ~p~n", [X]),
 	Acc.
 
-
 sql_box_test() ->
-	test_sqls(),	
+	%test_sqls(),	
 	test_sqlp(),
 	%test_sqlr(),
 	ok.

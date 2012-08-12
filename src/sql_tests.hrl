@@ -2,7 +2,10 @@
 "
 select
 	/*+010*/
-		to_date(a)
+		to_date
+			(
+				a
+			)
 	from
 		abc
 	where
@@ -53,7 +56,8 @@ select
 select
 	/*+002*/
 		a
-		,b
+		,
+		b
 	from
 		abc
 	where
@@ -79,21 +83,25 @@ select
 select
 	/*+003*/
 		a
-		,b as bb
-		,c
+		,
+		b as bb
+		,
+		c
 	from
 		abc
-		,def
+		,
+		def
 	where
 			a
 			=
 			b
 		or
-			nvl
-				(
-					a
-					,0
-				)
+				nvl
+					(
+						a
+						,
+						0
+					)
 			=
 			0
 "
@@ -105,14 +113,17 @@ select
 		c
 	from
 		abc
-		,def
+		,
+		def
 	where
 				a
 				in
 					(
 						a
-						,b
-						,c
+						,
+						b
+						,
+						c
 					)
 			and
 				c
@@ -134,17 +145,17 @@ select
 select
 	/*+005*/
 			a
-		+
+			+
 			b
 	from
 		abc
 	where
 		not
 			(
-					to_date
-						(
-							c
-						)
+						to_date
+							(
+								c
+							)
 					=
 					d
 				or
@@ -158,10 +169,11 @@ select
 select
 	/*+006*/
 		-
-			c as cc
+		c as cc
 	from
 		abc
-		,def
+		,
+		def
 	where
 			(
 					a
@@ -204,22 +216,79 @@ select
 ,
 "
 select
-	/*+010*/
-			to_date
-				(
-					a
-				)
-		+
-			to_date
+	/*+008*/
+	distinct
+		a
+		,
+		-
+			nvl
 				(
 					b
 				)
+		,
+		c
+	from
+		abc
+		,
+		def
+	where
+				a
+				in
+					(
+						select
+								b
+							from
+								def
+								,
+								ghi
+							where
+								h
+								=
+								0
+					)
+			and
+					(
+						select
+								b
+							from
+								def
+					)
+				=
+				10
+			and
+				e
+				in
+					(
+						1
+						,
+						2
+						,
+						3
+					)
+		or
+			g
+			=
+			h
+"
+,
+"
+select
+	/*+010*/
+				to_date
+					(
+						a
+					)
+			+
+				to_date
+					(
+						b
+					)
 	from
 		abc
 	where
-			a
-			=
-			b
+		a
+		=
+		b
 "
 ,
 "
@@ -242,7 +311,7 @@ select
 			a
 			=
 			b
-		and	
+		and
 			c
 			=
 			d
@@ -254,7 +323,7 @@ select
 		*
 	from
 		abc
-	where	
+	where
 			a
 			=
 			b
@@ -279,10 +348,10 @@ select
 	from
 		abc
 	where
-		not	
-			a
-			=
-			b
+			not
+				a
+				=
+				b
 		and
 			c
 			=
@@ -349,77 +418,35 @@ select
 ,
 "
 select
-	/*+008*/
-		distinct
-		a
-		,b
-		,c
-	from
-		abc
-		,def
-	where
-				a
-				in
-					(
-						select
-								b
-							from
-								def
-								,ghi
-							where
-								h
-								=
-								0
-					)
-			and
-				(
-					select
-							b
-						from
-							def
-				)
-				=
-				10
-			and
-				e
-				in
-					(
-						1
-						,2
-						,3
-					)
-		or
-			g
-			=
-			h
-"
-,
-"
-select
 	/*+009*/
-		NVL(a) as a
+			NVL
+				(
+					a
+				) as a
 	from
 		abc
-		,def
+		,
+		def
 	where
 				c
 				=
 				d
 			and
-				(	
+				(
 						a
-						in	(
+						in
+							(
 								select
 										b
 									from
 										def
 							)
-					or	
+					or
 						e
 						=
 						f
 				)
-		or	
+		or
 			g
 			between
 			h
@@ -430,7 +457,7 @@ select
 "
 select
 	/*+016*/
-	*
+		*
 	from
 		abc
 	where
@@ -463,12 +490,12 @@ select
 						def
 			)
 	from
-		(
-			select
-					d
-				from
-					ghi
-		)
+			(
+				select
+						d
+					from
+						ghi
+			)
 	where
 			(
 				select
@@ -487,10 +514,10 @@ select
 	from
 		abc
 	where
-			not
-				a
-				=
-				b
+				not
+					a
+					=
+					b
 			and
 				c
 				=
@@ -512,14 +539,14 @@ select
 	from
 		abc
 	where
-					a
+				a
+				=
+				b
+			and
+				not
+					c
 					=
-					b
-				and
-					not
-						c
-						=
-						d
+					d
 		or
 			e
 			=
@@ -537,11 +564,10 @@ select
 	from
 		abc
 	where
-
-			not
-				a
-				=
-				b
+				not
+					a
+					=
+					b
 			and
 				not
 					c
@@ -564,7 +590,6 @@ select
 	from
 		abc
 	where
-
 				a
 				=
 				b
@@ -587,7 +612,7 @@ select
 "
 select
 	/*+022*/
-	*
+		*
 	from
 		abc
 	where
@@ -643,10 +668,10 @@ select
 	from
 		abc
 	where
-			not
-				a
-				=
-				b
+				not
+					a
+					=
+					b
 			and
 				c
 				=
@@ -676,7 +701,7 @@ select
 						c
 						=
 						d
-					)
+				)
 			and
 				e
 				=
@@ -827,12 +852,12 @@ select
 	from
 		abc
 	where
-		not
-			a
-			between
-			b
-			and
-			c
+			not
+				a
+				between
+				b
+				and
+				c
 		and
 			d
 			between
@@ -930,9 +955,9 @@ select
 	from
 		abc
 	where
-			a
-			=
-			b
+		a
+		=
+		b
 "
 ,
 %	,decode(BD_MSGTYPE||BD_EVENTDISP,01,'Y',012,'Y','N') ISDELIV
@@ -940,44 +965,183 @@ select
 select
 	/*+036*/
 		NULL as ROW_ID_S
-		,BDETAIL6.ROWID as ROW_ID_M
-		,BD_UMSGGRPID as MSGID
-		,to_char(BD_DATESUBMIT,'DD.MM.YYYY HH24:MI:SS') as SUBMITTIME
-		,to_char(BD_DATEEXPIRE,'DD.MM.YYYY HH24:MI:SS') as EXPIRETIME
-		,to_char(BD_DATEDELIVERY,'DD.MM.YYYY HH24:MI:SS') as RECTIME
-		,BD_MSISDN_A as SENDER
-		,BD_MSISDN_B as RECEIVER
-		,BD_MSGSIZE as MSGLEN
-		,nvl(MMSCCRT_LANG01,BD_CDRRECTYPE) as TYPE
-		,nvl(MMSCCRT_VALUE1,BD_CDRRECTYPE) as TYPE_TT1
-		,nvl(MMSCCRT_VALUE2,BD_CDRRECTYPE) as TYPE_TT2
-		,decode(BD_MSGTYPE,01,'Y',012,'Y','N') as ISDELIV
-		,nvl(MMSCET_LANG02,BD_EVENTDISP) as EVENTDISP_STATCODE
-		,nvl(MMSCMT_LANG02,BD_MSGTYPE) as MSGTYPE_ERRCODE
-		,nvl(MMSCET_VALUE2,BD_EVENTDISP) as EVENTDISP_TT
-		,nvl(MMSCMT_VALUE2,BD_MSGTYPE) as MSGTYPE_TT
-		,'MMS' as ROWTYPE
-		,to_char(BD_DATETIME,'DD.MM.YYYY HH24:MI:SS') as DATETIME
+		,
+		BDETAIL6.ROWID as ROW_ID_M
+		,
+		BD_UMSGGRPID as MSGID
+		,
+			to_char
+				(
+					BD_DATESUBMIT
+					,
+					'DD.MM.YYYY HH24:MI:SS'
+				) as SUBMITTIME
+		,
+			to_char
+				(
+					BD_DATEEXPIRE
+					,
+					'DD.MM.YYYY HH24:MI:SS'
+				) as EXPIRETIME
+		,
+			to_char
+				(
+					BD_DATEDELIVERY
+					,
+					'DD.MM.YYYY HH24:MI:SS'
+				) as RECTIME
+		,
+		BD_MSISDN_A as SENDER
+		,
+		BD_MSISDN_B as RECEIVER
+		,
+		BD_MSGSIZE as MSGLEN
+		,
+			nvl
+				(
+					MMSCCRT_LANG01
+					,
+					BD_CDRRECTYPE
+				) as TYPE
+		,
+			nvl
+				(
+					MMSCCRT_VALUE1
+					,
+					BD_CDRRECTYPE
+				) as TYPE_TT1
+		,
+			nvl
+				(
+					MMSCCRT_VALUE2
+					,
+					BD_CDRRECTYPE
+				) as TYPE_TT2
+		,
+			decode
+				(
+					BD_MSGTYPE
+					,
+					01
+					,
+					'Y'
+					,
+					012
+					,
+					'Y'
+					,
+					'N'
+				) as ISDELIV
+		,
+			nvl
+				(
+					MMSCET_LANG02
+					,
+					BD_EVENTDISP
+				) as EVENTDISP_STATCODE
+		,
+			nvl
+				(
+					MMSCMT_LANG02
+					,
+					BD_MSGTYPE
+				) as MSGTYPE_ERRCODE
+		,
+			nvl
+				(
+					MMSCET_VALUE2
+					,
+					BD_EVENTDISP
+				) as EVENTDISP_TT
+		,
+			nvl
+				(
+					MMSCMT_VALUE2
+					,
+					BD_MSGTYPE
+				) as MSGTYPE_TT
+		,
+		'MMS' as ROWTYPE
+		,
+			to_char
+				(
+					BD_DATETIME
+					,
+					'DD.MM.YYYY HH24:MI:SS'
+				) as DATETIME
 	from
 		BDETAIL6
-		,MMSC_CDRRECTYPE
-		,MMSC_EVENTDISPTYPE
-		,MMSC_MSGTYPE
-	where	
+		,
+		MMSC_CDRRECTYPE
+		,
+		MMSC_EVENTDISPTYPE
+		,
+		MMSC_MSGTYPE
+	where
 			BD_CDRRECTYPE
 			=
 			MMSCCRT_ID
 		and
-			ltrim(to_char(BD_EVENTDISP))=MMSCET_ID
-		and	ltrim(to_char(BD_MSGTYPE))=MMSCMT_ID
-		and	BD_UMSGGRPID='mj78yk7r307fga5a01'
-		and	BD_MSISDN_B='41796187332'
-		and	BD_DATETIME>=to_date('19.06.12 11:15:09','DD.MM.YY HH24:MI:SS') - 14
-		and	BD_DATETIME<=to_date('19.06.12 11:15:09','DD.MM.YY HH24:MI:SS') + 14
+				ltrim
+					(
+							to_char
+								(
+									BD_EVENTDISP
+								)
+					)
+			=
+			MMSCET_ID
+		and
+				ltrim
+					(
+							to_char
+								(
+									BD_MSGTYPE
+								)
+					)
+			=
+			MMSCMT_ID
+		and
+			BD_UMSGGRPID
+			=
+			'mj78yk7r307fga5a01'
+		and
+			BD_MSISDN_B
+			=
+			'41796187332'
+		and
+			BD_DATETIME
+			>=
+					to_date
+						(
+							'19.06.12 11:15:09'
+							,
+							'DD.MM.YY HH24:MI:SS'
+						)
+				-
+				14
+		and
+			BD_DATETIME
+			<=
+					to_date
+						(
+							'19.06.12 11:15:09'
+							,
+							'DD.MM.YY HH24:MI:SS'
+						)
+				+
+				14
 	order by
 		BD_DATETIME
-		,nvl(BD_DATEDELIVERY,BD_DATETIME)
-		,BD_MSGTYPE
+		,
+			nvl
+				(
+					BD_DATEDELIVERY
+					,
+					BD_DATETIME
+				)
+		,
+		BD_MSGTYPE
 "
 ,
 "
@@ -994,11 +1158,13 @@ select
 				nvl
 					(
 						AC_LASTLOGINTIME
-						,sysdate
+						,
+						sysdate
 					)
 	from
 		ACCOUNT
-		,SYSPARAMETERS
+		,
+		SYSPARAMETERS
 	where
 			AC_ESID
 			=
@@ -1009,13 +1175,12 @@ select
 			'ADMIN'
 		and
 				1
-			+
-					-
-					4
+				+
+				-4
 			=
 			-3
 		and
-				2
+			2
 			=
 				5
 				-
@@ -1026,43 +1191,57 @@ select
 select
 	/*+038*/
 		AC_ID
-		,AC_NAME
-		,AC_ETID
-		,AC_SHORT
-		,AC_DEPTID
-		,AC_LANGID
-		,AC_LOGRET
-		,nvl
-			(
-				AC_MAXLOG
-				,SYS_MAXLOG
-			) as MAXLOG
-		,AC_LASTLOGINTIME
-		,AC_IPMASK
-		,AC_REMOTEADDR
+		,
+		AC_NAME
+		,
+		AC_ETID
+		,
+		AC_SHORT
+		,
+		AC_DEPTID
+		,
+		AC_LANGID
+		,
+		AC_LOGRET
+		,
+			nvl
+				(
+					AC_MAXLOG
+					,
+					SYS_MAXLOG
+				) as MAXLOG
+		,
+		AC_LASTLOGINTIME
+		,
+		AC_IPMASK
+		,
+		AC_REMOTEADDR
 		,
 					(
-							sysdate
+						sysdate
 						-
 							nvl
 								(
 									AC_LASTLOGINTIME
-									,sysdate
+									,
+									sysdate
 								)
 					)
 				*
-					24
+				24
 				*
-					60
+				60
 			-
 				nvl
 					(
 						SYS_DELAY
-						,3
+						,
+						3
 					)
 	from
 		ACCOUNT
-		,SYSPARAMETERS
+		,
+		SYSPARAMETERS
 	where
 			AC_ESID
 			=
@@ -1073,19 +1252,18 @@ select
 			'ADMIN'
 		and
 				1
-			+
-					-
-					4
+				+
+				-4
 			=
 			-3
 		and
-				2
+			2
 			=
 				5
 				-
 				3
 		and
-				2.3
+			2.3
 			=
 				5.9
 				-
@@ -1095,11 +1273,10 @@ select
 				-
 				10.5
 			=
-				-
-				c
+			-
+			c
 		and
-				-
-				10.5
+			-10.5
 			=
 				a
 				-

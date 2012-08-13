@@ -1,17 +1,29 @@
 -define (TEST_SQLS0,[
 "
 select
-	/*+010*/
-		to_date
-			(
-				a
-			)
+	/*+003*/
+		a
+		,
+		b as bb
+		,
+		c
 	from
 		abc
+		,
+		def
 	where
 			a
 			=
 			b
+		or
+				nvl
+					(
+						a
+						,
+						0
+					)
+			=
+			0
 "
 ]).
 

@@ -13,7 +13,8 @@
 %% -include("sql_box.hrl").
 
 -record(box, {
-        name,
+	ind,
+        name="",
         children = []
     }).
 
@@ -255,79 +256,86 @@ sqlp(_Ind, _Idx, _Parent, _Children, X, Acc) ->
 	io:format(user, "~n---Fun ignores ~p~n", [X]),
 	Acc.
 
-sqlb(_Ind, _Idx, _Parent, _Children, <<>>, Acc) -> Acc;
-sqlb(_Ind, _Idx, _Parent, _Children, 'opt', Acc) -> Acc;
-sqlb(_Ind, _Idx, _Parent, _Children, 'list', Acc) -> Acc;
-sqlb(_Ind, _Idx, _Parent, _Children, 'hints', Acc) -> Acc;
-sqlb(_Ind, _Idx, _Parent, _Children, 'fields', Acc) -> Acc;
+sqlb(_Ind, _Idx, _Parent, _Ch, <<>>, Acc) -> Acc;
+sqlb(_Ind, _Idx, _Parent, _Ch, 'opt', Acc) -> Acc;
+sqlb(_Ind, _Idx, _Parent, _Ch, 'list', Acc) -> Acc;
+sqlb(_Ind, _Idx, _Parent, _Ch, 'hints', Acc) -> Acc;
+sqlb(_Ind, _Idx, _Parent, _Ch, 'fields', Acc) -> Acc;
 sqlb(_Ind, _Idx, _Parent, [], A, Acc) when is_atom(A) -> Acc;
 sqlb(_Ind, _Idx, _Parent, {}, A, Acc) when is_atom(A) -> Acc;
 sqlb(_Ind, _Idx, _Parent, <<>>, A, Acc) when is_atom(A) -> Acc;
 sqlb(_Ind, _Idx, opt, <<>>, B, Acc) when is_binary(B) -> Acc;
 
-sqlb(Ind, Idx, Parent, Children, A, []) ->
-	{Ind, #box{name=atom_to_list(A)}};
+sqlb(Ind, _Idx, _Parent, _Ch, A, []) ->
+	[#box{ind=Ind,name=atom_to_list(A)}];
 
-sqlb(Ind, Idx, Parent, Children, X='%ret%', Acc={Rind, Box}) when Ind < Rind ->
-	io:format(user, "~n---sqlb(~p,~p,~p,~p,~p,~p)", [Ind, Idx, Parent, ct(Children), X, Acc]),
-	Acc1 = sqlb_return(Ind, Idx, Parent, Children, X, Acc),
+sqlb(Ind, Idx, Parent, Ch, X='%ret%', Acc=[#box{ind=I}|_]) when I<Ind ->
+	io:format(user, "~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, Parent, X]),
+	io:format(user, " --> ~p", [Acc]),
+	Acc;
+sqlb(Ind, Idx, Parent, Ch, X, Acc=[#box{ind=I}|_]) when I>Ind ->			%% X='%ret%'
+	io:format(user, "~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, Parent, X]),
+	Acc1 = sqlb_reduce(I, Idx, Parent, Ch, X, Acc),
+	io:format(user, " --> ~p", [Acc1]),
+	sqlb(Ind, Idx, Parent, Ch, X, Acc1);
+sqlb(Ind, Idx, Parent, Ch, X='%ret%', Acc=[#box{ind=I}|_]) when I==Ind ->
+	io:format(user, "~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, Parent, X]),
+	Acc1 = sqlb_reduce(Ind, Idx, Parent, Ch, X, Acc),
 	io:format(user, " --> ~p", [Acc1]),
 	Acc1;
-sqlb(Ind, Idx, Parent, Children, X, Acc) when Ind==length(Acc)-1 -> 
-	io:format(user, "~n---sqlb(~p,~p,~p,~p,~p,~p)", [Ind, Idx, Parent, ct(Children), X, Acc]),
-	Acc1 = sqlb_push(Ind, Idx, Parent, Children, X, Acc),
+sqlb(Ind, Idx, Parent, _Ch, X='as', [#box{ind=I,name=Name}=Box|Rest]) when I==Ind -> 
+	io:format(user, "~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, Parent, X]),
+	Acc1 = [Box#box{name=Name ++ " as"}|Rest],
 	io:format(user, " --> ~p", [Acc1]),
 	Acc1;
-sqlb(Ind, Idx, Parent, Children, X, Acc) when Ind==length(Acc) -> 
-	io:format(user, "~n---sqlb(~p,~p,~p,~p,~p,~p)", [Ind, Idx, Parent, ct(Children), X, Acc]),
-	Acc1 = sqlb_indent(Ind, Idx, Parent, Children, X, Acc),
+sqlb(Ind, Idx, Parent='as', _Ch, X, [#box{ind=I,name=Name}=Box|Rest]) when I==Ind -> 
+	io:format(user, "~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, Parent, X]),
+	Acc1 = [Box#box{name=Name ++ " " ++ binary_to_list(X)}|Rest],
 	io:format(user, " --> ~p", [Acc1]),
 	Acc1;
-sqlb(Ind, Idx, Parent, Children, X, Acc) when Ind>length(Acc) -> 
-	io:format(user, "~n---sqlb(~p,~p,~p,~p,~p,~p)", [Ind, Idx, Parent, ct(Children), X, Acc]),
-	Acc1 = sqlb_indent(Ind, Idx, Parent, Children, undefined, Acc),
+sqlb(Ind, Idx, Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I==Ind, is_atom(X) -> 
+	io:format(user, "~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, Parent, X]),
+	Acc1 = [#box{ind=Ind,name=atom_to_list(X)}|Acc],
 	io:format(user, " --> ~p", [Acc1]),
-	sqlb(Ind, Idx, Parent, Children, X, Acc1);
-sqlb(Ind, Idx, Parent, Children, X, Acc) -> 
+	Acc1;
+sqlb(Ind, Idx, Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I==Ind, is_binary(X) -> 
+	io:format(user, "~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, Parent, X]),
+	Acc1 = [#box{ind=Ind,name=binary_to_list(X)}|Acc],
+	io:format(user, " --> ~p", [Acc1]),
+	Acc1;
+sqlb(Ind, Idx, Parent, Ch, X, Acc=[#box{ind=I}|_]) when I<Ind-1 -> 
+	io:format(user, "~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, Parent, X]),
+	Acc1 = [#box{ind=I+1}|Acc],
+	io:format(user, " --> ~p", [Acc1]),
+	sqlb(Ind, Idx, Parent, Ch, X, Acc1);
+sqlb(Ind, Idx, Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I<Ind, is_atom(X) -> 
+	io:format(user, "~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, Parent, X]),
+	Acc1 = [#box{ind=Ind,name=atom_to_list(X)}|Acc],
+	io:format(user, " --> ~p", [Acc1]),
+	Acc1;
+sqlb(Ind, Idx, Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I<Ind, is_binary(X) -> 
+	io:format(user, "~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, Parent, X]),
+	Acc1 = [#box{ind=Ind,name=binary_to_list(X)}|Acc],
+	io:format(user, " --> ~p", [Acc1]),
+	Acc1;
+sqlb(_Ind, _Idx, _Parent, _Ch, X, Acc) -> 
 	io:format(user, "~n---Fun ignores ~p~n", [X]),
 	Acc.	
-
-sqlb_push(_, _, _, _, 'as', [[#box{name=Name}|Tail]|Rest]) ->
-	[[#box{name=Name ++ " as"}|Tail]|Rest];
-sqlb_push(_, _, 'as', _, A, [[#box{name=Name}|Tail]|Rest]) when is_atom(A) -> 
-	[[#box{name=Name ++ atom_to_list(A)}|Tail]|Rest];
-sqlb_push(_, _, 'as', _, B, [[#box{name=Name}|Tail]|Rest]) when is_binary(B) -> 
-	[[#box{name=Name ++ binary_to_list(B)}|Tail]|Rest];
-sqlb_push(_, _, _, _, A, [List|Rest]) when is_atom(A) ->
-	[[#box{name=atom_to_list(A)}|List]|Rest];
-sqlb_push(_, _, _, _, B, [List|Rest]) when is_binary(B) -> 
-	[[#box{name=binary_to_list(B)}|List]|Rest];
-sqlb_push(_Ind, _Idx, _Parent, _Children, X, Acc) -> 
-	io:format(user, "~n---Fun sqlb_merge ignores ~p~n", [X]),
-	Acc.
-
-sqlb_indent(_, _, _, _, A, []) when is_atom(A) ->
-	[#box{name=atom_to_list(A)}];
-sqlb_indent(_, _, _, _, B, [Acc]) when is_binary(B) -> 
-	[[#box{name=binary_to_list(B)}]|Acc];
-sqlb_indent(Ind, Idx, Parent, Children, undefined, [Acc]) ->
-	sqlb(Ind, Idx, Parent, Children, undefined, [[#box{}]|Acc]);
-sqlb_indent(_, _, _, _, X, Acc) -> 
-	io:format(user, "~n---Fun sqlb_indent ignores ~p~n", [X]),
-	Acc.
 	
+sqlb_reduce(Ind, Idx, Parent, Ch, X, Acc) -> 
+	sqlb_reduce(Ind, Idx, Parent, Ch, X, Acc,[]).
 
-sqlb_return(Ind, Idx, Parent, Children, X, Acc=[List|[Parent=#box{children=Children}|Rest]]) 
-	when (length(Acc) > Ind) ->
-		sqlb_return(Ind, Idx, Parent, Children, X, [Parent#box{children=[lists:reverse(List)|Children]}|Rest]);
-sqlb_return(_, _, _, _, _, Acc) -> Acc.
+sqlb_reduce(Ind, Idx, Parent, Ch, X, [#box{ind=Ind}=Box|Rest], Buf) ->
+	sqlb_reduce(Ind, Idx, Parent, Ch, X, Rest, [Box|Buf]);
+sqlb_reduce(Ind, _Idx, _Parent, _Ch, _X, [#box{ind=I,children=Children}=Box|Rest], Buf) when I==Ind-1 ->
+	[Box#box{children=Children++Buf}|Rest].
 
 
 
 sql_box_test() ->
 	%test_sqls(),	
-	test_sqlp(),
-	%test_sqlb(),
+	%test_sqlp(),
+	test_sqlb(),
 	ok.
 	
 test_sqls() ->
@@ -403,7 +411,7 @@ test_sqlb() ->
     io:format(user, "=================================~n", []),
     io:format(user, "|     S Q L  B O X  T E S T     |~n", []),
     io:format(user, "=================================~n", []),
-    sqlb_loop(?TEST_SQLS, 0).
+    sqlb_loop(?TEST_SQLS0, 0).
 
 sqlb_loop([], _) -> ok;
 sqlb_loop([Sql|Rest], N) ->
@@ -414,10 +422,10 @@ sqlb_loop([Sql|Rest], N) ->
         	io:format(user, "-------------------------------~nParseTree:~n", []),
         	io:format(user, "~p~n", [ParseTree]),
         	io:format(user, "-------------------------------~n", []),
-			Sqlbox = fold_tree(ParseTree, fun sqlb/6, []),
+			[Sqlbox] = fold_tree(ParseTree, fun sqlb/6, []),
        		io:format(user, "~n-------------------------------~nSqlbox:~n", []),
       		io:format(user, Sqlbox ++ "~n", []),
-      		?assertMatch([#box{}], Sqlbox);
+      		?assertMatch([#box{ind=0}], Sqlbox);
         Error -> 
         	io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens]),
         	?assertEqual(ok, Error)

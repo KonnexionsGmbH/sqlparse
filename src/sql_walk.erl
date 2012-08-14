@@ -2,7 +2,7 @@
 
 -export([walk_tree/1, walk_tree/3, to_json/1]).
 
--export([cb/0]).
+-export([r2j/1]).
 
 -include_lib("eunit/include/eunit.hrl").
 -include("sql_box.hrl").
@@ -28,7 +28,7 @@ to_json(Sql0) ->
             {ok, [ParseTree|_]} = sql_parse:parse(Tokens),
             case sql_box:box_tree(ParseTree) of
                 {error, Error} -> throw(Error);
-                Rec -> rec2json(Rec, no_format)
+                Rec -> r2j(Rec)
             end
     end,
     case (catch F()) of
@@ -274,42 +274,62 @@ rec_sav_json(Sql, Rec, File) ->
            "\n);"
        )).
 
--define(SAMPLE, 
-    {box,0,"select",[
-            {box,1,"where",[
-                    {box,2,"or",[
-                            {box,3,"0", []}
-                            ,{box,3,"=",[]}
-                            ,{box,3,"",[
-                                    {box,4,"nvl",[
-                                            {box,5,")",[]}
-                                            ,{box,5,"(",[
-                                                    {box,6,"0",[]}
-                                                    ,{box,6,",",[]}
-                                                    ,{box,6,"a", []}]}]}]}]}
-                    ,{box,2,"",[
-                            {box,3,"b",[]}
-                            ,{box,3,"=",[]}
-                            ,{box,3,"a",[]}]}]}
-            ,{box,2,"abc",[]}
-            ,{box,2,"abc",[]}
-            ,{box,2,"def",[]}
-            ,{box,1,"",[
-                    {box,2,"a",[]}
-                    ,{box,2,",",[]}
-                    ,{box,2,"b as bb",[]}
-                    ,{box,2,",",[]}
-                    ,{box,2,"c",[]}]}
-            ,{box,1,"/*+003*/",[]}]}
-).
+%% - -define(SAMPLE, 
+%% -     {box,0,"select",[
+%% -             {box,1,"where",[
+%% -                     {box,2,"or",[
+%% -                             {box,3,"0", []}
+%% -                             ,{box,3,"=",[]}
+%% -                             ,{box,3,"",[
+%% -                                     {box,4,"nvl",[
+%% -                                             {box,5,")",[]}
+%% -                                             ,{box,5,"(",[
+%% -                                                     {box,6,"0",[]}
+%% -                                                     ,{box,6,",",[]}
+%% -                                                     ,{box,6,"a", []}]}]}]}]}
+%% -                     ,{box,2,"",[
+%% -                             {box,3,"b",[]}
+%% -                             ,{box,3,"=",[]}
+%% -                             ,{box,3,"a",[]}]}]}
+%% -             ,{box,2,"abc",[]}
+%% -             ,{box,2,"abc",[]}
+%% -             ,{box,2,"def",[]}
+%% -             ,{box,1,"",[
+%% -                     {box,2,"a",[]}
+%% -                     ,{box,2,",",[]}
+%% -                     ,{box,2,"b as bb",[]}
+%% -                     ,{box,2,",",[]}
+%% -                     ,{box,2,"c",[]}]}
+%% -             ,{box,1,"/*+003*/",[]}]}
+%% - ).
+%% - 
+%% - cb() ->
+%% -     io:format("Prev ~p~n", [?SAMPLE]),
+%% -     Box = correct_box(?SAMPLE),
+%% -     io:format("After ~p~n", [Box]).
+%% - 
+%% - correct_box(#box{children=[]}=Rec) -> Rec;
+%% - correct_box(#box{children=Childs}=Rec) -> Rec#box{children=lists:reverse([correct_box(C) || C <- Childs])}.
 
-cb() ->
-    io:format("Prev ~p~n", [?SAMPLE]),
-    Box = correct_box(?SAMPLE),
-    io:format("After ~p~n", [Box]).
 
-correct_box(#box{children=[]}=Rec) -> Rec;
-correct_box(#box{children=Childs}=Rec) -> Rec#box{children=lists:reverse([correct_box(C) || C <- Childs])}.
+r2j(#box{} = Rec)           -> r2j(record_info(fields, box), Rec, 2, []).
+
+r2j([], Json)               -> string:join(Json, ",");
+r2j([#box{}=R|Rec], Json)   ->
+    r2j(Rec, Json ++ [r2j(record_info(fields, box), R, 2, "")]).
+
+r2j([], #box{}, _, Json) -> "{" ++ string:join(Json, ",") ++ "}";
+r2j([F|Fs], #box{} = Rec, N, Json) ->
+    r2j(Fs, #box{} = Rec, N+1,
+        Json ++ ["\"" ++ atom_to_list(F) ++ "\":"
+        ++
+        case element(N, Rec) of
+            V when is_binary(V)     -> "\"" ++ binary_to_list(V) ++ "\"";
+            V when is_integer(V)    -> integer_to_list(V);
+            V when is_list(V)       -> "[" ++ r2j(V, "") ++ "]";
+            V when is_atom(V)       -> atom_to_list(V)
+        end]).
+
 
 rec2json(Rec, Format) -> rec2json(Rec, "", 0, Format).
 rec2json(#box{name="fields"}=Rec, Json, T, Format) -> rec2json(Rec#box{name=""}, Json, T, Format);

@@ -285,8 +285,8 @@ sqlb(_Ind, _Idx, _Parent, {}, A, Acc) when is_atom(A) -> Acc;
 sqlb(_Ind, _Idx, _Parent, <<>>, A, Acc) when is_atom(A) -> Acc;
 sqlb(_Ind, _Idx, opt, <<>>, B, Acc) when is_binary(B) -> Acc;
 
-sqlb(Ind, _Idx, _Parent, _Ch, A, []) ->
-	[#box{ind=Ind,name=atom_to_list(A)}];
+sqlb(Ind, Idx, _Parent, _Ch, A, []) ->
+    [#box{ind=Ind, idx=Idx, name=atom_to_binary(A, utf8)}];
 
 sqlb(Ind, _Idx, _Parent, _Ch, _X='%ret%', Acc=[#box{ind=I}|_]) when I<Ind ->
 	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, _Idx, _Parent, _X]),
@@ -302,49 +302,49 @@ sqlb(Ind, Idx, Parent, Ch, X='%ret%', Acc=[#box{ind=I}|_]) when I==Ind ->
 	Acc1 = sqlb_reduce(Ind, Idx, Parent, Ch, X, Acc),
 	?LOG(" --> ~p", [Acc1]),
 	Acc1;
-sqlb(Ind, _Idx, _Parent, _Ch, _X='as', [#box{ind=I,name=Name}=Box|Rest]) when I==Ind -> 
-	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, _Idx, _Parent, _X]),
-	Acc1 = [Box#box{name=Name ++ " as"}|Rest],
+sqlb(Ind, Idx, _Parent, _Ch, _X='as', [#box{ind=I,name=Name}=Box|Rest]) when I==Ind -> 
+	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, _Parent, _X]),
+    Acc1 = [Box#box{ind=Ind, idx=Idx, name=list_to_binary([Name, " as"])}|Rest],
 	?LOG(" --> ~p", [Acc1]),
 	Acc1;
-sqlb(Ind, _Idx, _Parent, _Ch, _X = <<"asc">>, [#box{ind=I,name=Name}=Box|Rest]) when I==Ind -> 
-	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, _Idx, _Parent, _X]),
-	Acc1 = [Box#box{name=Name ++ " asc"}|Rest],
+sqlb(Ind, Idx, _Parent, _Ch, _X = <<"asc">>, [#box{ind=I,name=Name}=Box|Rest]) when I==Ind -> 
+	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, _Parent, _X]),
+	Acc1 = [Box#box{ind=Ind, idx=Idx, name=list_to_binary([Name, " asc"])}|Rest],
 	?LOG(" --> ~p", [Acc1]),
 	Acc1;
-sqlb(Ind, _Idx, _Parent, _Ch, _X = <<"desc">>, [#box{ind=I,name=Name}=Box|Rest]) when I==Ind -> 
-	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, _Idx, _Parent, _X]),
-	Acc1 = [Box#box{name=Name ++ " desc"}|Rest],
+sqlb(Ind, Idx, _Parent, _Ch, _X = <<"desc">>, [#box{ind=I,name=Name}=Box|Rest]) when I==Ind -> 
+	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, _Parent, _X]),
+	Acc1 = [Box#box{ind=Ind, idx=Idx, name=list_to_binary([Name, " desc"])}|Rest],
 	?LOG(" --> ~p", [Acc1]),
 	Acc1;
-sqlb(Ind, _Idx, _Parent='as', _Ch, X, [#box{ind=I,name=Name}=Box|Rest]) when I==Ind -> 
-	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, _Idx, _Parent, X]),
-	Acc1 = [Box#box{name=Name ++ " " ++ binary_to_list(X)}|Rest],
+sqlb(Ind, Idx, _Parent='as', _Ch, X, [#box{ind=I,name=Name}=Box|Rest]) when I==Ind -> 
+	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, _Parent, X]),
+	Acc1 = [Box#box{ind=Ind, idx=Idx, name=list_to_binary([Name, " ", X])}|Rest],
 	?LOG(" --> ~p", [Acc1]),
 	Acc1;
-sqlb(Ind, _Idx, _Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I==Ind, is_atom(X) -> 
-	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, _Idx, _Parent, X]),
-	Acc1 = [#box{ind=Ind,name=atom_to_list(X)}|Acc],
+sqlb(Ind, Idx, _Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I==Ind, is_atom(X) -> 
+	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, _Parent, X]),
+	Acc1 = [#box{ind=Ind, idx=Idx, name=atom_to_binary(X, utf8)}|Acc],
 	?LOG(" --> ~p", [Acc1]),
 	Acc1;
-sqlb(Ind, _Idx, _Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I==Ind, is_binary(X) -> 
-	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, _Idx, _Parent, X]),
-	Acc1 = [#box{ind=Ind,name=binary_to_list(X)}|Acc],
+sqlb(Ind, Idx, _Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I==Ind, is_binary(X) -> 
+	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, _Parent, X]),
+	Acc1 = [#box{ind=Ind, idx=Idx, name=X}|Acc],
 	?LOG(" --> ~p", [Acc1]),
 	Acc1;
 sqlb(Ind, Idx, Parent, Ch, X, Acc=[#box{ind=I}|_]) when I<Ind-1 -> 
 	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, Parent, X]),
-	Acc1 = [#box{ind=I+1}|Acc],
+	Acc1 = [#box{ind=I+1, idx=Idx}|Acc],
 	?LOG(" --> ~p", [Acc1]),
 	sqlb(Ind, Idx, Parent, Ch, X, Acc1);
-sqlb(Ind, _Idx, _Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I<Ind, is_atom(X) -> 
-	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, _Idx, _Parent, X]),
-	Acc1 = [#box{ind=Ind,name=atom_to_list(X)}|Acc],
+sqlb(Ind, Idx, _Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I<Ind, is_atom(X) -> 
+	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, _Parent, X]),
+	Acc1 = [#box{ind=Ind, idx=Idx ,name=atom_to_binary(X, utf8)}|Acc],
 	?LOG(" --> ~p", [Acc1]),
 	Acc1;
-sqlb(Ind, _Idx, _Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I<Ind, is_binary(X) -> 
-	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, _Idx, _Parent, X]),
-	Acc1 = [#box{ind=Ind,name=binary_to_list(X)}|Acc],
+sqlb(Ind, Idx, _Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I<Ind, is_binary(X) -> 
+	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, _Parent, X]),
+	Acc1 = [#box{ind=Ind, idx=Idx, name=X}|Acc],
 	?LOG(" --> ~p", [Acc1]),
 	Acc1;
 sqlb(_Ind, _Idx, _Parent, _Ch, _X, Acc) -> 

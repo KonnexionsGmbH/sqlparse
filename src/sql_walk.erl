@@ -23,21 +23,17 @@ to_json(Sql0) ->
         $; -> Sql1;
         _ -> Sql1 ++ ";"
     end,
-    case sql_lex:string(Sql) of
-        {error, Error} -> {error, Error};
-        {ok, Tokens, _} ->
-            case sql_parse:parse(Tokens) of
-                {error, Error} -> {error, Error};
-                {ok, [ParseTree|_]} ->
-                    case (catch walk_tree(ParseTree)) of
-                        {'EXIT', Error} -> {error, Error};
-                        Rec ->
-                            case (catch rec2json(Rec, no_format)) of
-                                {'EXIT', Error} -> {error, Error};
-                                Json -> Json
-                            end
-                    end
+    F = fun() ->
+            {ok, Tokens, _} = sql_lex:string(Sql),
+            {ok, [ParseTree|_]} = sql_parse:parse(Tokens),
+            case sql_box:box_tree(ParseTree) of
+                {error, Error} -> throw(Error);
+                Rec -> rec2json(Rec, no_format)
             end
+    end,
+    case (catch F()) of
+        {'EXIT', Error} -> {error, Error};
+        Json -> Json
     end.
 
 precedence(A) when is_atom(A) ->

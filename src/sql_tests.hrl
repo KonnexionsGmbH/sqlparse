@@ -1,29 +1,10 @@
 -define (TEST_SQLS0,[
 "
 select
-	/*+003*/
-		a
-		,
-		b as bb
-		,
-		c
+	distinct
+		OWNER
 	from
-		abc
-		,
-		def
-	where
-			a
-			=
-			b
-		or
-				nvl
-					(
-						a
-						,
-						0
-					)
-			=
-			0
+		ALL_TABLES
 "
 ]).
 

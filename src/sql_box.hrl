@@ -1,5 +1,11 @@
 -record(box, {
-        ind,
-        name = "",
-        children = []
-    }).
+	ind
+	, idx
+	, name=""
+	, children = []
+	, collapsed = true
+	, error = ""
+	, color = "black"
+	, pick=[]
+    }). 
+

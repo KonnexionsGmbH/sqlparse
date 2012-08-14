@@ -12,6 +12,19 @@
 
 -ifdef(logf).
 -define(LOG(F, A), io:format(user, "{~p,~p}:"++F, [?MODULE,?LINE] ++ A)).
+
+	%% Child Type Label ------------------------------------------
+	ct([]) -> [];
+	ct(L) when is_list(L) -> '[_]';
+	ct(<<>>) -> <<>>;
+	ct({}) -> {};
+	ct({_A}) -> '{_}';
+	ct({_A,_B}) -> '{_,_}';
+	ct({_A,_B,_C}) -> '{_,_,_}';
+	ct(A) when is_atom(A) -> A;
+	ct(B) when is_binary(B) -> B;
+	ct(X) -> X.
+
 -else.
 -define(LOG(F, A), ok).
 -endif.
@@ -68,18 +81,6 @@ binding({A,_,_,_}) -> binding(A);
 binding(undefined) -> -1;
 binding(_) -> 0.
 
-%% Child Type Label ------------------------------------------
-
-ct([]) -> [];
-ct(L) when is_list(L) -> '[_]';
-ct(<<>>) -> <<>>;
-ct({}) -> {};
-ct({_A}) -> '{_}';
-ct({_A,_B}) -> '{_,_}';
-ct({_A,_B,_C}) -> '{_,_,_}';
-ct(A) when is_atom(A) -> A;
-ct(B) when is_binary(B) -> B;
-ct(X) -> X.
 
 %% SQL Parse Tree Traversal ------------------------------------
 
@@ -87,8 +88,8 @@ fold_tree(ParseTree, Fun, Acc) -> fold_node(0, 0, undefined, ParseTree, undefine
 
 fold_node(_Ind, _Idx, _Parent, [], _Children, _Fun, Acc) -> Acc;			%% pre-order list traversal complete 
 
-fold_node(Ind, Idx, Parent, B, Ch, Fun, Acc0) when is_binary(B) ->			%% binary terminal
-	?LOG("~n~p,~p,(~p),~p,~p", [Ind, Idx, B, Parent, ct(Ch)]),
+fold_node(Ind, Idx, Parent, B, _Ch, Fun, Acc0) when is_binary(B) ->			%% binary terminal
+	?LOG("~n~p,~p,(~p),~p,~p", [Ind, Idx, B, Parent, ct(_Ch)]),
 	Fun(Ind, Idx, Parent, <<>>, B, Acc0);						
 
 fold_node(Ind, Idx, Parent, A, Ch, Fun, Acc0) when is_atom(A) ->			%% atomic terminal
@@ -116,8 +117,8 @@ fold_node(Ind, Idx, Parent, {Node, B}, _, Fun, Acc0) when is_binary(B) ->	%% pre
 	Acc2 = Fun(Ind, 0, Parent, <<>>, B, Acc1),
 	fold_return(Ind, Idx , Parent, Fun, Acc2);					
 	
-fold_node(Ind, Idx, Parent, {Node, {}}, Ch, Fun, Acc0) ->					%% pre-order -> empty in-order for 'having'
-	?LOG("~n~p,~p,(~p),~p,~p", [Ind, Idx, Node, Parent, ct(Ch)]),
+fold_node(Ind, Idx, Parent, {Node, {}}, _Ch, Fun, Acc0) ->					%% pre-order -> empty in-order for 'having'
+	?LOG("~n~p,~p,(~p),~p,~p", [Ind, Idx, Node, Parent, ct(_Ch)]),
 	Acc1 = Fun(Ind+1, 0, Parent, {}, Node, Acc0),
 	fold_return(Ind, Idx , Parent, Fun, Acc1);			
 	
@@ -162,11 +163,11 @@ fold_node(Ind, Idx, Parent, {'fun', Node, Parameters}, _, Fun, Acc0) -> 	%% func
 	Acc3 = fold_return(Ind, Idx , 'fun', Fun, Acc2),
 	fold_return(Ind, Idx , Parent, Fun, Acc3);
 	
-fold_node(Ind, Idx, Parent, {Node, Left, Middle, Right}, Ch, Fun, Acc0) ->	%% {_,_,_,_} in-order ternary recurse
+fold_node(Ind, Idx, Parent, {Node, Left, Middle, Right}, _Ch, Fun, Acc0) ->	%% {_,_,_,_} in-order ternary recurse
 	Acc1 = fold_in(Ind+1, 0, Node, Left, undefined, Fun, Acc0),
 	Acc2 = Fun(Ind+1, 0, Parent, {Left, Middle, Right}, Node, Acc1),		
 	Acc3 = fold_in(Ind+1, 0, Node, Middle, undefined, Fun, Acc2),
-	?LOG("~n~p,~p,(~p),~p,~p", [Ind+1, 0, Node, Parent, ct(Ch)]),
+	?LOG("~n~p,~p,(~p),~p,~p", [Ind+1, 0, Node, Parent, ct(_Ch)]),
 	Acc4 = Fun(Ind+1, 0, Parent, undefined, 'and', Acc3),		
 	Acc5 = fold_in(Ind+1, 0, Node, Right, undefined, Fun, Acc4),
 	fold_return(Ind, Idx , Parent, Fun, Acc5);
@@ -189,8 +190,8 @@ fold_node(Ind, Idx, Parent, {Node, Left, Right}, _, Fun, Acc0)->			%% {_,_,_} in
 	Acc3 = fold_in(Ind+1, 0, Node, Right, undefined, Fun, Acc2),
 	fold_return(Ind, Idx , Parent, Fun, Acc3);
 	
-fold_node(_Ind, _Idx, _Parent, T, _, _Fun, Acc)-> 							%% catch remaining
-	?LOG("~n----remaining term---------~n~p~n", [T]),
+fold_node(_Ind, _Idx, _Parent, _T, _, _Fun, Acc)-> 							%% catch remaining
+	?LOG("~n----remaining term---------~n~p~n", [_T]),
 	Acc. 
 
 fold_comma(Ind, Idx, Parent, [Node|Rest], _, Fun, Acc0) ->					%% pre-order list traversal
@@ -242,8 +243,8 @@ sqls(_Ind, _Idx, _Parent, {}, A, Acc) when is_atom(A) -> Acc;
 sqls(_Ind, _Idx, _Parent, <<>>, A, Acc) when is_atom(A) -> Acc;
 sqls(_Ind, _Idx, _Parent, _Children, A, Acc) when is_atom(A) -> Acc ++ " " ++ atom_to_list(A);
 sqls(_Ind, _Idx, _Parent, _Children, B, Acc) when is_binary(B) -> Acc ++ " " ++ binary_to_list(B);
-sqls(_Ind, _Idx, _Parent, _Children, X, Acc) -> 
-	?LOG("~n---Fun ignores ~p~n", [X]),
+sqls(_Ind, _Idx, _Parent, _Children, _X, Acc) -> 
+	?LOG("~n---Fun ignores ~p~n", [_X]),
 	Acc.
 
 %% SQL Pretty Printing Fun ---------------------------------------
@@ -268,8 +269,8 @@ sqlp(_Ind, _Idx, _Parent, _Children, <<"desc">>, Acc) -> Acc ++ " desc";
 sqlp(Ind, _Idx, _Parent, _Children, A, Acc) when is_atom(A) -> Acc ++ indent(Ind) ++ atom_to_list(A);
 sqlp(Ind, _Idx, _Parent, _Children, B, Acc) when is_binary(B) -> Acc ++ indent(Ind) ++ binary_to_list(B);
 
-sqlp(_Ind, _Idx, _Parent, _Children, X, Acc) -> 
-	?LOG("~n---Fun ignores ~p~n", [X]),
+sqlp(_Ind, _Idx, _Parent, _Children, _X, Acc) -> 
+	?LOG("~n---Fun ignores ~p~n", [_X]),
 	Acc.
 
 %% SQL Boxing Fun ---------------------------------------
@@ -287,8 +288,8 @@ sqlb(_Ind, _Idx, opt, <<>>, B, Acc) when is_binary(B) -> Acc;
 sqlb(Ind, _Idx, _Parent, _Ch, A, []) ->
 	[#box{ind=Ind,name=atom_to_list(A)}];
 
-sqlb(Ind, Idx, Parent, _Ch, X='%ret%', Acc=[#box{ind=I}|_]) when I<Ind ->
-	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, Parent, X]),
+sqlb(Ind, _Idx, _Parent, _Ch, _X='%ret%', Acc=[#box{ind=I}|_]) when I<Ind ->
+	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, _Idx, _Parent, _X]),
 	?LOG(" --> ~p", [Acc]),
 	Acc;
 sqlb(Ind, Idx, Parent, Ch, X, Acc=[#box{ind=I}|_]) when I>Ind ->			%% X='%ret%'
@@ -301,23 +302,33 @@ sqlb(Ind, Idx, Parent, Ch, X='%ret%', Acc=[#box{ind=I}|_]) when I==Ind ->
 	Acc1 = sqlb_reduce(Ind, Idx, Parent, Ch, X, Acc),
 	?LOG(" --> ~p", [Acc1]),
 	Acc1;
-sqlb(Ind, Idx, Parent, _Ch, X='as', [#box{ind=I,name=Name}=Box|Rest]) when I==Ind -> 
-	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, Parent, X]),
+sqlb(Ind, _Idx, _Parent, _Ch, _X='as', [#box{ind=I,name=Name}=Box|Rest]) when I==Ind -> 
+	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, _Idx, _Parent, _X]),
 	Acc1 = [Box#box{name=Name ++ " as"}|Rest],
 	?LOG(" --> ~p", [Acc1]),
 	Acc1;
-sqlb(Ind, Idx, Parent='as', _Ch, X, [#box{ind=I,name=Name}=Box|Rest]) when I==Ind -> 
-	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, Parent, X]),
+sqlb(Ind, _Idx, _Parent, _Ch, _X = <<"asc">>, [#box{ind=I,name=Name}=Box|Rest]) when I==Ind -> 
+	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, _Idx, _Parent, _X]),
+	Acc1 = [Box#box{name=Name ++ " asc"}|Rest],
+	?LOG(" --> ~p", [Acc1]),
+	Acc1;
+sqlb(Ind, _Idx, _Parent, _Ch, _X = <<"desc">>, [#box{ind=I,name=Name}=Box|Rest]) when I==Ind -> 
+	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, _Idx, _Parent, _X]),
+	Acc1 = [Box#box{name=Name ++ " desc"}|Rest],
+	?LOG(" --> ~p", [Acc1]),
+	Acc1;
+sqlb(Ind, _Idx, _Parent='as', _Ch, X, [#box{ind=I,name=Name}=Box|Rest]) when I==Ind -> 
+	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, _Idx, _Parent, X]),
 	Acc1 = [Box#box{name=Name ++ " " ++ binary_to_list(X)}|Rest],
 	?LOG(" --> ~p", [Acc1]),
 	Acc1;
-sqlb(Ind, Idx, Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I==Ind, is_atom(X) -> 
-	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, Parent, X]),
+sqlb(Ind, _Idx, _Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I==Ind, is_atom(X) -> 
+	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, _Idx, _Parent, X]),
 	Acc1 = [#box{ind=Ind,name=atom_to_list(X)}|Acc],
 	?LOG(" --> ~p", [Acc1]),
 	Acc1;
-sqlb(Ind, Idx, Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I==Ind, is_binary(X) -> 
-	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, Parent, X]),
+sqlb(Ind, _Idx, _Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I==Ind, is_binary(X) -> 
+	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, _Idx, _Parent, X]),
 	Acc1 = [#box{ind=Ind,name=binary_to_list(X)}|Acc],
 	?LOG(" --> ~p", [Acc1]),
 	Acc1;
@@ -326,18 +337,18 @@ sqlb(Ind, Idx, Parent, Ch, X, Acc=[#box{ind=I}|_]) when I<Ind-1 ->
 	Acc1 = [#box{ind=I+1}|Acc],
 	?LOG(" --> ~p", [Acc1]),
 	sqlb(Ind, Idx, Parent, Ch, X, Acc1);
-sqlb(Ind, Idx, Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I<Ind, is_atom(X) -> 
-	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, Parent, X]),
+sqlb(Ind, _Idx, _Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I<Ind, is_atom(X) -> 
+	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, _Idx, _Parent, X]),
 	Acc1 = [#box{ind=Ind,name=atom_to_list(X)}|Acc],
 	?LOG(" --> ~p", [Acc1]),
 	Acc1;
-sqlb(Ind, Idx, Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I<Ind, is_binary(X) -> 
-	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, Parent, X]),
+sqlb(Ind, _Idx, _Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I<Ind, is_binary(X) -> 
+	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, _Idx, _Parent, X]),
 	Acc1 = [#box{ind=Ind,name=binary_to_list(X)}|Acc],
 	?LOG(" --> ~p", [Acc1]),
 	Acc1;
-sqlb(_Ind, _Idx, _Parent, _Ch, X, Acc) -> 
-	?LOG("~n---Fun ignores ~p~n", [X]),
+sqlb(_Ind, _Idx, _Parent, _Ch, _X, Acc) -> 
+	?LOG("~n---Fun ignores ~p~n", [_X]),
 	Acc.	
 	
 sqlb_reduce(Ind, Idx, Parent, Ch, X, Acc) -> 
@@ -351,8 +362,8 @@ sqlb_reduce(Ind, _Idx, _Parent, _Ch, _X, [#box{ind=I,children=Children}=Box|Rest
 
 
 sql_box_test() ->
-	%%test_sqls(?TEST_SQLS0),	
-	%%test_sqlp(?TEST_SQLS0),
+	test_sqls(?TEST_SQLS),	
+	test_sqlp(?TEST_SQLS),
 	test_sqlb(?TEST_SQLS),
 	ok.
 	

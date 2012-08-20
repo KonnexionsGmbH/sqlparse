@@ -363,11 +363,29 @@ sqlb_reduce(Ind, _Idx, _Parent, _Ch, _X, [#box{ind=I, children=Children}=Box|Res
 
 
 
-sql_box_test() ->
-	test_sqls(?TEST_SQLS),	
-	test_sqlp(?TEST_SQLS),
-	test_sqlb(?TEST_SQLS),
-	ok.
+
+
+setup() -> ?TEST_SQLS.
+
+teardown(_) -> ok.
+
+sql_box_test_() ->
+    {
+        setup,
+        fun setup/0,
+        fun teardown/1,
+        {with, [
+            fun test_sqls/1,
+            %{timeout, 100000, fun test_sqlp/1},
+            fun test_sqlp/1,
+            fun test_sqlb/1
+        ]}}.
+
+%sql_box_test() ->
+%	test_sqls(?TEST_SQLS),
+%	test_sqlp(?TEST_SQLS),
+%	test_sqlb(?TEST_SQLS),
+%	ok.
 	
 test_sqls(Sqls) ->
     io:format(user, "=================================~n", []),

@@ -518,7 +518,7 @@ parameter_ref -> parameter                                                      
 parameter_ref -> parameter parameter                                                            : {'$1', '$2'}.
 parameter_ref -> parameter INDICATOR parameter                                                  : {'indicator', '$1', '$3'}.
 
-function_ref -> NAME  '(' fun_args ')'                                                          : {'fun', unwrap('$1'), '$3'}.
+function_ref -> NAME  '(' fun_args ')'                                                          : {'fun', list_to_atom(unwrap('$1')), '$3'}.
 function_ref -> FUNS  '(' fun_args ')'                                                          : {'fun', unwrap('$1'), '$3'}.
 
 function_ref -> AMMSC '(' '*' ')'                                                               : {'fun', unwrap_bin('$1'), {}}.

@@ -1,4 +1,18 @@
--define (TEST_SQLS0,[
+-define (TEST_SQLS,[
+"
+select
+    to_date('A','bg') AS OWNER
+	from
+		ALL_TABLES
+"
+,
+"
+select
+    CONCAT('A','bg') AS OWNER
+	from
+		ALL_TABLES
+"
+,
 "
 select
 	distinct
@@ -9,7 +23,7 @@ select
 ]).
 
 
--define (TEST_SQLS,[
+-define (TEST_SQLS0,[
 "
 select
 	/*+000*/

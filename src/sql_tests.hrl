@@ -1,6 +1,13 @@
 -define (TEST_SQLS,[
 "
 select
+	count(*)
+	from
+		ALL_TABLES
+"
+,
+"
+select
     to_date('A','bg') AS OWNER
 	from
 		ALL_TABLES

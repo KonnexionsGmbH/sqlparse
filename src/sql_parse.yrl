@@ -520,13 +520,13 @@ parameter_ref -> parameter                                                      
 parameter_ref -> parameter parameter                                                            : {'$1', '$2'}.
 parameter_ref -> parameter INDICATOR parameter                                                  : {'indicator', '$1', '$3'}.
 
-function_ref -> NAME  '(' fun_args ')'                                                          : {'fun', unwrap('$1'), '$3'}.
+function_ref -> NAME  '(' fun_args ')'                                                          : {'fun', list_to_atom(unwrap('$1')), '$3'}.
 function_ref -> FUNS  '(' fun_args ')'                                                          : {'fun', unwrap('$1'), '$3'}.
 
-function_ref -> AMMSC '(' '*' ')'                                                               : {'fun', unwrap_bin('$1'), {}}.
-function_ref -> AMMSC '(' DISTINCT column_ref ')'                                               : {'fun', unwrap_bin('$1'), {'distinct', '$4'}}.
-function_ref -> AMMSC '(' ALL scalar_exp ')'                                                    : {'fun', unwrap_bin('$1'), {'all', '$4'}}.
-function_ref -> AMMSC '(' scalar_exp ')'                                                        : {'fun', unwrap_bin('$1'), {'$4'}}.
+function_ref -> AMMSC '(' '*' ')'                                                               : {'fun', unwrap('$1'), [<<"*">>]}.
+function_ref -> AMMSC '(' DISTINCT column_ref ')'                                               : {'fun', unwrap('$1'), {'distinct', '$4'}}.
+function_ref -> AMMSC '(' ALL scalar_exp ')'                                                    : {'fun', unwrap('$1'), {'all', '$4'}}.
+function_ref -> AMMSC '(' scalar_exp ')'                                                        : {'fun', unwrap('$1'), {'$4'}}.
 
 fun_args -> NAME                                                                                : [unwrap_bin('$1')].
 fun_args -> STRING                                                                              : [unwrap_bin('$1')].

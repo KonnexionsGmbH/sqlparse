@@ -1,15 +1,11 @@
--define (TEST_SQLS0,[
+-define (TEST_SQLS,[
 "
-select
-	distinct
-		OWNER
-	from
-		ALL_TABLES
+CREATE TABLE Persons (P_Id int)
 "
 ]).
 
 
--define (TEST_SQLS,[
+-define (TEST_SQLS0,[
 "
 select
 	/*+000*/

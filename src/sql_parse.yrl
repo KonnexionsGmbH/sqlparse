@@ -342,6 +342,8 @@ manipulative_statement -> rollback_statement                                    
 manipulative_statement -> select_statement                                                      : '$1'.
 manipulative_statement -> update_statement_positioned                                           : '$1'.
 manipulative_statement -> update_statement_searched                                             : '$1'.
+manipulative_statement -> base_table_def                                                        : '$1'.
+manipulative_statement -> view_def                                                              : '$1'.
 
 close_statement -> CLOSE cursor                                                                 : {'close', '$2'}.
 

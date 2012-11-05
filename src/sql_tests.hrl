@@ -1,4 +1,6 @@
 -define (TEST_SQLS,[
+"INSERT INTO Persons VALUES (4,'Nilsen', 'Johan', 'Bakken 2', 'Stavanger')"
+,
 "
 CREATE TABLE Persons
 (
@@ -9,102 +11,102 @@ Address varchar(255),
 City varchar(255)
 )
 "
-,
-"
-select
-	/*+038*/
-		AC_ID
-		,
-		AC_NAME
-		,
-		AC_ETID
-		,
-		AC_SHORT
-		,
-		AC_DEPTID
-		,
-		AC_LANGID
-		,
-		AC_LOGRET
-		,
-			nvl
-				(
-					AC_MAXLOG
-					,
-					SYS_MAXLOG
-				) as MAXLOG
-		,
-		AC_LASTLOGINTIME
-		,
-		AC_IPMASK
-		,
-		AC_REMOTEADDR
-		,
-					(
-						sysdate
-						-
-							nvl
-								(
-									AC_LASTLOGINTIME
-									,
-									sysdate
-								)
-					)
-				*
-				24
-				*
-				60
-			-
-				nvl
-					(
-						SYS_DELAY
-						,
-						3
-					)
-	from
-		ACCOUNT
-		,
-		SYSPARAMETERS
-	where
-			AC_ESID
-			=
-			'A'
-		and
-			AC_SHORT
-			=
-			'ADMIN'
-		and
-				1
-				+
-				-4
-			=
-			-3
-		and
-			2
-			=
-				5
-				-
-				3
-		and
-			2.3
-			=
-				5.9
-				-
-				3.6
-		and
-				a
-				-
-				10.5
-			=
-			-
-			c
-		and
-			-10.5
-			=
-				a
-				-
-				12.9
-"
+%% - ,
+%% - "
+%% - select
+%% - 	/*+038*/
+%% - 		AC_ID
+%% - 		,
+%% - 		AC_NAME
+%% - 		,
+%% - 		AC_ETID
+%% - 		,
+%% - 		AC_SHORT
+%% - 		,
+%% - 		AC_DEPTID
+%% - 		,
+%% - 		AC_LANGID
+%% - 		,
+%% - 		AC_LOGRET
+%% - 		,
+%% - 			nvl
+%% - 				(
+%% - 					AC_MAXLOG
+%% - 					,
+%% - 					SYS_MAXLOG
+%% - 				) as MAXLOG
+%% - 		,
+%% - 		AC_LASTLOGINTIME
+%% - 		,
+%% - 		AC_IPMASK
+%% - 		,
+%% - 		AC_REMOTEADDR
+%% - 		,
+%% - 					(
+%% - 						sysdate
+%% - 						-
+%% - 							nvl
+%% - 								(
+%% - 									AC_LASTLOGINTIME
+%% - 									,
+%% - 									sysdate
+%% - 								)
+%% - 					)
+%% - 				*
+%% - 				24
+%% - 				*
+%% - 				60
+%% - 			-
+%% - 				nvl
+%% - 					(
+%% - 						SYS_DELAY
+%% - 						,
+%% - 						3
+%% - 					)
+%% - 	from
+%% - 		ACCOUNT
+%% - 		,
+%% - 		SYSPARAMETERS
+%% - 	where
+%% - 			AC_ESID
+%% - 			=
+%% - 			'A'
+%% - 		and
+%% - 			AC_SHORT
+%% - 			=
+%% - 			'ADMIN'
+%% - 		and
+%% - 				1
+%% - 				+
+%% - 				-4
+%% - 			=
+%% - 			-3
+%% - 		and
+%% - 			2
+%% - 			=
+%% - 				5
+%% - 				-
+%% - 				3
+%% - 		and
+%% - 			2.3
+%% - 			=
+%% - 				5.9
+%% - 				-
+%% - 				3.6
+%% - 		and
+%% - 				a
+%% - 				-
+%% - 				10.5
+%% - 			=
+%% - 			-
+%% - 			c
+%% - 		and
+%% - 			-10.5
+%% - 			=
+%% - 				a
+%% - 				-
+%% - 				12.9
+%% - "
 ]).
 
 

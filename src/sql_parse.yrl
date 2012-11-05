@@ -362,7 +362,7 @@ values_or_query_spec -> VALUES '(' insert_atom_commalist ')'                    
 values_or_query_spec -> query_spec                                                              : '$1'.
 
 insert_atom_commalist -> insert_atom                                                            : ['$1'].
-insert_atom_commalist -> insert_atom_commalist ',' insert_atom                                  : '$1' ++ ['$2'].
+insert_atom_commalist -> insert_atom_commalist ',' insert_atom                                  : '$1' ++ ['$3'].
 
 insert_atom -> atom                                                                             : '$1'.
 insert_atom -> NULLX                                                                            : 'nullx'.

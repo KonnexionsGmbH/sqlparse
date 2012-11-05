@@ -121,6 +121,7 @@ Terminals
  BETWEEN
  BY
  CHARACTER
+ VARCHARACTER
  CHECK
  CLOSE
  COMMIT
@@ -551,23 +552,24 @@ column_ref -> NAME '.' NAME '.' NAME                                            
         %% data types
 
 data_type -> CHARACTER                                                                          : 'char'.
-data_type -> CHARACTER '(' INTNUM ')'                                                           : {'char', '$3'}.
+data_type -> CHARACTER '(' INTNUM ')'                                                           : {'char', unwrap('$3')}.
+data_type -> VARCHARACTER '(' INTNUM ')'                                                        : {'varchar', unwrap('$3')}.
 data_type -> NUMERIC                                                                            : 'num'.
-data_type -> NUMERIC '(' INTNUM ')'                                                             : {'num', '$3'}.
-data_type -> NUMERIC '(' INTNUM ',' INTNUM ')'                                                  : {'num', '$3', '$5'}.
+data_type -> NUMERIC '(' INTNUM ')'                                                             : {'num', unwrap('$3')}.
+data_type -> NUMERIC '(' INTNUM ',' INTNUM ')'                                                  : {'num', unwrap('$3'), unwrap('$5')}.
 data_type -> DECIMAL                                                                            : 'dec'.
-data_type -> DECIMAL '(' INTNUM ')'                                                             : {'dec', '$3'}.
-data_type -> DECIMAL '(' INTNUM ',' INTNUM ')'                                                  : {'dec', '$3', '$5'}.
+data_type -> DECIMAL '(' INTNUM ')'                                                             : {'dec', unwrap('$3')}.
+data_type -> DECIMAL '(' INTNUM ',' INTNUM ')'                                                  : {'dec', unwrap('$3'), unwrap('$5')}.
 data_type -> INTEGER                                                                            : 'int'.
 data_type -> SMALLINT                                                                           : 'smallint'.
 data_type -> FLOAT                                                                              : 'float'.
-data_type -> FLOAT '(' INTNUM ')'                                                               : {'float', '$3'}.
+data_type -> FLOAT '(' INTNUM ')'                                                               : {'float', unwrap('$3')}.
 data_type -> REAL                                                                               : 'real'.
 data_type -> DOUBLE PRECISION                                                                   : 'double'.
 
     %% the various things you can name
 
-column -> NAME                                                                                  : unwrap('$1').
+column -> NAME                                                                                  : unwrap_bin('$1').
 
 cursor -> NAME                                                                                  : {'cur', unwrap('$1')}.
 

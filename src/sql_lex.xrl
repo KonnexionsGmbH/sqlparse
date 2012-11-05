@@ -22,6 +22,7 @@ Rules.
 (BETWEEN|between)				:				{token, {'BETWEEN', TokenLine}}.
 (BY|by)							:				{token, {'BY', TokenLine}}.
 ((CHAR(ACTER)?)|(char(acter)?))	:				{token, {'CHARACTER', TokenLine}}.
+((VARCHAR(2)?)|(varchar(2)?))	:				{token, {'VARCHARACTER', TokenLine}}.
 (CHECK|check)					:				{token, {'CHECK', TokenLine}}.
 (CLOSE|close)					:				{token, {'CLOSE', TokenLine}}.
 (COMMIT|commit)					:				{token, {'COMMIT', TokenLine}}.

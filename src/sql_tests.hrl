@@ -11,7 +11,8 @@ Address varchar(255),
 City varchar(255)
 )
 "
-%% - ,
+,
+"DROP TABLE table_name"
 %% - "
 %% - select
 %% - 	/*+038*/

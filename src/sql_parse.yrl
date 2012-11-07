@@ -12,6 +12,7 @@ Nonterminals
  schema_element_list
  schema_element
  base_table_def
+ drop_table_def
  base_table_element_commalist
  base_table_element
  column_def
@@ -99,6 +100,9 @@ Nonterminals
  sql
  when_action
  opt_hint
+ table_list
+ opt_exists
+ opt_restrict_cascade
 .
 
     %% symbolic tokens
@@ -138,6 +142,10 @@ Terminals
  DOUBLE
  ESCAPE
  EXISTS
+ DROP
+ IF
+ RESTRICT
+ CASCADE
  FETCH
  FLOAT
  FOR
@@ -241,6 +249,17 @@ schema_element -> view_def                                                      
 schema_element -> privilege_def                                                                 : '$1'.
 
 base_table_def -> CREATE TABLE table '(' base_table_element_commalist ')'                       : {'create_table', '$3', '$5'}.
+drop_table_def -> DROP TABLE opt_exists table_list opt_restrict_cascade                         : list_to_tuple(['drop_table', {'tables', '$4'}] ++ '$3' ++ '$5').
+
+table_list -> table                                                                             : ['$1'].
+table_list -> table_list ',' table                                                              : '$1' ++ ['$3'].
+
+opt_exists -> '$empty'                                                                          : [{'exists', 'false'}].
+opt_exists -> IF EXISTS                                                                         : [{'exists', 'true'}].
+
+opt_restrict_cascade -> '$empty'                                                                : [{'opt', 'restrict'}].
+opt_restrict_cascade -> RESTRICT                                                                : [{'opt', 'restrict'}].
+opt_restrict_cascade -> CASCADE                                                                 : [{'opt', 'cascade'}].
 
 base_table_element_commalist -> base_table_element                                              : ['$1'].
 base_table_element_commalist -> base_table_element_commalist ',' base_table_element             : '$1' ++ ['$3'].
@@ -344,6 +363,7 @@ manipulative_statement -> select_statement                                      
 manipulative_statement -> update_statement_positioned                                           : '$1'.
 manipulative_statement -> update_statement_searched                                             : '$1'.
 manipulative_statement -> base_table_def                                                        : '$1'.
+manipulative_statement -> drop_table_def                                                        : '$1'.
 manipulative_statement -> view_def                                                              : '$1'.
 
 close_statement -> CLOSE cursor                                                                 : {'close', '$2'}.

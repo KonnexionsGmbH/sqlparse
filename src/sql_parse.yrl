@@ -13,6 +13,7 @@ Nonterminals
  schema_element
  base_table_def
  drop_table_def
+ % alter_user_def
  base_table_element_commalist
  base_table_element
  column_def
@@ -218,6 +219,7 @@ Terminals
  UNLOCK
  QUOTA
  UNLIMITED
+ ALTER
  'AND'
  'NOT'
  'OR'
@@ -270,6 +272,15 @@ schema_element -> privilege_def                                                 
 base_table_def -> CREATE TABLE table '(' base_table_element_commalist ')'                       : {'create_table', '$3', '$5'}.
 base_table_def -> CREATE USER NAME identified opt_user_opts_list                                : {'create_user', unwrap_bin('$3'), '$4', '$5'}.
 drop_table_def -> DROP TABLE opt_exists table_list opt_restrict_cascade                         : list_to_tuple(['drop_table', {'tables', '$4'}] ++ '$3' ++ '$5').
+
+% - alter_user_def -> ALTER USER user_spec
+% - 
+% - user_spec -> user_list proxy_clause
+% - user_spec -> NAME spec_list
+% - 
+% - spec_list -> identified spec_list 
+% - spec_list -> user_opt spec_list  
+% - spec_list -> user_role spec_list 
 
 identified -> IDENTIFIED BY NAME                                                                : {'identified_by', unwrap_bin('$3')}.
 identified -> IDENTIFIED EXTERNALLY opt_as                                                      : {'identified_extern', '$3'}.
@@ -409,6 +420,7 @@ manipulative_statement -> update_statement_positioned                           
 manipulative_statement -> update_statement_searched                                             : '$1'.
 manipulative_statement -> base_table_def                                                        : '$1'.
 manipulative_statement -> drop_table_def                                                        : '$1'.
+%manipulative_statement -> alter_user_def                                                        : '$1'.
 manipulative_statement -> view_def                                                              : '$1'.
 
 close_statement -> CLOSE cursor                                                                 : {'close', '$2'}.

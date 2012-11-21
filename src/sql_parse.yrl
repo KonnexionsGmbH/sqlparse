@@ -288,7 +288,7 @@ base_table_def -> CREATE USER NAME identified opt_user_opts_list                
 drop_table_def -> DROP TABLE opt_exists table_list opt_restrict_cascade                         : list_to_tuple(['drop_table', {'tables', '$4'}] ++ '$3' ++ '$5').
 
 alter_user_def -> ALTER USER user_list proxy_clause                                             : {'alter_user', '$3', '$4'}.
-alter_user_def -> ALTER USER NAME spec_list                                                     : {'alter_user', [unwrap_bin('$3')], {'spec', '$4'}}.
+alter_user_def -> ALTER USER NAME spec_list                                                     : {'alter_user', unwrap_bin('$3'), {'spec', '$4'}}.
 
 drop_user_def -> DROP USER NAME                                                                 : {'drop_user', unwrap_bin('$3')}.
 drop_user_def -> DROP USER NAME CASCADE                                                         : {'drop_user_cascade', unwrap_bin('$3')}.
@@ -301,7 +301,7 @@ proxy_clause -> GRANT REVOKE THROUGH ENTERPRISE USERS                           
 proxy_clause -> GRANT REVOKE THROUGH NAME                                                       : {'grant_revoke', unwrap_bin('$4')}.
 
 spec_list -> identified                                                                         : ['$1'].
-spec_list -> user_opt                                                                           : ['$1'].
+spec_list -> user_opt                                                                           : '$1'.
 spec_list -> user_role                                                                          : ['$1'].
 spec_list -> spec_list spec_list                                                                : ['$1'] ++ ['$2'].
 

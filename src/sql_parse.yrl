@@ -327,7 +327,7 @@ user_opt -> DEFAULT TABLESPACE NAME                                             
 user_opt -> TEMPORARY TABLESPACE NAME                                                           : [{'temp_table_space', unwrap_bin('$3')}].
 user_opt -> quota_list                                                                          : [{'quotas', '$1'}].
 user_opt -> PROFILE NAME                                                                        : [{'profile', unwrap_bin('$2')}].
-user_opt -> PASSWORD EXPIRE                                                                     : [{'password_expire'}].
+user_opt -> PASSWORD EXPIRE                                                                     : [{'password','expire'}].
 user_opt -> ACCOUNT LOCK                                                                        : [{'account', 'lock'}].
 user_opt -> ACCOUNT UNLOCK                                                                      : [{'account', 'unlock'}].
 

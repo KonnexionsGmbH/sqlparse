@@ -17,20 +17,16 @@
 "CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA 10M ON table_3 QUOTA UNLIMITED ON table_1",
 "CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA 10 ON table_3 QUOTA 10M ON table_4 QUOTA UNLIMITED ON table_1",
 
-% - "ALTER USER test_user_123 IDENTIFIED BY new_password"
-% - ,
-% - "ALTER USER test_user_123 ACCOUNT LOCK"
-% - ,
-% - "ALTER USER test_user_123 ACCOUNT UNLOCK"
-% - ,
-% - "ALTER USER test_user_123 PASSWORD EXPIRE"
-% - ,
-"DROP USER test_user_123"
-,
-"DROP USER test_user_123 CASCADE"
-,
-"INSERT INTO Persons VALUES (4,'Nilsen', 'Johan', 'Bakken 2', 'Stavanger')"
-,
+"ALTER USER test_user_123 IDENTIFIED BY new_password",
+"ALTER USER test_user_123 ACCOUNT LOCK",
+"ALTER USER test_user_123 ACCOUNT UNLOCK",
+"ALTER USER test_user_123 PASSWORD EXPIRE",
+
+"DROP USER test_user_123",
+"DROP USER test_user_123 CASCADE",
+
+"INSERT INTO Persons VALUES (4,'Nilsen', 'Johan', 'Bakken 2', 'Stavanger')",
+
 "
 CREATE TABLE Persons
 (

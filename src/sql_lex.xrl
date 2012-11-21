@@ -111,6 +111,14 @@ Rules.
 (QUOTA|quota)                   :				{token, {'QUOTA', TokenLine}}.
 (UNLIMITED|unlimited)           :				{token, {'UNLIMITED', TokenLine}}.
 (ALTER|alter)                   :				{token, {'ALTER', TokenLine}}.
+(ENTERPRISE|enterprise)         :				{token, {'ENTERPRISE', TokenLine}}.
+(REVOKE|revoke)                 :				{token, {'REVOKE', TokenLine}}.
+(THROUGH|through)               :				{token, {'THROUGH', TokenLine}}.
+(USERS|users)                   :				{token, {'USERS', TokenLine}}.
+(ROLE|role)                     :				{token, {'ROLE', TokenLine}}.
+(EXCEPT|except)                 :				{token, {'EXCEPT', TokenLine}}.
+(NONE|none)                     :				{token, {'NONE', TokenLine}}.
+(CONNECT|connect)               :				{token, {'CONNECT', TokenLine}}.
 
 % hint
 ((\/\*).*(\*\/))        : {token, {'HINT', TokenLine, TokenChars}}.

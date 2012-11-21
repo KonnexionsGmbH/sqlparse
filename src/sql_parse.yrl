@@ -13,7 +13,8 @@ Nonterminals
  schema_element
  base_table_def
  drop_table_def
- % alter_user_def
+ alter_user_def
+ drop_user_def
  base_table_element_commalist
  base_table_element
  column_def
@@ -110,6 +111,11 @@ Nonterminals
  user_opt
  quota_list
  quota
+ proxy_clause
+ user_list
+ spec_list
+ role_list
+ user_role
 .
 
     %% symbolic tokens
@@ -220,6 +226,14 @@ Terminals
  QUOTA
  UNLIMITED
  ALTER
+ ENTERPRISE
+ REVOKE
+ THROUGH
+ USERS
+ ROLE
+ EXCEPT
+ NONE
+ CONNECT
  'AND'
  'NOT'
  'OR'
@@ -273,14 +287,31 @@ base_table_def -> CREATE TABLE table '(' base_table_element_commalist ')'       
 base_table_def -> CREATE USER NAME identified opt_user_opts_list                                : {'create_user', unwrap_bin('$3'), '$4', '$5'}.
 drop_table_def -> DROP TABLE opt_exists table_list opt_restrict_cascade                         : list_to_tuple(['drop_table', {'tables', '$4'}] ++ '$3' ++ '$5').
 
-% - alter_user_def -> ALTER USER user_spec
-% - 
-% - user_spec -> user_list proxy_clause
-% - user_spec -> NAME spec_list
-% - 
-% - spec_list -> identified spec_list 
-% - spec_list -> user_opt spec_list  
-% - spec_list -> user_role spec_list 
+alter_user_def -> ALTER USER user_list proxy_clause                                             : {'alter_user', '$3', '$4'}.
+alter_user_def -> ALTER USER NAME spec_list                                                     : {'alter_user', [unwrap_bin('$3')], {'spec', '$4'}}.
+
+drop_user_def -> DROP USER NAME                                                                 : {'drop_user', unwrap_bin('$3')}.
+drop_user_def -> DROP USER NAME CASCADE                                                         : {'drop_user_cascade', unwrap_bin('$3')}.
+
+user_list -> NAME                                                                               : [unwrap_bin('$1')].
+user_list -> NAME user_list                                                                     : [unwrap_bin('$1')] ++ '$2'.
+
+proxy_clause -> GRANT CONNECT THROUGH ENTERPRISE USERS                                          : {'grant_connect', 'enterprise_users'}.
+proxy_clause -> GRANT REVOKE THROUGH ENTERPRISE USERS                                           : {'grant_revoke', 'enterprise_users'}.
+proxy_clause -> GRANT REVOKE THROUGH NAME                                                       : {'grant_revoke', unwrap_bin('$4')}.
+
+spec_list -> identified                                                                         : ['$1'].
+spec_list -> user_opt                                                                           : ['$1'].
+spec_list -> user_role                                                                          : ['$1'].
+spec_list -> spec_list spec_list                                                                : ['$1'] ++ ['$2'].
+
+user_role -> DEFAULT ROLE ALL                                                                   : 'role_all'.
+user_role -> DEFAULT ROLE ALL EXCEPT role_list                                                  : {'role_except', '$5'}.
+user_role -> DEFAULT ROLE NONE                                                                  : 'role_none'.
+user_role -> DEFAULT ROLE role_list                                                             : {'role', '$3'}.
+
+role_list -> NAME                                                                               : [unwrap_bin('$1')].
+role_list -> NAME role_list                                                                     : [unwrap_bin('$1')] ++ '$2'.
 
 identified -> IDENTIFIED BY NAME                                                                : {'identified_by', unwrap_bin('$3')}.
 identified -> IDENTIFIED EXTERNALLY opt_as                                                      : {'identified_extern', '$3'}.
@@ -420,7 +451,8 @@ manipulative_statement -> update_statement_positioned                           
 manipulative_statement -> update_statement_searched                                             : '$1'.
 manipulative_statement -> base_table_def                                                        : '$1'.
 manipulative_statement -> drop_table_def                                                        : '$1'.
-%manipulative_statement -> alter_user_def                                                        : '$1'.
+manipulative_statement -> alter_user_def                                                        : '$1'.
+manipulative_statement -> drop_user_def                                                         : '$1'.
 manipulative_statement -> view_def                                                              : '$1'.
 
 close_statement -> CLOSE cursor                                                                 : {'close', '$2'}.

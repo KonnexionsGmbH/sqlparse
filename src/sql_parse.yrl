@@ -290,8 +290,8 @@ drop_table_def -> DROP TABLE opt_exists table_list opt_restrict_cascade         
 alter_user_def -> ALTER USER user_list proxy_clause                                             : {'alter_user', '$3', '$4'}.
 alter_user_def -> ALTER USER NAME spec_list                                                     : {'alter_user', unwrap_bin('$3'), {'spec', '$4'}}.
 
-drop_user_def -> DROP USER NAME                                                                 : {'drop_user', unwrap_bin('$3')}.
-drop_user_def -> DROP USER NAME CASCADE                                                         : {'drop_user_cascade', unwrap_bin('$3')}.
+drop_user_def -> DROP USER NAME                                                                 : {'drop_user', unwrap_bin('$3'), []}.
+drop_user_def -> DROP USER NAME CASCADE                                                         : {'drop_user', unwrap_bin('$3'), ['cascade']}.
 
 user_list -> NAME                                                                               : [unwrap_bin('$1')].
 user_list -> NAME user_list                                                                     : [unwrap_bin('$1')] ++ '$2'.

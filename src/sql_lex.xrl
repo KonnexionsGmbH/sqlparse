@@ -110,6 +110,7 @@ Rules.
 (UNLOCK|unlock)                 :				{token, {'UNLOCK', TokenLine}}.
 (QUOTA|quota)                   :				{token, {'QUOTA', TokenLine}}.
 (UNLIMITED|unlimited)           :				{token, {'UNLIMITED', TokenLine}}.
+(ALTER|alter)                   :				{token, {'ALTER', TokenLine}}.
 
 % hint
 ((\/\*).*(\*\/))        : {token, {'HINT', TokenLine, TokenChars}}.

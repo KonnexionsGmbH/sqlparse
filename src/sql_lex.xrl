@@ -97,7 +97,19 @@ Rules.
 (WHERE|where)					:				{token, {'WHERE', TokenLine}}.
 (WITH|with)						:				{token, {'WITH', TokenLine}}.
 (WORK|work)						:				{token, {'WORK', TokenLine}}.
-
+(IDENTIFIED|identified)         :				{token, {'IDENTIFIED', TokenLine}}.
+(EXTERNALLY|externally)         :				{token, {'EXTERNALLY', TokenLine}}.
+(GLOBALLY|globally)             :				{token, {'GLOBALLY', TokenLine}}.
+(TABLESPACE|tablespace)         :				{token, {'TABLESPACE', TokenLine}}.
+(TEMPORARY|temporary)           :				{token, {'TEMPORARY', TokenLine}}.
+(PROFILE|profile)               :				{token, {'PROFILE', TokenLine}}.
+(EXPIRE|expite)                 :				{token, {'EXPIRE', TokenLine}}.
+(PASSWORD|password)             :				{token, {'PASSWORD', TokenLine}}.
+(ACCOUNT|account)               :				{token, {'ACCOUNT', TokenLine}}.
+(LOCK|lock)                     :				{token, {'LOCK', TokenLine}}.
+(UNLOCK|unlock)                 :				{token, {'UNLOCK', TokenLine}}.
+(QUOTA|quota)                   :				{token, {'QUOTA', TokenLine}}.
+(UNLIMITED|unlimited)           :				{token, {'UNLIMITED', TokenLine}}.
 
 % hint
 ((\/\*).*(\*\/))        : {token, {'HINT', TokenLine, TokenChars}}.

@@ -103,6 +103,12 @@ Nonterminals
  table_list
  opt_exists
  opt_restrict_cascade
+ identified
+ opt_user_opts_list
+ opt_as
+ user_opt
+ quota_list
+ quota
 .
 
     %% symbolic tokens
@@ -199,6 +205,19 @@ Terminals
  WORK
  %COMMENT
  HINT
+ IDENTIFIED
+ EXTERNALLY
+ GLOBALLY
+ TABLESPACE
+ TEMPORARY
+ PROFILE
+ EXPIRE
+ PASSWORD
+ ACCOUNT
+ LOCK
+ UNLOCK
+ QUOTA
+ UNLIMITED
  'AND'
  'NOT'
  'OR'
@@ -249,7 +268,33 @@ schema_element -> view_def                                                      
 schema_element -> privilege_def                                                                 : '$1'.
 
 base_table_def -> CREATE TABLE table '(' base_table_element_commalist ')'                       : {'create_table', '$3', '$5'}.
+base_table_def -> CREATE USER NAME identified opt_user_opts_list                                : {'create_user', unwrap_bin('$3'), '$4', '$5'}.
 drop_table_def -> DROP TABLE opt_exists table_list opt_restrict_cascade                         : list_to_tuple(['drop_table', {'tables', '$4'}] ++ '$3' ++ '$5').
+
+identified -> IDENTIFIED BY NAME                                                                : {'identified_by', unwrap_bin('$3')}.
+identified -> IDENTIFIED EXTERNALLY opt_as                                                      : {'identified_extern', '$3'}.
+identified -> IDENTIFIED GLOBALLY opt_as                                                        : {'identified_globally', '$3'}.
+
+opt_as -> '$empty'                                                                              : {}.
+opt_as -> AS NAME                                                                               : {'as', unwrap_bin('$2')}.
+
+opt_user_opts_list -> '$empty'                                                                  : [].
+opt_user_opts_list -> user_opt opt_user_opts_list                                               : '$1' ++ '$2'.
+
+user_opt -> DEFAULT TABLESPACE NAME                                                             : [{'default_table_space', unwrap_bin('$3')}].
+user_opt -> TEMPORARY TABLESPACE NAME                                                           : [{'temp_table_space', unwrap_bin('$3')}].
+user_opt -> quota_list                                                                          : [{'quotas', '$1'}].
+user_opt -> PROFILE NAME                                                                        : [{'profile', unwrap_bin('$2')}].
+user_opt -> PASSWORD EXPIRE                                                                     : [{'password_expire'}].
+user_opt -> ACCOUNT LOCK                                                                        : [{'account', 'lock'}].
+user_opt -> ACCOUNT UNLOCK                                                                      : [{'account', 'unlock'}].
+
+quota_list -> quota                                                                             : ['$1'].
+quota_list -> quota quota_list                                                                  : ['$1'] ++ ['$2'].
+
+quota -> QUOTA UNLIMITED ON NAME                                                                : {'unlimited_on', unwrap_bin('$4')}.
+quota -> QUOTA INTNUM ON NAME                                                                   : {'limited', unwrap_bin('$2'), unwrap_bin('$4')}.
+quota -> QUOTA INTNUM NAME ON NAME                                                              : {'limited', list_to_binary(unwrap('$2')++unwrap('$3')), unwrap_bin('$5')}.
 
 table_list -> table                                                                             : ['$1'].
 table_list -> table_list ',' table                                                              : '$1' ++ ['$3'].

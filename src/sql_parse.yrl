@@ -655,8 +655,10 @@ table -> NAME                                                                   
 table -> NAME '.' NAME                                                                          : list_to_binary(unwrap('$1') ++ "." ++ unwrap('$3')).
 
 column_ref -> NAME                                                                              : unwrap_bin('$1').
-column_ref -> NAME '.' NAME                                                                     : list_to_binary(unwrap('$1') ++ "." ++ unwrap('$3')).
-column_ref -> NAME '.' NAME '.' NAME                                                            : list_to_binary(unwrap('$1') ++ "." ++ unwrap('$3') ++ "." ++ unwrap('$5')).
+column_ref -> NAME '.' NAME                                                                     : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
+column_ref -> NAME '.' NAME '.' NAME                                                            : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).
+column_ref -> NAME '.' '*'                                                                     : list_to_binary([unwrap('$1'),".*"]).
+column_ref -> NAME '.' NAME '.' '*'                                                            : list_to_binary([unwrap('$1'),".",unwrap('$3'),".*"]).
 
         %% data types
 

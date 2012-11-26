@@ -8,19 +8,19 @@ select
 		,
 			t1.b
 			+
-			schema.t1.c
+			schma.t1.c
 		,
 			a.a
 			-
-			schema.a.b as fh
+			schma.a.b as fh
 		,
-			b.*
-		,
-			schema.b.c
+ 			b.*
+ 		,
+			schma.b.c
 	from
-		t1, t2 a, schema.t3, schema.t4 b 
+ 		t1, t2 a, schma.t3, schma.t4 b 
 	where
-			a
+			scm.tbl.a
 			=
 			b
 		and

@@ -638,7 +638,7 @@ function_ref -> AMMSC '(' DISTINCT column_ref ')'                               
 function_ref -> AMMSC '(' ALL scalar_exp ')'                                                    : {'fun', unwrap('$1'), {'all', '$4'}}.
 function_ref -> AMMSC '(' scalar_exp ')'                                                        : {'fun', unwrap('$1'), {'$4'}}.
 
-fun_args -> NAME                                                                                : [unwrap_bin('$1')].
+fun_args -> column_ref                                                                          : ['$1'].
 fun_args -> STRING                                                                              : [unwrap_bin('$1')].
 fun_args -> INTNUM                                                                              : [unwrap_bin('$1')].
 fun_args -> APPROXNUM                                                                           : [unwrap_bin('$1')].
@@ -657,8 +657,8 @@ table -> NAME '.' NAME                                                          
 column_ref -> NAME                                                                              : unwrap_bin('$1').
 column_ref -> NAME '.' NAME                                                                     : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
 column_ref -> NAME '.' NAME '.' NAME                                                            : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).
-column_ref -> NAME '.' '*'                                                                     : list_to_binary([unwrap('$1'),".*"]).
-column_ref -> NAME '.' NAME '.' '*'                                                            : list_to_binary([unwrap('$1'),".",unwrap('$3'),".*"]).
+column_ref -> NAME '.' '*'                                                                      : list_to_binary([unwrap('$1'),".*"]).
+column_ref -> NAME '.' NAME '.' '*'                                                             : list_to_binary([unwrap('$1'),".",unwrap('$3'),".*"]).
 
         %% data types
 

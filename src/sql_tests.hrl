@@ -1,44 +1,81 @@
 -define (TEST_SQLS,[
-"CREATE USER test_user_1 IDENTIFIED BY a_password",
-"CREATE USER test_user_3 IDENTIFIED EXTERNALLY",
-"CREATE USER test_user_2 IDENTIFIED EXTERNALLY AS test_usr_2_extern",
-"CREATE USER test_user_4 IDENTIFIED GLOBALLY",
-"CREATE USER test_user_4 IDENTIFIED GLOBALLY AS test_usr_2_extern",
-"CREATE USER test_user_1 IDENTIFIED BY a_password DEFAULT TABLESPACE table_1",
-"CREATE USER test_user_1 IDENTIFIED BY a_password DEFAULT TABLESPACE table_1 DEFAULT TABLESPACE table_2",
-"CREATE USER test_user_1 IDENTIFIED EXTERNALLY AS test_usr_2_extern TEMPORARY TABLESPACE table_1",
-"CREATE USER test_user_1 IDENTIFIED BY a_password DEFAULT TABLESPACE table_1 TEMPORARY TABLESPACE table_2",
-"CREATE USER test_user_3 IDENTIFIED EXTERNALLY PROFILE user_profile",
-"CREATE USER test_user_3 IDENTIFIED EXTERNALLY PASSWORD EXPIRE",
-"CREATE USER test_user_3 IDENTIFIED EXTERNALLY ACCOUNT LOCK",
-"CREATE USER test_user_3 IDENTIFIED EXTERNALLY ACCOUNT UNLOCK",
-"CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA UNLIMITED ON table_1",
-"CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA 10M ON table_2",
-"CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA 10M ON table_3 QUOTA UNLIMITED ON table_1",
-"CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA 10 ON table_3 QUOTA 10M ON table_4 QUOTA UNLIMITED ON table_1",
-
-"ALTER USER test_user_123 IDENTIFIED BY new_password",
-"ALTER USER test_user_123 ACCOUNT LOCK",
-"ALTER USER test_user_123 ACCOUNT UNLOCK",
-"ALTER USER test_user_123 PASSWORD EXPIRE",
-
-"DROP USER test_user_123",
-"DROP USER test_user_123 CASCADE",
-
-"INSERT INTO Persons VALUES (4,'Nilsen', 'Johan', 'Bakken 2', 'Stavanger')",
-
 "
-CREATE TABLE Persons
-(
-P_Id int,
-LastName varchar(255),
-FirstName varchar(255),
-Address varchar(255),
-City varchar(255)
-)
-"
-,
-"DROP TABLE table_name"
+select
+	/*+011*/
+			a
+			+
+			1
+		,
+			t1.b
+			+
+			schema.t1.c
+		,
+			a.a
+			-
+			schema.a.b as fh
+		,
+			b.*
+		,
+			schema.b.c
+	from
+		t1, t2 a, schema.t3, schema.t4 b 
+	where
+			a
+			=
+			b
+		and
+			c
+			=
+			d
+"	
+%% fields to be returned as  
+%%		<<"*">> | <<"table.*">> | <<"schema.table.*">> | <<"name">> | <<"schema.name">> | {as,{expression},<<"alias">>}
+
+%% tables to be returned as 
+%%		<<"name">> | <<"schema.name">> | {<<"name">>, "alias"} | {<<"schema.name">>, "alias"}
+
+
+% "CREATE USER test_user_1 IDENTIFIED BY a_password",
+% "CREATE USER test_user_3 IDENTIFIED EXTERNALLY",
+% "CREATE USER test_user_2 IDENTIFIED EXTERNALLY AS test_usr_2_extern",
+% "CREATE USER test_user_4 IDENTIFIED GLOBALLY",
+% "CREATE USER test_user_4 IDENTIFIED GLOBALLY AS test_usr_2_extern",
+% "CREATE USER test_user_1 IDENTIFIED BY a_password DEFAULT TABLESPACE table_1",
+% "CREATE USER test_user_1 IDENTIFIED BY a_password DEFAULT TABLESPACE table_1 DEFAULT TABLESPACE table_2",
+% "CREATE USER test_user_1 IDENTIFIED EXTERNALLY AS test_usr_2_extern TEMPORARY TABLESPACE table_1",
+% "CREATE USER test_user_1 IDENTIFIED BY a_password DEFAULT TABLESPACE table_1 TEMPORARY TABLESPACE table_2",
+% "CREATE USER test_user_3 IDENTIFIED EXTERNALLY PROFILE user_profile",
+% "CREATE USER test_user_3 IDENTIFIED EXTERNALLY PASSWORD EXPIRE",
+% "CREATE USER test_user_3 IDENTIFIED EXTERNALLY ACCOUNT LOCK",
+% "CREATE USER test_user_3 IDENTIFIED EXTERNALLY ACCOUNT UNLOCK",
+% "CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA UNLIMITED ON table_1",
+% "CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA 10M ON table_2",
+% "CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA 10M ON table_3 QUOTA UNLIMITED ON table_1",
+% "CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA 10 ON table_3 QUOTA 10M ON table_4 QUOTA UNLIMITED ON table_1",
+
+% "ALTER USER test_user_123 IDENTIFIED BY new_password",
+% "ALTER USER test_user_123 ACCOUNT LOCK",
+% "ALTER USER test_user_123 ACCOUNT UNLOCK",
+% "ALTER USER test_user_123 PASSWORD EXPIRE",
+
+% "DROP USER test_user_123",
+% "DROP USER test_user_123 CASCADE",
+
+% "INSERT INTO Persons VALUES (4,'Nilsen', 'Johan', 'Bakken 2', 'Stavanger')",
+
+% "
+% CREATE TABLE Persons
+% (
+% P_Id int,
+% LastName varchar(255),
+% FirstName varchar(255),
+% Address varchar(255),
+% City varchar(255)
+% )
+% "
+% ,
+% "DROP TABLE table_name"
+% ,
 %% - "
 %% - select
 %% - 	/*+038*/

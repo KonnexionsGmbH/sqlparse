@@ -10,7 +10,7 @@ select
 			+
 			schma.t1.c
 		,
-			a.a
+			upper(a.a)
 			-
 			schma.a.b as fh
 		,
@@ -20,9 +20,9 @@ select
 	from
  		t1, t2 a, schma.t3, schma.t4 b 
 	where
-			scm.tbl.a
+			upper(scm.tbl.a)
 			=
-			b
+			upper(b)
 		and
 			c
 			=

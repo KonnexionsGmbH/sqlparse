@@ -39,6 +39,8 @@ Rules.
 (ePid|epid)						:				{token, {'EPID', TokenLine}}. 
 (eRef|eref)						:				{token, {'EREF', TokenLine}}.
 (eFun|efun)						:				{token, {'EFUN', TokenLine}}.
+(eDatetime|edatetime)			:				{token, {'EDATETIME', TokenLine}}.
+(eTimestamp|etimestamp)			:				{token, {'ETIMESTAMP', TokenLine}}.
 
 
 % AMMSCs

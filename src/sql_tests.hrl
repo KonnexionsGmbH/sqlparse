@@ -42,6 +42,8 @@ fld eTuple
 , fld ePid
 , fld eRef
 , fld eFun
+, fld eDatetime
+, fld eTimestamp
 )
 "
 %,

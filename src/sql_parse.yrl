@@ -260,6 +260,8 @@ Terminals
  EPID
  EREF
  EFUN
+ EDATETIME
+ ETIMESTAMP
  'AND'
  'NOT'
  'OR'
@@ -741,6 +743,8 @@ data_type -> EBINSTR                                                            
 data_type -> EPID                                                                               : 'epid'.
 data_type -> EREF                                                                               : 'eref'.
 data_type -> EFUN                                                                               : 'efun'.
+data_type -> EDATETIME                                                                          : 'edatetime'.
+data_type -> ETIMESTAMP                                                                         : 'etimestamp'.
 
 enum_list -> '$empty'                                                                           : [].
 enum_list -> NAME ',' enum_list                                                                 : [unwrap_bin('$1')] ++ '$3'.

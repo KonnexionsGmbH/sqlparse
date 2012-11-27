@@ -116,6 +116,7 @@ Nonterminals
  spec_list
  role_list
  user_role
+ enum_list
 .
 
     %% symbolic tokens
@@ -234,6 +235,31 @@ Terminals
  EXCEPT
  NONE
  CONNECT
+ TINYTEXT
+ TEXT
+ BLOB
+ MEDIUMTEXT
+ MEDIUMBLOB
+ LONGTEXT
+ LONGBLOB
+ ENUM
+ TINYINT
+ MEDIUMINT
+ BIGINT
+ DATE
+ DATETIME
+ TIMESTAMP
+ TIME
+ YEAR
+ ETUPLE
+ EBINARY
+ EATOM 
+ EIPADDR
+ ELIST 
+ EBINSTR
+ EPID
+ EREF
+ EFUN
  'AND'
  'NOT'
  'OR'
@@ -664,19 +690,60 @@ column_ref -> NAME '.' NAME '.' '*'                                             
 
 data_type -> CHARACTER                                                                          : 'char'.
 data_type -> CHARACTER '(' INTNUM ')'                                                           : {'char', unwrap('$3')}.
+data_type -> VARCHARACTER                                                                       : 'varchar'.
 data_type -> VARCHARACTER '(' INTNUM ')'                                                        : {'varchar', unwrap('$3')}.
+data_type -> TINYTEXT                                                                           : 'tinytext'.
+data_type -> TEXT                                                                               : 'text'.
+data_type -> MEDIUMTEXT                                                                         : 'mediumtext'.
+data_type -> MEDIUMBLOB                                                                         : 'mediumblob'.
+data_type -> LONGTEXT                                                                           : 'longtext'.
 data_type -> NUMERIC                                                                            : 'num'.
 data_type -> NUMERIC '(' INTNUM ')'                                                             : {'num', unwrap('$3')}.
 data_type -> NUMERIC '(' INTNUM ',' INTNUM ')'                                                  : {'num', unwrap('$3'), unwrap('$5')}.
+data_type -> INTEGER                                                                            : 'int'.
+data_type -> TINYINT                                                                            : 'tinyint'.
+data_type -> TINYINT '(' INTNUM ')'                                                             : {'tinyint', unwrap('$3')}.
+data_type -> SMALLINT                                                                           : 'smallint'.
+data_type -> SMALLINT '(' INTNUM ')'                                                            : {'smallint', unwrap('$3')}.
+data_type -> MEDIUMINT                                                                          : 'mediumint'.
+data_type -> MEDIUMINT '(' INTNUM ')'                                                           : {'mediumint', unwrap('$3')}.
+data_type -> BIGINT                                                                             : 'bigint'.
+data_type -> BIGINT '(' INTNUM ')'                                                              : {'bigint', unwrap('$3')}.
+data_type -> REAL                                                                               : 'real'.
+data_type -> DOUBLE PRECISION                                                                   : 'double'.
+data_type -> FLOAT                                                                              : 'float'.
+data_type -> FLOAT '(' INTNUM ')'                                                               : {'float', unwrap('$3')}.
+data_type -> FLOAT '(' INTNUM ',' INTNUM ')'                                                    : {'float', unwrap('$3'), unwrap('$5')}.
 data_type -> DECIMAL                                                                            : 'dec'.
 data_type -> DECIMAL '(' INTNUM ')'                                                             : {'dec', unwrap('$3')}.
 data_type -> DECIMAL '(' INTNUM ',' INTNUM ')'                                                  : {'dec', unwrap('$3'), unwrap('$5')}.
-data_type -> INTEGER                                                                            : 'int'.
-data_type -> SMALLINT                                                                           : 'smallint'.
-data_type -> FLOAT                                                                              : 'float'.
-data_type -> FLOAT '(' INTNUM ')'                                                               : {'float', unwrap('$3')}.
-data_type -> REAL                                                                               : 'real'.
-data_type -> DOUBLE PRECISION                                                                   : 'double'.
+data_type -> DOUBLE                                                                             : 'double'.
+data_type -> DOUBLE '(' INTNUM ',' INTNUM ')'                                                   : {'double', unwrap('$3'), unwrap('$5')}.
+
+data_type -> BLOB                                                                               : 'blob'.
+data_type -> LONGBLOB                                                                           : 'longblob'.
+
+data_type -> ENUM '(' enum_list ')'                                                             : {'enum', '$3'}.
+data_type -> SET '(' enum_list ')'                                                              : {'set', '$3'}.
+
+data_type -> DATE                                                                               : 'date'.
+data_type -> DATETIME                                                                           : 'datetime'.
+data_type -> TIMESTAMP                                                                          : 'timestamp'.
+data_type -> TIME                                                                               : 'time'.
+data_type -> YEAR                                                                               : 'year'.
+
+data_type -> ETUPLE                                                                             : 'etuple'.
+data_type -> EBINARY                                                                            : 'ebinary'.
+data_type -> EATOM                                                                              : 'eatom'.
+data_type -> EIPADDR                                                                            : 'eipaddr'.
+data_type -> ELIST                                                                              : 'elist'.
+data_type -> EBINSTR                                                                            : 'ebinstr'.
+data_type -> EPID                                                                               : 'epid'.
+data_type -> EREF                                                                               : 'eref'.
+data_type -> EFUN                                                                               : 'efun'.
+
+enum_list -> '$empty'                                                                           : [].
+enum_list -> NAME ',' enum_list                                                                 : [unwrap_bin('$1')] ++ '$3'.
 
     %% the various things you can name
 

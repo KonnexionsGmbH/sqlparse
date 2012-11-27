@@ -1,33 +1,94 @@
 -define (TEST_SQLS,[
 "
-select
-	/*+011*/
-			a
-			+
-			1
-		,
-			t1.b
-			+
-			schma.t1.c
-		,
-			upper(a.a)
-			-
-			schma.a.b as fh
-		,
- 			b.*
- 		,
-			schma.b.c
-	from
- 		t1, t2 a, schma.t3, schma.t4 b 
-	where
-			upper(scm.tbl.a)
-			=
-			upper(b)
-		and
-			c
-			=
-			d
-"	
+CREATE TABLE test
+(
+fld CHAR
+, fld VARCHAR
+, fld VARCHAR(13)
+, fld TINYTEXT
+, fld TEXT
+, fld BLOB
+, fld MEDIUMTEXT
+, fld MEDIUMBLOB
+, fld LONGTEXT
+, fld LONGBLOB
+, fld TINYINT
+, fld SMALLINT
+, fld MEDIUMINT
+, fld BIGINT
+, fld FLOAT
+, fld DOUBLE
+, fld DECIMAL
+, fld DATE
+, fld DATETIME
+, fld TIMESTAMP
+, fld TIME
+, fld YEAR
+, fld INT
+, fld ENUM()
+, fld SET()
+)
+"
+,
+"
+CREATE TABLE test
+(
+fld eTuple
+, fld eBinary
+, fld eAtom
+, fld eIpaddr
+, fld eList
+, fld eBinstr
+, fld ePid
+, fld eRef
+, fld eFun
+)
+"
+%,
+
+
+%% -- "
+%% -- CREATE TABLE test
+%% -- (
+%% -- fld eTuple
+%% -- , fld eBinary
+%% -- , fld eAtom
+%% -- , fld eIpaddr
+%% -- , fld eList
+%% -- , fld eBinstr
+%% -- )
+%% -- "
+%% -- ,
+%% -- 
+%% -- "
+%% -- select
+%% -- 	/*+011*/
+%% -- 			a
+%% -- 			+
+%% -- 			1
+%% -- 		,
+%% -- 			t1.b
+%% -- 			+
+%% -- 			schma.t1.c
+%% -- 		,
+%% -- 			upper(a.a)
+%% -- 			-
+%% -- 			schma.a.b as fh
+%% -- 		,
+%% --  			b.*
+%% --  		,
+%% -- 			schma.b.c
+%% -- 	from
+%% --  		t1, t2 a, schma.t3, schma.t4 b 
+%% -- 	where
+%% -- 			upper(scm.tbl.a)
+%% -- 			=
+%% -- 			upper(b)
+%% -- 		and
+%% -- 			c
+%% -- 			=
+%% -- 			d
+%% -- "	
 %% fields to be returned as  
 %%		<<"*">> | <<"table.*">> | <<"schema.table.*">> | <<"name">> | <<"schema.name">> | {as,{expression},<<"alias">>}
 
@@ -63,16 +124,18 @@ select
 
 % "INSERT INTO Persons VALUES (4,'Nilsen', 'Johan', 'Bakken 2', 'Stavanger')",
 
-% "
-% CREATE TABLE Persons
-% (
-% P_Id int,
-% LastName varchar(255),
-% FirstName varchar(255),
-% Address varchar(255),
-% City varchar(255)
-% )
-% "
+% - "
+% - CREATE TABLE Persons
+% - (
+% - P_Id int,
+% - LastName varchar,
+% - LastName varchar(255),
+% - FirstName varchar(255),
+% - Address varchar(255),
+% - City varchar(255)
+% - )
+% - "
+
 % ,
 % "DROP TABLE table_name"
 % ,

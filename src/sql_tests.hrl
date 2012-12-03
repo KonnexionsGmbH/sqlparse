@@ -31,7 +31,7 @@ fld CHAR
 "
 ,
 "
-CREATE TABLE test
+CREATE LOCAL TABLE test
 (
 fld eTuple(0) default fun() -> {} end.
 , fld eBinary(1000)

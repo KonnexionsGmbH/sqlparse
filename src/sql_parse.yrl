@@ -264,6 +264,7 @@ Terminals
  EDATETIME
  ETIMESTAMP
  EINTEGER
+ LOCAL
  'AND'
  'NOT'
  'OR'
@@ -314,6 +315,7 @@ schema_element -> view_def                                                      
 schema_element -> privilege_def                                                                 : '$1'.
 
 base_table_def -> CREATE TABLE table '(' base_table_element_commalist ')'                       : {'create_table', '$3', '$5'}.
+base_table_def -> CREATE LOCAL TABLE table '(' base_table_element_commalist ')'                 : {'create_local_table', '$4', '$6'}.
 base_table_def -> CREATE USER NAME identified opt_user_opts_list                                : {'create_user', unwrap_bin('$3'), '$4', '$5'}.
 drop_table_def -> DROP TABLE opt_exists table_list opt_restrict_cascade                         : list_to_tuple(['drop_table', {'tables', '$4'}] ++ '$3' ++ '$5').
 

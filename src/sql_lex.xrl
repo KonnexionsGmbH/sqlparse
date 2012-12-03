@@ -28,6 +28,7 @@ Rules.
 (TIME|time)						:				{token, {'TIME', TokenLine}}.
 (YEAR|year)						:				{token, {'YEAR', TokenLine}}.
 (NUMERIC|numeric)				:				{token, {'NUMERIC', TokenLine}}.
+(LOCAL|local)				    :				{token, {'LOCAL', TokenLine}}.
 
 % Data Types (Erlang)
 (eTuple|etuple)					:				{token, {'ETUPLE', TokenLine}}.

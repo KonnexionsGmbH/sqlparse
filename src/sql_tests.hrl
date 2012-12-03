@@ -3,6 +3,8 @@
 SELECT a FROM b
 UNION
 SELECT a FROM d
+UNION ALL
+SELECT a FROM e
 "
 ,
 "

@@ -38,7 +38,7 @@ fld eTuple(0) default fun() -> {} end.
 , fld eAtom
 , fld eIpaddr(4) default fun() -> {0,0,0,0} end. 
 , fld eList(0) default fun() -> [] end.
-, fld eBinstr(1000) default fun() -> <<"no_value">> end.
+, fld eBinstr(1000) default fun() -> <<\"no_value\">> end.
 , fld ePid
 , fld eRef
 , fld eFun(1)

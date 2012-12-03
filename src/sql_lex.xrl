@@ -6,7 +6,7 @@ Rules.
 (CHAR(ACTER)?|char(acter)?)		:				{token, {'CHARACTER', TokenLine}}.
 (VARCHAR(2)?|varchar(2)?)		:				{token, {'VARCHARACTER', TokenLine}}.
 (TINYTEXT|tinytext)				:				{token, {'TINYTEXT', TokenLine}}.
-(TEXT|text)					:				{token, {'TEXT', TokenLine}}.
+(TEXT|text)						:				{token, {'TEXT', TokenLine}}.
 (BLOB|blob)						:				{token, {'BLOB', TokenLine}}.
 (MEDIUMTEXT|mediumtext)			:				{token, {'MEDIUMTEXT', TokenLine}}.
 (MEDIUMBLOB|mediumblob)			:				{token, {'MEDIUMBLOB', TokenLine}}.
@@ -41,6 +41,7 @@ Rules.
 (eFun|efun)						:				{token, {'EFUN', TokenLine}}.
 (eDatetime|edatetime)			:				{token, {'EDATETIME', TokenLine}}.
 (eTimestamp|etimestamp)			:				{token, {'ETIMESTAMP', TokenLine}}.
+(eInteger|einteger)				:				{token, {'EINTEGER', TokenLine}}.
 
 
 % AMMSCs
@@ -180,6 +181,9 @@ Rules.
 (EXCEPT|except)                 :				{token, {'EXCEPT', TokenLine}}.
 (NONE|none)                     :				{token, {'NONE', TokenLine}}.
 (CONNECT|connect)               :				{token, {'CONNECT', TokenLine}}.
+
+% erlang funcs
+(fun\(\).*end\.)                :               {token, {'STRING', TokenLine, TokenChars}}.
 
 % hint
 ((\/\*).*(\*\/))        : {token, {'HINT', TokenLine, TokenChars}}.

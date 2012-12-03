@@ -4,22 +4,22 @@ CREATE TABLE test
 (
 fld CHAR
 , fld VARCHAR
-, fld VARCHAR(13)
+, fld VARCHAR2(13) DEFAULT '123'
 , fld TINYTEXT
-, fld TEXT
-, fld BLOB
+, fld TEXT DEFAULT 'abc'
+, fld BLOB(2000)
 , fld MEDIUMTEXT
 , fld MEDIUMBLOB
-, fld LONGTEXT
-, fld LONGBLOB
+, fld LONGTEXT(1000) DEFAULT ''
+, fld LONGBLOB(1000000000)
 , fld TINYINT
-, fld SMALLINT
-, fld MEDIUMINT
-, fld BIGINT
-, fld FLOAT
-, fld DOUBLE
-, fld DECIMAL
-, fld DATE
+, fld SMALLINT DEFAULT 0
+, fld MEDIUMINT(10,-4)
+, fld BIGINT DEFAULT 99999999999999999
+, fld FLOAT(-3) DEFAULT 123456
+, fld DOUBLE(3)
+, fld DECIMAL(10,3) DEFAULT 1.1234
+, fld DATE DEFAULT SYSDATE
 , fld DATETIME
 , fld TIMESTAMP
 , fld TIME
@@ -33,17 +33,18 @@ fld CHAR
 "
 CREATE TABLE test
 (
-fld eTuple
-, fld eBinary
+fld eTuple(0) default fun() -> {} end.
+, fld eBinary(1000)
 , fld eAtom
-, fld eIpaddr
-, fld eList
-, fld eBinstr
+, fld eIpaddr(4) default fun() -> {0,0,0,0} end. 
+, fld eList(0) default fun() -> [] end.
+, fld eBinstr(1000) default fun() -> <<"no_value">> end.
 , fld ePid
 , fld eRef
-, fld eFun
-, fld eDatetime
-, fld eTimestamp
+, fld eFun(1)
+, fld eDatetime default fun() -> calendar:local_time() end.
+, fld eTimestamp(3) default fun() -> erlang:now() end.
+, fld eInteger(10,-3)
 )
 "
 %,

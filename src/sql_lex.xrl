@@ -150,7 +150,6 @@ Rules.
 (SQLCODE|sqlcode)				:				{token, {'SQLCODE', TokenLine}}.
 (TABLE|table)					:				{token, {'TABLE', TokenLine}}.
 (TO|to)							:				{token, {'TO', TokenLine}}.
-(UNION|union)					:				{token, {'UNION', TokenLine}}.
 (UNIQUE|unique)					:				{token, {'UNIQUE', TokenLine}}.
 (UPDATE|update)					:				{token, {'UPDATE', TokenLine}}.
 (USER|user)						:				{token, {'USER', TokenLine}}.
@@ -182,6 +181,16 @@ Rules.
 (EXCEPT|except)                 :				{token, {'EXCEPT', TokenLine}}.
 (NONE|none)                     :				{token, {'NONE', TokenLine}}.
 (CONNECT|connect)               :				{token, {'CONNECT', TokenLine}}.
+
+% sql joins
+(UNION|union)					:				{token, {'UNION', TokenLine}}.
+(INTERSECT|intersect)			:				{token, {'INTERSECT', TokenLine}}.
+(MINUS|minus)					:				{token, {'MINUS', TokenLine}}.
+
+% create options
+(CLUSTER|cluster)               :				{token, {'CLUSTER', TokenLine}}.
+(BAG|bag)                       :				{token, {'BAG', TokenLine}}.
+(ORDERED_SET|ordered_set)       :				{token, {'ORDERED_SET', TokenLine}}.
 
 % erlang funcs
 (fun\(\).*end\.)                :               {token, {'STRING', TokenLine, TokenChars}}.

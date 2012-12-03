@@ -118,6 +118,9 @@ Nonterminals
  user_role
  enum_list
  opt_sgn_num
+ create_opts
+ tbl_scope
+ tbl_type
 .
 
     %% symbolic tokens
@@ -203,6 +206,8 @@ Terminals
  TABLE
  TO
  UNION
+ INTERSECT
+ MINUS
  UNIQUE
  UPDATE
  USER
@@ -265,6 +270,9 @@ Terminals
  ETIMESTAMP
  EINTEGER
  LOCAL
+ CLUSTER
+ ORDERED_SET
+ BAG
  'AND'
  'NOT'
  'OR'
@@ -314,10 +322,21 @@ schema_element -> base_table_def                                                
 schema_element -> view_def                                                                      : '$1'.
 schema_element -> privilege_def                                                                 : '$1'.
 
-base_table_def -> CREATE TABLE table '(' base_table_element_commalist ')'                       : {'create_table', '$3', '$5'}.
-base_table_def -> CREATE LOCAL TABLE table '(' base_table_element_commalist ')'                 : {'create_local_table', '$4', '$6'}.
+base_table_def -> CREATE create_opts TABLE table '(' base_table_element_commalist ')'           : {'create_table', '$4', '$6', '$2'}.
 base_table_def -> CREATE USER NAME identified opt_user_opts_list                                : {'create_user', unwrap_bin('$3'), '$4', '$5'}.
 drop_table_def -> DROP TABLE opt_exists table_list opt_restrict_cascade                         : list_to_tuple(['drop_table', {'tables', '$4'}] ++ '$3' ++ '$5').
+
+create_opts -> tbl_scope tbl_type                                                               : '$1' ++ '$2'.
+
+tbl_scope -> '$empty'                                                                           : [].
+tbl_scope -> LOCAL                                                                              : [{'scope', 'local'}].
+tbl_scope -> CLUSTER                                                                            : [{'scope', 'cluster'}].
+tbl_scope -> SCHEMA                                                                             : [{'scope', 'schema'}].
+
+tbl_type -> '$empty'                                                                            : [].
+tbl_type -> SET                                                                                 : [{'type', 'set'}].
+tbl_type -> ORDERED_SET                                                                         : [{'type', 'ordered_set'}].
+tbl_type -> BAG                                                                                 : [{'type', 'bag'}].
 
 alter_user_def -> ALTER USER user_list proxy_clause                                             : {'alter_user', '$3', '$4'}.
 alter_user_def -> ALTER USER NAME spec_list                                                     : {'alter_user', unwrap_bin('$3'), {'spec', '$4'}}.
@@ -548,7 +567,9 @@ opt_where_clause -> where_clause                                                
 
 query_exp -> query_term                                                                         : '$1'.
 query_exp -> query_exp UNION query_term                                                         : {union, '$1', '$3'}.
-query_exp -> query_exp UNION ALL query_term                                                     : {union_all, '$1', '$3'}.
+query_exp -> query_exp UNION ALL query_term                                                     : {union_all, '$1', '$4'}.
+query_exp -> query_exp INTERSECT query_term                                                     : {intersect, '$1', '$3'}.
+query_exp -> query_exp MINUS query_term                                                         : {minus, '$1', '$3'}.
 
 query_term -> query_spec                                                                        : '$1'.
 query_term -> '(' query_exp ')'                                                                 : '$2'.

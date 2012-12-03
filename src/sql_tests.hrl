@@ -1,5 +1,11 @@
 -define (TEST_SQLS,[
 "
+SELECT a FROM b
+UNION
+SELECT a FROM d
+"
+,
+"
 CREATE TABLE test
 (
 fld CHAR

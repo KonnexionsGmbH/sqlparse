@@ -518,7 +518,7 @@ select_statement -> SELECT opt_hint opt_all_distinct selection INTO target_comma
                      {hint, ""} -> list_to_tuple([select, ['$3', '$4', '$6'] ++ '$7']);
                      _          -> list_to_tuple([select, ['$2', '$3', '$4', '$6'] ++ '$7'])
                    end.
-select_statement -> query_spec                                                                  : '$1'.
+select_statement -> query_exp                                                                   : '$1'.
 
 opt_hint -> '$empty'                                                                            : {hints, <<>>}.
 opt_hint -> HINT                                                                                : {hints, unwrap_bin('$1')}.

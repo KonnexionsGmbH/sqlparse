@@ -65,196 +65,202 @@ fld eTuple(0) default fun() -> {} end.
 , fld eInteger(10,-3)
 )
 "
-%,
+,
+"
+CREATE TABLE test
+(
+fld eTuple
+, fld eBinary
+, fld eAtom
+, fld eIpaddr
+, fld eList
+, fld eBinstr
+)
+"
+,
 
+"
+select
+	/*+011*/
+			a
+			+
+			1
+		,
+			t1.b
+			+
+			schma.t1.c
+		,
+			upper(a.a)
+			-
+			schma.a.b as fh
+		,
+ 			b.*
+ 		,
+			schma.b.c
+	from
+ 		t1, t2 a, schma.t3, schma.t4 b 
+	where
+			upper(scm.tbl.a)
+			=
+			upper(b)
+		and
+			c
+			=
+			d
+"
+,
+"CREATE USER test_user_1 IDENTIFIED BY a_password",
+"CREATE USER test_user_3 IDENTIFIED EXTERNALLY",
+"CREATE USER test_user_2 IDENTIFIED EXTERNALLY AS test_usr_2_extern",
+"CREATE USER test_user_4 IDENTIFIED GLOBALLY",
+"CREATE USER test_user_4 IDENTIFIED GLOBALLY AS test_usr_2_extern",
+"CREATE USER test_user_1 IDENTIFIED BY a_password DEFAULT TABLESPACE table_1",
+"CREATE USER test_user_1 IDENTIFIED BY a_password DEFAULT TABLESPACE table_1 DEFAULT TABLESPACE table_2",
+"CREATE USER test_user_1 IDENTIFIED EXTERNALLY AS test_usr_2_extern TEMPORARY TABLESPACE table_1",
+"CREATE USER test_user_1 IDENTIFIED BY a_password DEFAULT TABLESPACE table_1 TEMPORARY TABLESPACE table_2",
+"CREATE USER test_user_3 IDENTIFIED EXTERNALLY PROFILE user_profile",
+"CREATE USER test_user_3 IDENTIFIED EXTERNALLY PASSWORD EXPIRE",
+"CREATE USER test_user_3 IDENTIFIED EXTERNALLY ACCOUNT LOCK",
+"CREATE USER test_user_3 IDENTIFIED EXTERNALLY ACCOUNT UNLOCK",
+"CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA UNLIMITED ON table_1",
+"CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA 10M ON table_2",
+"CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA 10M ON table_3 QUOTA UNLIMITED ON table_1",
+"CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA 10 ON table_3 QUOTA 10M ON table_4 QUOTA UNLIMITED ON table_1",
 
-%% -- "
-%% -- CREATE TABLE test
-%% -- (
-%% -- fld eTuple
-%% -- , fld eBinary
-%% -- , fld eAtom
-%% -- , fld eIpaddr
-%% -- , fld eList
-%% -- , fld eBinstr
-%% -- )
-%% -- "
-%% -- ,
-%% -- 
-%% -- "
-%% -- select
-%% -- 	/*+011*/
-%% -- 			a
-%% -- 			+
-%% -- 			1
-%% -- 		,
-%% -- 			t1.b
-%% -- 			+
-%% -- 			schma.t1.c
-%% -- 		,
-%% -- 			upper(a.a)
-%% -- 			-
-%% -- 			schma.a.b as fh
-%% -- 		,
-%% --  			b.*
-%% --  		,
-%% -- 			schma.b.c
-%% -- 	from
-%% --  		t1, t2 a, schma.t3, schma.t4 b 
-%% -- 	where
-%% -- 			upper(scm.tbl.a)
-%% -- 			=
-%% -- 			upper(b)
-%% -- 		and
-%% -- 			c
-%% -- 			=
-%% -- 			d
-%% -- "	
-%% fields to be returned as  
-%%		<<"*">> | <<"table.*">> | <<"schema.table.*">> | <<"name">> | <<"schema.name">> | {as,{expression},<<"alias">>}
+"ALTER USER test_user_123 IDENTIFIED BY new_password",
+"ALTER USER test_user_123 ACCOUNT LOCK",
+"ALTER USER test_user_123 ACCOUNT UNLOCK",
+"ALTER USER test_user_123 PASSWORD EXPIRE",
 
-%% tables to be returned as 
-%%		<<"name">> | <<"schema.name">> | {<<"name">>, "alias"} | {<<"schema.name">>, "alias"}
+"DROP USER test_user_123",
+"DROP USER test_user_123 CASCADE",
 
+"INSERT INTO Persons VALUES (4,'Nilsen', 'Johan', 'Bakken 2', 'Stavanger')",
 
-% "CREATE USER test_user_1 IDENTIFIED BY a_password",
-% "CREATE USER test_user_3 IDENTIFIED EXTERNALLY",
-% "CREATE USER test_user_2 IDENTIFIED EXTERNALLY AS test_usr_2_extern",
-% "CREATE USER test_user_4 IDENTIFIED GLOBALLY",
-% "CREATE USER test_user_4 IDENTIFIED GLOBALLY AS test_usr_2_extern",
-% "CREATE USER test_user_1 IDENTIFIED BY a_password DEFAULT TABLESPACE table_1",
-% "CREATE USER test_user_1 IDENTIFIED BY a_password DEFAULT TABLESPACE table_1 DEFAULT TABLESPACE table_2",
-% "CREATE USER test_user_1 IDENTIFIED EXTERNALLY AS test_usr_2_extern TEMPORARY TABLESPACE table_1",
-% "CREATE USER test_user_1 IDENTIFIED BY a_password DEFAULT TABLESPACE table_1 TEMPORARY TABLESPACE table_2",
-% "CREATE USER test_user_3 IDENTIFIED EXTERNALLY PROFILE user_profile",
-% "CREATE USER test_user_3 IDENTIFIED EXTERNALLY PASSWORD EXPIRE",
-% "CREATE USER test_user_3 IDENTIFIED EXTERNALLY ACCOUNT LOCK",
-% "CREATE USER test_user_3 IDENTIFIED EXTERNALLY ACCOUNT UNLOCK",
-% "CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA UNLIMITED ON table_1",
-% "CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA 10M ON table_2",
-% "CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA 10M ON table_3 QUOTA UNLIMITED ON table_1",
-% "CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA 10 ON table_3 QUOTA 10M ON table_4 QUOTA UNLIMITED ON table_1",
+"
+CREATE TABLE Persons
+(
+P_Id int,
+LastName varchar,
+LastName varchar(255),
+FirstName varchar(255),
+Address varchar(255),
+City varchar(255)
+)
+"
 
-% "ALTER USER test_user_123 IDENTIFIED BY new_password",
-% "ALTER USER test_user_123 ACCOUNT LOCK",
-% "ALTER USER test_user_123 ACCOUNT UNLOCK",
-% "ALTER USER test_user_123 PASSWORD EXPIRE",
+,
+"DROP TABLE table_name",
 
-% "DROP USER test_user_123",
-% "DROP USER test_user_123 CASCADE",
+"create table table_1 (
+               field_a eatom default 'undefined',
+               field_b elist,
+               'field_c' estring default \"NULL\",
+               'field_d' etuple default '{1,2}',
+               field_e date default fun()-> calendar:localtime() end.
+               )"
+,
+"insert into table_1 (field_a, field_b) values ('first',\"Stefan's choice.\")",
+"insert into table_1 (field_a, field_c) values ('second',\"Bikram\\\"s selection\")",
+"insert into table_1 (field_a, field_d) values ('third','{a,b,c}')",
+"insert into table_1 (field_a, field_3) values ('third',\"31.12.2012 23:59:59\")",
 
-% "INSERT INTO Persons VALUES (4,'Nilsen', 'Johan', 'Bakken 2', 'Stavanger')",
-
+"select 12, \"12\", '12', 'field_a', '[''a'',b]', '{field_a,b}' from 'table_1'"
 % - "
-% - CREATE TABLE Persons
-% - (
-% - P_Id int,
-% - LastName varchar,
-% - LastName varchar(255),
-% - FirstName varchar(255),
-% - Address varchar(255),
-% - City varchar(255)
-% - )
+% - select
+% - 	/*+038*/
+% - 		AC_ID
+% - 		,
+% - 		AC_NAME
+% - 		,
+% - 		AC_ETID
+% - 		,
+% - 		AC_SHORT
+% - 		,
+% - 		AC_DEPTID
+% - 		,
+% - 		AC_LANGID
+% - 		,
+% - 		AC_LOGRET
+% - 		,
+% - 			nvl
+% - 				(
+% - 					AC_MAXLOG
+% - 					,
+% - 					SYS_MAXLOG
+% - 				) as MAXLOG
+% - 		,
+% - 		AC_LASTLOGINTIME
+% - 		,
+% - 		AC_IPMASK
+% - 		,
+% - 		AC_REMOTEADDR
+% - 		,
+% - 					(
+% - 						sysdate
+% - 						-
+% - 							nvl
+% - 								(
+% - 									AC_LASTLOGINTIME
+% - 									,
+% - 									sysdate
+% - 								)
+% - 					)
+% - 				*
+% - 				24
+% - 				*
+% - 				60
+% - 			-
+% - 				nvl
+% - 					(
+% - 						SYS_DELAY
+% - 						,
+% - 						3
+% - 					)
+% - 	from
+% - 		ACCOUNT
+% - 		,
+% - 		SYSPARAMETERS
+% - 	where
+% - 			AC_ESID
+% - 			=
+% - 			'A'
+% - 		and
+% - 			AC_SHORT
+% - 			=
+% - 			'ADMIN'
+% - 		and
+% - 				1
+% - 				+
+% - 				-4
+% - 			=
+% - 			-3
+% - 		and
+% - 			2
+% - 			=
+% - 				5
+% - 				-
+% - 				3
+% - 		and
+% - 			2.3
+% - 			=
+% - 				5.9
+% - 				-
+% - 				3.6
+% - 		and
+% - 				a
+% - 				-
+% - 				10.5
+% - 			=
+% - 			-
+% - 			c
+% - 		and
+% - 			-10.5
+% - 			=
+% - 				a
+% - 				-
+% - 				12.9
 % - "
-
-% ,
-% "DROP TABLE table_name"
-% ,
-%% - "
-%% - select
-%% - 	/*+038*/
-%% - 		AC_ID
-%% - 		,
-%% - 		AC_NAME
-%% - 		,
-%% - 		AC_ETID
-%% - 		,
-%% - 		AC_SHORT
-%% - 		,
-%% - 		AC_DEPTID
-%% - 		,
-%% - 		AC_LANGID
-%% - 		,
-%% - 		AC_LOGRET
-%% - 		,
-%% - 			nvl
-%% - 				(
-%% - 					AC_MAXLOG
-%% - 					,
-%% - 					SYS_MAXLOG
-%% - 				) as MAXLOG
-%% - 		,
-%% - 		AC_LASTLOGINTIME
-%% - 		,
-%% - 		AC_IPMASK
-%% - 		,
-%% - 		AC_REMOTEADDR
-%% - 		,
-%% - 					(
-%% - 						sysdate
-%% - 						-
-%% - 							nvl
-%% - 								(
-%% - 									AC_LASTLOGINTIME
-%% - 									,
-%% - 									sysdate
-%% - 								)
-%% - 					)
-%% - 				*
-%% - 				24
-%% - 				*
-%% - 				60
-%% - 			-
-%% - 				nvl
-%% - 					(
-%% - 						SYS_DELAY
-%% - 						,
-%% - 						3
-%% - 					)
-%% - 	from
-%% - 		ACCOUNT
-%% - 		,
-%% - 		SYSPARAMETERS
-%% - 	where
-%% - 			AC_ESID
-%% - 			=
-%% - 			'A'
-%% - 		and
-%% - 			AC_SHORT
-%% - 			=
-%% - 			'ADMIN'
-%% - 		and
-%% - 				1
-%% - 				+
-%% - 				-4
-%% - 			=
-%% - 			-3
-%% - 		and
-%% - 			2
-%% - 			=
-%% - 				5
-%% - 				-
-%% - 				3
-%% - 		and
-%% - 			2.3
-%% - 			=
-%% - 				5.9
-%% - 				-
-%% - 				3.6
-%% - 		and
-%% - 				a
-%% - 				-
-%% - 				10.5
-%% - 			=
-%% - 			-
-%% - 			c
-%% - 		and
-%% - 			-10.5
-%% - 			=
-%% - 				a
-%% - 				-
-%% - 				12.9
-%% - "
 ]).
 
 

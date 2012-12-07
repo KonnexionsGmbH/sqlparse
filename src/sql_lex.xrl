@@ -43,6 +43,7 @@ Rules.
 (eDatetime|edatetime)			:				{token, {'EDATETIME', TokenLine}}.
 (eTimestamp|etimestamp)			:				{token, {'ETIMESTAMP', TokenLine}}.
 (eInteger|einteger)				:				{token, {'EINTEGER', TokenLine}}.
+(eString|estring)				:				{token, {'ESTRING', TokenLine}}.
 
 
 % AMMSCs
@@ -218,6 +219,7 @@ Rules.
 
 % strings
 (\'[^\'\n\r]*\')        : {token, {'STRING', TokenLine, TokenChars}}.
+(\"([^\"]*(\\\")*)*\")  : {token, {'STRING', TokenLine, TokenChars}}.
 %(\'[^\'\n\r]*)$	    : {error, "Unterminated string"}.
 
 %% - <SQL>\n		{ save_str(" ");lineno++; }

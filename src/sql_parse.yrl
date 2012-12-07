@@ -269,6 +269,7 @@ Terminals
  EDATETIME
  ETIMESTAMP
  EINTEGER
+ ESTRING
  LOCAL
  CLUSTER
  ORDERED_SET
@@ -707,6 +708,7 @@ literal -> APPROXNUM                                                            
     %% miscellaneous
 
 table -> NAME                                                                                   : unwrap_bin('$1').
+table -> STRING                                                                                 : unwrap_bin('$1').
 table -> NAME '.' NAME                                                                          : list_to_binary(unwrap('$1') ++ "." ++ unwrap('$3')).
 
 column_ref -> NAME                                                                              : unwrap_bin('$1').
@@ -789,6 +791,7 @@ data_type -> ETIMESTAMP                                                         
 data_type -> ETIMESTAMP '(' opt_sgn_num ')'                                                     : {'etimestamp', '$3'}.
 data_type -> EINTEGER                                                                           : 'einteger'.
 data_type -> EINTEGER '(' opt_sgn_num ',' opt_sgn_num  ')'                                      : {'einteger', '$3', '$5'}.
+data_type -> ESTRING                                                                            : 'string'.
 
 enum_list -> '$empty'                                                                           : [].
 enum_list -> NAME ',' enum_list                                                                 : [unwrap_bin('$1')] ++ '$3'.
@@ -796,6 +799,7 @@ enum_list -> NAME ',' enum_list                                                 
     %% the various things you can name
 
 column -> NAME                                                                                  : unwrap_bin('$1').
+column -> STRING                                                                                : unwrap_bin('$1').
 
 cursor -> NAME                                                                                  : {'cur', unwrap('$1')}.
 

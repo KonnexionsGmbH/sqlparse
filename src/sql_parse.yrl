@@ -310,7 +310,7 @@ sql_list -> sql_list sql ';'                                                    
     %% schema definition language
 sql -> schema                                                                                   : '$1'.
    
-schema -> CREATE SCHEMA AUTHORIZATION user opt_schema_element_list                              : {'create_schema_auth', '$4', '$5'}.
+schema -> CREATE SCHEMA AUTHORIZATION user opt_schema_element_list                              : {'create schema authorization', '$4', '$5'}.
 
 opt_schema_element_list -> '$empty'                                                             : [].
 opt_schema_element_list -> schema_element_list                                                  : '$1'.
@@ -322,9 +322,9 @@ schema_element -> base_table_def                                                
 schema_element -> view_def                                                                      : '$1'.
 schema_element -> privilege_def                                                                 : '$1'.
 
-base_table_def -> CREATE create_opts TABLE table '(' base_table_element_commalist ')'           : {'create_table', '$4', '$6', '$2'}.
-base_table_def -> CREATE USER NAME identified opt_user_opts_list                                : {'create_user', unwrap_bin('$3'), '$4', '$5'}.
-drop_table_def -> DROP TABLE opt_exists table_list opt_restrict_cascade                         : list_to_tuple(['drop_table', {'tables', '$4'}] ++ '$3' ++ '$5').
+base_table_def -> CREATE create_opts TABLE table '(' base_table_element_commalist ')'           : {'create table', '$4', '$6', '$2'}.
+base_table_def -> CREATE USER NAME identified opt_user_opts_list                                : {'create user', unwrap_bin('$3'), '$4', '$5'}.
+drop_table_def -> DROP TABLE opt_exists table_list opt_restrict_cascade                         : list_to_tuple(['drop table', {'tables', '$4'}] ++ '$3' ++ '$5').
 
 create_opts -> tbl_scope tbl_type                                                               : '$1' ++ '$2'.
 
@@ -338,35 +338,35 @@ tbl_type -> SET                                                                 
 tbl_type -> ORDERED_SET                                                                         : [{'type', 'ordered_set'}].
 tbl_type -> BAG                                                                                 : [{'type', 'bag'}].
 
-alter_user_def -> ALTER USER user_list proxy_clause                                             : {'alter_user', '$3', '$4'}.
-alter_user_def -> ALTER USER NAME spec_list                                                     : {'alter_user', unwrap_bin('$3'), {'spec', '$4'}}.
+alter_user_def -> ALTER USER user_list proxy_clause                                             : {'alter user', '$3', '$4'}.
+alter_user_def -> ALTER USER NAME spec_list                                                     : {'alter user', unwrap_bin('$3'), {'spec', '$4'}}.
 
-drop_user_def -> DROP USER NAME                                                                 : {'drop_user', unwrap_bin('$3'), []}.
-drop_user_def -> DROP USER NAME CASCADE                                                         : {'drop_user', unwrap_bin('$3'), ['cascade']}.
+drop_user_def -> DROP USER NAME                                                                 : {'drop user', unwrap_bin('$3'), []}.
+drop_user_def -> DROP USER NAME CASCADE                                                         : {'drop user', unwrap_bin('$3'), ['cascade']}.
 
 user_list -> NAME                                                                               : [unwrap_bin('$1')].
 user_list -> NAME user_list                                                                     : [unwrap_bin('$1')] ++ '$2'.
 
-proxy_clause -> GRANT CONNECT THROUGH ENTERPRISE USERS                                          : {'grant_connect', 'enterprise_users'}.
-proxy_clause -> GRANT REVOKE THROUGH ENTERPRISE USERS                                           : {'grant_revoke', 'enterprise_users'}.
-proxy_clause -> GRANT REVOKE THROUGH NAME                                                       : {'grant_revoke', unwrap_bin('$4')}.
+proxy_clause -> GRANT CONNECT THROUGH ENTERPRISE USERS                                          : {'grant connect', 'enterprise users'}.
+proxy_clause -> GRANT REVOKE THROUGH ENTERPRISE USERS                                           : {'grant revoke', 'enterprise users'}.
+proxy_clause -> GRANT REVOKE THROUGH NAME                                                       : {'grant revoke', unwrap_bin('$4')}.
 
 spec_list -> identified                                                                         : ['$1'].
 spec_list -> user_opt                                                                           : '$1'.
 spec_list -> user_role                                                                          : ['$1'].
 spec_list -> spec_list spec_list                                                                : ['$1'] ++ ['$2'].
 
-user_role -> DEFAULT ROLE ALL                                                                   : 'role_all'.
-user_role -> DEFAULT ROLE ALL EXCEPT role_list                                                  : {'role_except', '$5'}.
-user_role -> DEFAULT ROLE NONE                                                                  : 'role_none'.
+user_role -> DEFAULT ROLE ALL                                                                   : 'role all'.
+user_role -> DEFAULT ROLE ALL EXCEPT role_list                                                  : {'role except', '$5'}.
+user_role -> DEFAULT ROLE NONE                                                                  : 'role none'.
 user_role -> DEFAULT ROLE role_list                                                             : {'role', '$3'}.
 
 role_list -> NAME                                                                               : [unwrap_bin('$1')].
 role_list -> NAME role_list                                                                     : [unwrap_bin('$1')] ++ '$2'.
 
-identified -> IDENTIFIED BY NAME                                                                : {'identified_by', unwrap_bin('$3')}.
-identified -> IDENTIFIED EXTERNALLY opt_as                                                      : {'identified_extern', '$3'}.
-identified -> IDENTIFIED GLOBALLY opt_as                                                        : {'identified_globally', '$3'}.
+identified -> IDENTIFIED BY NAME                                                                : {'identified by', unwrap_bin('$3')}.
+identified -> IDENTIFIED EXTERNALLY opt_as                                                      : {'identified extern', '$3'}.
+identified -> IDENTIFIED GLOBALLY opt_as                                                        : {'identified globally', '$3'}.
 
 opt_as -> '$empty'                                                                              : {}.
 opt_as -> AS NAME                                                                               : {'as', unwrap_bin('$2')}.
@@ -374,8 +374,8 @@ opt_as -> AS NAME                                                               
 opt_user_opts_list -> '$empty'                                                                  : [].
 opt_user_opts_list -> user_opt opt_user_opts_list                                               : '$1' ++ '$2'.
 
-user_opt -> DEFAULT TABLESPACE NAME                                                             : [{'default_table_space', unwrap_bin('$3')}].
-user_opt -> TEMPORARY TABLESPACE NAME                                                           : [{'temp_table_space', unwrap_bin('$3')}].
+user_opt -> DEFAULT TABLESPACE NAME                                                             : [{'default tablespace', unwrap_bin('$3')}].
+user_opt -> TEMPORARY TABLESPACE NAME                                                           : [{'temporary tablespace', unwrap_bin('$3')}].
 user_opt -> quota_list                                                                          : [{'quotas', '$1'}].
 user_opt -> PROFILE NAME                                                                        : [{'profile', unwrap_bin('$2')}].
 user_opt -> PASSWORD EXPIRE                                                                     : [{'password','expire'}].
@@ -385,7 +385,7 @@ user_opt -> ACCOUNT UNLOCK                                                      
 quota_list -> quota                                                                             : ['$1'].
 quota_list -> quota quota_list                                                                  : ['$1'] ++ ['$2'].
 
-quota -> QUOTA UNLIMITED ON NAME                                                                : {'unlimited_on', unwrap_bin('$4')}.
+quota -> QUOTA UNLIMITED ON NAME                                                                : {'unlimited on', unwrap_bin('$4')}.
 quota -> QUOTA INTNUM ON NAME                                                                   : {'limited', unwrap_bin('$2'), unwrap_bin('$4')}.
 quota -> QUOTA INTNUM NAME ON NAME                                                              : {'limited', list_to_binary(unwrap('$2')++unwrap('$3')), unwrap_bin('$5')}.
 
@@ -410,9 +410,9 @@ column_def -> column data_type column_def_opt_list                              
 column_def_opt_list -> '$empty'                                                                 : [].
 column_def_opt_list -> column_def_opt_list column_def_opt                                       : '$1' ++ ['$2'].
 
-column_def_opt -> NOT NULLX                                                                     : 'not_nullx'.
-column_def_opt -> NOT NULLX UNIQUE                                                              : 'not_nullx_unique'.
-column_def_opt -> NOT NULLX PRIMARY KEY                                                         : 'not_nullx_primary_key'.
+column_def_opt -> NOT NULLX                                                                     : 'not nullx'.
+column_def_opt -> NOT NULLX UNIQUE                                                              : 'not nullx unique'.
+column_def_opt -> NOT NULLX PRIMARY KEY                                                         : 'not nullx primary key'.
 column_def_opt -> DEFAULT function_ref                                                          : {'default', '$2'}.
 column_def_opt -> DEFAULT literal                                                               : {'default', '$2'}.
 column_def_opt -> DEFAULT NULLX                                                                 : {'default', 'nullx'}.
@@ -422,20 +422,20 @@ column_def_opt -> REFERENCES table                                              
 column_def_opt -> REFERENCES table '(' column_commalist ')'                                     : {'ref', {'$2', '$4'}}.
 
 table_constraint_def -> UNIQUE '(' column_commalist ')'                                         : {'unique', '$3'}.
-table_constraint_def -> PRIMARY KEY '(' column_commalist ')'                                    : {'primary_key', '$4'}.
-table_constraint_def -> FOREIGN KEY '(' column_commalist ')' REFERENCES table                   : {'foreign_key', '$4', {'ref', '$7'}}.
+table_constraint_def -> PRIMARY KEY '(' column_commalist ')'                                    : {'primary key', '$4'}.
+table_constraint_def -> FOREIGN KEY '(' column_commalist ')' REFERENCES table                   : {'foreign key', '$4', {'ref', '$7'}}.
 table_constraint_def ->
-            FOREIGN KEY '(' column_commalist ')' REFERENCES table '(' column_commalist ')'      : {'foreign_key', '$4', {'ref', {'$7', '$9'}}}.
+            FOREIGN KEY '(' column_commalist ')' REFERENCES table '(' column_commalist ')'      : {'foreign key', '$4', {'ref', {'$7', '$9'}}}.
 table_constraint_def -> CHECK '(' search_condition ')'                                          : {'check', '$3'}.
 
 column_commalist -> column                                                                      : ['$1'].
 column_commalist -> column_commalist ',' column                                                 : '$1' ++ ['$3'].
 
-view_def -> CREATE VIEW table opt_column_commalist                                              : {'create_view', '$3', '$4'}.
+view_def -> CREATE VIEW table opt_column_commalist                                              : {'create view', '$3', '$4'}.
 view_def -> AS query_spec opt_with_check_option                                                 : {'as', '$2', '$3'}.
    
 opt_with_check_option -> '$empty'                                                               : [].
-opt_with_check_option -> WITH CHECK OPTION                                                      : 'with_check_opt'.
+opt_with_check_option -> WITH CHECK OPTION                                                      : 'with check option'.
 
 opt_column_commalist -> '$empty'                                                                : [].
 opt_column_commalist -> '(' column_commalist ')'                                                : '$2'.
@@ -443,9 +443,9 @@ opt_column_commalist -> '(' column_commalist ')'                                
 privilege_def -> GRANT privileges ON table TO grantee_commalist opt_with_grant_option           : {'grant', '$2', {'on', '$4'}, {'to', '$6'}, '$7'}.
 
 opt_with_grant_option -> '$empty'                                                               : [].
-opt_with_grant_option -> WITH GRANT OPTION                                                      : 'with_grant_opt'.
+opt_with_grant_option -> WITH GRANT OPTION                                                      : 'with grant option'.
 
-privileges -> ALL PRIVILEGES                                                                    : 'all_privileges'.
+privileges -> ALL PRIVILEGES                                                                    : 'all privileges'.
 privileges -> ALL                                                                               : 'all'.
 privileges -> operation_commalist                                                               : '$1'.
 
@@ -509,7 +509,7 @@ manipulative_statement -> view_def                                              
 
 close_statement -> CLOSE cursor                                                                 : {'close', '$2'}.
 
-commit_statement -> COMMIT WORK                                                                 : 'commit_work'.
+commit_statement -> COMMIT WORK                                                                 : 'commit work'.
 
 delete_statement_positioned -> DELETE FROM table WHERE CURRENT OF cursor                        : {'delete', '$3',{'where_current_of', '$7'}}.
 
@@ -530,7 +530,7 @@ insert_atom -> NULLX                                                            
 
 open_statement -> OPEN cursor                                                                   : {'open', '$2'}.
 
-rollback_statement -> ROLLBACK WORK                                                             : 'rollback_work'.
+rollback_statement -> ROLLBACK WORK                                                             : 'rollback work'.
 
 select_statement -> SELECT opt_hint opt_all_distinct selection INTO target_commalist table_exp
                  : case '$2' of
@@ -566,10 +566,10 @@ opt_where_clause -> where_clause                                                
     %% query expressions
 
 query_exp -> query_term                                                                         : '$1'.
-query_exp -> query_exp UNION query_term                                                         : {union, '$1', '$3'}.
-query_exp -> query_exp UNION ALL query_term                                                     : {union_all, '$1', '$4'}.
-query_exp -> query_exp INTERSECT query_term                                                     : {intersect, '$1', '$3'}.
-query_exp -> query_exp MINUS query_term                                                         : {minus, '$1', '$3'}.
+query_exp -> query_exp UNION query_term                                                         : {'union', '$1', '$3'}.
+query_exp -> query_exp UNION ALL query_term                                                     : {'union all', '$1', '$4'}.
+query_exp -> query_exp INTERSECT query_term                                                     : {'intersect', '$1', '$3'}.
+query_exp -> query_exp MINUS query_term                                                         : {'minus', '$1', '$3'}.
 
 query_term -> query_spec                                                                        : '$1'.
 query_term -> '(' query_exp ')'                                                                 : '$2'.

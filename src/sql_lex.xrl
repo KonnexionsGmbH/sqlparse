@@ -61,6 +61,7 @@ Rules.
 (lower|LOWER)					:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
 (trunc|TRUNC)					:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
 (sydate|SYSDATE)				:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
+(erl|ERL)				        :				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
 
 % Logical funs
 (BOOL_AND|bool_and)				:				{token, {'UFUN', TokenLine, list_to_atom(TokenChars)}}.
@@ -194,28 +195,28 @@ Rules.
 
 % erlang funcs
 (fun\(\).*end\.)                :               {token, {'STRING', TokenLine, TokenChars}}.
+(\'([^\']*(\'\')*)*\')          :               {token, {'STRING', TokenLine, TokenChars}}.
 
 % hint
 ((\/\*).*(\*\/))        : {token, {'HINT', TokenLine, TokenChars}}.
 
 % punctuation
-(=|<>|<|>|<=|>=)                                                                         : {token, {'COMPARISON', TokenLine, list_to_atom(TokenChars)}}.
-([\|\-\+\*\/\(\)\,\.\;]|(\|\|))                                                          : {token, {list_to_atom(TokenChars), TokenLine}}.
+(=|<>|<|>|<=|>=)                                   : {token, {'COMPARISON', TokenLine, list_to_atom(TokenChars)}}.
+([\|\-\+\*\/\(\)\,\.\;]|(\|\|))                    : {token, {list_to_atom(TokenChars), TokenLine}}.
 
 % names
-[A-Za-z][A-Za-z0-9_]*                                                                    : {token, {'NAME', TokenLen, TokenChars}}.
+[A-Za-z][A-Za-z0-9_]*                              : {token, {'NAME', TokenLen, TokenChars}}.
 
 % parameters
-(\:[A-Za-z][A-Za-z0-9_]*)                                                                : {token, {'PARAMETER', TokenLine, TokenChars}}.
+(\:[A-Za-z][A-Za-z0-9_]*)                          : {token, {'PARAMETER', TokenLine, TokenChars}}.
 
 % numbers
-%(([\+\-]?)([0-9]+\.[0-9]+([eE][\+\-]?[0-9]+)*))                                          : {token, {'APPROXNUM', TokenLine, list_to_float(TokenChars)}}.
-%([\+\-]?[0-9]+)                                                                          : {token, {'INTNUM', TokenLine, list_to_integer(TokenChars)}}.
-(([0-9]+\.[0-9]+([eE][\+\-]?[0-9]+)*))                                                   : {token, {'APPROXNUM', TokenLine, TokenChars}}.
-([0-9]+)                                                                                 : {token, {'INTNUM', TokenLine, TokenChars}}.
+%(([\+\-]?)([0-9]+\.[0-9]+([eE][\+\-]?[0-9]+)*))   : {token, {'APPROXNUM', TokenLine, list_to_float(TokenChars)}}.
+%([\+\-]?[0-9]+)                                   : {token, {'INTNUM', TokenLine, list_to_integer(TokenChars)}}.
+(([0-9]+\.[0-9]+([eE][\+\-]?[0-9]+)*))             : {token, {'APPROXNUM', TokenLine, TokenChars}}.
+([0-9]+)                                           : {token, {'INTNUM', TokenLine, TokenChars}}.
 
-	%% strings
-
+% strings
 (\'[^\'\n\r]*\')        : {token, {'STRING', TokenLine, TokenChars}}.
 %(\'[^\'\n\r]*)$	    : {error, "Unterminated string"}.
 

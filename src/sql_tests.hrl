@@ -37,13 +37,13 @@ CREATE LOCAL BAG TABLE test
 (
 fld CHAR
 , fld VARCHAR
-, fld VARCHAR2(13) DEFAULT '123'
+, fld VARCHAR2(13) DEFAULT \"123\"
 , fld TINYTEXT
-, fld TEXT DEFAULT 'abc'
+, fld TEXT DEFAULT \"abc\"
 , fld BLOB(2000)
 , fld MEDIUMTEXT
 , fld MEDIUMBLOB
-, fld LONGTEXT(1000) DEFAULT ''
+, fld LONGTEXT(1000) DEFAULT \"\"
 , fld LONGBLOB(1000000000)
 , fld TINYINT
 , fld SMALLINT DEFAULT 0
@@ -171,16 +171,16 @@ City varchar(255)
                field_a eatom default 'undefined',
                field_b elist,
                'field_c' estring default \"NULL\",
-               'field_d' etuple default '{1,2}',
+               'field_d' etuple default erl(\"{1,2}\"),
                field_e date default fun()-> calendar:localtime() end.
                )"
 ,
 "insert into table_1 (field_a, field_b) values ('first',\"Stefan's choice.\")",
-"insert into table_1 (field_a, field_c) values ('second',\"Bikram\\\"s selection\")",
-"insert into table_1 (field_a, field_d) values ('third','{a,b,c}')",
+"insert into table_1 (field_a, field_c) values ('second',\"Bikram\"\"s selection\")",
+"insert into table_1 (field_a, field_d) values ('third',erl(\"{a,b,c}\"))",
 "insert into table_1 (field_a, field_3) values ('third',\"31.12.2012 23:59:59\")",
 
-"select 12, \"12\", '12', 'field_a', '[''a'',b]', '{field_a,b}' from 'table_1'"
+"select 12, \"12\", '12', 'field_a', erl(\"['a',b]\"), erl(\"{field_a,b}\") from 'table_1'"
 % - "
 % - select
 % - 	/*+038*/

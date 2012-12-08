@@ -218,9 +218,9 @@ Rules.
 ([0-9]+)                                           : {token, {'INTNUM', TokenLine, TokenChars}}.
 
 % strings
-(\'[^\'\n\r]*\')        : {token, {'STRING', TokenLine, TokenChars}}.
-(\"([^\"]*(\\\")*)*\")  : {token, {'STRING', TokenLine, TokenChars}}.
-%(\'[^\'\n\r]*)$	    : {error, "Unterminated string"}.
+(\"[^\"\n\r]*\")        : {token, {'STRING', TokenLine, TokenChars}}.
+(\"([^\"]*(\"\")*)*\")  : {token, {'STRING', TokenLine, TokenChars}}.
+%(\"[^\"\n\r]*)$	    : {error, "Unterminated string"}.
 
 %% - <SQL>\n		{ save_str(" ");lineno++; }
 %% - \n		{ lineno++; ECHO; }

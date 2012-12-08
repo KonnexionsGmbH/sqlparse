@@ -182,6 +182,26 @@ fold_node(Ind, Idx, Node, {Node, Left, Right}, _, Fun, Acc0) ->				%% {_,_,_} in
 	Acc2 = fold_node(Ind, 0, Node, Node, {Left, Right}, Fun, Acc1),
 	fold_in(Ind, 0, Node, Right, undefined, Fun, Acc2);
 
+fold_node(Ind, Idx, Parent, {intersect=Node, Left, Right}, _, Fun, Acc0)->		%% {_,_,_} in-order binary recurse
+	Acc1 = fold_in(Ind, Idx, Node, Left, undefined, Fun, Acc0),
+	Acc2 = fold_node(Ind, 0, Parent, Node, {Left, Right}, Fun, Acc1),
+	Acc3 = fold_in(Ind, 0, Node, Right, undefined, Fun, Acc2),
+	fold_return(Ind, Idx , Parent, Fun, Acc3);
+fold_node(Ind, Idx, Parent, {minus=Node, Left, Right}, _, Fun, Acc0)->		%% {_,_,_} in-order binary recurse
+	Acc1 = fold_in(Ind, Idx, Node, Left, undefined, Fun, Acc0),
+	Acc2 = fold_node(Ind, 0, Parent, Node, {Left, Right}, Fun, Acc1),
+	Acc3 = fold_in(Ind, 0, Node, Right, undefined, Fun, Acc2),
+	fold_return(Ind, Idx , Parent, Fun, Acc3);
+fold_node(Ind, Idx, Parent, {union=Node, Left, Right}, _, Fun, Acc0)->		%% {_,_,_} in-order binary recurse
+	Acc1 = fold_in(Ind, Idx, Node, Left, undefined, Fun, Acc0),
+	Acc2 = fold_node(Ind, 0, Parent, Node, {Left, Right}, Fun, Acc1),
+	Acc3 = fold_in(Ind, 0, Node, Right, undefined, Fun, Acc2),
+	fold_return(Ind, Idx , Parent, Fun, Acc3);
+fold_node(Ind, Idx, Parent, {union_all=Node, Left, Right}, _, Fun, Acc0)->		%% {_,_,_} in-order binary recurse
+	Acc1 = fold_in(Ind, Idx, Node, Left, undefined, Fun, Acc0),
+	Acc2 = fold_node(Ind, 0, Parent, Node, {Left, Right}, Fun, Acc1),
+	Acc3 = fold_in(Ind, 0, Node, Right, undefined, Fun, Acc2),
+	fold_return(Ind, Idx , Parent, Fun, Acc3);
 fold_node(Ind, Idx, Parent, {Node, Left, Right}, _, Fun, Acc0)->			%% {_,_,_} in-order binary recurse
 	Acc1 = fold_in(Ind+1, Idx, Node, Left, undefined, Fun, Acc0),
 	Acc2 = fold_node(Ind+1, 0, Parent, Node, {Left, Right}, Fun, Acc1),
@@ -407,7 +427,7 @@ sqls_loop([Sql|Rest], N) ->
       		io:format(user, "~p~n-------------------------------~n", [Sqlstr]),
       		SqlCollapsed = sql_parse:collapse(Sqlstr),
       		io:format(user, "~p~n-------------------------------~n", [SqlCollapsed]),
-    		?assertEqual(sql_parse:collapse(Sql), SqlCollapsed),  		
+    		?assertEqual(sql_parse:collapse(string:to_lower(Sql)), SqlCollapsed),  		
     		{ok, NewTokens, _} = sql_lex:string(SqlCollapsed ++ ";"),
     		case sql_parse:parse(NewTokens) of
         		{ok, [NewParseTree|_]} ->
@@ -441,7 +461,7 @@ sqlp_loop([Sql|Rest], N) ->
        		io:format(user, "~n-------------------------------~nSqlstr:~n", []),
       		io:format(user, Sqlstr ++ "~n", []),
       		SqlCleaned = sql_parse:trim_nl(sql_parse:clean_cr(Sqlstr)),
-    		?assertEqual(sql_parse:trim_nl(sql_parse:clean_cr(Sql)), SqlCleaned),  		
+    		?assertEqual(sql_parse:trim_nl(sql_parse:clean_cr(string:to_lower(Sql))), SqlCleaned),  		
     		{ok, NewTokens, _} = sql_lex:string(SqlCleaned ++ ";"),
     		case sql_parse:parse(NewTokens) of
         		{ok, [NewParseTree|_]} ->

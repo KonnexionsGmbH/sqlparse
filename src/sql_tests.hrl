@@ -105,7 +105,10 @@ select
 			+
 			schma.t1.c
 		,
-			upper(a.a)
+				upper
+					(
+						a.a
+					)
 			-
 			schma.a.b as fh
 		,
@@ -113,11 +116,23 @@ select
  		,
 			schma.b.c
 	from
- 		t1, t2 a, schma.t3, schma.t4 b 
+ 		t1
+ 		,
+ 		t2 as a
+ 		,
+ 		schma.t3
+ 		,
+ 		schma.t4 as b 
 	where
-			upper(scm.tbl.a)
+				upper
+					(
+						scm.tbl.a
+					)
 			=
-			upper(b)
+				upper
+					(
+						b
+					)
 		and
 			c
 			=

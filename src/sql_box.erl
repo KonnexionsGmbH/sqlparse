@@ -395,17 +395,18 @@ sql_box_test_() ->
         fun setup/0,
         fun teardown/1,
         {with, [
-            fun test_sqls/1,
-            %{timeout, 100000, fun test_sqlp/1},
-            fun test_sqlp/1,
-            fun test_sqlb/1
+        	% {timeout, 100000, fun test_sql_all/1}
+        	fun test_sql_all/1
+            % , fun test_sqls/1
+            % , fun test_sqlp/1
+            % , fun test_sqlb/1
         ]}}.
 
-%sql_box_test() ->
-%	test_sqls(?TEST_SQLS),
-%	test_sqlp(?TEST_SQLS),
-%	test_sqlb(?TEST_SQLS),
-%	ok.
+test_sql_all(X) ->
+    test_sqls(X),
+    test_sqlp(X),
+    test_sqlb(X),
+    ok.
 	
 test_sqls(Sqls) ->
     io:format(user, "=================================~n", []),
@@ -415,32 +416,37 @@ test_sqls(Sqls) ->
 
 sqls_loop([], _) -> ok;
 sqls_loop([Sql|Rest], N) ->
-    io:format(user, "[~p]===============================~nSql: "++Sql++"~n", [N]),
-    {ok, Tokens, _} = sql_lex:string(Sql ++ ";"),
-    case sql_parse:parse(Tokens) of
-        {ok, [ParseTree|_]} -> 
-        	io:format(user, "-------------------------------~nParseTree:~n", []),
-        	io:format(user, "~p~n", [ParseTree]),
-        	io:format(user, "-------------------------------~n", []),
-			Sqlstr = fold_tree(ParseTree, fun sqls/6, []),
-       		io:format(user, "~n-------------------------------~nSqlstr:~n", []),
-      		io:format(user, "~p~n-------------------------------~n", [Sqlstr]),
-      		SqlCollapsed = sql_parse:collapse(Sqlstr),
-      		io:format(user, "~p~n-------------------------------~n", [SqlCollapsed]),
-    		?assertEqual(sql_parse:collapse(string:to_lower(Sql)), SqlCollapsed),  		
-    		{ok, NewTokens, _} = sql_lex:string(SqlCollapsed ++ ";"),
-    		case sql_parse:parse(NewTokens) of
-        		{ok, [NewParseTree|_]} ->
-        			?assertEqual(ParseTree, NewParseTree);
-				NewError -> 
-					io:format(user, "Failed ~p~nNewTokens~p~n", [NewError, NewTokens]),
-					?assertEqual(ok, NewError)
-        	end;
-        Error -> 
-        	io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens]),
-        	?assertEqual(ok, Error)
-    end,
-    sqls_loop(Rest, N+1).
+	case re:run(Sql, "select|SELECT", [global, {capture, [1], list}]) of
+		nomatch ->	
+			sqlp_loop(Rest, N+1);
+		_ ->		
+		    io:format(user, "[~p]===============================~nSql: "++Sql++"~n", [N]),
+		    {ok, Tokens, _} = sql_lex:string(Sql ++ ";"),
+		    case sql_parse:parse(Tokens) of
+		        {ok, [ParseTree|_]} -> 
+		        	io:format(user, "-------------------------------~nParseTree:~n", []),
+		        	io:format(user, "~p~n", [ParseTree]),
+		        	io:format(user, "-------------------------------~n", []),
+					Sqlstr = fold_tree(ParseTree, fun sqls/6, []),
+		       		io:format(user, "~n-------------------------------~nSqlstr:~n", []),
+		      		io:format(user, "~p~n-------------------------------~n", [Sqlstr]),
+		      		SqlCollapsed = sql_parse:collapse(Sqlstr),
+		      		io:format(user, "~p~n-------------------------------~n", [SqlCollapsed]),
+		    		?assertEqual(sql_parse:collapse(string:to_lower(Sql)), SqlCollapsed),  		
+		    		{ok, NewTokens, _} = sql_lex:string(SqlCollapsed ++ ";"),
+		    		case sql_parse:parse(NewTokens) of
+		        		{ok, [NewParseTree|_]} ->
+		        			?assertEqual(ParseTree, NewParseTree);
+						NewError -> 
+							io:format(user, "Failed ~p~nNewTokens~p~n", [NewError, NewTokens]),
+							?assertEqual(ok, NewError)
+		        	end;
+		        Error -> 
+		        	io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens]),
+		        	?assertEqual(ok, Error)
+		    end,
+		    sqls_loop(Rest, N+1)
+	end.
 
 test_sqlp(Sqls) ->
     io:format(user, "=================================~n", []),
@@ -450,31 +456,36 @@ test_sqlp(Sqls) ->
 
 sqlp_loop([], _) -> ok;
 sqlp_loop([Sql|Rest], N) ->
-    io:format(user, "[~p]===============================~nSql: "++Sql++"~n", [N]),
-    {ok, Tokens, _} = sql_lex:string(Sql ++ ";"),
-    case sql_parse:parse(Tokens) of
-        {ok, [ParseTree|_]} -> 
-        	io:format(user, "-------------------------------~nParseTree:~n", []),
-        	io:format(user, "~p~n", [ParseTree]),
-        	io:format(user, "-------------------------------~n", []),
-			Sqlstr = fold_tree(ParseTree, fun sqlp/6, []),
-       		io:format(user, "~n-------------------------------~nSqlstr:~n", []),
-      		io:format(user, Sqlstr ++ "~n", []),
-      		SqlCleaned = sql_parse:trim_nl(sql_parse:clean_cr(Sqlstr)),
-    		?assertEqual(sql_parse:trim_nl(sql_parse:clean_cr(string:to_lower(Sql))), SqlCleaned),  		
-    		{ok, NewTokens, _} = sql_lex:string(SqlCleaned ++ ";"),
-    		case sql_parse:parse(NewTokens) of
-        		{ok, [NewParseTree|_]} ->
-        			?assertEqual(ParseTree, NewParseTree);
-				NewError -> 
-					io:format(user, "Failed ~p~nNewTokens~p~n", [NewError, NewTokens]),
-					?assertEqual(ok, NewError)
-        	end;
-        Error -> 
-        	io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens]),
-        	?assertEqual(ok, Error)
-    end,
-    sqlp_loop(Rest, N+1).
+	case re:run(Sql, "select|SELECT", [global, {capture, [1], list}]) of
+		nomatch ->	
+			sqlp_loop(Rest, N+1);
+		_ ->		
+		    io:format(user, "[~p]===============================~nSql: "++Sql++"~n", [N]),
+		    {ok, Tokens, _} = sql_lex:string(Sql ++ ";"),
+		    case sql_parse:parse(Tokens) of
+		        {ok, [ParseTree|_]} -> 
+		        	io:format(user, "-------------------------------~nParseTree:~n", []),
+		        	io:format(user, "~p~n", [ParseTree]),
+		        	io:format(user, "-------------------------------~n", []),
+					Sqlstr = fold_tree(ParseTree, fun sqlp/6, []),
+		       		io:format(user, "~n-------------------------------~nSqlstr:~n", []),
+		      		io:format(user, Sqlstr ++ "~n", []),
+		      		SqlCleaned = sql_parse:trim_nl(sql_parse:clean_cr(Sqlstr)),
+		    		?assertEqual(sql_parse:trim_nl(sql_parse:clean_cr(string:to_lower(Sql))), SqlCleaned),  		
+		    		{ok, NewTokens, _} = sql_lex:string(SqlCleaned ++ ";"),
+		    		case sql_parse:parse(NewTokens) of
+		        		{ok, [NewParseTree|_]} ->
+		        			?assertEqual(ParseTree, NewParseTree);
+						NewError -> 
+							io:format(user, "Failed ~p~nNewTokens~p~n", [NewError, NewTokens]),
+							?assertEqual(ok, NewError)
+		        	end;
+		        Error -> 
+		        	io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens]),
+		        	?assertEqual(ok, Error)
+		    end,
+		    sqlp_loop(Rest, N+1)
+	end.
 
 test_sqlb(Sqls) ->
     io:format(user, "=================================~n", []),
@@ -484,21 +495,26 @@ test_sqlb(Sqls) ->
 
 sqlb_loop([], _) -> ok;
 sqlb_loop([Sql|Rest], N) ->
-    io:format(user, "[~p]===============================~nSql: "++Sql++"~n", [N]),
-    {ok, Tokens, _} = sql_lex:string(Sql ++ ";"),
-    case sql_parse:parse(Tokens) of
-        {ok, [ParseTree|_]} -> 
-        	io:format(user, "-------------------------------~nParseTree:~n", []),
-        	io:format(user, "~p~n", [ParseTree]),
-        	io:format(user, "-------------------------------~n", []),
-			[Sqlbox] = fold_tree(ParseTree, fun sqlb/6, []),
-			%% Sqlbox = box_tree(ParseTree),
-       		io:format(user, "~n-------------------------------~nSqlbox:~n", []),
-       		io:format(user, "~p~n", [Sqlbox]),
-      		?assertMatch(#box{ind=0}, Sqlbox);
-        Error -> 
-        	io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens]),
-        	?assertEqual(ok, Error)
-    end,
-    sqlb_loop(Rest, N+1).
+	case re:run(Sql, "select|SELECT", [global, {capture, [1], list}]) of
+		nomatch ->	
+			sqlp_loop(Rest, N+1);
+		_ ->		
+		    io:format(user, "[~p]===============================~nSql: "++Sql++"~n", [N]),
+		    {ok, Tokens, _} = sql_lex:string(Sql ++ ";"),
+		    case sql_parse:parse(Tokens) of
+		        {ok, [ParseTree|_]} -> 
+		        	io:format(user, "-------------------------------~nParseTree:~n", []),
+		        	io:format(user, "~p~n", [ParseTree]),
+		        	io:format(user, "-------------------------------~n", []),
+					[Sqlbox] = fold_tree(ParseTree, fun sqlb/6, []),
+					%% Sqlbox = box_tree(ParseTree),
+		       		io:format(user, "~n-------------------------------~nSqlbox:~n", []),
+		       		io:format(user, "~p~n", [Sqlbox]),
+		      		?assertMatch(#box{ind=0}, Sqlbox);
+		        Error -> 
+		        	io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens]),
+		        	?assertEqual(ok, Error)
+		    end,
+		    sqlb_loop(Rest, N+1)
+	end.
 

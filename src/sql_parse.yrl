@@ -527,6 +527,7 @@ insert_atom_commalist -> insert_atom                                            
 insert_atom_commalist -> insert_atom_commalist ',' insert_atom                                  : '$1' ++ ['$3'].
 
 insert_atom -> atom                                                                             : '$1'.
+insert_atom -> function_ref                                                                     : '$1'.
 insert_atom -> NULLX                                                                            : 'nullx'.
 
 open_statement -> OPEN cursor                                                                   : {'open', '$2'}.
@@ -688,7 +689,6 @@ parameter_ref -> parameter INDICATOR parameter                                  
 function_ref -> NAME  '(' fun_args ')'                                                          : {'fun', list_to_atom(unwrap('$1')), '$3'}.
 function_ref -> FUNS                                                                            : {'fun', unwrap('$1'), []}.
 function_ref -> FUNS  '(' fun_args ')'                                                          : {'fun', unwrap('$1'), '$3'}.
-
 function_ref -> AMMSC '(' '*' ')'                                                               : {'fun', unwrap('$1'), [<<"*">>]}.
 function_ref -> AMMSC '(' DISTINCT column_ref ')'                                               : {'fun', unwrap('$1'), {'distinct', '$4'}}.
 function_ref -> AMMSC '(' ALL scalar_exp ')'                                                    : {'fun', unwrap('$1'), {'all', '$4'}}.

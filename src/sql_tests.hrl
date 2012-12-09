@@ -118,7 +118,7 @@ select
 	from
  		t1
  		,
- 		t2 as a
+ 		t2 a
  		,
  		schma.t3
  		,
@@ -195,7 +195,10 @@ City varchar(255)
 "insert into table_1 (field_a, field_d) values ('third',erl(\"{a,b,c}\"))",
 "insert into table_1 (field_a, field_3) values ('third',\"31.12.2012 23:59:59\")",
 
-"select 12, \"12\", '12', 'field_a', erl(\"['a',b]\"), erl(\"{field_a,b}\") from 'table_1'"
+"select 12, \"12\", '12', 'field_a', erl(\"['a',b]\"), erl(\"{field_a,b}\") from 'table_1'",
+
+"select * from t1 a, t2 as b, schma.t3 c, schma.t4 as d, (select * from def) e, (select * from der) as f"
+
 % - "
 % - select
 % - 	/*+038*/

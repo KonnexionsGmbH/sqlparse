@@ -1,37 +1,74 @@
 -define (TEST_SQLS,[
-"
-	SELECT
-			a
-		FROM
-			b
-UNION
-	SELECT
-			a
-		FROM
-			d
-INTERSECT
-	SELECT
-			a
-		FROM
-			e
-MINUS
-	SELECT
-			a
-		FROM
-			f
-UNION ALL
-	SELECT
-			a
-		FROM
-			d
-"
+% "
+% SELECT
+% 	/*+011*/
+% 		a
+% 		,
+% 		b
+% 	FROM
+% 		c
+% 		,
+% 		d
+% 	WHERE
+% 		e
+% 		=
+% 		f
+% "
+% ,
+% "
+% SELECT
+% 		a
+% 		,
+% 			(
+% 				SELECT
+% 						c
+% 					FROM
+% 						d
+% 			)
+% 	FROM
+% 		b
+% "
+% ,
+% "
+% 	SELECT
+% 			a
+% 		FROM
+% 			b
+% UNION
+% 	SELECT
+% 			c
+% 		FROM
+% 			d
+% "
+% INTERSECT
+% 	SELECT
+% 			e
+% 		FROM
+% 			f
+% MINUS
+% 	SELECT
+% 			g
+% 		FROM
+% 			h
+% UNION ALL
+% 	SELECT
+% 			i
+% 		FROM
+% 			j
+% "
+%,
+"CREATE LOCAL BAG TABLE test (fld CHAR)"
 ,
-"CREATE LOCAL BAG TABLE test (fld CHAR)",
-"CREATE CLUSTER SET TABLE test (fld CHAR)",
-"CREATE SCHEMA ORDERED_SET TABLE test (fld CHAR)",
-"CREATE ORDERED_SET TABLE test (fld CHAR)",
-"CREATE SCHEMA TABLE test (fld CHAR)",
-"CREATE TABLE test (fld CHAR)",
+"CREATE CLUSTER SET TABLE test (fld CHAR)"
+,
+"CREATE SCHEMA ORDERED_SET TABLE test (fld CHAR)"
+,
+"CREATE ORDERED_SET TABLE test (fld CHAR)"
+,
+"CREATE SCHEMA TABLE test (fld CHAR)"
+,
+"CREATE TABLE test (fld CHAR)"
+,
 "
 CREATE LOCAL BAG TABLE test
 (
@@ -112,17 +149,17 @@ select
 			-
 			schma.a.b as fh
 		,
- 			b.*
- 		,
-			schma.b.c
+		b.*
+		,
+		schma.b.c
 	from
- 		t1
- 		,
- 		t2 as a
- 		,
- 		schma.t3
- 		,
- 		schma.t4 as b 
+		t1
+		,
+		t3 as a
+		,
+		schma.t1
+		,
+		schma.t2 as b
 	where
 				upper
 					(
@@ -139,34 +176,54 @@ select
 			d
 "
 ,
-"CREATE USER test_user_1 IDENTIFIED BY a_password",
-"CREATE USER test_user_3 IDENTIFIED EXTERNALLY",
-"CREATE USER test_user_2 IDENTIFIED EXTERNALLY AS test_usr_2_extern",
-"CREATE USER test_user_4 IDENTIFIED GLOBALLY",
-"CREATE USER test_user_4 IDENTIFIED GLOBALLY AS test_usr_2_extern",
-"CREATE USER test_user_1 IDENTIFIED BY a_password DEFAULT TABLESPACE table_1",
-"CREATE USER test_user_1 IDENTIFIED BY a_password DEFAULT TABLESPACE table_1 DEFAULT TABLESPACE table_2",
-"CREATE USER test_user_1 IDENTIFIED EXTERNALLY AS test_usr_2_extern TEMPORARY TABLESPACE table_1",
-"CREATE USER test_user_1 IDENTIFIED BY a_password DEFAULT TABLESPACE table_1 TEMPORARY TABLESPACE table_2",
-"CREATE USER test_user_3 IDENTIFIED EXTERNALLY PROFILE user_profile",
-"CREATE USER test_user_3 IDENTIFIED EXTERNALLY PASSWORD EXPIRE",
-"CREATE USER test_user_3 IDENTIFIED EXTERNALLY ACCOUNT LOCK",
-"CREATE USER test_user_3 IDENTIFIED EXTERNALLY ACCOUNT UNLOCK",
-"CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA UNLIMITED ON table_1",
-"CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA 10M ON table_2",
-"CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA 10M ON table_3 QUOTA UNLIMITED ON table_1",
-"CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA 10 ON table_3 QUOTA 10M ON table_4 QUOTA UNLIMITED ON table_1",
-
-"ALTER USER test_user_123 IDENTIFIED BY new_password",
-"ALTER USER test_user_123 ACCOUNT LOCK",
-"ALTER USER test_user_123 ACCOUNT UNLOCK",
-"ALTER USER test_user_123 PASSWORD EXPIRE",
-
-"DROP USER test_user_123",
-"DROP USER test_user_123 CASCADE",
-
-"INSERT INTO Persons VALUES (4,'Nilsen', 'Johan', 'Bakken 2', 'Stavanger')",
-
+"CREATE USER test_user_1 IDENTIFIED BY a_password"
+,
+"CREATE USER test_user_3 IDENTIFIED EXTERNALLY"
+,
+"CREATE USER test_user_2 IDENTIFIED EXTERNALLY AS test_usr_2_extern"
+,
+"CREATE USER test_user_4 IDENTIFIED GLOBALLY"
+,
+"CREATE USER test_user_4 IDENTIFIED GLOBALLY AS test_usr_2_extern"
+,
+"CREATE USER test_user_1 IDENTIFIED BY a_password DEFAULT TABLESPACE table_1"
+,
+"CREATE USER test_user_1 IDENTIFIED BY a_password DEFAULT TABLESPACE table_1 DEFAULT TABLESPACE table_2"
+,
+"CREATE USER test_user_1 IDENTIFIED EXTERNALLY AS test_usr_2_extern TEMPORARY TABLESPACE table_1"
+,
+"CREATE USER test_user_1 IDENTIFIED BY a_password DEFAULT TABLESPACE table_1 TEMPORARY TABLESPACE table_2"
+,
+"CREATE USER test_user_3 IDENTIFIED EXTERNALLY PROFILE user_profile"
+,
+"CREATE USER test_user_3 IDENTIFIED EXTERNALLY PASSWORD EXPIRE"
+,
+"CREATE USER test_user_3 IDENTIFIED EXTERNALLY ACCOUNT LOCK"
+,
+"CREATE USER test_user_3 IDENTIFIED EXTERNALLY ACCOUNT UNLOCK"
+,
+"CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA UNLIMITED ON table_1"
+,
+"CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA 10M ON table_2"
+,
+"CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA 10M ON table_3 QUOTA UNLIMITED ON table_1"
+,
+"CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA 10 ON table_3 QUOTA 10M ON table_4 QUOTA UNLIMITED ON table_1"
+,
+"ALTER USER test_user_123 IDENTIFIED BY new_password"
+,
+"ALTER USER test_user_123 ACCOUNT LOCK"
+,
+"ALTER USER test_user_123 ACCOUNT UNLOCK"
+,
+"ALTER USER test_user_123 PASSWORD EXPIRE"
+,
+"DROP USER test_user_123"
+,
+"DROP USER test_user_123 CASCADE"
+,
+"INSERT INTO Persons VALUES (4,'Nilsen', 'Johan', 'Bakken 2', 'Stavanger')"
+,
 "
 CREATE TABLE Persons
 (
@@ -178,9 +235,9 @@ Address varchar(255),
 City varchar(255)
 )
 "
-
 ,
-"DROP TABLE table_name",
+"DROP TABLE table_name"
+,
 
 "create table table_1 (
                field_a eatom default 'undefined',
@@ -190,107 +247,132 @@ City varchar(255)
                field_e date default fun()-> calendar:localtime() end.
                )"
 ,
-"insert into table_1 (field_a, field_b) values ('first',\"Stefan's choice.\")",
-"insert into table_1 (field_a, field_c) values ('second',\"Bikram\"\"s selection\")",
-"insert into table_1 (field_a, field_d) values ('third',erl(\"{a,b,c}\"))",
-"insert into table_1 (field_a, field_3) values ('third',\"31.12.2012 23:59:59\")",
-
-"select 12, \"12\", '12', 'field_a', erl(\"['a',b]\"), erl(\"{field_a,b}\") from 'table_1'"
-% - "
-% - select
-% - 	/*+038*/
-% - 		AC_ID
-% - 		,
-% - 		AC_NAME
-% - 		,
-% - 		AC_ETID
-% - 		,
-% - 		AC_SHORT
-% - 		,
-% - 		AC_DEPTID
-% - 		,
-% - 		AC_LANGID
-% - 		,
-% - 		AC_LOGRET
-% - 		,
-% - 			nvl
-% - 				(
-% - 					AC_MAXLOG
-% - 					,
-% - 					SYS_MAXLOG
-% - 				) as MAXLOG
-% - 		,
-% - 		AC_LASTLOGINTIME
-% - 		,
-% - 		AC_IPMASK
-% - 		,
-% - 		AC_REMOTEADDR
-% - 		,
-% - 					(
-% - 						sysdate
-% - 						-
-% - 							nvl
-% - 								(
-% - 									AC_LASTLOGINTIME
-% - 									,
-% - 									sysdate
-% - 								)
-% - 					)
-% - 				*
-% - 				24
-% - 				*
-% - 				60
-% - 			-
-% - 				nvl
-% - 					(
-% - 						SYS_DELAY
-% - 						,
-% - 						3
-% - 					)
-% - 	from
-% - 		ACCOUNT
-% - 		,
-% - 		SYSPARAMETERS
-% - 	where
-% - 			AC_ESID
-% - 			=
-% - 			'A'
-% - 		and
-% - 			AC_SHORT
-% - 			=
-% - 			'ADMIN'
-% - 		and
-% - 				1
-% - 				+
-% - 				-4
-% - 			=
-% - 			-3
-% - 		and
-% - 			2
-% - 			=
-% - 				5
-% - 				-
-% - 				3
-% - 		and
-% - 			2.3
-% - 			=
-% - 				5.9
-% - 				-
-% - 				3.6
-% - 		and
-% - 				a
-% - 				-
-% - 				10.5
-% - 			=
-% - 			-
-% - 			c
-% - 		and
-% - 			-10.5
-% - 			=
-% - 				a
-% - 				-
-% - 				12.9
-% - "
+"insert into table_1 (field_a, field_b) values ('first',\"Stefan's choice.\")"
+,
+"insert into table_1 (field_a, field_c) values ('second',\"Bikram\"\"s option\")"
+,
+"insert into table_1 (field_a, field_d) values ('third',erl(\"{a,b,c}\"))"
+,
+"insert into table_1 (field_a, field_3) values ('third',\"31.12.2012 23:59:59\")"
+,
+"
+select
+		12
+		,
+		\"12\"
+		,
+		'12'
+		,
+		'field_a'
+		,
+			erl
+				(
+					\"['a',b]\"
+				)
+		,
+			erl
+				(
+					\"{field_a,b}\"
+				)
+	from
+		'table_1'
+"
+,		
+"
+select
+	/*+038*/
+		AC_ID
+		,
+		AC_NAME
+		,
+		AC_ETID
+		,
+		AC_SHORT
+		,
+		AC_DEPTID
+		,
+		AC_LANGID
+		,
+		AC_LOGRET
+		,
+			nvl
+				(
+					AC_MAXLOG
+					,
+					SYS_MAXLOG
+				) as MAXLOG
+		,
+		AC_LASTLOGINTIME
+		,
+		AC_IPMASK
+		,
+		AC_REMOTEADDR
+		,
+					(
+						sysdate
+						-
+							nvl
+								(
+									AC_LASTLOGINTIME
+									,
+									sysdate
+								)
+					)
+				*
+				24
+				*
+				60
+			-
+				nvl
+					(
+						SYS_DELAY
+						,
+						3
+					)
+	from
+		ACC
+		,
+		SYSPARAMETERS
+	where
+			AC_ESID
+			=
+			'A'
+		and
+			AC_SHORT
+			=
+			'ADMIN'
+		and
+				1
+				+
+				-4
+			=
+			-3
+		and
+			2
+			=
+				5
+				-
+				3
+		and
+			2.3
+			=
+				5.9
+				-
+				3.6
+		and
+				a
+				-
+				10.5
+			=
+			-
+			c
+		and
+			-10.5
+			=
+				a
+				-
+				12.9
+"
 ]).
 
 
@@ -467,7 +549,9 @@ select
 			=
 			f
 "
-,
+]).
+
+-define (TEST_SQLS1,[
 "
 select
 	/*+007*/
@@ -1122,7 +1206,9 @@ select
 				=
 				h
 "
-,
+]).
+
+-define (TEST_SQLS2,[
 "
 select
 	/*+031*/
@@ -1355,7 +1441,7 @@ select
 					BD_DATETIME
 					,
 					'DD.MM.YYYY HH24:MI:SS'
-				) as DATETIME
+				) as DATETIM
 	from
 		BDETAIL6
 		,
@@ -1449,7 +1535,7 @@ select
 						sysdate
 					)
 	from
-		ACCOUNT
+		ACC
 		,
 		SYSPARAMETERS
 	where
@@ -1526,7 +1612,7 @@ select
 						3
 					)
 	from
-		ACCOUNT
+		ACC
 		,
 		SYSPARAMETERS
 	where

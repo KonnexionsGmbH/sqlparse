@@ -7,7 +7,7 @@
 -include("sql_tests.hrl").
 
 
-%% -define(logf, ok).
+%%-define(logf, ok).
 -ifdef(logf).
 -define(LOG(F, A), io:format(user, "{~p,~p}:"++F, [?MODULE,?LINE] ++ A)).
 
@@ -70,7 +70,8 @@ binding('group by') -> 80;
 binding('having') -> 80;
 binding('select') -> 70;
 binding('union') -> 30;
-binding('all') -> 30;
+binding('union all') -> 30;
+binding('all') -> 30;			%% needed here?
 binding('minus') -> 30;
 binding('intersect') -> 30;
 binding({A,_}) -> binding(A);
@@ -102,7 +103,7 @@ fold_node(Ind, Idx, Parent=undefined, {Node='select', List}, _, Fun, Acc0) when 
 fold_node(Ind, Idx, Parent, {Node='select', List}, _, Fun, Acc0) when is_list(List) -> 	%% pre-order traversal recurse
 	Acc1 = fold_node(Ind+1, Idx, Parent, Node, List, Fun, Acc0),	
 	Acc2 = fold_node(Ind+2, 0 , Node, List, undefined, Fun, Acc1),
-	Acc3 = fold_return(Ind+1, Idx , 'select', Fun, Acc2),
+	Acc3 = fold_return(Ind+1, Idx , Parent, Fun, Acc2),
 	fold_return(Ind, Idx , Parent, Fun, Acc3);
 	
 fold_node(Ind, Idx, Parent, {Node, List}, _, Fun, Acc0) when is_list(List) -> 	%% pre-order traversal recurse
@@ -197,7 +198,7 @@ fold_node(Ind, Idx, Parent, {union=Node, Left, Right}, _, Fun, Acc0)->		%% {_,_,
 	Acc2 = fold_node(Ind, 0, Parent, Node, {Left, Right}, Fun, Acc1),
 	Acc3 = fold_in(Ind, 0, Node, Right, undefined, Fun, Acc2),
 	fold_return(Ind, Idx , Parent, Fun, Acc3);
-fold_node(Ind, Idx, Parent, {union_all=Node, Left, Right}, _, Fun, Acc0)->		%% {_,_,_} in-order binary recurse
+fold_node(Ind, Idx, Parent, {'union all'=Node, Left, Right}, _, Fun, Acc0)->		%% {_,_,_} in-order binary recurse
 	Acc1 = fold_in(Ind, Idx, Node, Left, undefined, Fun, Acc0),
 	Acc2 = fold_node(Ind, 0, Parent, Node, {Left, Right}, Fun, Acc1),
 	Acc3 = fold_in(Ind, 0, Node, Right, undefined, Fun, Acc2),
@@ -311,15 +312,18 @@ sqlb(Ind, Idx, _Parent, _Ch, A, []) ->
     [#box{ind=Ind, idx=Idx, collapsed=sqlb_collapse(Ind), name=atom_to_binary(A, utf8)}];
 
 sqlb(Ind, _Idx, _Parent, _Ch, _X='%ret%', Acc=[#box{ind=I}|_]) when I<Ind ->
+%	io:format(user, "sqlb_ret ~p ~p ~p ~p ~p ~p ~n", [Ind, _Idx, _Parent, _Ch, keep, Acc]),
 	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, _Idx, _Parent, _X]),
 	?LOG(" --> ~p", [Acc]),
 	Acc;
-sqlb(Ind, Idx, Parent, Ch, X, Acc=[#box{ind=I}|_]) when I>Ind ->			%% X='%ret%'
+sqlb(Ind, Idx, Parent, Ch, X='%ret%', Acc=[#box{ind=I}|_]) when I>Ind ->			%% X='%ret%'
+%	io:format(user, "sqlb_ret ~p ~p ~p ~p ~p ~p ~n", [Ind, Idx, Parent, Ch, reduce, Acc]),
 	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, Parent, X]),
 	Acc1 = sqlb_reduce(I, Idx, Parent, Ch, X, Acc),
 	?LOG(" --> ~p", [Acc1]),
 	sqlb(Ind, Idx, Parent, Ch, X, Acc1);
 sqlb(Ind, Idx, Parent, Ch, X='%ret%', Acc=[#box{ind=I}|_]) when I==Ind ->
+%	io:format(user, "sqlb_ret ~p ~p ~p ~p ~p ~p ~n", [Ind, Idx, Parent, Ch, reduce, Acc]),
 	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, Parent, X]),
 	Acc1 = sqlb_reduce(Ind, Idx, Parent, Ch, X, Acc),
 	?LOG(" --> ~p", [Acc1]),
@@ -372,7 +376,8 @@ sqlb(Ind, Idx, _Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I<Ind, is_binary(X) ->
 sqlb(_Ind, _Idx, _Parent, _Ch, _X, Acc) -> 
 	?LOG("~n---Fun ignores ~p~n", [_X]),
 	Acc.	
-	
+% sqlb_reduce(Ind, 0, Parent, Ch, X, Acc) -> 
+% 	[Ch|Acc];	
 sqlb_reduce(Ind, Idx, Parent, Ch, X, Acc) -> 
 	sqlb_reduce(Ind, Idx, Parent, Ch, X, Acc,[]).
 
@@ -382,10 +387,7 @@ sqlb_reduce(Ind, _Idx, _Parent, _Ch, _X, [#box{ind=I, children=Children}=Box|Res
 	[Box#box{children=Children++Buf}|Rest].
 
 
-
-
-
-setup() -> ?TEST_SQLS.
+setup() -> ?TEST_SQLS2.
 
 teardown(_) -> ok.
 
@@ -403,9 +405,14 @@ sql_box_test_() ->
         ]}}.
 
 test_sql_all(X) ->
-    test_sqls(X),
-    test_sqlp(X),
-    test_sqlb(X),
+	try 
+    	test_sqls(X),
+    	test_sqlp(X),
+    	test_sqlb(X)
+    catch
+        Class:Reason ->  io:format(user, "Exception ~p:~p~n~p~n", [Class, Reason, erlang:get_stacktrace()]),
+        ?assert( true == "all tests completed")
+    end,
     ok.
 	
 test_sqls(Sqls) ->
@@ -432,7 +439,7 @@ sqls_loop([Sql|Rest], N) ->
 		      		io:format(user, "~p~n-------------------------------~n", [Sqlstr]),
 		      		SqlCollapsed = sql_parse:collapse(Sqlstr),
 		      		io:format(user, "~p~n-------------------------------~n", [SqlCollapsed]),
-		    		?assertEqual(sql_parse:collapse(string:to_lower(Sql)), SqlCollapsed),  		
+		    		?assertEqual(sql_parse:collapse(string:to_lower(Sql)), string:to_lower(SqlCollapsed)),  		
 		    		{ok, NewTokens, _} = sql_lex:string(SqlCollapsed ++ ";"),
 		    		case sql_parse:parse(NewTokens) of
 		        		{ok, [NewParseTree|_]} ->
@@ -471,7 +478,7 @@ sqlp_loop([Sql|Rest], N) ->
 		       		io:format(user, "~n-------------------------------~nSqlstr:~n", []),
 		      		io:format(user, Sqlstr ++ "~n", []),
 		      		SqlCleaned = sql_parse:trim_nl(sql_parse:clean_cr(Sqlstr)),
-		    		?assertEqual(sql_parse:trim_nl(sql_parse:clean_cr(string:to_lower(Sql))), SqlCleaned),  		
+		    		?assertEqual(sql_parse:trim_nl(sql_parse:clean_cr(string:to_lower(Sql))), string:to_lower(SqlCleaned)),  		
 		    		{ok, NewTokens, _} = sql_lex:string(SqlCleaned ++ ";"),
 		    		case sql_parse:parse(NewTokens) of
 		        		{ok, [NewParseTree|_]} ->

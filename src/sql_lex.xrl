@@ -199,7 +199,7 @@ Rules.
 (\'([^\']*(\'\')*)*\')          :               {token, {'STRING', TokenLine, TokenChars}}.
 
 % hint
-((\/\*).*(\*\/))        : {token, {'HINT', TokenLine, TokenChars}}.
+((\/\*)[^\*\/]*(\*\/))        : {token, {'HINT', TokenLine, TokenChars}}.
 
 % punctuation
 (=|<>|<|>|<=|>=)                                   : {token, {'COMPARISON', TokenLine, list_to_atom(TokenChars)}}.

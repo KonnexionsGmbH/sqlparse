@@ -1,6 +1,8 @@
 -module(sql_box).
 
--export([box_tree/1]).
+-export([ box_tree/1
+		, box_shift/1
+		]).
 
 -include_lib("eunit/include/eunit.hrl").
 
@@ -98,16 +100,16 @@ fold_node(Ind, Idx, Parent, A, Ch, Fun, Acc0) when is_atom(A) ->			%% atomic ter
 fold_node(Ind, Idx, Parent=undefined, {Node='select', List}, _, Fun, Acc0) when is_list(List) -> 	%% pre-order traversal recurse
 	Acc1 = fold_node(Ind, Idx, Parent, Node, List, Fun, Acc0),	
 	Acc2 = fold_node(Ind+1, 0 , Node, List, undefined, Fun, Acc1),
-	fold_return(Ind+1, Idx , Parent, Fun, Acc2);
+	fold_return(Ind, Idx , Parent, Fun, Acc2);
 	
 fold_node(Ind, Idx, Parent, {Node='select', List}, _, Fun, Acc0) when is_list(List) -> 	%% pre-order traversal recurse
-	Acc1 = fold_node(Ind+1, Idx, Parent, Node, List, Fun, Acc0),	
+	Acc1 = fold_node(Ind+1, Idx, Parent, Node, List, Fun, Acc0),	%% Idx ??
 	Acc2 = fold_node(Ind+2, 0 , Node, List, undefined, Fun, Acc1),
-	Acc3 = fold_return(Ind+1, Idx , Parent, Fun, Acc2),
+	Acc3 = fold_return(Ind+1, 0 , Node, Fun, Acc2),
 	fold_return(Ind, Idx , Parent, Fun, Acc3);
 	
 fold_node(Ind, Idx, Parent, {Node, List}, _, Fun, Acc0) when is_list(List) -> 	%% pre-order traversal recurse
-	Acc1 = fold_node(Ind, Idx, Parent, Node, List, Fun, Acc0),	
+	Acc1 = fold_node(Ind, Idx, Parent, Node, List, Fun, Acc0),		%% Idx ??
 	Acc2 = fold_node(Ind+1, 0 , Node, List, undefined, Fun, Acc1),
 	fold_return(Ind, Idx , Parent, Fun, Acc2);
 	
@@ -159,7 +161,7 @@ fold_node(Ind, Idx, Parent, [Node|Rest], _, Fun, Acc0) ->					%% pre-order list 
 fold_node(Ind, Idx, Parent, {'fun', Node, Parameters}, _, Fun, Acc0) -> 	%% function evaluation
 	Acc1 = fold_node(Ind+1, Idx , Parent, Node, Parameters, Fun, Acc0),		
 	Acc2 = fold_fun(Ind+2, 0, 'fun', Parameters, undefined, Fun, Acc1),
-	Acc3 = fold_return(Ind, Idx , 'fun', Fun, Acc2),
+	Acc3 = fold_return(Ind+1, Idx , 'fun', Fun, Acc2),
 	fold_return(Ind, Idx , Parent, Fun, Acc3);
 	
 fold_node(Ind, Idx, Parent, {Node, Left, Middle, Right}, _Ch, Fun, Acc0) ->	%% {_,_,_,_} in-order ternary recurse
@@ -221,13 +223,15 @@ fold_comma(Ind, Idx, Parent, [Node|Rest], _, Fun, Acc0) ->					%% pre-order list
 
 fold_fun(Ind, 0, Parent, Node, Children, Fun, Acc0)  ->						%% brackets and index for functions
 	?LOG("~n~p,~p (", [Ind, 0]),
-	Acc1 = Fun(Ind, 0, Parent, undefined, ')', 
-			fold_node(Ind+1, 0, Parent, Node, Children, Fun, 
-			Fun(Ind, 0, Parent, undefined, '(', Acc0)
-			)
+	Acc1 = Fun(Ind, 0, Parent, undefined, ')',
+			fold_return(Ind, 0 , Parent, Fun, 
+				fold_node(Ind+1, 0, Parent, Node, Children, Fun, 
+					Fun(Ind, 0, Parent, undefined, '(', Acc0)
+				)
+		  	)
 		),
 	?LOG("~n~p,~p )", [Ind, 0]),
-	fold_return(Ind, 0 , Parent, Fun, Acc1).
+	Acc1.
 
 fold_in(Ind, Idx, Parent='as', Node, Children, Fun, Acc0)  ->				%% setting brackets
 	fold_node(Ind, Idx, Parent, Node, Children, Fun, Acc0);
@@ -311,64 +315,66 @@ sqlb(_Ind, _Idx, opt, <<>>, B, Acc) when is_binary(B) -> Acc;
 sqlb(Ind, Idx, _Parent, _Ch, A, []) ->
     [#box{ind=Ind, idx=Idx, collapsed=sqlb_collapse(Ind), name=atom_to_binary(A, utf8)}];
 
-sqlb(Ind, _Idx, _Parent, _Ch, _X='%ret%', Acc=[#box{ind=I}|_]) when I<Ind ->
-%	io:format(user, "sqlb_ret ~p ~p ~p ~p ~p ~p ~n", [Ind, _Idx, _Parent, _Ch, keep, Acc]),
+sqlb(Ind, _Idx, _Parent, _Ch, _X='%ret%', Acc=[#box{ind=I}|_]) when I==Ind ->
+	sqlb_retlog(Ind, _Idx, _Parent, _Ch, keep, Acc),
 	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, _Idx, _Parent, _X]),
 	?LOG(" --> ~p", [Acc]),
 	Acc;
-sqlb(Ind, Idx, Parent, Ch, X='%ret%', Acc=[#box{ind=I}|_]) when I>Ind ->			%% X='%ret%'
-%	io:format(user, "sqlb_ret ~p ~p ~p ~p ~p ~p ~n", [Ind, Idx, Parent, Ch, reduce, Acc]),
+sqlb(Ind, Idx, Parent, Ch, X='%ret%', Acc=[#box{ind=I}|_]) when I>Ind+1 ->
+	sqlb_retlog(I-1, Idx, Parent, Ch, reduce, Acc),
 	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, Parent, X]),
-	Acc1 = sqlb_reduce(I, Idx, Parent, Ch, X, Acc),
+	Acc1 = sqlb_reduce(I-1, Idx, Parent, Ch, X, Acc),
+	sqlb_retlog(I-1, Idx, Parent, Ch, reduced, Acc1),
 	?LOG(" --> ~p", [Acc1]),
 	sqlb(Ind, Idx, Parent, Ch, X, Acc1);
-sqlb(Ind, Idx, Parent, Ch, X='%ret%', Acc=[#box{ind=I}|_]) when I==Ind ->
-%	io:format(user, "sqlb_ret ~p ~p ~p ~p ~p ~p ~n", [Ind, Idx, Parent, Ch, reduce, Acc]),
+sqlb(Ind, Idx, Parent, Ch, X='%ret%', Acc=[#box{ind=I}|_]) when I==Ind+1 ->
+	sqlb_retlog(Ind, Idx, Parent, Ch, reduce, Acc),
 	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, Parent, X]),
 	Acc1 = sqlb_reduce(Ind, Idx, Parent, Ch, X, Acc),
+	sqlb_retlog(Ind, Idx, Parent, Ch, reduced, Acc1),
 	?LOG(" --> ~p", [Acc1]),
 	Acc1;
-sqlb(Ind, Idx, _Parent, _Ch, _X='as', [#box{ind=I,name=Name}=Box|Rest]) when I==Ind -> 
+sqlb(Ind, Idx, _Parent, _Ch, _X='as', [#box{ind=I,name=Name}=Box|Rest]) when I==Ind+1 -> 
 	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, _Parent, _X]),
     Acc1 = [Box#box{ind=Ind, idx=Idx, collapsed=sqlb_collapse(Ind), name=list_to_binary([Name, " as"])}|Rest],
 	?LOG(" --> ~p", [Acc1]),
 	Acc1;
-sqlb(Ind, Idx, _Parent, _Ch, _X = <<"asc">>, [#box{ind=I,name=Name}=Box|Rest]) when I==Ind -> 
+sqlb(Ind, Idx, _Parent, _Ch, _X = <<"asc">>, [#box{ind=I,name=Name}=Box|Rest]) when I==Ind+1 -> 
 	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, _Parent, _X]),
 	Acc1 = [Box#box{ind=Ind, idx=Idx, collapsed=sqlb_collapse(Ind), name=list_to_binary([Name, " asc"])}|Rest],
 	?LOG(" --> ~p", [Acc1]),
 	Acc1;
-sqlb(Ind, Idx, _Parent, _Ch, _X = <<"desc">>, [#box{ind=I,name=Name}=Box|Rest]) when I==Ind -> 
+sqlb(Ind, Idx, _Parent, _Ch, _X = <<"desc">>, [#box{ind=I,name=Name}=Box|Rest]) when I==Ind+1 -> 
 	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, _Parent, _X]),
 	Acc1 = [Box#box{ind=Ind, idx=Idx, collapsed=sqlb_collapse(Ind), name=list_to_binary([Name, " desc"])}|Rest],
 	?LOG(" --> ~p", [Acc1]),
 	Acc1;
-sqlb(Ind, Idx, _Parent='as', _Ch, X, [#box{ind=I,name=Name}=Box|Rest]) when I==Ind -> 
+sqlb(Ind, Idx, _Parent='as', _Ch, X, [#box{ind=I,name=Name}=Box|Rest]) when I==Ind+1 -> 
 	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, _Parent, X]),
 	Acc1 = [Box#box{ind=Ind, idx=Idx, collapsed=sqlb_collapse(Ind), name=list_to_binary([Name, " ", X])}|Rest],
 	?LOG(" --> ~p", [Acc1]),
 	Acc1;
-sqlb(Ind, Idx, _Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I==Ind, is_atom(X) -> 
+sqlb(Ind, Idx, _Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I==Ind+1, is_atom(X) -> 
 	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, _Parent, X]),
 	Acc1 = [#box{ind=Ind, idx=Idx, collapsed=sqlb_collapse(Ind), name=atom_to_binary(X, utf8)}|Acc],
 	?LOG(" --> ~p", [Acc1]),
 	Acc1;
-sqlb(Ind, Idx, _Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I==Ind, is_binary(X) -> 
+sqlb(Ind, Idx, _Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I==Ind+1, is_binary(X) -> 
 	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, _Parent, X]),
 	Acc1 = [#box{ind=Ind, idx=Idx, collapsed=sqlb_collapse(Ind), name=X}|Acc],
 	?LOG(" --> ~p", [Acc1]),
 	Acc1;
-sqlb(Ind, Idx, Parent, Ch, X, Acc=[#box{ind=I}|_]) when I<Ind-1 -> 
+sqlb(Ind, Idx, Parent, Ch, X, Acc=[#box{ind=I}|_]) when I<Ind -> 
 	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, Parent, X]),
 	Acc1 = [#box{ind=I+1, idx=Idx, collapsed=sqlb_collapse(Ind+1)}|Acc],
 	?LOG(" --> ~p", [Acc1]),
 	sqlb(Ind, Idx, Parent, Ch, X, Acc1);
-sqlb(Ind, Idx, _Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I<Ind, is_atom(X) -> 
+sqlb(Ind, Idx, _Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I<Ind+1, is_atom(X) -> 
 	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, _Parent, X]),
 	Acc1 = [#box{ind=Ind, idx=Idx, collapsed=sqlb_collapse(Ind), name=atom_to_binary(X, utf8)}|Acc],
 	?LOG(" --> ~p", [Acc1]),
 	Acc1;
-sqlb(Ind, Idx, _Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I<Ind, is_binary(X) -> 
+sqlb(Ind, Idx, _Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I<Ind+1, is_binary(X) -> 
 	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, _Parent, X]),
 	Acc1 = [#box{ind=Ind, idx=Idx, collapsed=sqlb_collapse(Ind), name=X}|Acc],
 	?LOG(" --> ~p", [Acc1]),
@@ -381,28 +387,56 @@ sqlb(_Ind, _Idx, _Parent, _Ch, _X, Acc) ->
 sqlb_reduce(Ind, Idx, Parent, Ch, X, Acc) -> 
 	sqlb_reduce(Ind, Idx, Parent, Ch, X, Acc,[]).
 
-sqlb_reduce(Ind, Idx, Parent, Ch, X, [#box{ind=Ind}=Box|Rest], Buf) ->
+sqlb_reduce(Ind, _Idx, union, _Ch, _X, [], [#box{ind=I}|_]=Buf) when I==Ind+1 ->
+	io:format(user, "sqlb_ret special", []),
+	Buf;
+sqlb_reduce(Ind, Idx, Parent, Ch, X, [#box{ind=I}=Box|Rest], Buf) when I==Ind+1 ->
 	sqlb_reduce(Ind, Idx, Parent, Ch, X, Rest, [Box|Buf]);
-sqlb_reduce(Ind, _Idx, _Parent, _Ch, _X, [#box{ind=I, children=Children}=Box|Rest], Buf) when I==Ind-1 ->
+% sqlb_reduce(Ind, _Idx, union, _Ch, _X, [#box{ind=I}=Second,First], []) when I==Ind ->
+% 	[First,box_shift(Second)];
+sqlb_reduce(Ind, _Idx, _Parent, _Ch, _X, [#box{ind=I, children=Children}=Box|Rest], Buf) when I==Ind ->
 	[Box#box{children=Children++Buf}|Rest].
 
+sqlb_retlog(Ind, Idx, Parent, Ch, Action, Acc) ->
+	io:format(user, "sqlb_ret ~p ~p ~p ~p ~p ~p ~n", [Ind, Idx, Parent, Ch, Action, [{box,Id,Ix,N,ltype(C)}|| #box{ind=Id,idx=Ix,name=N,children=C} <- Acc]]).
 
-setup() -> ?TEST_SQLS2.
+box_shift(Boxes) when is_list(Boxes)->
+	box_shift(Boxes,[]);
+box_shift(Box) ->
+	[Shifted]=box_shift([Box]),
+	Shifted.
+
+box_shift([],Acc) -> lists:reverse(Acc);
+box_shift([#box{ind=Ind,children=Children}=Box|Rest], Acc) ->
+	box_shift(Rest, [Box#box{ind=Ind-1,children=box_shift(Children)}|Acc]). 
+
+ltype([])->
+	[];
+ltype([A])->
+	[A#box.name];	
+ltype([H|_])->
+	[H#box.name,'..'].
+
+setup() -> ?TEST_SQLS.
 
 teardown(_) -> ok.
 
 sql_box_test_() ->
-    {
-        setup,
-        fun setup/0,
-        fun teardown/1,
-        {with, [
-        	% {timeout, 100000, fun test_sql_all/1}
-        	fun test_sql_all/1
-            % , fun test_sqls/1
-            % , fun test_sqlp/1
-            % , fun test_sqlb/1
-        ]}}.
+	{timeout, 1000000, 
+		{
+	        setup,
+	        fun setup/0,
+	        fun teardown/1,
+	        {with, 
+	        	[
+	        	fun test_sql_all/1
+	            % , fun test_sqls/1
+	            % , fun test_sqlp/1
+	            % , fun test_sqlb/1
+	        	]
+			}
+		}
+	}.
 
 test_sql_all(X) ->
 	try 
@@ -513,11 +547,11 @@ sqlb_loop([Sql|Rest], N) ->
 		        	io:format(user, "-------------------------------~nParseTree:~n", []),
 		        	io:format(user, "~p~n", [ParseTree]),
 		        	io:format(user, "-------------------------------~n", []),
-					[Sqlbox] = fold_tree(ParseTree, fun sqlb/6, []),
+					Sqlbox = fold_tree(ParseTree, fun sqlb/6, []),
 					%% Sqlbox = box_tree(ParseTree),
 		       		io:format(user, "~n-------------------------------~nSqlbox:~n", []),
-		       		io:format(user, "~p~n", [Sqlbox]),
-		      		?assertMatch(#box{ind=0}, Sqlbox);
+		       		io:format(user, "~p~n", [Sqlbox]);
+		      		% ?assertMatch(#box{ind=0}, Sqlbox);
 		        Error -> 
 		        	io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens]),
 		        	?assertEqual(ok, Error)

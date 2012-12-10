@@ -1,41 +1,43 @@
 -define (TEST_SQLS,[
-"
-SELECT
-	/*+011*/
-		a
-		,
-		b
-	FROM
-		c
-		,
-		d
-	WHERE
-		e
-		=
-		f
-"
-,
-"
-SELECT
-		a
-		,
-			(
-				SELECT
-						c
-					FROM
-						d
-			)
-	FROM
-		b
-"
-,
+% "
+% SELECT
+% 	/*+011*/
+% 		a
+% 		,
+% 		b
+% 	FROM
+% 		c
+% 		,
+% 		d
+% 	WHERE
+% 		e
+% 		=
+% 		f
+% "
+% ,
+% "
+% SELECT
+% 		a
+% 		,
+% 			(
+% 				SELECT
+% 						c
+% 					FROM
+% 						d
+% 			)
+% 	FROM
+% 		b
+% "
+% ,
 "
 	SELECT
+		/*+001*/
 			a
 		FROM
 			b
 UNION
 	SELECT
+		/*+002*/
 			c
 		FROM
 			d
@@ -56,170 +58,170 @@ UNION
 % 		FROM
 % 			j
 % "
-,
-"
-select
-	/*+011*/
-			a
-			+
-			1
-		,
-			t1.b
-			+
-			schma.t1.c
-		,
-				upper
-					(
-						a.a
-					)
-			-
-			schma.a.b as fh
-		,
-		b.*
-		,
-		schma.b.c
-	from
-		t1
-		,
-		t3 as a
-		,
-		schma.t1
-		,
-		schma.t2 as b
-	where
-				upper
-					(
-						scm.tbl.a
-					)
-			=
-				upper
-					(
-						b
-					)
-		and
-			c
-			=
-			d
-"
-,
-"
-select
-		12
-		,
-		\"12\"
-		,
-		'12'
-		,
-		'field_a'
-		,
-			erl
-				(
-					\"['a',b]\"
-				)
-		,
-			erl
-				(
-					\"{field_a,b}\"
-				)
-	from
-		'table_1'
-"
-,		
-"
-select
-	/*+038*/
-		AC_ID
-		,
-		AC_NAME
-		,
-		AC_ETID
-		,
-		AC_SHORT
-		,
-		AC_DEPTID
-		,
-		AC_LANGID
-		,
-		AC_LOGRET
-		,
-			nvl
-				(
-					AC_MAXLOG
-					,
-					SYS_MAXLOG
-				) as MAXLOG
-		,
-		AC_LASTLOGINTIME
-		,
-		AC_IPMASK
-		,
-		AC_REMOTEADDR
-		,
-					(
-						sysdate
-						-
-							nvl
-								(
-									AC_LASTLOGINTIME
-									,
-									sysdate
-								)
-					)
-				*
-				24
-				*
-				60
-			-
-				nvl
-					(
-						SYS_DELAY
-						,
-						3
-					)
-	from
-		ACC
-		,
-		SYSPARAMETERS
-	where
-			AC_ESID
-			=
-			'A'
-		and
-			AC_SHORT
-			=
-			'ADMIN'
-		and
-				1
-				+
-				-4
-			=
-			-3
-		and
-			2
-			=
-				5
-				-
-				3
-		and
-			2.3
-			=
-				5.9
-				-
-				3.6
-		and
-				a
-				-
-				10.5
-			=
-			-
-			c
-		and
-			-10.5
-			=
-				a
-				-
-				12.9
-"
+% ,
+% "
+% select
+% 	/*+011*/
+% 			a
+% 			+
+% 			1
+% 		,
+% 			t1.b
+% 			+
+% 			schma.t1.c
+% 		,
+% 				upper
+% 					(
+% 						a.a
+% 					)
+% 			-
+% 			schma.a.b as fh
+% 		,
+% 		b.*
+% 		,
+% 		schma.b.c
+% 	from
+% 		t1
+% 		,
+% 		t3 as a
+% 		,
+% 		schma.t1
+% 		,
+% 		schma.t2 as b
+% 	where
+% 				upper
+% 					(
+% 						scm.tbl.a
+% 					)
+% 			=
+% 				upper
+% 					(
+% 						b
+% 					)
+% 		and
+% 			c
+% 			=
+% 			d
+% "
+% ,
+% "
+% select
+% 		12
+% 		,
+% 		\"12\"
+% 		,
+% 		'12'
+% 		,
+% 		'field_a'
+% 		,
+% 			erl
+% 				(
+% 					\"['a',b]\"
+% 				)
+% 		,
+% 			erl
+% 				(
+% 					\"{field_a,b}\"
+% 				)
+% 	from
+% 		'table_1'
+% "
+% ,		
+% "
+% select
+% 	/*+038*/
+% 		AC_ID
+% 		,
+% 		AC_NAME
+% 		,
+% 		AC_ETID
+% 		,
+% 		AC_SHORT
+% 		,
+% 		AC_DEPTID
+% 		,
+% 		AC_LANGID
+% 		,
+% 		AC_LOGRET
+% 		,
+% 			nvl
+% 				(
+% 					AC_MAXLOG
+% 					,
+% 					SYS_MAXLOG
+% 				) as MAXLOG
+% 		,
+% 		AC_LASTLOGINTIME
+% 		,
+% 		AC_IPMASK
+% 		,
+% 		AC_REMOTEADDR
+% 		,
+% 					(
+% 						sysdate
+% 						-
+% 							nvl
+% 								(
+% 									AC_LASTLOGINTIME
+% 									,
+% 									sysdate
+% 								)
+% 					)
+% 				*
+% 				24
+% 				*
+% 				60
+% 			-
+% 				nvl
+% 					(
+% 						SYS_DELAY
+% 						,
+% 						3
+% 					)
+% 	from
+% 		ACC
+% 		,
+% 		SYSPARAMETERS
+% 	where
+% 			AC_ESID
+% 			=
+% 			'A'
+% 		and
+% 			AC_SHORT
+% 			=
+% 			'ADMIN'
+% 		and
+% 				1
+% 				+
+% 				-4
+% 			=
+% 			-3
+% 		and
+% 			2
+% 			=
+% 				5
+% 				-
+% 				3
+% 		and
+% 			2.3
+% 			=
+% 				5.9
+% 				-
+% 				3.6
+% 		and
+% 				a
+% 				-
+% 				10.5
+% 			=
+% 			-
+% 			c
+% 		and
+% 			-10.5
+% 			=
+% 				a
+% 				-
+% 				12.9
+% "
 ]).
 
 
@@ -421,8 +423,10 @@ select
 			g
 			=
 			h
-" 
-,
+"
+]).
+
+-define (TEST_SQLS2,[
 "
 select
 	/*+008*/
@@ -1055,7 +1059,7 @@ select
 "
 ]).
 
--define (TEST_SQLS2,[
+-define (TEST_SQLS3,[
 "
 select
 	/*+031*/
@@ -1505,7 +1509,7 @@ select
 ]).
 
 
--define (TEST_SQLS3,[
+-define (TEST_SQLS4,[
 "CREATE LOCAL BAG TABLE test (fld CHAR)"
 ,
 "CREATE CLUSTER SET TABLE test (fld CHAR)"

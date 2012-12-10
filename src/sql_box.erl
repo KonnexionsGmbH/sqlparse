@@ -9,7 +9,7 @@
 -include("sql_tests.hrl").
 
 
-%%-define(logf, ok).
+%% -define(logf, ok).
 -ifdef(logf).
 -define(LOG(F, A), io:format(user, "{~p,~p}:"++F, [?MODULE,?LINE] ++ A)).
 
@@ -315,23 +315,28 @@ sqlb(_Ind, _Idx, opt, <<>>, B, Acc) when is_binary(B) -> Acc;
 sqlb(Ind, Idx, _Parent, _Ch, A, []) ->
     [#box{ind=Ind, idx=Idx, collapsed=sqlb_collapse(Ind), name=atom_to_binary(A, utf8)}];
 
+sqlb(Ind, _Idx, _Parent, _Ch, _X='%ret%', Acc=[#box{ind=I}|_]) when I<Ind -> 
+%	sqlb_retlog(Ind, _Idx, _Parent, _Ch, keep, Acc),
+	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, _Idx, _Parent, _X]),
+	?LOG(" --> ~p", [Acc]),
+	Acc;
 sqlb(Ind, _Idx, _Parent, _Ch, _X='%ret%', Acc=[#box{ind=I}|_]) when I==Ind ->
-	sqlb_retlog(Ind, _Idx, _Parent, _Ch, keep, Acc),
+%	sqlb_retlog(Ind, _Idx, _Parent, _Ch, keep, Acc),
 	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, _Idx, _Parent, _X]),
 	?LOG(" --> ~p", [Acc]),
 	Acc;
 sqlb(Ind, Idx, Parent, Ch, X='%ret%', Acc=[#box{ind=I}|_]) when I>Ind+1 ->
-	sqlb_retlog(I-1, Idx, Parent, Ch, reduce, Acc),
+%	sqlb_retlog(I-1, Idx, Parent, Ch, reduce, Acc),
 	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, Parent, X]),
 	Acc1 = sqlb_reduce(I-1, Idx, Parent, Ch, X, Acc),
-	sqlb_retlog(I-1, Idx, Parent, Ch, reduced, Acc1),
+%	sqlb_retlog(I-1, Idx, Parent, Ch, reduced, Acc1),
 	?LOG(" --> ~p", [Acc1]),
 	sqlb(Ind, Idx, Parent, Ch, X, Acc1);
 sqlb(Ind, Idx, Parent, Ch, X='%ret%', Acc=[#box{ind=I}|_]) when I==Ind+1 ->
-	sqlb_retlog(Ind, Idx, Parent, Ch, reduce, Acc),
+%	sqlb_retlog(Ind, Idx, Parent, Ch, reduce, Acc),
 	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, Parent, X]),
 	Acc1 = sqlb_reduce(Ind, Idx, Parent, Ch, X, Acc),
-	sqlb_retlog(Ind, Idx, Parent, Ch, reduced, Acc1),
+%	sqlb_retlog(Ind, Idx, Parent, Ch, reduced, Acc1),
 	?LOG(" --> ~p", [Acc1]),
 	Acc1;
 sqlb(Ind, Idx, _Parent, _Ch, _X='as', [#box{ind=I,name=Name}=Box|Rest]) when I==Ind+1 -> 
@@ -364,11 +369,11 @@ sqlb(Ind, Idx, _Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I==Ind+1, is_binary(X)
 	Acc1 = [#box{ind=Ind, idx=Idx, collapsed=sqlb_collapse(Ind), name=X}|Acc],
 	?LOG(" --> ~p", [Acc1]),
 	Acc1;
-sqlb(Ind, Idx, Parent, Ch, X, Acc=[#box{ind=I}|_]) when I<Ind -> 
-	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, Parent, X]),
-	Acc1 = [#box{ind=I+1, idx=Idx, collapsed=sqlb_collapse(Ind+1)}|Acc],
+sqlb(Ind, Idx, _Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I<Ind -> 
+	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, _Parent, X]),
+	Acc1 = [#box{ind=I+1, idx=Idx, collapsed=sqlb_collapse(Ind+1), name=X}|Acc],
 	?LOG(" --> ~p", [Acc1]),
-	sqlb(Ind, Idx, Parent, Ch, X, Acc1);
+	Acc1; 								 %% sqlb(Ind, Idx, Parent, Ch, X, Acc1);
 sqlb(Ind, Idx, _Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I<Ind+1, is_atom(X) -> 
 	?LOG("~n---sqlb(~p,~p,~p,~p)", [Ind, Idx, _Parent, X]),
 	Acc1 = [#box{ind=Ind, idx=Idx, collapsed=sqlb_collapse(Ind), name=atom_to_binary(X, utf8)}|Acc],
@@ -382,23 +387,62 @@ sqlb(Ind, Idx, _Parent, _Ch, X, Acc=[#box{ind=I}|_]) when I<Ind+1, is_binary(X) 
 sqlb(_Ind, _Idx, _Parent, _Ch, _X, Acc) -> 
 	?LOG("~n---Fun ignores ~p~n", [_X]),
 	Acc.	
-% sqlb_reduce(Ind, 0, Parent, Ch, X, Acc) -> 
-% 	[Ch|Acc];	
+
 sqlb_reduce(Ind, Idx, Parent, Ch, X, Acc) -> 
 	sqlb_reduce(Ind, Idx, Parent, Ch, X, Acc,[]).
 
-sqlb_reduce(Ind, _Idx, union, _Ch, _X, [], [#box{ind=I}|_]=Buf) when I==Ind+1 ->
-	io:format(user, "sqlb_ret special", []),
+sqlb_reduce(Ind, Idx, Parent, Ch, _X, [#box{ind=I}=Second,#box{name= <<"intersect">>}=Merge|First], _What) when I==Ind+1 ->
+	sqlb_set_merge(Ind, Idx, Parent, Ch, Second, Merge, First);
+sqlb_reduce(Ind, Idx, Parent, Ch, _X, [#box{ind=I}=Second,#box{name= <<"minus">>}=Merge|First], _What) when I==Ind+1 ->
+	sqlb_set_merge(Ind, Idx, Parent, Ch, Second, Merge, First);
+sqlb_reduce(Ind, Idx, Parent, Ch, _X, [#box{ind=I}=Second,#box{name= <<"union all">>}=Merge|First], _What) when I==Ind+1 ->
+	sqlb_set_merge(Ind, Idx, Parent, Ch, Second, Merge, First);
+sqlb_reduce(Ind, Idx, Parent, Ch, _X, [#box{ind=I}=Second,#box{name= <<"union">>}=Merge|First], _What) when I==Ind+1 ->
+	sqlb_set_merge(Ind, Idx, Parent, Ch, Second, Merge, First);
+
+sqlb_reduce(Ind, _Idx, intersect, _Ch, _X, [], [#box{ind=I}|_]=Buf) when I==Ind+1 ->
+%	sqlb_retlog(Ind, _Idx, union, _Ch, keep, Buf),
 	Buf;
-sqlb_reduce(Ind, Idx, Parent, Ch, X, [#box{ind=I}=Box|Rest], Buf) when I==Ind+1 ->
+sqlb_reduce(Ind, _Idx, minus, _Ch, _X, [], [#box{ind=I}|_]=Buf) when I==Ind+1 ->
+%	sqlb_retlog(Ind, _Idx, union, _Ch, keep, Buf),
+	Buf;
+sqlb_reduce(Ind, _Idx, 'union all', _Ch, _X, [], [#box{ind=I}|_]=Buf) when I==Ind+1 ->
+%	sqlb_retlog(Ind, _Idx, union, _Ch, keep, Buf),
+	Buf;
+sqlb_reduce(Ind, _Idx, union, _Ch, _X, [], [#box{ind=I}|_]=Buf) when I==Ind+1 ->
+%	sqlb_retlog(Ind, _Idx, union, _Ch, keep, Buf),
+	Buf;
+
+sqlb_reduce(Ind, Idx, Parent, Ch, X, [#box{ind=I}=Box|Rest]=_Acc, Buf) when I==Ind+1 ->
+%	sqlb_retlog(Ind, Idx, Parent, Ch, buffer, _Acc),
 	sqlb_reduce(Ind, Idx, Parent, Ch, X, Rest, [Box|Buf]);
-% sqlb_reduce(Ind, _Idx, union, _Ch, _X, [#box{ind=I}=Second,First], []) when I==Ind ->
-% 	[First,box_shift(Second)];
-sqlb_reduce(Ind, _Idx, _Parent, _Ch, _X, [#box{ind=I, children=Children}=Box|Rest], Buf) when I==Ind ->
+sqlb_reduce(Ind, _Idx, _Parent, _Ch, _X, [#box{ind=I, children=Children}=Box|Rest]=_Acc, Buf) when I==Ind ->
+%	sqlb_retlog(Ind, _Idx, _Parent, _Ch, reduce, _Acc),
 	[Box#box{children=Children++Buf}|Rest].
 
-sqlb_retlog(Ind, Idx, Parent, Ch, Action, Acc) ->
-	io:format(user, "sqlb_ret ~p ~p ~p ~p ~p ~p ~n", [Ind, Idx, Parent, Ch, Action, [{box,Id,Ix,N,ltype(C)}|| #box{ind=Id,idx=Ix,name=N,children=C} <- Acc]]).
+sqlb_set_merge(_Ind, _Idx, _Parent, _Ch, Second, Merge, [First]) ->
+%	sqlb_retlog(_Ind, _Idx, _Parent, _Ch, set_reduce_first, [Second,Merge,First]),
+	Result = [box_shift(First),Merge#box{children=[Second]}],
+%	sqlb_retlog(_Ind, _Idx, _Parent, _Ch, set_reduced, Result),
+	Result;
+
+sqlb_set_merge(_Ind, _Idx, _Parent, _Ch, Second, Merge, First) ->
+%	sqlb_retlog(_Ind, _Idx, _Parent, _Ch, set_reduce_more, [Second,Merge|First]),
+	Result = lists:flatten([First] ++ [Merge#box{children=[Second]}]),
+%	sqlb_retlog(_Ind, _Idx, _Parent, _Ch, set_reduced, Result),
+	Result.
+
+
+
+%sqlb_retlog(Ind, Idx, Parent, Ch, Action, Acc) ->
+%	io:format(user, "sqlb_ret ~p ~p ~p ~p ~p ~p ~n", [Ind, Idx, Parent, Ch, Action, [{box,Id,Ix,N,ltype(C)}|| #box{ind=Id,idx=Ix,name=N,children=C} <- Acc]]).
+
+% ltype([])->
+% 	[];
+% ltype([A])->
+% 	[A#box.name];	
+% ltype([H|_])->
+% 	[H#box.name,'..'].
 
 box_shift(Boxes) when is_list(Boxes)->
 	box_shift(Boxes,[]);
@@ -410,12 +454,6 @@ box_shift([],Acc) -> lists:reverse(Acc);
 box_shift([#box{ind=Ind,children=Children}=Box|Rest], Acc) ->
 	box_shift(Rest, [Box#box{ind=Ind-1,children=box_shift(Children)}|Acc]). 
 
-ltype([])->
-	[];
-ltype([A])->
-	[A#box.name];	
-ltype([H|_])->
-	[H#box.name,'..'].
 
 setup() -> ?TEST_SQLS.
 
@@ -548,10 +586,9 @@ sqlb_loop([Sql|Rest], N) ->
 		        	io:format(user, "~p~n", [ParseTree]),
 		        	io:format(user, "-------------------------------~n", []),
 					Sqlbox = fold_tree(ParseTree, fun sqlb/6, []),
-					%% Sqlbox = box_tree(ParseTree),
 		       		io:format(user, "~n-------------------------------~nSqlbox:~n", []),
-		       		io:format(user, "~p~n", [Sqlbox]);
-		      		% ?assertMatch(#box{ind=0}, Sqlbox);
+		       		io:format(user, "~p~n", [Sqlbox]),
+		      		[?assertMatch(#box{ind=0},Box) || Box <- Sqlbox];
 		        Error -> 
 		        	io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens]),
 		        	?assertEqual(ok, Error)

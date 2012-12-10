@@ -455,7 +455,7 @@ box_shift([#box{ind=Ind,children=Children}=Box|Rest], Acc) ->
 	box_shift(Rest, [Box#box{ind=Ind-1,children=box_shift(Children)}|Acc]). 
 
 
-setup() -> ?TEST_SQLS.
+setup() -> ?TEST_SQLS0.
 
 teardown(_) -> ok.
 
@@ -512,6 +512,7 @@ sqls_loop([Sql|Rest], N) ->
 		      		SqlCollapsed = sql_parse:collapse(Sqlstr),
 		      		io:format(user, "~p~n-------------------------------~n", [SqlCollapsed]),
 		    		?assertEqual(sql_parse:collapse(string:to_lower(Sql)), string:to_lower(SqlCollapsed)),  		
+		    		% ?assertEqual(sql_parse:collapse(Sql), SqlCollapsed),  		
 		    		{ok, NewTokens, _} = sql_lex:string(SqlCollapsed ++ ";"),
 		    		case sql_parse:parse(NewTokens) of
 		        		{ok, [NewParseTree|_]} ->
@@ -551,6 +552,7 @@ sqlp_loop([Sql|Rest], N) ->
 		      		io:format(user, Sqlstr ++ "~n", []),
 		      		SqlCleaned = sql_parse:trim_nl(sql_parse:clean_cr(Sqlstr)),
 		    		?assertEqual(sql_parse:trim_nl(sql_parse:clean_cr(string:to_lower(Sql))), string:to_lower(SqlCleaned)),  		
+		    		% ?assertEqual(sql_parse:trim_nl(sql_parse:clean_cr(Sql)), SqlCleaned),  		
 		    		{ok, NewTokens, _} = sql_lex:string(SqlCleaned ++ ";"),
 		    		case sql_parse:parse(NewTokens) of
 		        		{ok, [NewParseTree|_]} ->

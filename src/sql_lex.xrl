@@ -226,7 +226,8 @@ Rules.
 
 ([\s\t\r\n]+)  :   skip_token.	%% white space
 
-((\-\-).*[\n])	:	{token, {'COMMENT', TokenLine, TokenChars}}.
+%((\-\-).*[\n])	:	{token, {'COMMENT', TokenLine, TokenChars}}.
+((\-\-).*[\n])	:	skip_token.
 
 %% - .		ECHO;	/* random non-SQL text */
 %%

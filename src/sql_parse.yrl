@@ -594,9 +594,9 @@ table_ref_commalist -> table_ref                                                
 table_ref_commalist -> table_ref_commalist ',' table_ref                                        : '$1' ++ ['$3'].
 
 table_ref -> table                                                                              : '$1'.
-table_ref -> '(' query_spec ')'                                                                 : '$2'.
-table_ref -> '(' query_spec ')' AS NAME                                                         : {'as','$2',unwrap_bin('$5')}.
-table_ref -> '(' query_spec ')' NAME                                                            : {'as','$2',unwrap_bin('$4')}.
+table_ref -> '(' query_exp ')'                                                                  : '$2'.
+table_ref -> '(' query_exp ')' AS NAME                                                          : {'as','$2',unwrap_bin('$5')}.
+table_ref -> '(' query_exp ')' NAME                                                             : {'as','$2',unwrap_bin('$4')}.
 table_ref -> table range_variable                                                               : {'$1', '$2'}.
 
 where_clause -> WHERE search_condition                                                          : {'where', '$2'}.

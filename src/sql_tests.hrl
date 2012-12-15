@@ -172,6 +172,8 @@ select
 				-
 				12.9
 "
+,
+"select 'a' || 'b' || 'c' || field from def"
 ]).
 
 

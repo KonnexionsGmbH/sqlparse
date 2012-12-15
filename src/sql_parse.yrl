@@ -84,6 +84,7 @@ Nonterminals
  subquery
  scalar_exp
  scalar_sub_exp
+ scalar_sub_exp_append_list 
  scalar_exp_commalist
  atom
  parameter_ref
@@ -285,6 +286,7 @@ Terminals
  '('
  ')'
  ','
+ '||'
  '='
  '.'
 .
@@ -659,9 +661,10 @@ subquery -> query_spec                                                          
     %% scalar expressions
 
 scalar_exp -> scalar_sub_exp                                                                    : '$1'.
-scalar_exp -> scalar_sub_exp NAME                                                               : {as, '$1', unwrap_bin('$2')}. 
+scalar_exp -> scalar_sub_exp NAME                                                               : {as, '$1', unwrap_bin('$2')}.
 scalar_exp -> scalar_sub_exp AS NAME                                                            : {as, '$1', unwrap_bin('$3')}. 
 
+scalar_sub_exp -> scalar_sub_exp_append_list                                                    : {'||','$1'}.
 scalar_sub_exp -> scalar_sub_exp '+' scalar_sub_exp                                             : {'+','$1','$3'}.
 scalar_sub_exp -> scalar_sub_exp '-' scalar_sub_exp                                             : {'-','$1','$3'}.
 scalar_sub_exp -> scalar_sub_exp '*' scalar_sub_exp                                             : {'*','$1','$3'}.
@@ -676,6 +679,14 @@ scalar_sub_exp -> subquery                                                      
 scalar_sub_exp -> column_ref                                                                    : '$1'.
 scalar_sub_exp -> function_ref                                                                  : '$1'.
 scalar_sub_exp -> '(' scalar_sub_exp ')'                                                        : '$2'.
+
+scalar_sub_exp_append_list -> '$empty'                                                          : [].
+scalar_sub_exp_append_list -> STRING '||' scalar_sub_exp_append_list                            : [unwrap_bin('$1')] ++ '$3'.
+scalar_sub_exp_append_list -> column_ref '||' scalar_sub_exp_append_list                        : [unwrap_bin('$1')] ++ '$3'.
+scalar_sub_exp_append_list -> STRING '||' STRING                                                : [unwrap_bin('$1'),unwrap_bin('$3')].
+scalar_sub_exp_append_list -> column_ref '||' column_ref                                        : ['$1','$3'].
+scalar_sub_exp_append_list -> column_ref '||' STRING                                            : ['$1',unwrap_bin('$3')].
+scalar_sub_exp_append_list -> STRING '||' column_ref                                            : [unwrap_bin('$1'),'$3'].
 
 scalar_exp_commalist -> scalar_exp                                                              : ['$1'].
 scalar_exp_commalist -> scalar_exp_commalist ',' scalar_exp                                     : '$1' ++ ['$3'].

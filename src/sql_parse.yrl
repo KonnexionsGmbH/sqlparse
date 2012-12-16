@@ -85,6 +85,7 @@ Nonterminals
  scalar_exp
  scalar_sub_exp
  scalar_sub_exp_append_list 
+ scalar_sub_exp_append_elm 
  scalar_exp_commalist
  atom
  parameter_ref
@@ -681,12 +682,11 @@ scalar_sub_exp -> function_ref                                                  
 scalar_sub_exp -> '(' scalar_sub_exp ')'                                                        : '$2'.
 
 scalar_sub_exp_append_list -> '$empty'                                                          : [].
-scalar_sub_exp_append_list -> STRING '||' scalar_sub_exp_append_list                            : [unwrap_bin('$1')] ++ '$3'.
-scalar_sub_exp_append_list -> column_ref '||' scalar_sub_exp_append_list                        : [unwrap_bin('$1')] ++ '$3'.
-scalar_sub_exp_append_list -> STRING '||' STRING                                                : [unwrap_bin('$1'),unwrap_bin('$3')].
-scalar_sub_exp_append_list -> column_ref '||' column_ref                                        : ['$1','$3'].
-scalar_sub_exp_append_list -> column_ref '||' STRING                                            : ['$1',unwrap_bin('$3')].
-scalar_sub_exp_append_list -> STRING '||' column_ref                                            : [unwrap_bin('$1'),'$3'].
+scalar_sub_exp_append_list -> scalar_sub_exp_append_elm '||' scalar_sub_exp_append_elm          : ['$1','$3'].
+scalar_sub_exp_append_list -> scalar_sub_exp_append_elm '||' scalar_sub_exp_append_list         : ['$1'] ++ '$3'.
+
+scalar_sub_exp_append_elm -> STRING                                                             : unwrap_bin('$1').
+scalar_sub_exp_append_elm -> column_ref                                                         : '$1'.
 
 scalar_exp_commalist -> scalar_exp                                                              : ['$1'].
 scalar_exp_commalist -> scalar_exp_commalist ',' scalar_exp                                     : '$1' ++ ['$3'].

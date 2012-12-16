@@ -173,7 +173,8 @@ select
 				12.9
 "
 ,
-"select 'a' || 'b' || 'c' || field from def"
+"select 'a' || 'b' || 'c' || field from def",
+"select 'a' || 'b' || 'c' || field from def where field2 = 'a' || fld3 || 's' and 's' || fld2 = 'd' || fld4 "
 ]).
 
 

@@ -288,7 +288,6 @@ Terminals
  ')'
  ','
  '||'
- '='
  '.'
 .
 
@@ -531,6 +530,7 @@ insert_atom_commalist -> insert_atom_commalist ',' insert_atom                  
 
 insert_atom -> atom                                                                             : '$1'.
 insert_atom -> function_ref                                                                     : '$1'.
+insert_atom -> scalar_sub_exp_append_list                                                       : {'||','$1'}.
 insert_atom -> NULLX                                                                            : 'null'.
 
 open_statement -> OPEN cursor                                                                   : {'open', '$2'}.
@@ -556,7 +556,7 @@ update_statement_positioned -> UPDATE table SET assignment_commalist WHERE CURRE
 assignment_commalist -> assignment                                                              : ['$1'].
 assignment_commalist -> assignment_commalist ',' assignment                                     : '$1' ++ ['$3'].
 
-assignment -> column '=' scalar_exp                                                             : {'=', '$1', '$3'}.
+assignment -> column COMPARISON scalar_exp                                                      : {'=', '$1', '$3'}.
 
 update_statement_searched -> UPDATE table SET assignment_commalist opt_where_clause             : {'update', '$2', {'set', '$4'}, '$5'}.
 

@@ -414,12 +414,12 @@ column_def -> column data_type column_def_opt_list                              
 column_def_opt_list -> '$empty'                                                                 : [].
 column_def_opt_list -> column_def_opt_list column_def_opt                                       : '$1' ++ ['$2'].
 
-column_def_opt -> NOT NULLX                                                                     : 'not nullx'.
-column_def_opt -> NOT NULLX UNIQUE                                                              : 'not nullx unique'.
-column_def_opt -> NOT NULLX PRIMARY KEY                                                         : 'not nullx primary key'.
+column_def_opt -> NOT NULLX                                                                     : 'not null'.
+column_def_opt -> NOT NULLX UNIQUE                                                              : 'not null unique'.
+column_def_opt -> NOT NULLX PRIMARY KEY                                                         : 'not null primary key'.
 column_def_opt -> DEFAULT function_ref                                                          : {'default', '$2'}.
 column_def_opt -> DEFAULT literal                                                               : {'default', '$2'}.
-column_def_opt -> DEFAULT NULLX                                                                 : {'default', 'nullx'}.
+column_def_opt -> DEFAULT NULLX                                                                 : {'default', 'null'}.
 column_def_opt -> DEFAULT USER                                                                  : {'default', 'user'}.
 column_def_opt -> CHECK '(' search_condition ')'                                                : {'check', '$3'}.
 column_def_opt -> REFERENCES table                                                              : {'ref', '$2'}.
@@ -531,7 +531,7 @@ insert_atom_commalist -> insert_atom_commalist ',' insert_atom                  
 
 insert_atom -> atom                                                                             : '$1'.
 insert_atom -> function_ref                                                                     : '$1'.
-insert_atom -> NULLX                                                                            : 'nullx'.
+insert_atom -> NULLX                                                                            : 'null'.
 
 open_statement -> OPEN cursor                                                                   : {'open', '$2'}.
 

@@ -196,7 +196,6 @@ Rules.
 
 % erlang funcs
 (fun\(\).*end\.)                :               {token, {'STRING', TokenLine, TokenChars}}.
-(\'([^\']*(\'\')*)*\')          :               {token, {'STRING', TokenLine, TokenChars}}.
 
 % hint
 ((\/\*)[^\*\/]*(\*\/))        : {token, {'HINT', TokenLine, TokenChars}}.
@@ -218,7 +217,8 @@ Rules.
 ([0-9]+)                                           : {token, {'INTNUM', TokenLine, TokenChars}}.
 
 % strings
-(\"([^\"\n\r]*(\"\")*)*\")  : {token, {'STRING', TokenLine, TokenChars}}.
+(\'([^\']*(\'\')*)*\')          : {token, {'STRING', TokenLine, TokenChars}}.
+(\"([^\"]*(\"\")*)*\")  	: {token, {'STRING', TokenLine, TokenChars}}.
 %(\"[^\"\n\r]*)$	        : {error, "Unterminated string"}.
 
 %% - <SQL>\n		{ save_str(" ");lineno++; }

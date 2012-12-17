@@ -173,8 +173,12 @@ select
 				12.9
 "
 ,
-"select 'a' || 'b' || 'c' || field from def",
-"select 'a' || 'b' || 'c' || field from def where field2 = 'a' || fld3 || 's' and 's' || fld2 = 'd' || fld4 "
+"select 'aa' || 'b\nb' || 'cc' || field from def",
+"select \"aa\" || \"b\nb\" || \"c\r\nc\" || field from def",
+"select 'a' || 'b' || 'c' || field from def where field2 = 'a' || fld3 || 's' and 's' || fld2 = 'd' || fld4 ",
+"insert into abc values (1, 'a', \"b\", 'c' || \"d\")",
+"update abc set a='a', b='b\nb', c='c' || \"c\r\nc\" where a is NULL",
+"update abc set a='a', b='b\nb', c='c' || \"c\r\nc\" where a || b = 'c' || 'd'"
 ]).
 
 

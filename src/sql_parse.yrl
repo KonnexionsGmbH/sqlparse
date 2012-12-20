@@ -118,7 +118,6 @@ Nonterminals
  spec_list
  role_list
  user_role
- enum_list
  opt_sgn_num
  create_opts
  tbl_scope
@@ -159,7 +158,6 @@ Terminals
  DELETE
  DESC
  DISTINCT
- DOUBLE
  ESCAPE
  EXISTS
  DROP
@@ -192,17 +190,14 @@ Terminals
  OPTION
  ORDER
  PARAMETER
- PRECISION
  PRIMARY
  PRIVILEGES
  PUBLIC
- REAL
  REFERENCES
  ROLLBACK
  SCHEMA
  SELECT
  SET
- SMALLINT
  SOME
  SQLERROR
  TABLE
@@ -243,22 +238,13 @@ Terminals
  EXCEPT
  NONE
  CONNECT
- TINYTEXT
- TEXT
+ RAW
  BLOB
- MEDIUMTEXT
- MEDIUMBLOB
- LONGTEXT
- LONGBLOB
- ENUM
- TINYINT
- MEDIUMINT
- BIGINT
+ CLOB
+ ROWID
  DATE
  DATETIME
  TIMESTAMP
- TIME
- YEAR
  ETUPLE
  EBINARY
  EATOM 
@@ -268,9 +254,6 @@ Terminals
  EPID
  EREF
  EFUN
- EDATETIME
- ETIMESTAMP
- EINTEGER
  ESTRING
  LOCAL
  CLUSTER
@@ -736,82 +719,54 @@ column_ref -> NAME '.' NAME '.' '*'                                             
 
         %% data types
 
-data_type -> CHARACTER                                                                          : 'char'.
-data_type -> CHARACTER '(' opt_sgn_num ')'                                                      : {'char', '$3'}.
-data_type -> VARCHARACTER                                                                       : 'varchar'.
-data_type -> VARCHARACTER '(' opt_sgn_num ')'                                                   : {'varchar', '$3'}.
-data_type -> TINYTEXT                                                                           : 'tinytext'.
-data_type -> TEXT                                                                               : 'text'.
-data_type -> MEDIUMTEXT                                                                         : 'mediumtext'.
-data_type -> LONGTEXT                                                                           : 'longtext'.
-data_type -> LONGTEXT '(' opt_sgn_num ')'                                                       : {'longtext', '$3'}.
-data_type -> NUMERIC                                                                            : 'num'.
-data_type -> NUMERIC '(' opt_sgn_num ')'                                                        : {'num', '$3'}.
-data_type -> NUMERIC '(' opt_sgn_num ',' opt_sgn_num ')'                                        : {'num', '$3', '$5'}.
-data_type -> INTEGER                                                                            : 'int'.
-data_type -> TINYINT                                                                            : 'tinyint'.
-data_type -> TINYINT '(' opt_sgn_num ')'                                                        : {'tinyint', '$3'}.
-data_type -> SMALLINT                                                                           : 'smallint'.
-data_type -> SMALLINT '(' opt_sgn_num ')'                                                       : {'smallint', '$3'}.
-data_type -> MEDIUMINT                                                                          : 'mediumint'.
-data_type -> MEDIUMINT '(' opt_sgn_num ')'                                                      : {'mediumint', '$3'}.
-data_type -> MEDIUMINT '(' opt_sgn_num ',' opt_sgn_num ')'                                      : {'mediumint', '$3', '$5'}.
-data_type -> BIGINT                                                                             : 'bigint'.
-data_type -> BIGINT '(' opt_sgn_num ')'                                                         : {'bigint', '$3'}.
-data_type -> REAL                                                                               : 'real'.
-data_type -> DOUBLE PRECISION                                                                   : 'double'.
-data_type -> DOUBLE '(' opt_sgn_num ')'                                                         : {'double', '$3'}.
+data_type -> CHARACTER                                                                          : 'string'.
+data_type -> CHARACTER '(' opt_sgn_num ')'                                                      : {'string', '$3'}.
+data_type -> VARCHARACTER                                                                       : 'string'.
+data_type -> VARCHARACTER '(' opt_sgn_num ')'                                                   : {'string', '$3'}.
+data_type -> NUMERIC                                                                            : 'decimal'.
+data_type -> NUMERIC '(' opt_sgn_num ')'                                                        : {'decimal', '$3'}.
+data_type -> NUMERIC '(' opt_sgn_num ',' opt_sgn_num ')'                                        : {'decimal', '$3', '$5'}.
+data_type -> INTEGER                                                                            : 'integer'.
+data_type -> INTEGER '(' opt_sgn_num ',' opt_sgn_num  ')'                                       : {'integer', '$3', '$5'}.
 data_type -> FLOAT                                                                              : 'float'.
 data_type -> FLOAT '(' opt_sgn_num ')'                                                          : {'float', '$3'}.
 data_type -> FLOAT '(' opt_sgn_num ',' opt_sgn_num ')'                                          : {'float', '$3', '$5'}.
-data_type -> DECIMAL                                                                            : 'dec'.
-data_type -> DECIMAL '(' opt_sgn_num ')'                                                        : {'dec', '$3'}.
-data_type -> DECIMAL '(' opt_sgn_num ',' opt_sgn_num ')'                                        : {'dec', '$3', '$5'}.
-data_type -> DOUBLE                                                                             : 'double'.
-data_type -> DOUBLE '(' opt_sgn_num ',' opt_sgn_num ')'                                         : {'double', '$3', '$5'}.
+data_type -> DECIMAL                                                                            : 'decimal'.
+data_type -> DECIMAL '(' opt_sgn_num ')'                                                        : {'decimal', '$3'}.
+data_type -> DECIMAL '(' opt_sgn_num ',' opt_sgn_num ')'                                        : {'decimal', '$3', '$5'}.
 
-data_type -> BLOB                                                                               : 'blob'.
-data_type -> BLOB '(' opt_sgn_num ')'                                                           : {'blob', '$3'}.
-data_type -> MEDIUMBLOB                                                                         : 'mediumblob'.
-data_type -> LONGBLOB                                                                           : 'longblob'.
-data_type -> LONGBLOB '(' opt_sgn_num ')'                                                       : {'longblob', '$3'}.
+data_type -> DATE                                                                               : 'datetime'.
+data_type -> DATETIME                                                                           : 'datetime'.
+data_type -> TIMESTAMP                                                                          : 'timestamp'.
+data_type -> TIMESTAMP '(' opt_sgn_num ')'                                                      : {'timestamp', '$3'}.
+
+data_type -> RAW                                                                                : 'binary'.
+data_type -> RAW '(' opt_sgn_num ')'                                                            : {'binary', '$3'}.
+data_type -> BLOB                                                                               : 'binary'.
+data_type -> BLOB '(' opt_sgn_num ')'                                                           : {'binary', '$3'}.
+data_type -> CLOB                                                                               : 'binary'.
+data_type -> CLOB '(' opt_sgn_num ')'                                                           : {'binary', '$3'}.
+data_type -> ROWID                                                                              : 'binary'.
+
+data_type -> ETUPLE                                                                             : 'tuple'.
+data_type -> ETUPLE '(' opt_sgn_num ')'                                                         : {'tuple', '$3'}.
+data_type -> EBINARY                                                                            : 'binary'.
+data_type -> EBINARY '(' opt_sgn_num ')'                                                        : {'binary', '$3'}.
+data_type -> EATOM                                                                              : 'atom'.
+data_type -> EIPADDR                                                                            : 'ipaddr'.
+data_type -> EIPADDR '(' opt_sgn_num ')'                                                        : {'ipaddr', '$3'}.
+data_type -> ELIST                                                                              : 'list'.
+data_type -> ELIST '(' opt_sgn_num ')'                                                          : {'list', '$3'}.
+data_type -> EBINSTR                                                                            : 'binstr'.
+data_type -> EBINSTR '(' opt_sgn_num ')'                                                        : {'binstr', '$3'}.
+data_type -> EPID                                                                               : 'pid'.
+data_type -> EREF                                                                               : 'ref'.
+data_type -> EFUN                                                                               : 'fun'.
+data_type -> EFUN '(' opt_sgn_num ')'                                                           : {'fun', '$3'}.
+data_type -> ESTRING                                                                            : 'string'.
 
 opt_sgn_num -> INTNUM                                                                           : unwrap('$1').
 opt_sgn_num -> '-' INTNUM                                                                       : "-"++unwrap('$2').
-
-data_type -> ENUM '(' enum_list ')'                                                             : {'enum', '$3'}.
-data_type -> SET '(' enum_list ')'                                                              : {'set', '$3'}.
-
-data_type -> DATE                                                                               : 'date'.
-data_type -> DATETIME                                                                           : 'datetime'.
-data_type -> TIMESTAMP                                                                          : 'timestamp'.
-data_type -> TIME                                                                               : 'time'.
-data_type -> YEAR                                                                               : 'year'.
-
-data_type -> ETUPLE                                                                             : 'etuple'.
-data_type -> ETUPLE '(' opt_sgn_num ')'                                                         : {'etuple', '$3'}.
-data_type -> EBINARY                                                                            : 'ebinary'.
-data_type -> EBINARY '(' opt_sgn_num ')'                                                        : {'ebinary', '$3'}.
-data_type -> EATOM                                                                              : 'eatom'.
-data_type -> EIPADDR                                                                            : 'eipaddr'.
-data_type -> EIPADDR '(' opt_sgn_num ')'                                                        : {'eipaddr', '$3'}.
-data_type -> ELIST                                                                              : 'elist'.
-data_type -> ELIST '(' opt_sgn_num ')'                                                          : {'elist', '$3'}.
-data_type -> EBINSTR                                                                            : 'ebinstr'.
-data_type -> EBINSTR '(' opt_sgn_num ')'                                                        : {'ebinstr', '$3'}.
-data_type -> EPID                                                                               : 'epid'.
-data_type -> EREF                                                                               : 'eref'.
-data_type -> EFUN                                                                               : 'efun'.
-data_type -> EFUN '(' opt_sgn_num ')'                                                           : {'efun', '$3'}.
-data_type -> EDATETIME                                                                          : 'edatetime'.
-data_type -> ETIMESTAMP                                                                         : 'etimestamp'.
-data_type -> ETIMESTAMP '(' opt_sgn_num ')'                                                     : {'etimestamp', '$3'}.
-data_type -> EINTEGER                                                                           : 'einteger'.
-data_type -> EINTEGER '(' opt_sgn_num ',' opt_sgn_num  ')'                                      : {'einteger', '$3', '$5'}.
-data_type -> ESTRING                                                                            : 'string'.
-
-enum_list -> '$empty'                                                                           : [].
-enum_list -> NAME ',' enum_list                                                                 : [unwrap_bin('$1')] ++ '$3'.
 
     %% the various things you can name
 

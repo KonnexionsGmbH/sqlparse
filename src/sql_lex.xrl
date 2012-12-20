@@ -3,26 +3,16 @@ Definitions.
 Rules.
 
 % Data Types (SQL)
-(CHAR(ACTER)?|char(acter)?)		:				{token, {'CHARACTER', TokenLine}}.
-(VARCHAR(2)?|varchar(2)?)		:				{token, {'VARCHARACTER', TokenLine}}.
-(TINYTEXT|tinytext)				:				{token, {'TINYTEXT', TokenLine}}.
-(TEXT|text)						:				{token, {'TEXT', TokenLine}}.
+((N)?CHAR(ACTER)?|(n)?char(acter)?)		:		{token, {'CHARACTER', TokenLine}}.
+((N)?CLOB|(n)?clob) 		    :		        {token, {'CLOB', TokenLine}}.
+(RAW|raw)	    	            :		        {token, {'RAW', TokenLine}}.
+(ROWID|rowid)	    	        :		        {token, {'ROWID', TokenLine}}.
+((N)?VARCHAR2|(n)?varchar2)		:				{token, {'VARCHARACTER', TokenLine}}.
 (BLOB|blob)						:				{token, {'BLOB', TokenLine}}.
-(MEDIUMTEXT|mediumtext)			:				{token, {'MEDIUMTEXT', TokenLine}}.
-(MEDIUMBLOB|mediumblob)			:				{token, {'MEDIUMBLOB', TokenLine}}.
-(LONGTEXT|longtext)				:				{token, {'LONGTEXT', TokenLine}}.
-(LONGBLOB|longblob)				:				{token, {'LONGBLOB', TokenLine}}.
-(ENUM|enum)						:				{token, {'ENUM', TokenLine}}.
-(SET|set)						:				{token, {'SET', TokenLine}}.
-(TINYINT|tinyint)				:				{token, {'TINYINT', TokenLine}}.
-(SMALLINT|smallint)				:				{token, {'SMALLINT', TokenLine}}.
-(MEDIUMINT|mediumint)			:				{token, {'MEDIUMINT', TokenLine}}.
 (INT(EGER)?|int(eger)?)			:				{token, {'INTEGER', TokenLine}}.
-(BIGINT|bigint)					:				{token, {'BIGINT', TokenLine}}.
 (FLOAT|float)					:				{token, {'FLOAT', TokenLine}}.
-(DOUBLE|double)					:				{token, {'DOUBLE', TokenLine}}.
 (DECIMAL|decimal)				:				{token, {'DECIMAL', TokenLine}}.
-(DATE|date)						:				{token, {'DATE', TokenLine}}.
+(DATE|date)						:				{token, {'DATETIME', TokenLine}}.
 (DATETIME|datetime)				:				{token, {'DATETIME', TokenLine}}.
 (TIMESTAMP|timestamp)			:				{token, {'TIMESTAMP', TokenLine}}.
 (TIME|time)						:				{token, {'TIME', TokenLine}}.
@@ -31,19 +21,17 @@ Rules.
 (LOCAL|local)				    :				{token, {'LOCAL', TokenLine}}.
 
 % Data Types (Erlang)
-(eTuple|etuple)					:				{token, {'ETUPLE', TokenLine}}.
-(eBinary|ebinary)				:				{token, {'EBINARY', TokenLine}}.
-(eAtom|eatom)					:				{token, {'EATOM', TokenLine}}.
-(eIpaddr|eipaddr)				:				{token, {'EIPADDR', TokenLine}}.
-(eList|elist)					:				{token, {'ELIST', TokenLine}}.
-(eBinstr|ebinstr)				:				{token, {'EBINSTR', TokenLine}}.
-(ePid|epid)						:				{token, {'EPID', TokenLine}}. 
-(eRef|eref)						:				{token, {'EREF', TokenLine}}.
-(eFun|efun)						:				{token, {'EFUN', TokenLine}}.
-(eDatetime|edatetime)			:				{token, {'EDATETIME', TokenLine}}.
-(eTimestamp|etimestamp)			:				{token, {'ETIMESTAMP', TokenLine}}.
-(eInteger|einteger)				:				{token, {'EINTEGER', TokenLine}}.
-(eString|estring)				:				{token, {'ESTRING', TokenLine}}.
+(TUPLE|tuple)					:				{token, {'ETUPLE', TokenLine}}.
+(BINARY|binary)				    :				{token, {'EBINARY', TokenLine}}.
+(ATOM|atom)					    :				{token, {'EATOM', TokenLine}}.
+(IPADDR|ipaddr)				    :				{token, {'EIPADDR', TokenLine}}.
+(LIST|list)					    :				{token, {'ELIST', TokenLine}}.
+(BINSTR|binstr)				    :				{token, {'EBINSTR', TokenLine}}.
+(PID|pid)						:				{token, {'EPID', TokenLine}}. 
+(REF|ref)						:				{token, {'EREF', TokenLine}}.
+(FUN|fun)						:				{token, {'EFUN', TokenLine}}.
+(INTEGER|integer)				:				{token, {'EINTEGER', TokenLine}}.
+(STRING|string)				    :				{token, {'ESTRING', TokenLine}}.
 
 
 % AMMSCs
@@ -84,6 +72,7 @@ Rules.
 (TANH|tanh)						:				{token, {'TRIGFUN', TokenLine, list_to_atom(TokenChars)}}.
 (ATAN2|atan2)                   :				{token, {'BFUN', TokenLine, list_to_atom(TokenChars)}}.
 
+(SET|set)                       :               {token, {'SET', TokenLine}}.
 (ALL|all)						:				{token, {'ALL', TokenLine}}.
 (AND|and)						:				{token, {'AND', TokenLine}}.
 (ANY|any)						:				{token, {'ANY', TokenLine}}.

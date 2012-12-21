@@ -11,3 +11,4 @@ sql.js
 priv/3rdParty
 *.sql
 sqls.js
+*.dump

@@ -798,76 +798,56 @@ when_action -> CONTINUE                                                         
 
 Erlang code.
 
--export([collapse/1, clean_cr/1, trim_nl/1, str_diff/2]).
-
 -include_lib("eunit/include/eunit.hrl").
 -include("sql_tests.hrl").
 
 unwrap({_,_,X}) -> X.
 unwrap_bin({_,_,X}) -> list_to_binary(X).
 
--define(REG_COL, [
-    {"([\n\r\t ]+)",                              " "}    % \r,\n or spaces               -> single space
-  , {"(^[ ]+)|([ ]+$)",                           ""}     % leading or trailing spaces    -> removed
-  , {"([ ]*)([\(\),])([ ]*)",                     "\\2"}  % spaces before or after ( or ) -> removed
-  , {"([ ]*)([\\/\\*\\+\\-\\=\\<\\>]+)([ ]*)",    "\\2"}  % spaces around math operators  -> removed
-% , {"([\)])([ ]*)",                              "\\1 "} % no space after )              -> added one space
-]).
-
--define(REG_CR, [
-    {"(\r)",                 		""}     % all carriage returns		-> removed
-]).
-
--define(REG_NL, [
-    {"(^[\r\n]+)",             		""}     % leading newline    		-> removed
-  , {"([\r\n]+$)",             		""}     % trailing newline    		-> removed
-]).
-
-str_diff([], [])                                            -> same;
-str_diff(String1, []) when length(String1) > 0              -> {String1, ""};
-str_diff([], String2) when length(String2) > 0              -> {"", String2};
-str_diff([S0|_] = String1, [S1|_] = String2) when S0 =/= S1 -> {String1, String2};
-str_diff([_|String1], [_|String2])                          -> str_diff(String1, String2).
-
-collapse(Sql) ->
-    lists:foldl(
-        fun({Re,R}, S) -> re:replace(S, Re, R, [{return, list}, global]) end,
-        Sql,
-        ?REG_COL).
-
-clean_cr(Sql) ->
-    lists:foldl(
-        fun({Re,R}, S) -> re:replace(S, Re, R, [{return, list}, global]) end,
-        Sql,
-        ?REG_CR).
-
-trim_nl(Sql) ->
-    lists:foldl(
-        fun({Re,R}, S) -> re:replace(S, Re, R, [{return, list}, global]) end,
-        Sql,
-        ?REG_NL).
-
-%remove_eva(S) ->
-%	re:replace(S, "([ \t]eva[ \t])", "\t\t", [global, {return, list}]).
-
-
-
+-ifdef(PARSETREE).
 parse_test() ->
     io:format(user, "===============================~n", []),
     io:format(user, "|    S Q L   P A R S I N G    |~n", []),
     io:format(user, "===============================~n", []),
-    test_parse(?TEST_SQLS, 0).
-test_parse([], _) -> ok;
-test_parse([Sql|Sqls], N) ->
-    io:format(user, "[~p]===============================~nSql: "++Sql++"~n", [N]),
-    io:format(user, "Sql collapsed:~n~p~n", [collapse(Sql)]),
+    test_parse(true, ?TEST_SQLS, 0).
+-else.
+parse_test() ->
+    io:format(user, "===============================~n", []),
+    io:format(user, "|    S Q L   P A R S I N G    |~n", []),
+    io:format(user, "===============================~n", []),
+    test_parse(false, ?TEST_SQLS, 0, {0,0,0,0,0}).
+-endif.
+
+test_parse(_, [], _, {S,C,I,U,D}) ->
+    io:format(user, "select : ~p, create : ~p, insert : ~p, update : ~p, delete : ~p -- total : ~p~n", [S,C,I,U,D,S+C+I+U+D]),
+    io:format(user, "===============================~n", []);
+test_parse(ShowParseTree, [Sql|Sqls], N, {S,C,I,U,D}) ->
+    FlatSql = re:replace(Sql, "([\n\r\t ]+)", " ", [{return, list}, global]),
+    io:format(user, "[~p] "++FlatSql++"~n", [N]),
     case (catch sql_lex:string(Sql ++ ";")) of
         {ok, Tokens, _} ->
             case (catch sql_parse:parse(Tokens)) of
                 {ok, [ParseTree|_]} -> 
-                	io:format(user, "-------------------------------~nParseTree:~n", []),
-                	io:format(user, "~p~n", [ParseTree]),
-                	io:format(user, "-------------------------------~n", []);
+                    if ShowParseTree ->
+                	    io:format(user, "-------------------------------~nParseTree:~n", []),
+                	    io:format(user, "~p~n", [ParseTree]),
+                	    io:format(user, "-------------------------------~n", []);
+                    true -> ok
+                    end,
+                    NewCounts = case element(1, ParseTree) of
+                    select -> {S+1,C,I,U,D};
+                    'create table' -> {S,C+1,I,U,D};
+                    'create user' -> {S,C+1,I,U,D};
+                    insert -> {S,C,I+1,U,D};
+                    update -> {S,C,I,U+1,D};
+                    'alter user' -> {S,C,I,U+1,D};
+                    'alter table' -> {S,C,I,U+1,D};
+                    delete -> {S,C,I,U,D+1};
+                    'drop user' -> {S,C,I,U,D+1};
+                    'drop table' -> {S,C,I,U,D+1};
+                    _ -> {S,C,I,U,D}
+                    end,
+                    test_parse(ShowParseTree, Sqls, N+1, NewCounts);
                 {'EXIT', Error} ->
                     io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens]),
                     ?assertEqual(ok, Error);
@@ -878,5 +858,4 @@ test_parse([Sql|Sqls], N) ->
         {'EXIT', Error} ->
             io:format(user, "Failed ~p~n", [Error]),
             ?assertEqual(ok, Error)
-    end,
-    test_parse(Sqls, N+1).
+    end.

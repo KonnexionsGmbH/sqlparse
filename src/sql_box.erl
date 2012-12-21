@@ -509,10 +509,10 @@ sqls_loop([Sql|Rest], N) ->
 					Sqlstr = fold_tree(ParseTree, fun sqls/6, []),
 		       		io:format(user, "~n-------------------------------~nSqlstr:~n", []),
 		      		io:format(user, "~p~n-------------------------------~n", [Sqlstr]),
-		      		SqlCollapsed = sql_parse:collapse(Sqlstr),
+		      		SqlCollapsed = collapse(Sqlstr),
 		      		io:format(user, "~p~n-------------------------------~n", [SqlCollapsed]),
-		    		?assertEqual(sql_parse:collapse(string:to_lower(Sql)), string:to_lower(SqlCollapsed)),  		
-		    		% ?assertEqual(sql_parse:collapse(Sql), SqlCollapsed),  		
+		    		?assertEqual(collapse(string:to_lower(Sql)), string:to_lower(SqlCollapsed)),  		
+		    		% ?assertEqual(collapse(Sql), SqlCollapsed),  		
 		    		{ok, NewTokens, _} = sql_lex:string(SqlCollapsed ++ ";"),
 		    		case sql_parse:parse(NewTokens) of
 		        		{ok, [NewParseTree|_]} ->
@@ -550,9 +550,9 @@ sqlp_loop([Sql|Rest], N) ->
 					Sqlstr = fold_tree(ParseTree, fun sqlp/6, []),
 		       		io:format(user, "~n-------------------------------~nSqlstr:~n", []),
 		      		io:format(user, Sqlstr ++ "~n", []),
-		      		SqlCleaned = sql_parse:trim_nl(sql_parse:clean_cr(Sqlstr)),
-		    		?assertEqual(sql_parse:trim_nl(sql_parse:clean_cr(string:to_lower(Sql))), string:to_lower(SqlCleaned)),  		
-		    		% ?assertEqual(sql_parse:trim_nl(sql_parse:clean_cr(Sql)), SqlCleaned),  		
+		      		SqlCleaned = trim_nl(clean_cr(Sqlstr)),
+		    		?assertEqual(trim_nl(clean_cr(string:to_lower(Sql))), string:to_lower(SqlCleaned)),  		
+		    		% ?assertEqual(trim_nl(clean_cr(Sql)), SqlCleaned),  		
 		    		{ok, NewTokens, _} = sql_lex:string(SqlCleaned ++ ";"),
 		    		case sql_parse:parse(NewTokens) of
 		        		{ok, [NewParseTree|_]} ->
@@ -598,3 +598,47 @@ sqlb_loop([Sql|Rest], N) ->
 		    sqlb_loop(Rest, N+1)
 	end.
 
+-define(REG_COL, [
+    {"(--.*[\n\r]+)",                             " "}    % comments                      -> removed
+  , {"([\n\r\t ]+)",                              " "}    % \r,\n or spaces               -> single space
+  , {"(^[ ]+)|([ ]+$)",                           ""}     % leading or trailing spaces    -> removed
+  , {"([ ]*)([\(\),])([ ]*)",                     "\\2"}  % spaces before or after ( or ) -> removed
+  , {"([ ]*)([\\/\\*\\+\\-\\=\\<\\>]+)([ ]*)",    "\\2"}  % spaces around math operators  -> removed
+% , {"([\)])([ ]*)",                              "\\1 "} % no space after )              -> added one space
+]).
+
+-define(REG_CR, [
+    {"(\r)",                 		""}     % all carriage returns		-> removed
+]).
+
+-define(REG_NL, [
+    {"(^[\r\n]+)",             		""}     % leading newline    		-> removed
+  , {"([\r\n]+$)",             		""}     % trailing newline    		-> removed
+]).
+
+str_diff([], [])                                            -> same;
+str_diff(String1, []) when length(String1) > 0              -> {String1, ""};
+str_diff([], String2) when length(String2) > 0              -> {"", String2};
+str_diff([S0|_] = String1, [S1|_] = String2) when S0 =/= S1 -> {String1, String2};
+str_diff([_|String1], [_|String2])                          -> str_diff(String1, String2).
+
+collapse(Sql) ->
+    lists:foldl(
+        fun({Re,R}, S) -> re:replace(S, Re, R, [{return, list}, global]) end,
+        Sql,
+        ?REG_COL).
+
+clean_cr(Sql) ->
+    lists:foldl(
+        fun({Re,R}, S) -> re:replace(S, Re, R, [{return, list}, global]) end,
+        Sql,
+        ?REG_CR).
+
+trim_nl(Sql) ->
+    lists:foldl(
+        fun({Re,R}, S) -> re:replace(S, Re, R, [{return, list}, global]) end,
+        Sql,
+        ?REG_NL).
+
+%remove_eva(S) ->
+%	re:replace(S, "([ \t]eva[ \t])", "\t\t", [global, {return, list}]).

@@ -455,7 +455,7 @@ box_shift([#box{ind=Ind,children=Children}=Box|Rest], Acc) ->
 	box_shift(Rest, [Box#box{ind=Ind-1,children=box_shift(Children)}|Acc]). 
 
 
-setup() -> ?TEST_SQLS0.
+setup() -> ?TEST_SQLS.
 
 teardown(_) -> ok.
 

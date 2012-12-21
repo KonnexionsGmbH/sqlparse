@@ -32,6 +32,7 @@ Rules.
 (FUN|fun)						:				{token, {'EFUN', TokenLine}}.
 (INTEGER|integer)				:				{token, {'EINTEGER', TokenLine}}.
 (STRING|string)				    :				{token, {'ESTRING', TokenLine}}.
+(USERID|userid)				    :				{token, {'EUSERID', TokenLine}}.
 
 
 % AMMSCs

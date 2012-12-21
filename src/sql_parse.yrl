@@ -255,6 +255,7 @@ Terminals
  EREF
  EFUN
  ESTRING
+ EUSERID
  LOCAL
  CLUSTER
  ORDERED_SET
@@ -711,6 +712,9 @@ table -> NAME '.' NAME                                                          
 table -> NAME '.' NAME AS NAME                                                                  : {as, list_to_binary(unwrap('$1') ++ "." ++ unwrap('$3')), unwrap_bin('$5')}.
 table -> NAME '.' NAME NAME                                                                     : {as, list_to_binary(unwrap('$1') ++ "." ++ unwrap('$3')), unwrap_bin('$4')}.
 
+column_ref -> ROWID                                                                             : <<"rowid">>.
+column_ref -> NAME '.' ROWID                                                                    : list_to_binary([unwrap('$1'),".","rowid"]).
+column_ref -> NAME '.' NAME '.' ROWID                                                           : list_to_binary([unwrap('$1'),".",unwrap('$3'),".","rowid"]).
 column_ref -> NAME                                                                              : unwrap_bin('$1').
 column_ref -> NAME '.' NAME                                                                     : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
 column_ref -> NAME '.' NAME '.' NAME                                                            : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).
@@ -764,6 +768,7 @@ data_type -> EREF                                                               
 data_type -> EFUN                                                                               : 'fun'.
 data_type -> EFUN '(' opt_sgn_num ')'                                                           : {'fun', '$3'}.
 data_type -> ESTRING                                                                            : 'string'.
+data_type -> EUSERID                                                                            : 'userid'.
 
 opt_sgn_num -> INTNUM                                                                           : unwrap('$1').
 opt_sgn_num -> '-' INTNUM                                                                       : "-"++unwrap('$2').

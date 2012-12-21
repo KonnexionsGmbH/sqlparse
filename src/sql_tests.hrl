@@ -1,16 +1,12 @@
--define (TEST_SQLS0,[
-"
-select distinct id from 
+-define (TEST_SELECT,[
+"select distinct id from 
 (
     SELECT id, 2 as ordered FROM a -- returns 1,4,2,3
     UNION
     SELECT id, 1 as ordered FROM b -- returns 2,1
 )
-order by ordered
-"
-,
-"
-select
+order by ordered",
+"select
 	/*+011*/
 			a
 			+
@@ -51,11 +47,8 @@ select
 		and
 			c
 			=
-			d
-"
-,
-"
-select
+			d",
+"select
 		12
 		,
 		\"12\"
@@ -74,11 +67,8 @@ select
 					\"{field_a,b}\"
 				)
 	from
-		'table_1'
-"
-,		
-"
-select
+		'table_1'",		
+"select
 	/*+038*/
 		AC_ID
 		,
@@ -170,21 +160,11 @@ select
 			=
 				a
 				-
-				12.9
-"
-,
+				12.9",
 "select 'aa' || 'b\nb' || 'cc' || field from def",
 "select \"aa\" || \"b\nb\" || \"c\r\nc\" || field from def",
-"select 'a' || 'b' || 'c' || field from def where field2 = 'a' || fld3 || 's' and 's' || fld2 = 'd' || fld4 ",
-"insert into abc values (1, 'a', \"b\", 'c' || \"d\")",
-"update abc set a='a', b='b\nb', c='c' || \"c\r\nc\" where a is NULL",
-"update abc set a='a', b='b\nb', c='c' || \"c\r\nc\" where a || b = 'c' || 'd'"
-]).
-
-
--define (TEST_SQLS4,[
-"
-SELECT
+"select 'a' || 'b' || 'c' || field from def where field2 = 'a' || fld3 || 's' and 's' || fld2 = 'd' || fld4",
+"SELECT
 	/*+011*/
 		a
 		,
@@ -196,11 +176,8 @@ SELECT
 	WHERE
 		e
 		=
-		f
-"
-,
-"
-SELECT
+		f",
+"SELECT
 		a
 		,
 			(
@@ -210,11 +187,8 @@ SELECT
 						d
 			)
 	FROM
-		b
-"
-,
-"
-	SELECT
+		b",
+"SELECT
 		/*+001*/
 		DISTINCT
 			a
@@ -240,17 +214,12 @@ UNION ALL
 	SELECT
 			i
 		FROM
-			j
-"
-,	
-"
-select
+			j",	
+"select
 	/*+000*/
 		*
 	from
-		abc
-"
-,
+		abc",
 "select
 	/*+001*/
 		a
@@ -275,9 +244,7 @@ select
 		and
 			-10.6
 			=
-			g
-"
-,
+			g",
 "
 select
 	/*+002*/
@@ -415,9 +382,7 @@ select
 			=
 			f
 "
-]).
-
--define (TEST_SQLS1,[
+,
 "
 select
 	/*+007*/
@@ -441,9 +406,7 @@ select
 			=
 			h
 "
-]).
-
--define (TEST_SQLS2,[
+,
 "
 select
 	/*+008*/
@@ -1072,13 +1035,8 @@ select
 			and
 				g
 				=
-				h
-"
-]).
-
--define (TEST_SQLS3,[
-"
-select
+				h",
+"select
 	/*+031*/
 		*
 	from
@@ -1186,11 +1144,8 @@ select
 						g
 						=
 						h
-				)
-"
-,
-"
-select
+				)",
+"select
 	/*+035*/
 		*
 	from
@@ -1198,12 +1153,9 @@ select
 	where
 		a
 		=
-		b
-"
-,
+		b",
 %	,decode(BD_MSGTYPE||BD_EVENTDISP,01,'Y',012,'Y','N') ISDELIV
-"
-select
+"select
 	/*+036*/
 		NULL as ROW_ID_S
 		,
@@ -1526,97 +1478,105 @@ select
 ]).
 
 
--define (TEST_SQLS,[
-"CREATE LOCAL BAG TABLE test (fld CHAR)",
-"CREATE CLUSTER SET TABLE test (fld CHAR)",
-"CREATE SCHEMA ORDERED_SET TABLE test (fld CHAR)",
-"CREATE ORDERED_SET TABLE test (fld CHAR)",
-"CREATE SCHEMA TABLE test (fld CHAR)",
-"CREATE TABLE test (fld CHAR)",
-"
-CREATE LOCAL BAG TABLE test
-(
-fld CHAR
-, fld VARCHAR2(13) DEFAULT \"123\"
-, fld BLOB(2000)
-, fld INT DEFAULT 99999999999999999
-, fld FLOAT(-3) DEFAULT 123456
-, fld DECIMAL(10,3) DEFAULT 1.1234
-, fld DATE DEFAULT SYSDATE
-, fld DATETIME
-, fld TIMESTAMP
-, fld INT
-)
-"
-,
-"
-CREATE LOCAL TABLE test
-(
-fld TUPLE(0) default fun() -> {} end.
-, fld BINARY(1000)
-, fld atom
-, fld ipaddr(4) default fun() -> {0,0,0,0} end. 
-, fld LIST(0) default fun() -> [] end.
-, fld BINSTR(1000) default fun() -> <<\"no_value\">> end.
-, fld PID
-, fld ref
-, fld FUN(1)
-, fld datetime default fun() -> calendar:local_time() end.
-, fld timestamp(3) default fun() -> erlang:now() end.
-, fld INTEGER(10,-3)
-)
-"
-,
-"CREATE USER test_user_1 IDENTIFIED BY a_password",
-"CREATE USER test_user_3 IDENTIFIED EXTERNALLY",
-"CREATE USER test_user_2 IDENTIFIED EXTERNALLY AS test_usr_2_extern",
-"CREATE USER test_user_4 IDENTIFIED GLOBALLY",
-"CREATE USER test_user_4 IDENTIFIED GLOBALLY AS test_usr_2_extern",
-"CREATE USER test_user_1 IDENTIFIED BY a_password DEFAULT TABLESPACE table_1",
-"CREATE USER test_user_1 IDENTIFIED BY a_password DEFAULT TABLESPACE table_1 DEFAULT TABLESPACE table_2",
-"CREATE USER test_user_1 IDENTIFIED EXTERNALLY AS test_usr_2_extern TEMPORARY TABLESPACE table_1",
-"CREATE USER test_user_1 IDENTIFIED BY a_password DEFAULT TABLESPACE table_1 TEMPORARY TABLESPACE table_2",
-"CREATE USER test_user_3 IDENTIFIED EXTERNALLY PROFILE user_profile",
-"CREATE USER test_user_3 IDENTIFIED EXTERNALLY PASSWORD EXPIRE",
-"CREATE USER test_user_3 IDENTIFIED EXTERNALLY ACCOUNT LOCK",
-"CREATE USER test_user_3 IDENTIFIED EXTERNALLY ACCOUNT UNLOCK",
-"CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA UNLIMITED ON table_1",
-"CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA 10M ON table_2",
-"CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA 10M ON table_3 QUOTA UNLIMITED ON table_1",
-"CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA 10 ON table_3 QUOTA 10M ON table_4 QUOTA UNLIMITED ON table_1",
-"ALTER USER test_user_123 IDENTIFIED BY new_password",
-"ALTER USER test_user_123 ACCOUNT LOCK",
-"ALTER USER test_user_123 ACCOUNT UNLOCK",
-"ALTER USER test_user_123 PASSWORD EXPIRE",
-"DROP USER test_user_123",
-"DROP USER test_user_123 CASCADE",
-"INSERT INTO Persons VALUES (4,'Nilsen', 'Johan', 'Bakken 2', 'Stavanger')",
-"
-CREATE TABLE Persons
-(
-P_Id int,
-LastName varchar2,
-LastName varchar2(255),
-FirstName varchar2(255),
-Address varchar2(255),
-City varchar2(255)
-)
-"
-,
-"DROP TABLE table_name",
-
-"
-create table table_1 (
-               field_a atom default 'undefined',
-               field_b list,
-               'field_c' string default \"NULL\",
-               'field_d' tuple default erl(\"{1,2}\"),
-               field_e date default fun()-> calendar:localtime() end.
-               )
-"
-,
-"insert into table_1 (field_a, field_b) values ('first',\"Stefan's choice.\")",
-"insert into table_1 (field_a, field_c) values ('second',\"Bikram\"\"s option\")",
-"insert into table_1 (field_a, field_d) values ('third',erl(\"{a,b,c}\"))",
-"insert into table_1 (field_a, field_3) values ('third',\"31.12.2012 23:59:59\")"
+-define (TEST_UPDATE,[
+                                        "ALTER USER test_user_123 IDENTIFIED BY new_password",
+                                        "ALTER USER test_user_123 ACCOUNT LOCK",
+                                        "ALTER USER test_user_123 ACCOUNT UNLOCK",
+                                        "ALTER USER test_user_123 PASSWORD EXPIRE",
+                                        "update abc set a='a', b='b\nb', c='c' || \"c\r\nc\" where a is NULL",
+                                        "update abc set a='a', b='b\nb', c='c' || \"c\r\nc\" where a || b = 'c' || 'd'"
 ]).
+
+-define (TEST_DELETE,[
+                                        "DROP USER test_user_123",
+                                        "DROP USER test_user_123 CASCADE",
+                                        "DROP TABLE table_name"
+]).
+
+-define (TEST_CREATE, [
+                                        "CREATE TABLE Persons
+                                        (
+                                        P_Id int,
+                                        LastName varchar2,
+                                        LastName varchar2(255),
+                                        FirstName varchar2(255),
+                                        Address varchar2(255),
+                                        City varchar2(255)
+                                        )",
+                                        "create table table_1 (
+                                                       owner userid,
+                                                       field_a atom default 'undefined',
+                                                       field_b list,
+                                                       'field_c' string default \"NULL\",
+                                                       'field_d' tuple default erl(\"{1,2}\"),
+                                                       field_e date default fun()-> calendar:localtime() end.
+                                                       )",
+                                        "CREATE LOCAL BAG TABLE test (fld CHAR)",
+                                        "CREATE CLUSTER SET TABLE test (fld CHAR)",
+                                        "CREATE SCHEMA ORDERED_SET TABLE test (fld CHAR)",
+                                        "CREATE ORDERED_SET TABLE test (fld CHAR)",
+                                        "CREATE SCHEMA TABLE test (fld CHAR)",
+                                        "CREATE TABLE test (fld CHAR)",
+                                        "CREATE LOCAL BAG TABLE test
+                                        (
+                                        fld CHAR
+                                        , fld VARCHAR2(13) DEFAULT \"123\"
+                                        , fld BLOB(2000)
+                                        , fld INT DEFAULT 99999999999999999
+                                        , fld FLOAT(-3) DEFAULT 123456
+                                        , fld DECIMAL(10,3) DEFAULT 1.1234
+                                        , fld DATE DEFAULT SYSDATE
+                                        , fld DATETIME
+                                        , fld TIMESTAMP
+                                        , fld INT
+                                        )",
+                                        "CREATE LOCAL TABLE test
+                                        (
+                                        fld TUPLE(0) default fun() -> {} end.
+                                        , fld BINARY(1000)
+                                        , fld atom
+                                        , fld ipaddr(4) default fun() -> {0,0,0,0} end. 
+                                        , fld LIST(0) default fun() -> [] end.
+                                        , fld BINSTR(1000) default fun() -> <<\"no_value\">> end.
+                                        , fld PID
+                                        , fld ref
+                                        , fld FUN(1)
+                                        , fld datetime default fun() -> calendar:local_time() end.
+                                        , fld timestamp(3) default fun() -> erlang:now() end.
+                                        , fld INTEGER(10,-3)
+                                        )",
+                                        "CREATE USER test_user_1 IDENTIFIED BY a_password",
+                                        "CREATE USER test_user_3 IDENTIFIED EXTERNALLY",
+                                        "CREATE USER test_user_2 IDENTIFIED EXTERNALLY AS test_usr_2_extern",
+                                        "CREATE USER test_user_4 IDENTIFIED GLOBALLY",
+                                        "CREATE USER test_user_4 IDENTIFIED GLOBALLY AS test_usr_2_extern",
+                                        "CREATE USER test_user_1 IDENTIFIED BY a_password DEFAULT TABLESPACE table_1",
+                                        "CREATE USER test_user_1 IDENTIFIED BY a_password DEFAULT TABLESPACE table_1 DEFAULT TABLESPACE table_2",
+                                        "CREATE USER test_user_1 IDENTIFIED EXTERNALLY AS test_usr_2_extern TEMPORARY TABLESPACE table_1",
+                                        "CREATE USER test_user_1 IDENTIFIED BY a_password DEFAULT TABLESPACE table_1 TEMPORARY TABLESPACE table_2",
+                                        "CREATE USER test_user_3 IDENTIFIED EXTERNALLY PROFILE user_profile",
+                                        "CREATE USER test_user_3 IDENTIFIED EXTERNALLY PASSWORD EXPIRE",
+                                        "CREATE USER test_user_3 IDENTIFIED EXTERNALLY ACCOUNT LOCK",
+                                        "CREATE USER test_user_3 IDENTIFIED EXTERNALLY ACCOUNT UNLOCK",
+                                        "CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA UNLIMITED ON table_1",
+                                        "CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA 10M ON table_2",
+                                        "CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA 10M ON table_3 QUOTA UNLIMITED ON table_1",
+                                        "CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA 10 ON table_3 QUOTA 10M ON table_4 QUOTA UNLIMITED ON table_1"
+]).
+
+-define (TEST_INSERT,[
+                                        "insert into table_1 (field_a, field_b) values ('first',\"Stefan's choice.\")",
+                                        "insert into table_1 (field_a, field_c) values ('second',\"Bikram\"\"s option\")",
+                                        "insert into table_1 (field_a, field_d) values ('third',erl(\"{a,b,c}\"))",
+                                        "insert into table_1 (field_a, field_3) values ('third',\"31.12.2012 23:59:59\")",
+                                        "insert into abc values (1, 'a', \"b\", 'c' || \"d\")",
+                                        "INSERT INTO Persons VALUES (4,'Nilsen', 'Johan', 'Bakken 2', 'Stavanger')"
+]).
+
+-define (TEST_SQLS, lists:append([
+    ?TEST_SELECT
+    , ?TEST_INSERT
+    , ?TEST_CREATE
+    , ?TEST_UPDATE
+    , ?TEST_DELETE
+])).

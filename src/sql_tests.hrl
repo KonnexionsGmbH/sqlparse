@@ -1,4 +1,6 @@
 -define (TEST_SELECT,[
+"select t1.col1, t2.col1 from def t1, def t2 where t1.col1 in (5,7) and abs(t2.col1-t1.col1) = 1"
+,
 "select distinct id from 
 (
     SELECT id, 2 as ordered FROM a -- returns 1,4,2,3

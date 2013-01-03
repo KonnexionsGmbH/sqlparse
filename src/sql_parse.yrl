@@ -685,30 +685,30 @@ parameter_ref -> parameter                                                      
 parameter_ref -> parameter parameter                                                            : {'$1', '$2'}.
 parameter_ref -> parameter INDICATOR parameter                                                  : {'indicator', '$1', '$3'}.
 
-function_ref -> NAME  '(' fun_args ')'                                                          : {'fun', list_to_atom(unwrap('$1')), '$3'}.
+function_ref -> NAME  '(' fun_args ')'                                                          : {'fun', list_to_atom(unwrap('$1')), make_list('$3')}.
 function_ref -> FUNS                                                                            : {'fun', unwrap('$1'), []}.
-function_ref -> FUNS  '(' fun_args ')'                                                          : {'fun', unwrap('$1'), '$3'}.
+function_ref -> FUNS  '(' fun_args ')'                                                          : {'fun', unwrap('$1'), make_list('$3')}.
 function_ref -> AMMSC '(' '*' ')'                                                               : {'fun', unwrap('$1'), [<<"*">>]}.
 function_ref -> AMMSC '(' DISTINCT column_ref ')'                                               : {'fun', unwrap('$1'), {'distinct', '$4'}}.
 function_ref -> AMMSC '(' ALL scalar_exp ')'                                                    : {'fun', unwrap('$1'), {'all', '$4'}}.
 function_ref -> AMMSC '(' scalar_exp ')'                                                        : {'fun', unwrap('$1'), {'$4'}}.
 
-fun_args -> function_ref                                                                        : ['$1'].
-fun_args -> column_ref                                                                          : ['$1'].
-fun_args -> scalar_sub_exp_append_list                                                          : [{'||','$1'}].
-fun_args -> fun_args '+' fun_args                                                               : [{'+','$1','$3'}].
-fun_args -> fun_args '-' fun_args                                                               : [{'-','$1','$3'}].
-fun_args -> fun_args '*' fun_args                                                               : [{'*','$1','$3'}].
-fun_args -> fun_args '/' fun_args                                                               : [{'/','$1','$3'}].
+fun_args -> function_ref                                                                        : '$1'.
+fun_args -> column_ref                                                                          : '$1'.
+fun_args -> scalar_sub_exp_append_list                                                          : {'||','$1'}.
+fun_args -> fun_args '+' fun_args                                                               : {'+','$1','$3'}.
+fun_args -> fun_args '-' fun_args                                                               : {'-','$1','$3'}.
+fun_args -> fun_args '*' fun_args                                                               : {'*','$1','$3'}.
+fun_args -> fun_args '/' fun_args                                                               : {'/','$1','$3'}.
 fun_args -> fun_args 'div' fun_args                                                             : {'div','$1','$3'}.
-fun_args -> '+' fun_args                                                                        : [{'+','$2'}]. %prec UMINU
-fun_args -> '-' fun_args                                                                        : [{'-','$2'}]. %prec UMINU
-fun_args -> '+' literal                                                                         : ['$2'].
-fun_args -> '-' literal                                                                         : [list_to_binary(["-",'$2'])].
-fun_args -> NULLX                                                                               : [<<"NULL">>].
-fun_args -> atom                                                                                : ['$1'].
-fun_args -> subquery                                                                            : ['$1'].
-fun_args -> fun_args ',' fun_args                                                               : '$1' ++ '$3'.
+fun_args -> '+' fun_args                                                                        : {'+','$2'}. %prec UMINU
+fun_args -> '-' fun_args                                                                        : {'-','$2'}. %prec UMINU
+fun_args -> '+' literal                                                                         : '$2'.
+fun_args -> '-' literal                                                                         : list_to_binary(["-",'$2']).
+fun_args -> NULLX                                                                               : <<"NULL">>.
+fun_args -> atom                                                                                : '$1'.
+fun_args -> subquery                                                                            : '$1'.
+fun_args -> fun_args ',' fun_args                                                               : ['$1'] ++ ['$3'].
 
 literal -> STRING                                                                               : unwrap_bin('$1').
 literal -> INTNUM                                                                               : unwrap_bin('$1').
@@ -813,15 +813,21 @@ Erlang code.
 -include_lib("eunit/include/eunit.hrl").
 -include("sql_tests.hrl").
 
+-define(PARSETREE, 0).
+
 unwrap({_,_,X}) -> X.
 unwrap_bin({_,_,X}) -> list_to_binary(X).
+
+make_list(L) when is_list(L) -> L;
+make_list(L) -> [L].
+
 
 -ifdef(PARSETREE).
 parse_test() ->
     io:format(user, "===============================~n", []),
     io:format(user, "|    S Q L   P A R S I N G    |~n", []),
     io:format(user, "===============================~n", []),
-    test_parse(true, ?TEST_SQLS, 0).
+    test_parse(true, ?TEST_SQLS, 0, {0,0,0,0,0}).
 -else.
 parse_test() ->
     io:format(user, "===============================~n", []),

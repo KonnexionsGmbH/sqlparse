@@ -51,27 +51,24 @@ Rules.
 (lower|LOWER)					:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
 (trunc|TRUNC)					:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
 (sydate|SYSDATE)				:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
-(erl|ERL)				        :				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
+(ABS|abs)						:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
+(ACOS|acos)						:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
+(ASIN|asin)						:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
+(ATAN|atan)						:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
+(COS|cos)						:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
+(COSH|cosh)						:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
+(COT|cot)						:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
+(SIN|sin)						:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
+(SINH|sinh)						:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
+(TAN|tan)						:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
+(TANH|tanh)						:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
+(ATAN2|atan2)                   :				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
 
 % Logical funs
 (BOOL_AND|bool_and)				:				{token, {'UFUN', TokenLine, list_to_atom(TokenChars)}}.
 (BOOL_OR|bool_or)				:				{token, {'UFUN', TokenLine, list_to_atom(TokenChars)}}.
 (SELECTIVITY|selectivity)		:				{token, {'UFUN', TokenLine, list_to_atom(TokenChars)}}.
 (STDDEV_POP|stddev_pop)			:				{token, {'UFUN', TokenLine, list_to_atom(TokenChars)}}.
-
-% Trig funs
-(ABS|abs)						:				{token, {'TRIGFUN', TokenLine, list_to_atom(TokenChars)}}.
-(ACOS|acos)						:				{token, {'TRIGFUN', TokenLine, list_to_atom(TokenChars)}}.
-(ASIN|asin)						:				{token, {'TRIGFUN', TokenLine, list_to_atom(TokenChars)}}.
-(ATAN|atan)						:				{token, {'TRIGFUN', TokenLine, list_to_atom(TokenChars)}}.
-(COS|cos)						:				{token, {'TRIGFUN', TokenLine, list_to_atom(TokenChars)}}.
-(COSH|cosh)						:				{token, {'TRIGFUN', TokenLine, list_to_atom(TokenChars)}}.
-(COT|cot)						:				{token, {'TRIGFUN', TokenLine, list_to_atom(TokenChars)}}.
-(SIN|sin)						:				{token, {'TRIGFUN', TokenLine, list_to_atom(TokenChars)}}.
-(SINH|sinh)						:				{token, {'TRIGFUN', TokenLine, list_to_atom(TokenChars)}}.
-(TAN|tan)						:				{token, {'TRIGFUN', TokenLine, list_to_atom(TokenChars)}}.
-(TANH|tanh)						:				{token, {'TRIGFUN', TokenLine, list_to_atom(TokenChars)}}.
-(ATAN2|atan2)                   :				{token, {'BFUN', TokenLine, list_to_atom(TokenChars)}}.
 
 (SET|set)                       :               {token, {'SET', TokenLine}}.
 (ALL|all)						:				{token, {'ALL', TokenLine}}.
@@ -192,7 +189,7 @@ Rules.
 
 % punctuation
 (=|<>|<|>|<=|>=)                                   : {token, {'COMPARISON', TokenLine, list_to_atom(TokenChars)}}.
-([\|\-\+\*\/\(\)\,\.\;]|(\|\|))                    : {token, {list_to_atom(TokenChars), TokenLine}}.
+([\|\-\+\*\/\(\)\,\.\;]|(\|\|)|(div))              : {token, {list_to_atom(TokenChars), TokenLine}}.
 
 % names
 [A-Za-z][A-Za-z0-9_]*                              : {token, {'NAME', TokenLen, TokenChars}}.

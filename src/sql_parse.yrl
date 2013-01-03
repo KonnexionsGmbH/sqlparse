@@ -273,6 +273,7 @@ Terminals
  ','
  '||'
  '.'
+ 'div'
 .
 
 Rootsymbol sql_list.
@@ -654,6 +655,7 @@ scalar_sub_exp -> scalar_sub_exp '+' scalar_sub_exp                             
 scalar_sub_exp -> scalar_sub_exp '-' scalar_sub_exp                                             : {'-','$1','$3'}.
 scalar_sub_exp -> scalar_sub_exp '*' scalar_sub_exp                                             : {'*','$1','$3'}.
 scalar_sub_exp -> scalar_sub_exp '/' scalar_sub_exp                                             : {'/','$1','$3'}.
+scalar_sub_exp -> scalar_sub_exp 'div' scalar_sub_exp                                           : {'div','$1','$3'}.
 scalar_sub_exp -> '+' scalar_sub_exp                                                            : {'+','$2'}. %prec UMINU
 scalar_sub_exp -> '-' scalar_sub_exp                                                            : {'-','$2'}. %prec UMINU
 scalar_sub_exp -> '+' literal                                                                   : '$2'.
@@ -691,11 +693,21 @@ function_ref -> AMMSC '(' DISTINCT column_ref ')'                               
 function_ref -> AMMSC '(' ALL scalar_exp ')'                                                    : {'fun', unwrap('$1'), {'all', '$4'}}.
 function_ref -> AMMSC '(' scalar_exp ')'                                                        : {'fun', unwrap('$1'), {'$4'}}.
 
-fun_args -> column_ref                                                                          : ['$1'].
-fun_args -> STRING                                                                              : [unwrap_bin('$1')].
-fun_args -> INTNUM                                                                              : [unwrap_bin('$1')].
-fun_args -> APPROXNUM                                                                           : [unwrap_bin('$1')].
 fun_args -> function_ref                                                                        : ['$1'].
+fun_args -> column_ref                                                                          : ['$1'].
+fun_args -> scalar_sub_exp_append_list                                                          : [{'||','$1'}].
+fun_args -> fun_args '+' fun_args                                                               : [{'+','$1','$3'}].
+fun_args -> fun_args '-' fun_args                                                               : [{'-','$1','$3'}].
+fun_args -> fun_args '*' fun_args                                                               : [{'*','$1','$3'}].
+fun_args -> fun_args '/' fun_args                                                               : [{'/','$1','$3'}].
+fun_args -> fun_args 'div' fun_args                                                             : {'div','$1','$3'}.
+fun_args -> '+' fun_args                                                                        : [{'+','$2'}]. %prec UMINU
+fun_args -> '-' fun_args                                                                        : [{'-','$2'}]. %prec UMINU
+fun_args -> '+' literal                                                                         : ['$2'].
+fun_args -> '-' literal                                                                         : [list_to_binary(["-",'$2'])].
+fun_args -> NULLX                                                                               : [<<"NULL">>].
+fun_args -> atom                                                                                : ['$1'].
+fun_args -> subquery                                                                            : ['$1'].
 fun_args -> fun_args ',' fun_args                                                               : '$1' ++ '$3'.
 
 literal -> STRING                                                                               : unwrap_bin('$1').

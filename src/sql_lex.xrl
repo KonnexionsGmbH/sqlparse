@@ -192,7 +192,7 @@ Rules.
 ([\|\-\+\*\/\(\)\,\.\;]|(\|\|)|(div))              : {token, {list_to_atom(TokenChars), TokenLine}}.
 
 % names
-[A-Za-z][A-Za-z0-9_]*                              : {token, {'NAME', TokenLen, TokenChars}}.
+[A-Za-z][A-Za-z0-9_@:]*                            : {token, {'NAME', TokenLen, TokenChars}}.
 
 % parameters
 (\:[A-Za-z][A-Za-z0-9_]*)                          : {token, {'PARAMETER', TokenLine, TokenChars}}.

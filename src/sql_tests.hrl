@@ -1,4 +1,5 @@
 -define (TEST_SELECT,[
+"select * from tab@1234@_node:@nohost",
 "select t1.col1, t2.col1 from def t1, def t2 where abs(t2.col1-t1.col1, t3.col4) = 1 and abs(t2.col1-t1.col1) = 2",
 "select * from def where t1.col1 in (5,7) and abs(sin(t2.col1) - trunc(t2.col1/t1.col1)) = 1 and t2.col1 > t1.col1 div 2",
 "select t1.col1, t2.col1 from def t1, def t2 where t1.col1 in (5,7) and abs(t2.col1-t1.col1) = 1"

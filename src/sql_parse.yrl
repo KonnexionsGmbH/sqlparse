@@ -614,6 +614,7 @@ predicate -> in_predicate                                                       
 predicate -> all_or_any_predicate                                                               : '$1'.
 predicate -> existence_test                                                                     : '$1'.
 
+comparison_predicate -> scalar_exp                                                              : '$1'.
 comparison_predicate -> scalar_exp COMPARISON scalar_exp                                        : {unwrap('$2'), '$1', '$3'}.
 comparison_predicate -> scalar_exp COMPARISON subquery                                          : {unwrap('$2'), '$1', '$3'}.
 

@@ -2,185 +2,6 @@ Definitions.
 
 Rules.
 
-% Data Types (SQL)
-((N)?CHAR(ACTER)?|(n)?char(acter)?)		:		{token, {'CHARACTER', TokenLine}}.
-((N)?CLOB|(n)?clob) 		    :		        {token, {'CLOB', TokenLine}}.
-(RAW|raw)	    	            :		        {token, {'RAW', TokenLine}}.
-(ROWID|rowid)	    	        :		        {token, {'ROWID', TokenLine}}.
-((N)?VARCHAR2|(n)?varchar2)		:				{token, {'VARCHARACTER', TokenLine}}.
-(BLOB|blob)						:				{token, {'BLOB', TokenLine}}.
-(INT(EGER)?|int(eger)?)			:				{token, {'INTEGER', TokenLine}}.
-(FLOAT|float)					:				{token, {'FLOAT', TokenLine}}.
-(DECIMAL|decimal)				:				{token, {'DECIMAL', TokenLine}}.
-(DATE|date)						:				{token, {'DATETIME', TokenLine}}.
-(DATETIME|datetime)				:				{token, {'DATETIME', TokenLine}}.
-(TIMESTAMP|timestamp)			:				{token, {'TIMESTAMP', TokenLine}}.
-(TIME|time)						:				{token, {'TIME', TokenLine}}.
-(YEAR|year)						:				{token, {'YEAR', TokenLine}}.
-(NUMERIC|numeric)				:				{token, {'NUMERIC', TokenLine}}.
-(LOCAL|local)				    :				{token, {'LOCAL', TokenLine}}.
-
-% Data Types (Erlang)
-(TUPLE|tuple)					:				{token, {'ETUPLE', TokenLine}}.
-(BINARY|binary)				    :				{token, {'EBINARY', TokenLine}}.
-(ATOM|atom)					    :				{token, {'EATOM', TokenLine}}.
-(IPADDR|ipaddr)				    :				{token, {'EIPADDR', TokenLine}}.
-(LIST|list)					    :				{token, {'ELIST', TokenLine}}.
-(BINSTR|binstr)				    :				{token, {'EBINSTR', TokenLine}}.
-(PID|pid)						:				{token, {'EPID', TokenLine}}. 
-(REF|ref)						:				{token, {'EREF', TokenLine}}.
-(FUN|fun)						:				{token, {'EFUN', TokenLine}}.
-(INTEGER|integer)				:				{token, {'EINTEGER', TokenLine}}.
-(STRING|string)				    :				{token, {'ESTRING', TokenLine}}.
-(USERID|userid)				    :				{token, {'EUSERID', TokenLine}}.
-
-
-% AMMSCs
-(AVG|avg)						:				{token, {'AMMSC', TokenLine, list_to_atom(TokenChars)}}.
-(MIN|min)						:				{token, {'AMMSC', TokenLine, list_to_atom(TokenChars)}}.
-(MAX|max)						:				{token, {'AMMSC', TokenLine, list_to_atom(TokenChars)}}.
-(SUM|sum)						:				{token, {'AMMSC', TokenLine, list_to_atom(TokenChars)}}.
-(COUNT|count)					:				{token, {'AMMSC', TokenLine, list_to_atom(TokenChars)}}.
-
-% FUNs
-(To_Char|TO_CHAR|to_char)		:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
-(NVL|nvl)(DECODE|decode)		:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
-(ltrim|LTRIM)					:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
-(to_date|TO_DATE)				:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
-(upper|UPPER)					:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
-(lower|LOWER)					:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
-(trunc|TRUNC)					:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
-(sydate|SYSDATE)				:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
-(ABS|abs)						:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
-(ACOS|acos)						:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
-(ASIN|asin)						:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
-(ATAN|atan)						:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
-(COS|cos)						:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
-(COSH|cosh)						:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
-(COT|cot)						:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
-(SIN|sin)						:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
-(SINH|sinh)						:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
-(TAN|tan)						:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
-(TANH|tanh)						:				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
-(ATAN2|atan2)                   :				{token, {'FUNS', TokenLine, list_to_atom(TokenChars)}}.
-
-% Logical funs
-(BOOL_AND|bool_and)				:				{token, {'UFUN', TokenLine, list_to_atom(TokenChars)}}.
-(BOOL_OR|bool_or)				:				{token, {'UFUN', TokenLine, list_to_atom(TokenChars)}}.
-(SELECTIVITY|selectivity)		:				{token, {'UFUN', TokenLine, list_to_atom(TokenChars)}}.
-(STDDEV_POP|stddev_pop)			:				{token, {'UFUN', TokenLine, list_to_atom(TokenChars)}}.
-
-(SET|set)                       :               {token, {'SET', TokenLine}}.
-(ALL|all)						:				{token, {'ALL', TokenLine}}.
-(AND|and)						:				{token, {'AND', TokenLine}}.
-(ANY|any)						:				{token, {'ANY', TokenLine}}.
-(AS|as)							:				{token, {'AS', TokenLine}}.
-(ASC|asc)						:				{token, {'ASC', TokenLine}}.
-(AUTHORIZATION|authorization)	:				{token, {'AUTHORIZATION', TokenLine}}.
-(BETWEEN|between)				:				{token, {'BETWEEN', TokenLine}}.
-(BY|by)							:				{token, {'BY', TokenLine}}.
-(CHECK|check)					:				{token, {'CHECK', TokenLine}}.
-(CLOSE|close)					:				{token, {'CLOSE', TokenLine}}.
-(COMMIT|commit)					:				{token, {'COMMIT', TokenLine}}.
-(CONTINUE|continue)				:				{token, {'CONTINUE', TokenLine}}.
-(CREATE|create)					:				{token, {'CREATE', TokenLine}}.
-(CURRENT|current)				:				{token, {'CURRENT', TokenLine}}.
-(CURSOR|cursor)					:				{token, {'CURSOR', TokenLine}}.
-(DECIMAL|decimal)				:				{token, {'DECIMAL', TokenLine}}.
-(DECLARE|declare)				:				{token, {'DECLARE', TokenLine}}.
-(DEFAULT|default)				:				{token, {'DEFAULT', TokenLine}}.
-(DELETE|delete)					:				{token, {'DELETE', TokenLine}}.
-(DESC|desc)						:				{token, {'DESC', TokenLine}}.
-(DISTINCT|distinct)				:				{token, {'DISTINCT', TokenLine}}.
-(DOUBLE|double)					:				{token, {'DOUBLE', TokenLine}}.
-(ESCAPE|escape)					:				{token, {'ESCAPE', TokenLine}}.
-(IF|if)					        :				{token, {'IF', TokenLine}}.
-(EXISTS|exists)					:				{token, {'EXISTS', TokenLine}}.
-(FETCH|fetch)					:				{token, {'FETCH', TokenLine}}.
-(FLOAT|float)					:				{token, {'FLOAT', TokenLine}}.
-(FOR|for)						:				{token, {'FOR', TokenLine}}.
-(FOREIGN|foreign)				:				{token, {'FOREIGN', TokenLine}}.
-(FOUND|found)					:				{token, {'FOUND', TokenLine}}.
-(FROM|from)						:				{token, {'FROM', TokenLine}}.
-((GO[\s\t]*TO)|(go[\s\t]*to))	:				{token, {'GOTO', TokenLine}}.
-(GRANT|grant)					:				{token, {'GRANT', TokenLine}}.
-(GROUP|group)					:				{token, {'GROUP', TokenLine}}.
-(HAVING|having)					:				{token, {'HAVING', TokenLine}}.
-(IN|in)							:				{token, {'IN', TokenLine}}.
-(INDICATOR|indicator)			:				{token, {'INDICATOR', TokenLine}}.
-(INSERT|insert)					:				{token, {'INSERT', TokenLine}}.
-(INTO|into)						:				{token, {'INTO', TokenLine}}.
-(IS|is)							:				{token, {'IS', TokenLine}}.
-(KEY|key)						:				{token, {'KEY', TokenLine}}.
-(LANGUAGE|language)				:				{token, {'LANGUAGE', TokenLine}}.
-(LIKE|like)						:				{token, {'LIKE', TokenLine}}.
-(NOT|not)						:				{token, {'NOT', TokenLine}}.
-(NULL|null)						:				{token, {'NULLX', TokenLine}}.
-(OF|of)							:				{token, {'OF', TokenLine}}.
-(ON|on)							:				{token, {'ON', TokenLine}}.
-(OPEN|open)						:				{token, {'OPEN', TokenLine}}.
-(OPTION|option)					:				{token, {'OPTION', TokenLine}}.
-(OR|or)							:				{token, {'OR', TokenLine}}.
-(ORDER|order)					:				{token, {'ORDER', TokenLine}}.
-(PRECISION|precision)			:				{token, {'PRECISION', TokenLine}}.
-(PRIMARY|primary)				:				{token, {'PRIMARY', TokenLine}}.
-(PRIVILEGES|privileges)			:				{token, {'PRIVILEGES', TokenLine}}.
-(PROCEDURE|procedure)			:				{token, {'PROCEDURE', TokenLine}}.
-(PUBLIC|public)					:				{token, {'PUBLIC', TokenLine}}.
-(REAL|real)						:				{token, {'REAL', TokenLine}}.
-(REFERENCES|references)			:				{token, {'REFERENCES', TokenLine}}.
-(ROLLBACK|rollback)				:				{token, {'ROLLBACK', TokenLine}}.
-(SCHEMA|schema)					:				{token, {'SCHEMA', TokenLine}}.
-(SELECT|select)					:				{token, {'SELECT', TokenLine}}.
-(DROP|drop)					    :				{token, {'DROP', TokenLine}}.
-(RESTRICT|restrict)				:				{token, {'RESTRICT', TokenLine}}.
-(CASCADE|cascade)				:				{token, {'CASCADE', TokenLine}}.
-(SOME|some)						:				{token, {'SOME', TokenLine}}.
-(SQLCODE|sqlcode)				:				{token, {'SQLCODE', TokenLine}}.
-(TABLE|table)					:				{token, {'TABLE', TokenLine}}.
-(TO|to)							:				{token, {'TO', TokenLine}}.
-(UNIQUE|unique)					:				{token, {'UNIQUE', TokenLine}}.
-(UPDATE|update)					:				{token, {'UPDATE', TokenLine}}.
-(USER|user)						:				{token, {'USER', TokenLine}}.
-(VALUES|values)					:				{token, {'VALUES', TokenLine}}.
-(VIEW|view)						:				{token, {'VIEW', TokenLine}}.
-(WHENEVER|whenever)				:				{token, {'WHENEVER', TokenLine}}.
-(WHERE|where)					:				{token, {'WHERE', TokenLine}}.
-(WITH|with)						:				{token, {'WITH', TokenLine}}.
-(WORK|work)						:				{token, {'WORK', TokenLine}}.
-(IDENTIFIED|identified)         :				{token, {'IDENTIFIED', TokenLine}}.
-(EXTERNALLY|externally)         :				{token, {'EXTERNALLY', TokenLine}}.
-(GLOBALLY|globally)             :				{token, {'GLOBALLY', TokenLine}}.
-(TABLESPACE|tablespace)         :				{token, {'TABLESPACE', TokenLine}}.
-(TEMPORARY|temporary)           :				{token, {'TEMPORARY', TokenLine}}.
-(PROFILE|profile)               :				{token, {'PROFILE', TokenLine}}.
-(EXPIRE|expite)                 :				{token, {'EXPIRE', TokenLine}}.
-(PASSWORD|password)             :				{token, {'PASSWORD', TokenLine}}.
-(ACCOUNT|account)               :				{token, {'ACCOUNT', TokenLine}}.
-(LOCK|lock)                     :				{token, {'LOCK', TokenLine}}.
-(UNLOCK|unlock)                 :				{token, {'UNLOCK', TokenLine}}.
-(QUOTA|quota)                   :				{token, {'QUOTA', TokenLine}}.
-(UNLIMITED|unlimited)           :				{token, {'UNLIMITED', TokenLine}}.
-(ALTER|alter)                   :				{token, {'ALTER', TokenLine}}.
-(ENTERPRISE|enterprise)         :				{token, {'ENTERPRISE', TokenLine}}.
-(REVOKE|revoke)                 :				{token, {'REVOKE', TokenLine}}.
-(THROUGH|through)               :				{token, {'THROUGH', TokenLine}}.
-(USERS|users)                   :				{token, {'USERS', TokenLine}}.
-(ROLE|role)                     :				{token, {'ROLE', TokenLine}}.
-(EXCEPT|except)                 :				{token, {'EXCEPT', TokenLine}}.
-(NONE|none)                     :				{token, {'NONE', TokenLine}}.
-(CONNECT|connect)               :				{token, {'CONNECT', TokenLine}}.
-
-% sql joins
-(UNION|union)					:				{token, {'UNION', TokenLine}}.
-(INTERSECT|intersect)			:				{token, {'INTERSECT', TokenLine}}.
-(MINUS|minus)					:				{token, {'MINUS', TokenLine}}.
-
-% create options
-(CLUSTER|cluster)               :				{token, {'CLUSTER', TokenLine}}.
-(BAG|bag)                       :				{token, {'BAG', TokenLine}}.
-(ORDERED_SET|ordered_set)       :				{token, {'ORDERED_SET', TokenLine}}.
-
 % erlang funcs
 (fun\(\).*end\.)                :               {token, {'STRING', TokenLine, TokenChars}}.
 
@@ -192,7 +13,8 @@ Rules.
 ([\|\-\+\*\/\(\)\,\.\;]|(\|\|)|(div))              : {token, {list_to_atom(TokenChars), TokenLine}}.
 
 % names
-[A-Za-z][A-Za-z0-9_@:#]*                           : {token, {'NAME', TokenLen, TokenChars}}.
+%[A-Za-z][A-Za-z0-9_@:#]*                           : {token, {'NAME', TokenLen, TokenChars}}.
+[A-Za-z][A-Za-z0-9_@:#]*                           : match_any(TokenChars, TokenLen, TokenLine, ?TokenPatters).
 
 % parameters
 (\:[A-Za-z][A-Za-z0-9_]*)                          : {token, {'PARAMETER', TokenLine, TokenChars}}.
@@ -220,4 +42,193 @@ Rules.
 %%
 
 Erlang code.
+-define(TokenPatters, [
 
+    % sql joins
+    {"^(?i)(UNION)$",				    'UNION'},
+    {"^(?i)(INTERSECT)$",		        'INTERSECT'},
+    {"^(?i)(MINUS)$",				    'MINUS'},
+
+    % Data Types (SQL)
+    {"^(?i)((N)?CHAR(ACTER)?)$",         'CHARACTER'},
+    {"^(?i)((N)?CLOB)$",                 'CLOB'},
+    {"^(?i)(RAW)$",                      'RAW'},
+    {"^(?i)(ROWID)$",                    'ROWID'},
+    {"^(?i)((N)?VARCHAR2)$",             'VARCHARACTER'},
+    {"^(?i)(BLOB)$",                     'BLOB'},
+    {"^(?i)(INT(EGER)?)$",               'INTEGER'},
+    {"^(?i)(FLOAT)$",                    'FLOAT'},
+    {"^(?i)(DECIMAL)$",                  'DECIMAL'},
+    {"^(?i)(DATE(TIME)?)$",              'DATETIME'},
+    {"^(?i)(TIMESTAMP)$",                'TIMESTAMP'},
+    {"^(?i)(TIME)$",                     'TIME'},
+    {"^(?i)(YEAR)$",                     'YEAR'},
+    {"^(?i)(NUMERIC)$",                  'NUMERIC'},
+    {"^(?i)(LOCAL)$",                    'LOCAL'},
+
+    {"^(?i)(TUPLE)$",				     'ETUPLE'},
+    {"^(?i)(BINARY)$",				     'EBINARY'},
+    {"^(?i)(ATOM)$",				     'EATOM'},
+    {"^(?i)(IPADDR)$",				     'EIPADDR'},
+    {"^(?i)(LIST)$",				     'ELIST'},
+    {"^(?i)(BINSTR)$",				     'EBINSTR'},
+    {"^(?i)(PID)$",				         'EPID'}, 
+    {"^(?i)(REF)$",				         'EREF'},
+    {"^(?i)(FUN)$",				         'EFUN'},
+    {"^(?i)(STRING)$",				     'ESTRING'},
+    {"^(?i)(USERID)$",				     'EUSERID'},
+
+    {"^(?i)(SET)$",                      'SET'},
+    {"^(?i)(ALL)$",				        'ALL'},
+    {"^(?i)(AND)$",				        'AND'},
+    {"^(?i)(ANY)$",				        'ANY'},
+    {"^(?i)(AS)$",				        'AS'},
+    {"^(?i)(ASC)$",				        'ASC'},
+    {"^(?i)(AUTHORIZATION)$",	        'AUTHORIZATION'},
+    {"^(?i)(BETWEEN)$",				    'BETWEEN'},
+    {"^(?i)(BY)$",				        'BY'},
+    {"^(?i)(CHECK)$",				    'CHECK'},
+    {"^(?i)(CLOSE)$",				    'CLOSE'},
+    {"^(?i)(COMMIT)$",				    'COMMIT'},
+    {"^(?i)(CONTINUE)$",			        'CONTINUE'},
+    {"^(?i)(CREATE)$",				    'CREATE'},
+    {"^(?i)(CURRENT)$",				    'CURRENT'},
+    {"^(?i)(CURSOR)$",				    'CURSOR'},
+    {"^(?i)(DECIMAL)$",				    'DECIMAL'},
+    {"^(?i)(DECLARE)$",				    'DECLARE'},
+    {"^(?i)(DEFAULT)$",				    'DEFAULT'},
+    {"^(?i)(DELETE)$",				    'DELETE'},
+    {"^(?i)(DESC)$",				        'DESC'},
+    {"^(?i)(DISTINCT)$",			        'DISTINCT'},
+    {"^(?i)(DOUBLE)$",				    'DOUBLE'},
+    {"^(?i)(ESCAPE)$",				    'ESCAPE'},
+    {"^(?i)(IF)$",				        'IF'},
+    {"^(?i)(EXISTS)$",				    'EXISTS'},
+    {"^(?i)(FETCH)$",				    'FETCH'},
+    {"^(?i)(FLOAT)$",				    'FLOAT'},
+    {"^(?i)(FOR)$",				        'FOR'},
+    {"^(?i)(FOREIGN)$",				    'FOREIGN'},
+    {"^(?i)(FOUND)$",				    'FOUND'},
+    {"^(?i)(FROM)$",				        'FROM'},
+    {"^(?i)((GO[\s\t]*TO))$",            'GOTO'},
+    {"^(?i)(GRANT)$",				    'GRANT'},
+    {"^(?i)(GROUP)$",				    'GROUP'},
+    {"^(?i)(HAVING)$",		            'HAVING'},
+    {"^(?i)(IN)$",				        'IN'},
+    {"^(?i)(INDICATOR)$",		        'INDICATOR'},
+    {"^(?i)(INSERT)$",			        'INSERT'},
+    {"^(?i)(INTO)$",				        'INTO'},
+    {"^(?i)(IS)$",				        'IS'},
+    {"^(?i)(KEY)$",				        'KEY'},
+    {"^(?i)(LANGUAGE)$",		            'LANGUAGE'},
+    {"^(?i)(LIKE)$",				        'LIKE'},
+    {"^(?i)(NOT)$",				        'NOT'},
+    {"^(?i)(NULL)$",				        'NULLX'},
+    {"^(?i)(OF)$",				        'OF'},
+    {"^(?i)(ON)$",				        'ON'},
+    {"^(?i)(OPEN)$",				        'OPEN'},
+    {"^(?i)(OPTION)$",			        'OPTION'},
+    {"^(?i)(OR)$",				        'OR'},
+    {"^(?i)(ORDER)$",				    'ORDER'},
+    {"^(?i)(PRECISION)$",		        'PRECISION'},
+    {"^(?i)(PRIMARY)$",			        'PRIMARY'},
+    {"^(?i)(PRIVILEGES)$",	            'PRIVILEGES'},
+    {"^(?i)(PROCEDURE)$",		        'PROCEDURE'},
+    {"^(?i)(PUBLIC)$",			        'PUBLIC'},
+    {"^(?i)(REAL)$",				        'REAL'},
+    {"^(?i)(REFERENCES)$",	            'REFERENCES'},
+    {"^(?i)(ROLLBACK)$",		            'ROLLBACK'},
+    {"^(?i)(SCHEMA)$",			        'SCHEMA'},
+    {"^(?i)(SELECT)$",			        'SELECT'},
+    {"^(?i)(DROP)$",				        'DROP'},
+    {"^(?i)(RESTRICT)$",		            'RESTRICT'},
+    {"^(?i)(CASCADE)$",			        'CASCADE'},
+    {"^(?i)(SOME)$",				        'SOME'},
+    {"^(?i)(SQLCODE)$",			        'SQLCODE'},
+    {"^(?i)(TABLE)$",				    'TABLE'},
+    {"^(?i)(TO)$",				        'TO'},
+    {"^(?i)(UNIQUE)$",			        'UNIQUE'},
+    {"^(?i)(UPDATE)$",			        'UPDATE'},
+    {"^(?i)(USER)$",				        'USER'},
+    {"^(?i)(VALUES)$",			        'VALUES'},
+    {"^(?i)(VIEW)$",				        'VIEW'},
+    {"^(?i)(WHENEVER)$",		            'WHENEVER'},
+    {"^(?i)(WHERE)$",				    'WHERE'},
+    {"^(?i)(WITH)$",				        'WITH'},
+    {"^(?i)(WORK)$",				        'WORK'},
+    {"^(?i)(IDENTIFIED)$",               'IDENTIFIED'},
+    {"^(?i)(EXTERNALLY)$",	            'EXTERNALLY'},
+    {"^(?i)(GLOBALLY)$",		            'GLOBALLY'},
+    {"^(?i)(TABLESPACE)$",	            'TABLESPACE'},
+    {"^(?i)(TEMPORARY)$",		        'TEMPORARY'},
+    {"^(?i)(PROFILE)$",			        'PROFILE'},
+    {"^(?i)(EXPIRE)$",			        'EXPIRE'},
+    {"^(?i)(PASSWORD)$",		            'PASSWORD'},
+    {"^(?i)(ACCOUNT)$",			        'ACCOUNT'},
+    {"^(?i)(LOCK)$",				        'LOCK'},
+    {"^(?i)(UNLOCK)$",			        'UNLOCK'},
+    {"^(?i)(QUOTA)$",				    'QUOTA'},
+    {"^(?i)(UNLIMITED)$",		        'UNLIMITED'},
+    {"^(?i)(ALTER)$",				    'ALTER'},
+    {"^(?i)(ENTERPRISE)$",	            'ENTERPRISE'},
+    {"^(?i)(REVOKE)$",			        'REVOKE'},
+    {"^(?i)(THROUGH)$",			        'THROUGH'},
+    {"^(?i)(USERS)$",				    'USERS'},
+    {"^(?i)(ROLE)$",				        'ROLE'},
+    {"^(?i)(EXCEPT)$",			        'EXCEPT'},
+    {"^(?i)(NONE)$",				        'NONE'},
+    {"^(?i)(CONNECT)$",			        'CONNECT'},
+
+    % create options
+    {"^(?i)(CLUSTER)$",			        'CLUSTER'},
+    {"^(?i)(BAG)$",				        'BAG'},
+    {"^(?i)(ORDERED_SET)$",	            'ORDERED_SET'},
+
+    % AMMSCs
+    {"^(?i)(AVG)$",				        'AMMSC'},
+    {"^(?i)(MIN)$",				        'AMMSC'},
+    {"^(?i)(MAX)$",				        'AMMSC'},
+    {"^(?i)(SUM)$",				        'AMMSC'},
+    {"^(?i)(COUNT)$",				    'AMMSC'},
+
+    % FUNs
+    {"^(?i)(TO_CHAR)$",				    'FUNS'},
+    {"^(?i)(NVL)$",				        'FUNS'},
+    {"^(?i)(LTRIM)$",				    'FUNS'},
+    {"^(?i)(TO_DATE)$",				    'FUNS'},
+    {"^(?i)(UPPER)$",				    'FUNS'},
+    {"^(?i)(LOWER)$",				    'FUNS'},
+    {"^(?i)(TRUNC)$",				    'FUNS'},
+    {"^(?i)(SYSDATE)$",				    'FUNS'},
+    {"^(?i)(ABS)$",				        'FUNS'},
+    {"^(?i)(ACOS)$",				        'FUNS'},
+    {"^(?i)(ASIN)$",				        'FUNS'},
+    {"^(?i)(ATAN)$",				        'FUNS'},
+    {"^(?i)(COS)$",				        'FUNS'},
+    {"^(?i)(COSH)$",				        'FUNS'},
+    {"^(?i)(COT)$",				        'FUNS'},
+    {"^(?i)(SIN)$",				        'FUNS'},
+    {"^(?i)(SINH)$",				        'FUNS'},
+    {"^(?i)(TAN)$",				        'FUNS'},
+    {"^(?i)(TANH)$",				        'FUNS'},
+    {"^(?i)(ATAN2)$",				    'FUNS'},
+
+    % Logical funs
+    {"^(?i)(BOOL_AND)$",				    'UFUN'},
+    {"^(?i)(BOOL_OR)$",				    'UFUN'},
+    {"^(?i)(SELECTIVITY)$",				'UFUN'},
+    {"^(?i)(STDDEV_POP)$",				'UFUN'}
+]).
+
+match_any(TokenChars, TokenLen, _TokenLine, []) ->
+    {token, {'NAME', TokenLen, TokenChars}};
+match_any(TokenChars, TokenLen, TokenLine, [{P,T}|TPs]) ->
+    case re:run(TokenChars, P, [{capture, first, list}]) of
+        {match,[_]} ->
+            if (T =:= 'AMMSC') orelse
+               (T =:= 'FUNS') orelse
+               (T =:= 'UFUN') -> {token, {T, TokenLine, list_to_atom(TokenChars)}};
+            true              -> {token, {T, TokenLine}}
+        end;
+        nomatch     -> match_any(TokenChars, TokenLen, TokenLine, TPs)
+    end.

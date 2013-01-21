@@ -1,7 +1,7 @@
 -define (TEST_SELECT,[
 "select d.col1, m.col1, m.\"'$_'\" from def d, member_test m",
 "select d.col1, m.col1, \"'$_'\".m from def d, member_test m",
-%"select d.col1, m.col1 from def d, member_test m where is_member(d.col1,m.\"'$_'\")",
+"select d.col1, m.col1 from def d, member_test m where is_member(d.col1,m.\"'$_'\")",
 "select * from member_test where is_member(3,col2)",
 "sElect * frOm tab@1234@_no#de:@nohost",
 "select t1.col1, t2.col1 from def t1, def t2 where abs(t2.col1-t1.col1, t3.col4) = 1 and abs(t2.col1-t1.col1) = 2",
@@ -1583,9 +1583,9 @@ select
 ]).
 
 -define (TEST_SQLS, [
-      {"SELECT", ?TEST_SELECT, 5} 
-    , {"INSERT", ?TEST_INSERT, 1}
-    , {"CREATE", ?TEST_CREATE, 0}
+      {"SELECT", ?TEST_SELECT, -1} 
+    , {"INSERT", ?TEST_INSERT, -1}
+    , {"CREATE", ?TEST_CREATE, -1}
     , {"UPDATE", ?TEST_UPDATE, -1}
-    , {"DELETE", ?TEST_DELETE, 0}
+    , {"DELETE", ?TEST_DELETE, -1}
 ]).

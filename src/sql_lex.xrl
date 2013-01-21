@@ -3,43 +3,39 @@ Definitions.
 Rules.
 
 % erlang funcs
-(fun\(\).*end\.)                :               {token, {'STRING', TokenLine, TokenChars}}.
+(fun\(\).*end\.)                                    : {token, {'STRING', TokenLine, TokenChars}}.
+
+% strings
+(\'([^\']*(\'\')*)*\')                              : {token, {'STRING', TokenLine, TokenChars}}.
+(\"([^\"]*(\"\")*)*\")  	                        : {token, {'NAME', TokenLine, TokenChars}}.
 
 % hint
-((\/\*)[^\*\/]*(\*\/))        : {token, {'HINT', TokenLine, TokenChars}}.
+((\/\*)[^\*\/]*(\*\/))                              : {token, {'HINT', TokenLine, TokenChars}}.
 
 % punctuation
-(=|<>|<|>|<=|>=)                                   : {token, {'COMPARISON', TokenLine, list_to_atom(TokenChars)}}.
-([\|\-\+\*\/\(\)\,\.\;]|(\|\|)|(div))              : {token, {list_to_atom(TokenChars), TokenLine}}.
+(=|<>|<|>|<=|>=)                                    : {token, {'COMPARISON', TokenLine, list_to_atom(TokenChars)}}.
+([\|\-\+\*\/\(\)\,\.\;]|(\|\|)|(div))               : {token, {list_to_atom(TokenChars), TokenLine}}.
 
 % names
 %[A-Za-z][A-Za-z0-9_@:#]*                           : {token, {'NAME', TokenLen, TokenChars}}.
-[A-Za-z][A-Za-z0-9_@:#]*                           : match_any(TokenChars, TokenLen, TokenLine, ?TokenPatters).
+[A-Za-z][A-Za-z0-9_@:#]*                            : match_any(TokenChars, TokenLen, TokenLine, ?TokenPatters).
 
 % parameters
-(\:[A-Za-z][A-Za-z0-9_]*)                          : {token, {'PARAMETER', TokenLine, TokenChars}}.
+(\:[A-Za-z][A-Za-z0-9_]*)                           : {token, {'PARAMETER', TokenLine, TokenChars}}.
 
 % numbers
-%(([\+\-]?)([0-9]+\.[0-9]+([eE][\+\-]?[0-9]+)*))   : {token, {'APPROXNUM', TokenLine, list_to_float(TokenChars)}}.
-%([\+\-]?[0-9]+)                                   : {token, {'INTNUM', TokenLine, list_to_integer(TokenChars)}}.
-(([0-9]+\.[0-9]+([eE][\+\-]?[0-9]+)*))             : {token, {'APPROXNUM', TokenLine, TokenChars}}.
-([0-9]+)                                           : {token, {'INTNUM', TokenLine, TokenChars}}.
+%(([\+\-]?)([0-9]+\.[0-9]+([eE][\+\-]?[0-9]+)*))    : {token, {'APPROXNUM', TokenLine, list_to_float(TokenChars)}}.
+%([\+\-]?[0-9]+)                                    : {token, {'INTNUM', TokenLine, list_to_integer(TokenChars)}}.
+(([0-9]+\.[0-9]+([eE][\+\-]?[0-9]+)*))              : {token, {'APPROXNUM', TokenLine, TokenChars}}.
+([0-9]+)                                            : {token, {'INTNUM', TokenLine, TokenChars}}.
 
-% strings
-(\'([^\']*(\'\')*)*\')          : {token, {'STRING', TokenLine, TokenChars}}.
-(\"([^\"]*(\"\")*)*\")  	: {token, {'STRING', TokenLine, TokenChars}}.
-%(\"[^\"\n\r]*)$	        : {error, "Unterminated string"}.
+% skips
+([\s\t\r\n]+)                                       :   skip_token.	%% white space
 
-%% - <SQL>\n		{ save_str(" ");lineno++; }
-%% - \n		{ lineno++; ECHO; }
+% comments
+%((\-\-).*[\n])	                                    :	{token, {'COMMENT', TokenLine, TokenChars}}.
+((\-\-).*[\n])	                                    :	skip_token.
 
-([\s\t\r\n]+)  :   skip_token.	%% white space
-
-%((\-\-).*[\n])	:	{token, {'COMMENT', TokenLine, TokenChars}}.
-((\-\-).*[\n])	:	skip_token.
-
-%% - .		ECHO;	/* random non-SQL text */
-%%
 
 Erlang code.
 -define(TokenPatters, [

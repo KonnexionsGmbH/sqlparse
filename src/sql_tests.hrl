@@ -1,4 +1,7 @@
 -define (TEST_SELECT,[
+"select d.col1, m.col1, m.\"'$_'\" from def d, member_test m",
+"select d.col1, m.col1, \"'$_'\".m from def d, member_test m",
+%"select d.col1, m.col1 from def d, member_test m where is_member(d.col1,m.\"'$_'\")",
 "select * from member_test where is_member(3,col2)",
 "sElect * frOm tab@1234@_no#de:@nohost",
 "select t1.col1, t2.col1 from def t1, def t2 where abs(t2.col1-t1.col1, t3.col4) = 1 and abs(t2.col1-t1.col1) = 2",
@@ -1512,7 +1515,7 @@ select
                                                        owner userid,
                                                        field_a atom default 'undefined',
                                                        field_b list,
-                                                       'field_c' string default \"NULL\",
+                                                       'field_c' string default 'NULL',
                                                        'field_d' tuple default erl(\"{1,2}\"),
                                                        field_e date default fun()-> calendar:localtime() end.
                                                        )",
@@ -1525,7 +1528,7 @@ select
                                         "CREATE LOCAL BAG TABLE test
                                         (
                                         fld CHAR
-                                        , fld VARCHAR2(13) DEFAULT \"123\"
+                                        , fld VARCHAR2(13) DEFAULT '123'
                                         , fld BLOB(2000)
                                         , fld INT DEFAULT 99999999999999999
                                         , fld FLOAT(-3) DEFAULT 123456
@@ -1570,18 +1573,19 @@ select
 ]).
 
 -define (TEST_INSERT,[
-                                        "insert into table_1 (field_a, field_b) values ('first',\"Stefan's choice.\")",
-                                        "insert into table_1 (field_a, field_c) values ('second',\"Bikram\"\"s option\")",
+                                        "insert into table_1 (field_a, field_b) values ('first','Stefan''s choice.')",
+                                        "insert into table_1 (field_a, field_c) values ('second','Double quote \" in string')",
+                                        "insert into table_1 (field_a, field_c) values ('second','Single quote '' in string')",
                                         "insert into table_1 (field_a, field_d) values ('third',erl(\"{a,b,c}\"))",
-                                        "insert into table_1 (field_a, field_3) values ('third',\"31.12.2012 23:59:59\")",
-                                        "insert into abc values (1, 'a', \"b\", 'c' || \"d\")",
+                                        "insert into table_1 (field_a, field_3) values ('third','31.12.2012 23:59:59')",
+                                        "insert into abc values (1, 'a', 'b', 'c' || 'd')",
                                         "INSERT INTO Persons VALUES (4,'Nilsen', 'Johan', 'Bakken 2', 'Stavanger')"
 ]).
 
--define (TEST_SQLS, lists:append([
-    ?TEST_SELECT
-    , ?TEST_INSERT
-    , ?TEST_CREATE
-    , ?TEST_UPDATE
-    , ?TEST_DELETE
-])).
+-define (TEST_SQLS, [
+      {"SELECT", ?TEST_SELECT, 5} 
+    , {"INSERT", ?TEST_INSERT, 1}
+    , {"CREATE", ?TEST_CREATE, 0}
+    , {"UPDATE", ?TEST_UPDATE, -1}
+    , {"DELETE", ?TEST_DELETE, 0}
+]).

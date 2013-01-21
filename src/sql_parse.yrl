@@ -734,7 +734,7 @@ column_ref -> NAME '.' NAME '.' NAME                                            
 column_ref -> NAME '.' '*'                                                                      : list_to_binary([unwrap('$1'),".*"]).
 column_ref -> NAME '.' NAME '.' '*'                                                             : list_to_binary([unwrap('$1'),".",unwrap('$3'),".*"]).
 
-        %% data types
+%% data types
 
 data_type -> CHARACTER                                                                          : 'string'.
 data_type -> CHARACTER '(' opt_sgn_num ')'                                                      : {'string', '$3'}.
@@ -828,19 +828,27 @@ parse_test() ->
     io:format(user, "===============================~n", []),
     io:format(user, "|    S Q L   P A R S I N G    |~n", []),
     io:format(user, "===============================~n", []),
-    test_parse(true, ?TEST_SQLS, 0, {0,0,0,0,0}).
+    parse_groups(true, ?TEST_SQLS, {0,0,0,0,0}).
 -else.
 parse_test() ->
     io:format(user, "===============================~n", []),
     io:format(user, "|    S Q L   P A R S I N G    |~n", []),
     io:format(user, "===============================~n", []),
-    test_parse(false, ?TEST_SQLS, 0, {0,0,0,0,0}).
+    parse_groups(false, ?TEST_SQLS, {0,0,0,0,0}).
 -endif.
 
-test_parse(_, [], _, {S,C,I,U,D}) ->
-    io:format(user, "select : ~p, create : ~p, insert : ~p, update : ~p, delete : ~p -- total : ~p~n", [S,C,I,U,D,S+C+I+U+D]),
+parse_groups(_, [], {S,C,I,U,D}) ->
+    io:format(user, "~n-------------~nselect : ~p~ninsert : ~p~ncreate : ~p~nupdate : ~p~ndelete : ~p~n-------------~ntotal  : ~p~n", [S,I,C,U,D,S+I+C+U+D]),
     io:format(user, "===============================~n", []);
-test_parse(ShowParseTree, [Sql|Sqls], N, {S,C,I,U,D}) ->
+parse_groups(ShowParseTree, [{Title, SqlGroup, Limit}|SqlGroups], Counters) ->
+    io:format(user, "+-------------------------------+~n", []),
+    io:format(user, "|\t"++Title++"(~p)\t\t|~n", [Limit]),
+    io:format(user, "+-------------------------------+~n", []),
+    NewCounters = if Limit =:= 0 -> Counters; true -> test_parse(ShowParseTree, SqlGroup, 1, Counters, Limit) end,
+    parse_groups(ShowParseTree, SqlGroups, NewCounters).
+
+test_parse(_, [], _, Counters, _) -> Counters;
+test_parse(ShowParseTree, [Sql|Sqls], N, {S,C,I,U,D}, Limit) ->
     FlatSql = re:replace(Sql, "([\n\r\t ]+)", " ", [{return, list}, global]),
     io:format(user, "[~p] "++FlatSql++"~n", [N]),
     case (catch sql_lex:string(Sql ++ ";")) of
@@ -866,7 +874,9 @@ test_parse(ShowParseTree, [Sql|Sqls], N, {S,C,I,U,D}) ->
                     'drop table' -> {S,C,I,U,D+1};
                     _ -> {S,C,I,U,D}
                     end,
-                    test_parse(ShowParseTree, Sqls, N+1, NewCounts);
+                    if (Limit =:= 1) -> NewCounts; true ->
+                    test_parse(ShowParseTree, Sqls, N+1, NewCounts, Limit-1)
+                    end;
                 {'EXIT', Error} ->
                     io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens]),
                     ?assertEqual(ok, Error);

@@ -195,7 +195,7 @@ Erlang code.
     {"^(?i)(UPPER)$",                    'FUNS'},
     {"^(?i)(LOWER)$",                    'FUNS'},
     {"^(?i)(TRUNC)$",                    'FUNS'},
-    {"^(?i)(SYSDATE)$",                 'FUNS'},
+%    {"^(?i)(SYSDATE)$",                 'FUNS'},
     {"^(?i)(ABS)$",                      'FUNS'},
     {"^(?i)(ACOS)$",                     'FUNS'},
     {"^(?i)(ASIN)$",                     'FUNS'},

@@ -1,4 +1,5 @@
 -define (TEST_SELECT,[
+"select name, lastLoginTime from ddAccount where lastLoginTime > sysdate - 1.1574074074074073e-4",
 "select d.col1, m.col1, m.\"'$_'\" from def d, member_test m",
 "select d.col1, m.col1, \"'$_'\".m from def d, member_test m",
 "select d.col1, m.col1 from def d, member_test m where is_member(d.col1,m.\"'$_'\")",

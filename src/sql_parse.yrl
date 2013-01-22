@@ -403,6 +403,7 @@ column_def_opt -> NOT NULLX UNIQUE                                              
 column_def_opt -> NOT NULLX PRIMARY KEY                                                         : 'not null primary key'.
 column_def_opt -> DEFAULT function_ref                                                          : {'default', '$2'}.
 column_def_opt -> DEFAULT literal                                                               : {'default', '$2'}.
+column_def_opt -> DEFAULT NAME                                                                  : {'default', unwrap_bin('$2')}.
 column_def_opt -> DEFAULT NULLX                                                                 : {'default', 'null'}.
 column_def_opt -> DEFAULT USER                                                                  : {'default', 'user'}.
 column_def_opt -> CHECK '(' search_condition ')'                                                : {'check', '$3'}.

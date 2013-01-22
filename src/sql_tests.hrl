@@ -1515,6 +1515,12 @@ select
                                         "create table table_1 (
                                                        owner userid,
                                                        private term,
+                                                       field_t decimal,
+                                                       field_t1 bool,
+                                                       field_t1 boolean,
+                                                       field_t1 number,
+                                                       field_t1 number(1),
+                                                       field_t1 number(1,2),
                                                        field_a atom default 'undefined',
                                                        field_b list,
                                                        'field_c' string default 'NULL',

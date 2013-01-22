@@ -63,6 +63,7 @@ Erlang code.
     {"^(?i)(LOCAL)$",                    'LOCAL'},
 
     {"^(?i)(TERM)$",                     'ETERM'},
+    {"^(?i)(BOOL(EAN)?)$",               'EBOOL'},
     {"^(?i)(TUPLE)$",                    'ETUPLE'},
     {"^(?i)(BINARY)$",                   'EBINARY'},
     {"^(?i)(ATOM)$",                     'EATOM'},
@@ -92,6 +93,7 @@ Erlang code.
     {"^(?i)(CURRENT)$",                  'CURRENT'},
     {"^(?i)(CURSOR)$",                   'CURSOR'},
     {"^(?i)(DECIMAL)$",                  'DECIMAL'},
+    {"^(?i)(NUMBER)$",                   'DECIMAL'},
     {"^(?i)(DECLARE)$",                  'DECLARE'},
     {"^(?i)(DEFAULT)$",                  'DEFAULT'},
     {"^(?i)(DELETE)$",                   'DELETE'},

@@ -62,6 +62,7 @@ Erlang code.
     {"^(?i)(NUMERIC)$",                  'NUMERIC'},
     {"^(?i)(LOCAL)$",                    'LOCAL'},
 
+    {"^(?i)(TERM)$",                     'ETERM'},
     {"^(?i)(TUPLE)$",                    'ETUPLE'},
     {"^(?i)(BINARY)$",                   'EBINARY'},
     {"^(?i)(ATOM)$",                     'EATOM'},

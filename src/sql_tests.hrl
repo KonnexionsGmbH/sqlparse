@@ -1514,6 +1514,7 @@ select
                                         )",
                                         "create table table_1 (
                                                        owner userid,
+                                                       private term,
                                                        field_a atom default 'undefined',
                                                        field_b list,
                                                        'field_c' string default 'NULL',
@@ -1575,7 +1576,7 @@ select
 
 -define (TEST_INSERT,[
                                         "insert into def (col1,col2) values ('C', \"undefined\")",
-                                        "insert into def (col1,col2) values ('C', 5+\"undefined\")",
+                                        "insert into def (col1,col2) values ('C', 5+1)",
                                         "insert into table_1 (field_a, field_b) values ('first','Stefan''s choice.')",
                                         "insert into table_1 (field_a, field_c) values ('second','Double quote \" in string')",
                                         "insert into table_1 (field_a, field_c) values ('second','Single quote '' in string')",

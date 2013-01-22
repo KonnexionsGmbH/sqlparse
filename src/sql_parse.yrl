@@ -246,6 +246,7 @@ Terminals
  DATETIME
  TIMESTAMP
  ETUPLE
+ ETERM
  EBINARY
  EATOM 
  EIPADDR
@@ -763,6 +764,7 @@ data_type -> CLOB                                                               
 data_type -> CLOB '(' opt_sgn_num ')'                                                           : {'binary', '$3'}.
 data_type -> ROWID                                                                              : 'binary'.
 
+data_type -> ETERM                                                                              : 'term'.
 data_type -> ETUPLE                                                                             : 'tuple'.
 data_type -> ETUPLE '(' opt_sgn_num ')'                                                         : {'tuple', '$3'}.
 data_type -> EBINARY                                                                            : 'binary'.

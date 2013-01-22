@@ -514,10 +514,7 @@ values_or_query_spec -> query_spec                                              
 insert_atom_commalist -> insert_atom                                                            : ['$1'].
 insert_atom_commalist -> insert_atom_commalist ',' insert_atom                                  : '$1' ++ ['$3'].
 
-insert_atom -> atom                                                                             : '$1'.
-insert_atom -> function_ref                                                                     : '$1'.
-insert_atom -> scalar_sub_exp_append_list                                                       : {'||','$1'}.
-insert_atom -> NULLX                                                                            : 'null'.
+insert_atom -> scalar_sub_exp                                                                   : '$1'.
 
 open_statement -> OPEN cursor                                                                   : {'open', '$2'}.
 

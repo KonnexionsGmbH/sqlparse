@@ -736,9 +736,9 @@ column_ref -> NAME '.' NAME '.' '*'                                             
 
 %% data types
 
-data_type -> NAME                                                                               : unwrap_atom('$1').
-data_type -> NAME '(' opt_sgn_num ')'                                                           : {unwrap_atom('$1'), '$3'}.
-data_type -> NAME '(' opt_sgn_num ',' opt_sgn_num ')'                                           : {unwrap_atom('$1'), '$3', '$5'}.
+data_type -> NAME                                                                               : datatype('$1').
+data_type -> NAME '(' opt_sgn_num ')'                                                           : {datatype('$1'), '$3'}.
+data_type -> NAME '(' opt_sgn_num ',' opt_sgn_num ')'                                           : {datatype('$1'), '$3', '$5'}.
 
 % data_type -> CHARACTER                                                                          : 'string'.
 % data_type -> CHARACTER '(' opt_sgn_num ')'                                                      : {'string', '$3'}.
@@ -824,7 +824,41 @@ Erlang code.
 
 unwrap({_,_,X}) -> X.
 unwrap_bin({_,_,X}) -> list_to_binary(X).
-unwrap_atom({_,_,X}) -> list_to_atom(X).
+datatype({_,_,X}) ->
+    case string:to_lower(X) of
+    "atom"      -> 'atom';
+    "float"     -> 'float';
+    "fun"       -> 'fun';
+    "term"      -> 'term';
+    "timestamp" -> 'timestamp';
+    "tuple"     -> 'tuple';
+    "ipaddr"    -> 'ipaddr';
+    "list"      -> 'list';
+    "pid"       -> 'pid';
+    "ref"       -> 'ref';
+    "binary"    -> 'binary';
+    "raw"       -> 'raw';
+    "blob"      -> 'blob';
+    "rowid"     -> 'rowid';
+    "binstr"    -> 'binstr';
+    "clob"      -> 'clob';
+    "nclob"     -> 'nclob';
+    "bool"      -> 'bool';
+    "boolean"   -> 'boolean';
+    "datetime"  -> 'datetime';
+    "date"      -> 'date';
+    "decimal"   -> 'decimal';
+    "number"    -> 'number';
+    "userid"    -> 'userid';
+    "integer"   -> 'integer';
+    "int"       -> 'int';
+    "string"    -> 'string';
+    "varchar2"  -> 'varchar2';
+    "nvarchar2" -> 'nvarchar2';
+    "char"      -> 'char';
+    "nchar"     -> 'nchar';
+    Other -> throw("unknown datatype " ++ Other)
+    end.
 
 make_list(L) when is_list(L) -> L;
 make_list(L) -> [L].

@@ -30,11 +30,11 @@ Rules.
 ([0-9]+)                                            : {token, {'INTNUM', TokenLine, TokenChars}}.
 
 % skips
-([\s\t\r\n]+)                                       :   skip_token.    %% white space
+([\s\t\r\n]+)                                       : skip_token.    %% white space
 
 % comments
-%((\-\-).*[\n])                                     :    {token, {'COMMENT', TokenLine, TokenChars}}.
-((\-\-).*[\n])                                      :    skip_token.
+%((\-\-).*[\n])                                     : {token, {'COMMENT', TokenLine, TokenChars}}.
+((\-\-).*[\n])                                      : skip_token.
 
 
 Erlang code.
@@ -46,36 +46,39 @@ Erlang code.
     {"^(?i)(MINUS)$",                    'MINUS'},
 
     % Data Types (SQL)
-    {"^(?i)((N)?CHAR(ACTER)?)$",         'CHARACTER'},
-    {"^(?i)((N)?CLOB)$",                 'CLOB'},
-    {"^(?i)(RAW)$",                      'RAW'},
-    {"^(?i)(ROWID)$",                    'ROWID'},
-    {"^(?i)((N)?VARCHAR2)$",             'VARCHARACTER'},
-    {"^(?i)(BLOB)$",                     'BLOB'},
-    {"^(?i)(INT(EGER)?)$",               'INTEGER'},
-    {"^(?i)(FLOAT)$",                    'FLOAT'},
-    {"^(?i)(DECIMAL)$",                  'DECIMAL'},
-    {"^(?i)(DATE(TIME)?)$",              'DATETIME'},
-    {"^(?i)(TIMESTAMP)$",                'TIMESTAMP'},
-    {"^(?i)(TIME)$",                     'TIME'},
-    {"^(?i)(YEAR)$",                     'YEAR'},
-    {"^(?i)(NUMERIC)$",                  'NUMERIC'},
+%    {"^(?i)((N)?CHAR(ACTER)?)$",         'CHARACTER'},
+%    {"^(?i)((N)?CLOB)$",                 'CLOB'},
+%    {"^(?i)(RAW)$",                      'RAW'},
+%    {"^(?i)(ROWID)$",                    'ROWID'},
+%    {"^(?i)((N)?VARCHAR2)$",             'VARCHARACTER'},
+%    {"^(?i)(BLOB)$",                     'BLOB'},
+%    {"^(?i)(INT(EGER)?)$",               'INTEGER'},
+%    {"^(?i)(FLOAT)$",                    'FLOAT'},
+%    {"^(?i)(DECIMAL)$",                  'DECIMAL'},
+%    {"^(?i)(DATE(TIME)?)$",              'DATETIME'},
+%    {"^(?i)(TIMESTAMP)$",                'TIMESTAMP'},
+%    {"^(?i)(TIME)$",                     'TIME'},
+%    {"^(?i)(YEAR)$",                     'YEAR'},
+%    {"^(?i)(NUMERIC)$",                  'NUMERIC'},
+%
+%    {"^(?i)(TERM)$",                     'ETERM'},
+%    {"^(?i)(BOOL(EAN)?)$",               'EBOOL'},
+%    {"^(?i)(TUPLE)$",                    'ETUPLE'},
+%    {"^(?i)(BINARY)$",                   'EBINARY'},
+%    {"^(?i)(ATOM)$",                     'EATOM'},
+%    {"^(?i)(IPADDR)$",                   'EIPADDR'},
+%    {"^(?i)(LIST)$",                     'ELIST'},
+%    {"^(?i)(BINSTR)$",                   'EBINSTR'},
+%    {"^(?i)(PID)$",                      'EPID'}, 
+%    {"^(?i)(REF)$",                      'EREF'},
+%    {"^(?i)(FUN)$",                      'EFUN'},
+%    {"^(?i)(STRING)$",                   'ESTRING'},
+%    {"^(?i)(USERID)$",                   'EUSERID'},
+%    {"^(?i)(DECIMAL)$",                  'DECIMAL'},
+%    {"^(?i)(NUMBER)$",                   'DECIMAL'},
+%    {"^(?i)(FLOAT)$",                    'FLOAT'},
+
     {"^(?i)(LOCAL)$",                    'LOCAL'},
-
-    {"^(?i)(TERM)$",                     'ETERM'},
-    {"^(?i)(BOOL(EAN)?)$",               'EBOOL'},
-    {"^(?i)(TUPLE)$",                    'ETUPLE'},
-    {"^(?i)(BINARY)$",                   'EBINARY'},
-    {"^(?i)(ATOM)$",                     'EATOM'},
-    {"^(?i)(IPADDR)$",                   'EIPADDR'},
-    {"^(?i)(LIST)$",                     'ELIST'},
-    {"^(?i)(BINSTR)$",                   'EBINSTR'},
-    {"^(?i)(PID)$",                      'EPID'}, 
-    {"^(?i)(REF)$",                      'EREF'},
-    {"^(?i)(FUN)$",                      'EFUN'},
-    {"^(?i)(STRING)$",                   'ESTRING'},
-    {"^(?i)(USERID)$",                   'EUSERID'},
-
     {"^(?i)(SET)$",                      'SET'},
     {"^(?i)(ALL)$",                      'ALL'},
     {"^(?i)(AND)$",                      'AND'},
@@ -92,8 +95,6 @@ Erlang code.
     {"^(?i)(CREATE)$",                   'CREATE'},
     {"^(?i)(CURRENT)$",                  'CURRENT'},
     {"^(?i)(CURSOR)$",                   'CURSOR'},
-    {"^(?i)(DECIMAL)$",                  'DECIMAL'},
-    {"^(?i)(NUMBER)$",                   'DECIMAL'},
     {"^(?i)(DECLARE)$",                  'DECLARE'},
     {"^(?i)(DEFAULT)$",                  'DEFAULT'},
     {"^(?i)(DELETE)$",                   'DELETE'},
@@ -104,7 +105,6 @@ Erlang code.
     {"^(?i)(IF)$",                       'IF'},
     {"^(?i)(EXISTS)$",                   'EXISTS'},
     {"^(?i)(FETCH)$",                    'FETCH'},
-    {"^(?i)(FLOAT)$",                    'FLOAT'},
     {"^(?i)(FOR)$",                      'FOR'},
     {"^(?i)(FOREIGN)$",                  'FOREIGN'},
     {"^(?i)(FOUND)$",                    'FOUND'},
@@ -198,7 +198,6 @@ Erlang code.
     {"^(?i)(UPPER)$",                    'FUNS'},
     {"^(?i)(LOWER)$",                    'FUNS'},
     {"^(?i)(TRUNC)$",                    'FUNS'},
-%    {"^(?i)(SYSDATE)$",                 'FUNS'},
     {"^(?i)(ABS)$",                      'FUNS'},
     {"^(?i)(ACOS)$",                     'FUNS'},
     {"^(?i)(ASIN)$",                     'FUNS'},

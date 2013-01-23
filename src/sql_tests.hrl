@@ -1581,6 +1581,7 @@ select
 ]).
 
 -define (TEST_INSERT,[
+                                        "insert into number (float,integer) values ('C', \"undefined\")",
                                         "insert into def (col1,col2) values ('C', \"undefined\")",
                                         "insert into def (col1,col2) values ('C', 5+1)",
                                         "insert into table_1 (field_a, field_b) values ('first','Stefan''s choice.')",

@@ -819,6 +819,7 @@ Erlang code.
 
 -include_lib("eunit/include/eunit.hrl").
 -include("sql_tests.hrl").
+-export([test_parse/5]).
 
 -define(PARSETREE, 0).
 
@@ -869,27 +870,17 @@ parse_test() ->
     io:format(user, "===============================~n", []),
     io:format(user, "|    S Q L   P A R S I N G    |~n", []),
     io:format(user, "===============================~n", []),
-    parse_groups(true, ?TEST_SQLS, {0,0,0,0,0}).
+    sql_test:parse_groups(fun ?MODULE:test_parse/5, true).
 -else.
 parse_test() ->
     io:format(user, "===============================~n", []),
     io:format(user, "|    S Q L   P A R S I N G    |~n", []),
     io:format(user, "===============================~n", []),
-    parse_groups(false, ?TEST_SQLS, {0,0,0,0,0}).
+    sql_test:parse_groups(fun ?MODULE:test_parse/5, false).
 -endif.
 
-parse_groups(_, [], {S,C,I,U,D}) ->
-    io:format(user, "~n-------------~nselect : ~p~ninsert : ~p~ncreate : ~p~nupdate : ~p~ndelete : ~p~n-------------~ntotal  : ~p~n", [S,I,C,U,D,S+I+C+U+D]),
-    io:format(user, "===============================~n", []);
-parse_groups(ShowParseTree, [{Title, SqlGroup, Limit}|SqlGroups], Counters) ->
-    io:format(user, "+-------------------------------+~n", []),
-    io:format(user, "|\t"++Title++"(~p)\t\t|~n", [Limit]),
-    io:format(user, "+-------------------------------+~n", []),
-    NewCounters = if Limit =:= 0 -> Counters; true -> test_parse(ShowParseTree, SqlGroup, 1, Counters, Limit) end,
-    parse_groups(ShowParseTree, SqlGroups, NewCounters).
-
-test_parse(_, [], _, Counters, _) -> Counters;
-test_parse(ShowParseTree, [Sql|Sqls], N, {S,C,I,U,D}, Limit) ->
+test_parse(_, [], _, _, Private) -> Private;
+test_parse(ShowParseTree, [Sql|Sqls], N, Limit, Private) ->
     FlatSql = re:replace(Sql, "([\n\r\t ]+)", " ", [{return, list}, global]),
     io:format(user, "[~p]~n"++FlatSql++"~n", [N]),
     case (catch sql_lex:string(Sql ++ ";")) of
@@ -902,21 +893,9 @@ test_parse(ShowParseTree, [Sql|Sqls], N, {S,C,I,U,D}, Limit) ->
                 	    io:format(user, lists:flatten(lists:duplicate(79, "-")) ++ "~n", []);
                     true -> ok
                     end,
-                    NewCounts = case element(1, ParseTree) of
-                    select -> {S+1,C,I,U,D};
-                    'create table' -> {S,C+1,I,U,D};
-                    'create user' -> {S,C+1,I,U,D};
-                    insert -> {S,C,I+1,U,D};
-                    update -> {S,C,I,U+1,D};
-                    'alter user' -> {S,C,I,U+1,D};
-                    'alter table' -> {S,C,I,U+1,D};
-                    delete -> {S,C,I,U,D+1};
-                    'drop user' -> {S,C,I,U,D+1};
-                    'drop table' -> {S,C,I,U,D+1};
-                    _ -> {S,C,I,U,D}
-                    end,
-                    if (Limit =:= 1) -> NewCounts; true ->
-                    test_parse(ShowParseTree, Sqls, N+1, NewCounts, Limit-1)
+                    NewPrivate = sql_test:update_counters(ParseTree, Private),
+                    if (Limit =:= 1) -> NewPrivate; true ->
+                    test_parse(ShowParseTree, Sqls, N+1, Limit-1, NewPrivate)
                     end;
                 {'EXIT', Error} ->
                     io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens]),

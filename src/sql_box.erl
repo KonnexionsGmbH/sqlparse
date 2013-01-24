@@ -2,6 +2,7 @@
 
 -export([ box_tree/1
 		, box_shift/1
+        , sqls_loop/5
 		]).
 
 -include_lib("eunit/include/eunit.hrl").
@@ -491,20 +492,10 @@ test_sqls(Sqls) ->
     io:format(user, "=================================~n", []),
     io:format(user, "|  S Q L  S T R I N G  T E S T  |~n", []),
     io:format(user, "=================================~n", []),
-    parse_groups(true, Sqls, {0,0,0,0,0}).
+    sql_test:parse_groups(fun ?MODULE:sqls_loop/5, false).
 
-parse_groups(_, [], {S,C,I,U,D}) ->
-    io:format(user, "~n-------------~nselect : ~p~ninsert : ~p~ncreate : ~p~nupdate : ~p~ndelete : ~p~n-------------~ntotal  : ~p~n", [S,I,C,U,D,S+I+C+U+D]),
-    io:format(user, "===============================~n", []);
-parse_groups(ShowParseTree, [{Title, SqlGroup, Limit}|SqlGroups], Counters) ->
-    io:format(user, "+-------------------------------+~n", []),
-    io:format(user, "|\t"++Title++"(~p)\t\t|~n", [Limit]),
-    io:format(user, "+-------------------------------+~n", []),
-    NewCounters = if Limit =:= 0 -> Counters; true -> sqls_loop(SqlGroup, 0, Counters, Limit) end,
-    parse_groups(ShowParseTree, SqlGroups, NewCounters).
-
-sqls_loop([], _, Counters, _) -> Counters;
-sqls_loop([Sql|Rest], N, {S,C,I,U,D}, Limit) ->
+sqls_loop(_, [], _, _, Private) -> Private;
+sqls_loop(PrintParseTree, [Sql|Rest], N, Limit, Private) ->
 	case re:run(Sql, "select|SELECT", [global, {capture, [1], list}]) of
 		nomatch ->	
 			sqlp_loop(Rest, N+1);
@@ -521,19 +512,7 @@ sqls_loop([Sql|Rest], N, {S,C,I,U,D}, Limit) ->
 		      		io:format(user, "~p~n-------------------------------~n", [Sqlstr]),
 		      		SqlCollapsed = collapse(Sqlstr),
 		      		io:format(user, "~p~n-------------------------------~n", [SqlCollapsed]),
-                    NewCounts = case element(1, ParseTree) of
-                    select -> {S+1,C,I,U,D};
-                    'create table' -> {S,C+1,I,U,D};
-                    'create user' -> {S,C+1,I,U,D};
-                    insert -> {S,C,I+1,U,D};
-                    update -> {S,C,I,U+1,D};
-                    'alter user' -> {S,C,I,U+1,D};
-                    'alter table' -> {S,C,I,U+1,D};
-                    delete -> {S,C,I,U,D+1};
-                    'drop user' -> {S,C,I,U,D+1};
-                    'drop table' -> {S,C,I,U,D+1};
-                    _ -> {S,C,I,U,D}
-                    end,
+                    NewPrivate = sql_test:update_counters(ParseTree, Private),
 		    		?assertEqual(collapse(string:to_lower(Sql)), string:to_lower(SqlCollapsed)),  		
 		    		% ?assertEqual(collapse(Sql), SqlCollapsed),  		
 		    		{ok, NewTokens, _} = sql_lex:string(SqlCollapsed ++ ";"),
@@ -545,12 +524,12 @@ sqls_loop([Sql|Rest], N, {S,C,I,U,D}, Limit) ->
 							?assertEqual(ok, NewError)
 		        	end;
 		        Error -> 
-                    NewCounts = {S,C,I,U,D},
+                    NewPrivate = Private,
 		        	io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens]),
 		        	?assertEqual(ok, Error)
 		    end,
-            if (Limit =:= 1) -> NewCounts; true ->
-                sqls_loop(Rest, N+1, NewCounts, Limit-1)
+            if (Limit =:= 1) -> NewPrivate; true ->
+                sqls_loop(PrintParseTree, Rest, N+1, Limit-1, NewPrivate)
             end
 	end.
 

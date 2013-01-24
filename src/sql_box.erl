@@ -223,10 +223,10 @@ fold_comma(Ind, Idx, Parent, [Node|Rest], _, Fun, Acc0) ->					%% pre-order list
 
 fold_fun(Ind, 0, Parent, Node, Children, Fun, Acc0)  ->						%% brackets and index for functions
 	?LOG("~n~p,~p (", [Ind, 0]),
-	Acc1 = Fun(Ind, 0, Parent, undefined, ')',
+	Acc1 = Fun(Ind, 0, Parent, undefined, <<")">>,
 			fold_return(Ind, 0 , Parent, Fun, 
 				fold_node(Ind+1, 0, Parent, Node, Children, Fun, 
-					Fun(Ind, 0, Parent, undefined, '(', Acc0)
+					Fun(Ind, 0, Parent, undefined, <<"(">>, Acc0)
 				)
 		  	)
 		),
@@ -239,9 +239,9 @@ fold_in(Ind, Idx, Parent, Node, Children, Fun, Acc0)  ->
 	case binding(Node) < binding(Parent) of
 		true ->
 			?LOG("~n~p,~p (", [Ind, Idx]),
-			Acc1 = Fun(Ind+1, 0, Parent, undefined, ')', 
+			Acc1 = Fun(Ind+1, 0, Parent, undefined, <<")">>, 
 					fold_node(Ind+1, 0, Parent, Node, Children, Fun, 
-					Fun(Ind+1, Idx, Parent, undefined, '(', Acc0)
+					Fun(Ind+1, Idx, Parent, undefined, <<"(">>, Acc0)
 					)
 				),
 			?LOG("~n~p,~p )", [Ind, Idx]),
@@ -491,10 +491,20 @@ test_sqls(Sqls) ->
     io:format(user, "=================================~n", []),
     io:format(user, "|  S Q L  S T R I N G  T E S T  |~n", []),
     io:format(user, "=================================~n", []),
-    sqls_loop(Sqls, 0).
+    parse_groups(true, Sqls, {0,0,0,0,0}).
 
-sqls_loop([], _) -> ok;
-sqls_loop([Sql|Rest], N) ->
+parse_groups(_, [], {S,C,I,U,D}) ->
+    io:format(user, "~n-------------~nselect : ~p~ninsert : ~p~ncreate : ~p~nupdate : ~p~ndelete : ~p~n-------------~ntotal  : ~p~n", [S,I,C,U,D,S+I+C+U+D]),
+    io:format(user, "===============================~n", []);
+parse_groups(ShowParseTree, [{Title, SqlGroup, Limit}|SqlGroups], Counters) ->
+    io:format(user, "+-------------------------------+~n", []),
+    io:format(user, "|\t"++Title++"(~p)\t\t|~n", [Limit]),
+    io:format(user, "+-------------------------------+~n", []),
+    NewCounters = if Limit =:= 0 -> Counters; true -> sqls_loop(SqlGroup, 0, Counters, Limit) end,
+    parse_groups(ShowParseTree, SqlGroups, NewCounters).
+
+sqls_loop([], _, Counters, _) -> Counters;
+sqls_loop([Sql|Rest], N, {S,C,I,U,D}, Limit) ->
 	case re:run(Sql, "select|SELECT", [global, {capture, [1], list}]) of
 		nomatch ->	
 			sqlp_loop(Rest, N+1);
@@ -511,6 +521,19 @@ sqls_loop([Sql|Rest], N) ->
 		      		io:format(user, "~p~n-------------------------------~n", [Sqlstr]),
 		      		SqlCollapsed = collapse(Sqlstr),
 		      		io:format(user, "~p~n-------------------------------~n", [SqlCollapsed]),
+                    NewCounts = case element(1, ParseTree) of
+                    select -> {S+1,C,I,U,D};
+                    'create table' -> {S,C+1,I,U,D};
+                    'create user' -> {S,C+1,I,U,D};
+                    insert -> {S,C,I+1,U,D};
+                    update -> {S,C,I,U+1,D};
+                    'alter user' -> {S,C,I,U+1,D};
+                    'alter table' -> {S,C,I,U+1,D};
+                    delete -> {S,C,I,U,D+1};
+                    'drop user' -> {S,C,I,U,D+1};
+                    'drop table' -> {S,C,I,U,D+1};
+                    _ -> {S,C,I,U,D}
+                    end,
 		    		?assertEqual(collapse(string:to_lower(Sql)), string:to_lower(SqlCollapsed)),  		
 		    		% ?assertEqual(collapse(Sql), SqlCollapsed),  		
 		    		{ok, NewTokens, _} = sql_lex:string(SqlCollapsed ++ ";"),
@@ -522,10 +545,13 @@ sqls_loop([Sql|Rest], N) ->
 							?assertEqual(ok, NewError)
 		        	end;
 		        Error -> 
+                    NewCounts = {S,C,I,U,D},
 		        	io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens]),
 		        	?assertEqual(ok, Error)
 		    end,
-		    sqls_loop(Rest, N+1)
+            if (Limit =:= 1) -> NewCounts; true ->
+                sqls_loop(Rest, N+1, NewCounts, Limit-1)
+            end
 	end.
 
 test_sqlp(Sqls) ->

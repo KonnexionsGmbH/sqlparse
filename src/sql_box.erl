@@ -488,7 +488,7 @@ test_sql_all(X) ->
     end,
     ok.
 	
-test_sqls(Sqls) ->
+test_sqls(_Sqls) ->
     io:format(user, "=================================~n", []),
     io:format(user, "|  S Q L  S T R I N G  T E S T  |~n", []),
     io:format(user, "=================================~n", []),
@@ -621,11 +621,11 @@ sqlb_loop([Sql|Rest], N) ->
   , {"([\r\n]+$)",             		""}     % trailing newline    		-> removed
 ]).
 
-str_diff([], [])                                            -> same;
-str_diff(String1, []) when length(String1) > 0              -> {String1, ""};
-str_diff([], String2) when length(String2) > 0              -> {"", String2};
-str_diff([S0|_] = String1, [S1|_] = String2) when S0 =/= S1 -> {String1, String2};
-str_diff([_|String1], [_|String2])                          -> str_diff(String1, String2).
+%% str_diff([], [])                                            -> same;
+%% str_diff(String1, []) when length(String1) > 0              -> {String1, ""};
+%% str_diff([], String2) when length(String2) > 0              -> {"", String2};
+%% str_diff([S0|_] = String1, [S1|_] = String2) when S0 =/= S1 -> {String1, String2};
+%% str_diff([_|String1], [_|String2])                          -> str_diff(String1, String2).
 
 collapse(Sql) ->
     lists:foldl(

@@ -709,7 +709,7 @@ fun_args -> '-' literal                                                         
 fun_args -> NULLX                                                                               : <<"NULL">>.
 fun_args -> atom                                                                                : '$1'.
 fun_args -> subquery                                                                            : '$1'.
-fun_args -> fun_args ',' fun_args                                                               : ['$1'] ++ ['$3'].
+fun_args -> fun_args ',' fun_args                                                               : lists:flatten(['$1'] ++ ['$3']).
 
 literal -> STRING                                                                               : unwrap_bin('$1').
 literal -> INTNUM                                                                               : unwrap_bin('$1').
@@ -888,8 +888,12 @@ test_parse(ShowParseTree, [Sql|Sqls], N, Limit, Private) ->
             case (catch sql_parse:parse(Tokens)) of
                 {ok, [ParseTree|_]} -> 
                     if ShowParseTree ->
-%                	    io:format(user, "~nParseTree:~n", []),
-                	    io:format(user, "~n~p~n", [ParseTree]),
+                        NSql = fold(ParseTree),
+                        {ok, NToks, _} = sql_lex:string(NSql ++ ";"),
+                        {ok, [NPTree|_]} = sql_parse:parse(NToks),
+                        io:format(user,  "~n" ++ NSql ++ "~n", []),
+                	    io:format(user, "~n~p~n~p~n", [ParseTree, NPTree]),
+                        ?assertEqual(ParseTree, NPTree),
                 	    io:format(user, lists:flatten(lists:duplicate(79, "-")) ++ "~n", []);
                     true -> ok
                     end,
@@ -908,3 +912,154 @@ test_parse(ShowParseTree, [Sql|Sqls], N, Limit, Private) ->
             io:format(user, "Failed ~p~n", [Error]),
             ?assertEqual(ok, Error)
     end.
+
+fold({hints, Hints}) ->
+    Size = byte_size(Hints),
+    if Size > 0 -> binary_to_list(Hints);
+    true        -> ""
+    end;
+fold({opt, Opt}) ->
+    Size = byte_size(Opt),
+    if Size > 0 -> binary_to_list(Opt) ++ " ";
+    true        -> ""
+    end;
+fold({fields, Fields}) ->
+    string:join(
+        [case F of
+            F when is_binary(F) -> binary_to_list(F);
+            Other               -> fold(Other)
+        end
+        || F <- Fields]
+    , ", ")
+    ++ " ";
+fold({into, Into}) -> string:join([binary_to_list(I) || I <- Into], ", ") ++ " ";
+fold({from, Forms}) ->
+    "from " ++
+    string:join(
+        [case F of
+            F when is_binary(F) -> binary_to_list(F);
+            Other               -> fold(Other)
+        end
+        || F <- Forms]
+    , ", ")
+    ++ " ";
+
+fold({'between', A, B, C}) ->
+    A1 = if is_binary(A) -> binary_to_list(A); true -> fold(A) end,
+    B1 = if is_binary(B) -> binary_to_list(B); true -> fold(B) end,
+    C1 = if is_binary(C) -> binary_to_list(C); true -> fold(C) end,
+    lists:flatten([A1,  " between ", B1, " and ", C1]);
+
+fold({Op, A}) when Op =:= '-';
+                   Op =:= 'not'
+->
+    case A of
+        A when is_binary(A) -> lists:flatten([atom_to_list(Op), " ", binary_to_list(A)]);
+        A                   -> lists:flatten([atom_to_list(Op)," ", fold(A)])
+    end;
+
+fold({'||', Args}) ->
+    string:join(
+    [case A of
+        A when is_binary(A) -> binary_to_list(A);
+        A -> fold(A)
+    end
+    || A <- Args], " || ");
+
+fold({as, A, B}) when is_binary(A), is_binary(B) -> lists:flatten([binary_to_list(A), " ", binary_to_list(B)]);
+fold({as, A, B}) when is_binary(B)               -> lists:flatten([fold(A), " ", binary_to_list(B)]);
+fold({union, A, B})                              -> lists:flatten(["(", fold(A), " union ", fold(B), ")"]);
+
+fold({where, []}) ->                                                "";
+fold({where, Where}) ->                                             "where " ++ fold(Where);
+fold({Op, L, R}) when is_atom(Op), is_tuple(L), is_tuple(R) ->      lists:flatten([fold(L), " ", atom_to_list(Op), " ", fold(R)]);
+fold({Op, L, R}) when is_atom(Op), is_binary(L), is_tuple(R) ->     lists:flatten([binary_to_list(L), " ", atom_to_list(Op), " ", fold(R)]);
+fold({Op, L, R}) when is_atom(Op), is_tuple(L), is_binary(R) ->     lists:flatten([fold(L), " ", atom_to_list(Op), " ", binary_to_list(R)]);
+fold({Op, L, R}) when is_atom(Op), is_binary(L), is_binary(R) ->    lists:flatten([binary_to_list(L), " ", atom_to_list(Op), " ", binary_to_list(R)]);
+fold({'fun', N, Args}) when is_atom(N) ->
+    atom_to_list(N) ++ "(" ++
+    string:join(
+        [case A of
+            A when is_binary(A) -> binary_to_list(A);
+            A -> fold(A)
+        end
+        || A <- Args]
+    , ", ")
+    ++ ")";
+fold({'list', Elms}) ->
+    "(" ++
+    string:join(
+        [case E of
+            E when is_binary(E) -> binary_to_list(E);
+            E -> fold(E)
+        end
+        || E <- Elms]
+    , ", ")
+    ++ ")";
+
+fold({'group by', GroupBy}) ->
+    Size = length(GroupBy),
+    if Size > 0 -> "group by " ++ string:join([binary_to_list(F) || F <- GroupBy], ", ") ++ " ";
+    true -> ""
+    end;
+fold({having, Having}) -> "";
+fold({'order by', OrderBy}) ->
+    Size = length(OrderBy),
+    if Size > 0 ->
+        "order by " ++
+        string:join(
+            [case F of
+            F when is_binary(F) -> binary_to_list(F);
+            {O, Op} when is_binary(O), is_binary(Op) -> string:strip(lists:flatten([binary_to_list(O), " ", binary_to_list(Op)]));
+            {O, Op} when is_binary(Op)               -> string:strip(lists:flatten([fold(O), " ", binary_to_list(Op)]))
+            end
+            || F <- OrderBy]
+        , ", ")
+        ++ " ";
+    true -> ""
+    end;
+
+fold({select, Opts}) ->
+    "select "
+    ++
+    lists:flatten([fold(O) || O <- Opts]);
+
+fold({insert, Tab, {cols, Cols}, {values, Values}}) when is_binary(Tab) ->
+    "insert into " ++ binary_to_list(Tab)
+    ++ " (" ++ string:join(
+        [case C of
+            C when is_binary(C) -> binary_to_list(C);
+            C -> fold(C)
+        end
+        || C <- Cols], ",") ++ ")"
+    ++ " (" ++ string:join(
+        [case V of
+            V when is_binary(V) -> binary_to_list(V);
+            V -> fold(V)
+        end
+        || V <- Values], ",") ++ ")";
+
+fold({'create table', Tab, Fields, Opts}) when is_binary(Tab) ->
+    "create table " ++ binary_to_list(Tab)
+    ++ " (" ++ string:join(
+        [case Clm of
+            {C, {T, N}, O} when is_binary(C)        -> lists:flatten([binary_to_list(C), " ", atom_to_list(T), "(", N, ")"]);
+            {C, {T, N, N1}, O} when is_binary(C)    -> lists:flatten([binary_to_list(C), " ", atom_to_list(T), "(",N,",",N1,")"]);
+            {C, T, O} when is_binary(C)             -> lists:flatten([binary_to_list(C), " ", atom_to_list(T)]);
+            C -> fold(C)
+        end
+        || Clm <- Fields], ",") ++ ")";
+
+fold({'create user', Usr, {'identified globally', _}, Opts}) when is_binary(Usr) ->
+    "create user " ++ binary_to_list(Usr)
+    ++ " identified globally";
+fold({'create user', Usr, {'identified extern', _}, Opts}) when is_binary(Usr) ->
+    "create user " ++ binary_to_list(Usr)
+    ++ " identified externally";
+fold({'create user', Usr, {'identified by', Pswd}, Opts}) when is_binary(Usr) ->
+    "create user " ++ binary_to_list(Usr)
+    ++ " identified by " ++ binary_to_list(Pswd);
+
+fold(PTree) ->
+    io:format(user, "Parse tree not suppoprted ~p~n", [PTree]).
+

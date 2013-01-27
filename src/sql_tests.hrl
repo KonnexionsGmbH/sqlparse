@@ -1594,9 +1594,9 @@ select
 ]).
 
 -define (TEST_SQLS, [
-      {"SELECT", ?TEST_SELECT, -1} 
+      {"SELECT", ?TEST_SELECT, -1}
     , {"INSERT", ?TEST_INSERT, -1}
     , {"CREATE", ?TEST_CREATE, -1}
-    , {"UPDATE", ?TEST_UPDATE, -1}
-    , {"DELETE", ?TEST_DELETE, -1}
+    , {"UPDATE", ?TEST_UPDATE, 0}
+    , {"DELETE", ?TEST_DELETE, 0}
 ]).

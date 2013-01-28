@@ -1593,10 +1593,22 @@ select
                                         "INSERT INTO Persons VALUES (4,'Nilsen', 'Johan', 'Bakken 2', 'Stavanger')"
 ]).
 
+-define (TEST_TRUNCT,[
+                                        "truncate table tbl",
+                                        "truncate table scm.tbl",
+                                        "truncate table scm.tbl preserve materialized view log",
+                                        "truncate table scm.tbl purge materialized view log",
+                                        "truncate table scm.tbl drop storage",
+                                        "truncate table scm.tbl reuse storage",
+                                        "truncate table scm.tbl purge materialized view log drop storage",
+                                        "truncate table tbl purge materialized view log drop storage"
+]).
+
 -define (TEST_SQLS, [
       {"SELECT", ?TEST_SELECT, -1}
     , {"INSERT", ?TEST_INSERT, -1}
     , {"CREATE", ?TEST_CREATE, -1}
-    , {"UPDATE", ?TEST_UPDATE, 0}
-    , {"DELETE", ?TEST_DELETE, 0}
+    , {"UPDATE", ?TEST_UPDATE, -1}
+    , {"DELETE", ?TEST_DELETE, -1}
+    , {"TRUNCT", ?TEST_TRUNCT, -1}
 ]).

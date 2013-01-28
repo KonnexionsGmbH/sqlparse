@@ -215,7 +215,16 @@ Erlang code.
     {"^(?i)(BOOL_AND)$",                 'UFUN'},
     {"^(?i)(BOOL_OR)$",                  'UFUN'},
     {"^(?i)(SELECTIVITY)$",              'UFUN'},
-    {"^(?i)(STDDEV_POP)$",               'UFUN'}
+    {"^(?i)(STDDEV_POP)$",               'UFUN'},
+
+    % Truncate
+    {"^(?i)(TRUNCATE)$",                 'TRUNCATE'},
+    {"^(?i)(PRESERVE)$",                 'PRESERVE'},
+    {"^(?i)(PURGE)$",                    'PURGE'},
+    {"^(?i)(MATERIALIZED)$",             'MATERIALIZED'},
+    {"^(?i)(LOG)$",                      'LOG'},
+    {"^(?i)(REUSE)$",                    'REUSE'},
+    {"^(?i)(STORAGE)$",                  'STORAGE'}
 ]).
 
 match_any(TokenChars, TokenLen, _TokenLine, []) ->

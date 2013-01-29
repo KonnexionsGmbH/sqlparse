@@ -61,6 +61,7 @@ Nonterminals
  query_exp
  query_term
  query_spec
+ opt_into
  selection
  table_exp
  from_clause
@@ -573,6 +574,7 @@ update_statement_searched -> UPDATE table SET assignment_commalist opt_where_cla
 target_commalist -> target                                                                      : ['$1'].
 target_commalist -> target_commalist ',' target                                                 : '$1' ++ ['$3'].
 
+target -> NAME                                                                                  : unwrap_bin('$1').
 target -> parameter_ref                                                                         : '$1'.
 
 opt_where_clause -> '$empty'                                                                    : {'where', []}.
@@ -589,11 +591,15 @@ query_exp -> query_exp MINUS query_term                                         
 query_term -> query_spec                                                                        : '$1'.
 query_term -> '(' query_exp ')'                                                                 : '$2'.
 
-query_spec -> SELECT opt_hint opt_all_distinct selection table_exp
+query_spec -> SELECT opt_hint opt_all_distinct selection opt_into table_exp
            : case '$2' of
-               {hint, ""} -> list_to_tuple([select, ['$3', {fields, '$4'}, {into, []}] ++ '$5']);
-               _          -> list_to_tuple([select, ['$2', '$3', {fields, '$4'}, {into, []}] ++ '$5'])
+               {hint, ""} -> list_to_tuple([select, ['$3', {fields, '$4'}, {into, '$5'}] ++ '$6']);
+               _          -> list_to_tuple([select, ['$2', '$3', {fields, '$4'}, {into, '$5'}] ++ '$6'])
              end.
+
+opt_into -> '$empty'                                                                            : [].
+opt_into -> INTO target_commalist                                                               : {'$2', {}}.
+opt_into -> INTO target_commalist IN NAME                                                       : {'$2', {'in', unwrap_bin('$4')}}.
 
 selection -> scalar_exp_commalist                                                               : '$1'.
 selection -> '*'                                                                                : [<<"*">>].
@@ -844,7 +850,7 @@ Erlang code.
 
 -include_lib("eunit/include/eunit.hrl").
 -include("sql_tests.hrl").
--export([test_parse/5]).
+-export([test_parse/5, fold/1]).
 
 -define(PARSETREE, 0).
 

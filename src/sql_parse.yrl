@@ -1047,8 +1047,10 @@ fold({'drop table', {tables, Ts}, {exists, E}, {opt, R}}) when is_atom(R) ->
 % component matching patterns
 %
 
-fold({}) -> "";
-fold([]) -> "";
+% Empty list or tuples
+fold(X) when X =:= {}; X =:= [] -> "";
+
+% All option and optionlist and its variants
 fold({'identified globally', E}) -> " identified globally " ++ fold(E);
 fold({'identified extern', E}) -> " identified externally " ++ fold(E);
 fold({'identified by', Pswd}) -> " identified by " ++ binary_to_list(Pswd);
@@ -1078,6 +1080,7 @@ fold({'default', Def}) ->
             Def -> fold(Def)
         end, "\n "]);
 
+% select sub-part patterns
 fold({hints, Hints}) ->
     Size = byte_size(Hints),
     if Size > 0 -> binary_to_list(Hints);
@@ -1110,19 +1113,36 @@ fold({from, Forms}) ->
         || F <- Forms]
     , ", ")
     ++ " ";
+fold({'group by', GroupBy}) ->
+    Size = length(GroupBy),
+    if Size > 0 -> "group by " ++ string:join([binary_to_list(F) || F <- GroupBy], ", ") ++ " ";
+    true -> ""
+    end;
+fold({having, _Having}) -> "";
+fold({'order by', OrderBy}) ->
+    Size = length(OrderBy),
+    if Size > 0 ->
+        "order by " ++
+        string:join(
+            [case F of
+            F when is_binary(F) -> binary_to_list(F);
+            {O, Op} when is_binary(O), is_binary(Op) -> string:strip(lists:flatten([binary_to_list(O), " ", binary_to_list(Op)]));
+            {O, Op} when is_binary(Op)               -> string:strip(lists:flatten([fold(O), " ", binary_to_list(Op)]))
+            end
+            || F <- OrderBy]
+        , ", ")
+        ++ " ";
+    true -> ""
+    end;
 
+% betwen operator
 fold({'between', A, B, C}) ->
     A1 = if is_binary(A) -> binary_to_list(A); true -> fold(A) end,
     B1 = if is_binary(B) -> binary_to_list(B); true -> fold(B) end,
     C1 = if is_binary(C) -> binary_to_list(C); true -> fold(C) end,
     lists:flatten([A1,  " between ", B1, " and ", C1]);
 
-fold({Op, A}) when Op =:= '-'; Op =:= 'not' ->
-    case A of
-        A when is_binary(A) -> lists:flatten([atom_to_list(Op), " (", binary_to_list(A), ")"]);
-        A                   -> lists:flatten([atom_to_list(Op)," (", fold(A), ")"])
-    end;
-
+% PL/SQL concatenate operator
 fold({'||', Args}) ->
     string:join(
     [case A of
@@ -1131,19 +1151,27 @@ fold({'||', Args}) ->
     end
     || A <- Args], " || ");
 
+% All aliases
 fold({as, A, B}) when is_binary(A), is_binary(B) -> lists:flatten([binary_to_list(A), " ", binary_to_list(B)]);
 fold({as, A, B}) when is_binary(B)               -> lists:flatten([fold(A), " ", binary_to_list(B)]);
 fold({as, A}) when is_binary(A)                  -> lists:flatten(["as ", binary_to_list(A)]);
+
+% Union
 fold({union, A, B})                              -> lists:flatten(["(", fold(A), " union ", fold(B), ")"]);
 
-fold({where, []}) ->                                                "";
-fold({where, Where}) ->                                             "where " ++ fold(Where);
+% All where clauses
+fold({where, []}) -> "";
+fold({where, Where}) -> "where " ++ fold(Where);
 
+% In operator
+% for right hand non list argument extra parenthesis added
 fold({'in', L, {'list', _} = R}) when is_binary(L) ->
     lists:flatten([binary_to_list(L), " in ", fold(R), " "]);
 fold({'in', L, R}) when is_binary(L), is_tuple(R) ->
     lists:flatten([binary_to_list(L), " in (", fold(R), ") "]);
 
+% Boolean and arithmetic binary operators handled with precedence
+% *,/ > +,- > and > or
 fold({Op, L, R}) when is_atom(Op), is_tuple(L), is_tuple(R) ->
     Fl = case {Op, element(1, L)} of
         {'*', Ol} when Ol =:= '-'; Ol =:= '+' -> lists:flatten(["(", fold(L), ")"]);
@@ -1173,6 +1201,15 @@ fold({Op, L, R}) when is_atom(Op), is_tuple(L), is_binary(R) ->
     end,
     lists:flatten([Fl, " ", atom_to_list(Op), " ", binary_to_list(R)]);
 fold({Op, L, R}) when is_atom(Op), is_binary(L), is_binary(R) ->    lists:flatten([binary_to_list(L), " ", atom_to_list(Op), " ", binary_to_list(R)]);
+
+% Unary - and 'not' operators
+fold({Op, A}) when Op =:= '-'; Op =:= 'not' ->
+    case A of
+        A when is_binary(A) -> lists:flatten([atom_to_list(Op), " (", binary_to_list(A), ")"]);
+        A                   -> lists:flatten([atom_to_list(Op)," (", fold(A), ")"])
+    end;
+
+% funs
 fold({'fun', N, Args}) when is_atom(N) ->
     atom_to_list(N) ++ "(" ++
     string:join(
@@ -1183,6 +1220,8 @@ fold({'fun', N, Args}) when is_atom(N) ->
         || A <- Args]
     , ", ")
     ++ ")";
+
+% lists
 fold({'list', Elms}) ->
     "(" ++
     string:join(
@@ -1193,29 +1232,6 @@ fold({'list', Elms}) ->
         || E <- Elms]
     , ", ")
     ++ ")";
-
-fold({'group by', GroupBy}) ->
-    Size = length(GroupBy),
-    if Size > 0 -> "group by " ++ string:join([binary_to_list(F) || F <- GroupBy], ", ") ++ " ";
-    true -> ""
-    end;
-fold({having, _Having}) -> "";
-fold({'order by', OrderBy}) ->
-    Size = length(OrderBy),
-    if Size > 0 ->
-        "order by " ++
-        string:join(
-            [case F of
-            F when is_binary(F) -> binary_to_list(F);
-            {O, Op} when is_binary(O), is_binary(Op) -> string:strip(lists:flatten([binary_to_list(O), " ", binary_to_list(Op)]));
-            {O, Op} when is_binary(Op)               -> string:strip(lists:flatten([fold(O), " ", binary_to_list(Op)]))
-            end
-            || F <- OrderBy]
-        , ", ")
-        ++ " ";
-    true -> ""
-    end;
-
 
 %
 % UNSUPPORTED

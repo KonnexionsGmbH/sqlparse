@@ -1499,7 +1499,8 @@ select
 -define (TEST_DELETE,[
                                         "DROP USER test_user_123",
                                         "DROP USER test_user_123 CASCADE",
-                                        "DROP TABLE table_name"
+                                        "DROP TABLE table_name",
+                                        "DROP TABLE IF EXISTS table_name RESTRICT"
 ]).
 
 -define (TEST_CREATE, [

@@ -3,6 +3,7 @@
 -export([ box_tree/1
 		, box_shift/1
         , sqls_loop/5
+        , sql_from_parse_tree/1
 		]).
 
 -include_lib("eunit/include/eunit.hrl").
@@ -31,6 +32,9 @@
 -endif.
 
 -include("sql_box.hrl").
+
+sql_from_parse_tree(ParseTree) ->
+	collapse(fold_tree(ParseTree, fun sqls/6, [])).
 
 box_tree(ParseTree) ->
 	case (catch fold_tree(ParseTree, fun sqlb/6, [])) of

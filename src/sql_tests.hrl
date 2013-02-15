@@ -1,4 +1,6 @@
 -define (TEST_SELECT,[
+"select * from def where t1.col1 in (5,7) and abs(sin(t2.col1) - trunc(t2.col1/t1.col1)) = 1 and t2.col1 > t1.col1 div 2",
+"select t1.col1, t2.col1 from def t1, def t2 where t1.col1 in (5,7) and abs(t2.col1-t1.col1) = 1",
 %"SELECT f,SUM(d) INTO def1 IN db2 FROM def where a=b GROUP BY f HAVING SUM(d) < 2 order by f",
 "select name, lastLoginTime from ddAccount where lastLoginTime > sysdate - 1.1574074074074073e-4",
 "select d.col1, m.col1, m.\"'$_'\" from def d, member_test m",
@@ -7,8 +9,6 @@
 "select * from member_test where is_member(3,col2)",
 "sElect * frOm tab@1234@_no#de:@nohost",
 "select t1.col1, t2.col1 from def t1, def t2 where abs(t2.col1-t1.col1, t3.col4) = 1 and abs(t2.col1-t1.col1) = 2",
-"select * from def where t1.col1 in (5,7) and abs(sin(t2.col1) - trunc(t2.col1/t1.col1)) = 1 and t2.col1 > t1.col1 div 2",
-"select t1.col1, t2.col1 from def t1, def t2 where t1.col1 in (5,7) and abs(t2.col1-t1.col1) = 1",
 "select distInct id from 
 (
     SELECT id, 2 as ordered FROM a -- returns 1,4,2,3

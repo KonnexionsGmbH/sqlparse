@@ -1243,5 +1243,5 @@ fold({'list', Elms}) ->
 % UNSUPPORTED
 %
 fold(PTree) ->
-    io:format(user, "Parse tree not suppoprted ~p~n", [PTree]).
+    io:format(user, "Parse tree not supported ~p~n", [PTree]).
 

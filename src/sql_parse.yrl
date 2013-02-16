@@ -933,6 +933,7 @@ test_parse(ShowParseTree, [Sql|Sqls], N, Limit, Private) ->
                     	    io:format(user, "~n> ~p~n", [NToks])
                         end,
                         ?assertEqual(ParseTree, NPTree),
+                        io:format("~p~n", [ParseTree]),
                 	    io:format(user, lists:flatten(lists:duplicate(79, "-")) ++ "~n", []);
                     true -> ok
                     end,
@@ -1128,7 +1129,7 @@ fold({having, _Having}) -> "";
 fold({'order by', OrderBy}) ->
     Size = length(OrderBy),
     if Size > 0 ->
-        "order by " ++
+        " order by " ++
         string:join(
             [case F of
             F when is_binary(F) -> binary_to_list(F);
@@ -1172,9 +1173,9 @@ fold({where, Where}) -> "where " ++ fold(Where);
 % In operator
 % for right hand non list argument extra parenthesis added
 fold({'in', L, {'list', _} = R}) when is_binary(L) ->
-    lists:flatten([binary_to_list(L), " in ", fold(R), " "]);
+    lists:flatten([binary_to_list(L), " in ", fold(R)]);
 fold({'in', L, R}) when is_binary(L), is_tuple(R) ->
-    lists:flatten([binary_to_list(L), " in (", fold(R), ") "]);
+    lists:flatten([binary_to_list(L), " in (", fold(R), ")"]);
 
 % Boolean and arithmetic binary operators handled with precedence
 % *,/ > +,- > and > or

@@ -1106,8 +1106,7 @@ fold({fields, Fields}) ->
             Other               -> fold(Other)
         end
         || F <- Fields]
-    , ", ")
-    ++ " ";
+    , ", ");
 fold({into, Into}) -> string:join([binary_to_list(I) || I <- Into], ", ") ++ " ";
 fold({from, Forms}) ->
     "from " ++

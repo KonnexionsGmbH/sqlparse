@@ -1,5 +1,8 @@
 -define (TEST_SELECT,[
-        "select * from def where a in (5,7,3) and b in (\"bikram\",\"stefan\") order by a asc",
+"select * from def where (((a = a1 or b = b1)) and (((w=(3)))))",
+"select * from def where a = abs(abs(1-2+(3)))",
+"select * from def where t1.col1 in (5,7) and abs((sin(t2.col1) - trunc((t2.col1/t1.col1)))) = 1 and t2.col1 > ( t1.col1 div 2 )",
+"select * from def where a in (5,7,3) and b in (\"bikram\",\"stefan\") order by a asc",
 "select * from def where t1.col1 in (5,7) and abs(sin(t2.col1) - trunc(t2.col1/t1.col1)) = 1 and t2.col1 > t1.col1 div 2",
 "select t1.col1, t2.col1 from def t1, def t2 where t1.col1 in (5,7) and abs(t2.col1-t1.col1) = 1",
 %"SELECT f,SUM(d) INTO def1 IN db2 FROM def where a=b GROUP BY f HAVING SUM(d) < 2 order by f",

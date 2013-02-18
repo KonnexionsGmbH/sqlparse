@@ -725,6 +725,7 @@ function_ref -> AMMSC '(' DISTINCT column_ref ')'                               
 function_ref -> AMMSC '(' ALL scalar_exp ')'                                                    : {'fun', unwrap('$1'), {'all', '$4'}}.
 function_ref -> AMMSC '(' scalar_exp ')'                                                        : {'fun', unwrap('$1'), {'$4'}}.
 
+fun_args -> '(' fun_args ')'                                                                    : '$2'.
 fun_args -> function_ref                                                                        : '$1'.
 fun_args -> column_ref                                                                          : '$1'.
 fun_args -> scalar_sub_exp_append_list                                                          : {'||','$1'}.

@@ -1,25 +1,243 @@
 -define (TEST_SELECT,[
+%"SELECT f,SUM(d) FROM def where a=b GROUP BY f HAVING SUM(d) < 2 order by f",
+%"select 'aa' || 'b\nb' || 'cc' || field from def",
+%"select \"aa\" || \"b\nb\" || \"c\r\nc\" || field from def",
+%"select 'a' || 'b' || 'c' || field from def where field2 = 'a' || fld3 || 's' and 's' || fld2 = 'd' || fld4",
+%"select
+% 	distInct
+% 		id
+% 	from
+% 			(
+% 				SELECT
+% 						id
+% 						,
+% 						2 as ordered
+% 					FROM
+% 						a
+% 			UNION
+% 				SELECT
+% 						id
+% 						,
+% 						1 as ordered
+% 					FROM
+% 						b
+% 			)
+% 	order by
+% 		ordered
+% ",
+% "SELECT
+% 		/*+001*/
+% 		DISTINCT
+% 			a
+% 		FROM
+% 			b
+% UNION
+% 	SELECT
+% 		/*+002*/
+% 			c
+% 		FROM
+% 			d
+% INTERSECT
+% 	SELECT
+% 			e
+% 		FROM
+% 			f
+% MINUS
+% 	SELECT
+% 			g
+% 		FROM
+% 			h
+% UNION ALL
+% 	SELECT
+% 			i
+% 		FROM
+% 			j
+%",	
+%"select
+% 	distInct
+% 		id
+% 	from
+% 			(
+% 				SELECT
+% 						id
+% 						,
+% 						2 as ordered
+% 					FROM
+% 						a
+% 			UNION
+% 				SELECT
+% 						id
+% 						,
+% 						1 as ordered
+% 					FROM
+% 						b
+% 			)
+% 	order by
+% 		ordered
+% ",
+"select
+	/*+003*/
+		a
+		,
+		b as bb
+		,
+			c
+			+
+			1 as cc
+		,
+			(
+				d
+				-
+				1
+			)
+			/
+			4
+		,
+		5
+		,
+			upper
+				(
+					b
+				)
+	from
+		abc
+		,
+		def as d
+	where
+			a
+			=
+				b
+				+
+				1
+		or
+				nvl
+					(
+						a
+						,
+							b
+							+
+							1
+						,
+						c
+					)
+			=
+			0
+		or
+			c
+			in
+				(
+					d
+					,
+					e
+					,
+							upper
+								(
+									k
+								)
+						+
+							upper
+								(
+									j
+								)
+				)
+",
 "select * from def where (((a = a1 or b = b1)) and (((w=(3)))))",
 "select * from def where a = abs(abs(1-2+(3)))",
 "select * from def where t1.col1 in (5,7) and abs((sin(t2.col1) - trunc((t2.col1/t1.col1)))) = 1 and t2.col1 > ( t1.col1 div 2 )",
-"select * from def where a in (5,7,3) and b in (\"bikram\",\"stefan\") order by a asc",
+"select
+		*
+	from
+		def
+	where
+			a
+			in
+				(
+					5
+					,
+					7
+					,
+					3
+				)
+		and
+			b
+			in
+				(
+					\"bikram\"
+					,
+					\"stefan\"
+				)
+	order by
+		a asc
+",
 "select * from def where t1.col1 in (5,7) and abs(sin(t2.col1) - trunc(t2.col1/t1.col1)) = 1 and t2.col1 > t1.col1 div 2",
-"select t1.col1, t2.col1 from def t1, def t2 where t1.col1 in (5,7) and abs(t2.col1-t1.col1) = 1",
-%"SELECT f,SUM(d) INTO def1 IN db2 FROM def where a=b GROUP BY f HAVING SUM(d) < 2 order by f",
-"select name, lastLoginTime from ddAccount where lastLoginTime > sysdate - 1.1574074074074073e-4",
-"select d.col1, m.col1, m.\"'$_'\" from def d, member_test m",
-"select d.col1, m.col1, \"'$_'\".m from def d, member_test m",
-"select d.col1, m.col1 from def d, member_test m where is_member(d.col1,m.\"'$_'\")",
-"select * from member_test where is_member(3,col2)",
-"sElect * frOm tab@1234@_no#de:@nohost",
-"select t1.col1, t2.col1 from def t1, def t2 where abs(t2.col1-t1.col1, t3.col4) = 1 and abs(t2.col1-t1.col1) = 2",
-"select distInct id from 
-(
-    SELECT id, 2 as ordered FROM a -- returns 1,4,2,3
-    UNION
-    SELECT id, 1 as ordered FROM b -- returns 2,1
-)
-order by ordered",
+"select
+		name
+		,
+		lastLoginTime
+	from
+		ddAccount
+	where
+		lastLoginTime
+		>
+			sysdate
+			-
+			1.1574074074074073e-4
+",
+"select
+		d.col1
+		,
+		m.col1
+		,
+		m.\"'$_'\"
+	from
+		def as d
+		,
+		member_test as m
+",
+"select
+		d.col1
+		,
+		m.col1
+		,
+		\"'$_'\".m
+	from
+		def as d
+		,
+		member_test as m
+",
+"select
+		d.col1
+		,
+		m.col1
+	from
+		def as d
+		,
+		member_test as m
+	where
+		is_member
+			(
+				d.col1
+				,
+				m.\"'$_'\"
+			)
+",
+"select
+		*
+	from
+		member_test
+	where
+		is_member
+			(
+				3
+				,
+				col2
+			)
+",
+"sElect
+		*
+	frOm
+		tab@1234@_no#de:@nohost
+",
 "select
 	/*+011*/
 			a
@@ -61,7 +279,8 @@ order by ordered",
 		and
 			c
 			=
-			d",
+			d
+",
 "select
 		12
 		,
@@ -81,7 +300,8 @@ order by ordered",
 					\"{field_a,b}\"
 				)
 	from
-		'table_1'",		
+		'table_1'
+",
 "select
 	/*+038*/
 		AC_ID
@@ -174,10 +394,8 @@ order by ordered",
 			=
 				a
 				-
-				12.9",
-"select 'aa' || 'b\nb' || 'cc' || field from def",
-"select \"aa\" || \"b\nb\" || \"c\r\nc\" || field from def",
-"select 'a' || 'b' || 'c' || field from def where field2 = 'a' || fld3 || 's' and 's' || fld2 = 'd' || fld4",
+				12.9
+",
 "SELECT
 	/*+011*/
 		a
@@ -190,7 +408,8 @@ order by ordered",
 	WHERE
 		e
 		=
-		f",
+		f
+",
 "SELECT
 		a
 		,
@@ -201,39 +420,14 @@ order by ordered",
 						d
 			)
 	FROM
-		b",
-"SELECT
-		/*+001*/
-		DISTINCT
-			a
-		FROM
-			b
-UNION
-	SELECT
-		/*+002*/
-			c
-		FROM
-			d
-INTERSECT
-	SELECT
-			e
-		FROM
-			f
-MINUS
-	SELECT
-			g
-		FROM
-			h
-UNION ALL
-	SELECT
-			i
-		FROM
-			j",	
+		b
+",
 "select
 	/*+000*/
 		*
 	from
-		abc",
+		abc
+",
 "select
 	/*+001*/
 		a
@@ -258,9 +452,9 @@ UNION ALL
 		and
 			-10.6
 			=
-			g",
-"
-select
+			g
+",
+"select
 	/*+002*/
 		a
 		,
@@ -286,8 +480,7 @@ select
 			h
 "
 ,
-"
-select
+"select
 	/*+003*/
 		a
 		,
@@ -313,8 +506,7 @@ select
 			0
 "
 ,
-"
-select
+"select
 	/*+004*/
 		-
 		c
@@ -348,8 +540,7 @@ select
 			i
 "
 ,
-"
-select
+"select
 	/*+005*/
 			a
 			+
@@ -372,8 +563,7 @@ select
 			)
 "
 ,
-"
-select
+"select
 	/*+006*/
 		-
 		c as cc
@@ -397,8 +587,7 @@ select
 			f
 "
 ,
-"
-select
+"select
 	/*+007*/
 		*
 	from
@@ -421,8 +610,7 @@ select
 			h
 "
 ,
-"
-select
+"select
 	/*+008*/
 	distinct
 		a
@@ -478,8 +666,7 @@ select
 			h
 "
 ,
-"
-select
+"select
 	/*+010*/
 				to_date
 					(
@@ -498,8 +685,7 @@ select
 		b
 "
 ,
-"
-select
+"select
 	/*+011*/
 			a
 			+
@@ -524,8 +710,7 @@ select
 			d
 "
 ,
-"
-select
+"select
 	/*+012*/
 		*
 	from
@@ -548,8 +733,7 @@ select
 			h
 "
 ,
-"
-select
+"select
 	/*+013*/
 		*
 	from
@@ -573,8 +757,7 @@ select
 			h
 "
 ,
-"
-select
+"select
 	/*+014*/
 		*
 	from
@@ -598,8 +781,7 @@ select
 			h
 " 
 ,
-"
-select
+"select
 	/*+015*/
 		*
 	from
@@ -623,8 +805,7 @@ select
 				h
 "
 ,
-"
-select
+"select
 	/*+009*/
 			NVL
 				(
@@ -661,8 +842,7 @@ select
 			i
 "
 ,
-"
-select
+"select
 	/*+016*/
 		*
 	from
@@ -685,8 +865,7 @@ select
 			h
 "
 ,
-"
-select
+"select
 	/*+017*/
 		a
 		,
@@ -1488,6 +1667,61 @@ select
 				a
 				-
 				12.9
+",
+"select
+		t1.col1
+		,
+		t2.col1
+	from
+		def t1
+		,
+		def t2
+	where
+			t1.col1
+			in
+				(
+					5
+					,
+					7
+				)
+		and
+				abs
+					(
+						t2.col1
+						-
+						t1.col1
+					)
+			=
+			1
+",
+"select
+		t1.col1
+		,
+		t2.col1
+	from
+		def as t1
+		,
+		def as t2
+	where
+			abs
+				(
+						t2.col1
+						-
+						t1.col1
+					,
+					t3.col4
+				)
+			=
+			1
+		and
+			abs
+				(
+					t2.col1
+					-
+					t1.col1
+				)
+			=
+			2
 "
 ]).
 
@@ -1611,10 +1845,10 @@ select
 ]).
 
 -define (TEST_SQLS, [
-      {"SELECT", ?TEST_SELECT, -1}
-    , {"INSERT", ?TEST_INSERT, -1}
-    , {"CREATE", ?TEST_CREATE, -1}
-    , {"UPDATE", ?TEST_UPDATE, -1}
-    , {"DELETE", ?TEST_DELETE, -1}
-    , {"TRUNCT", ?TEST_TRUNCT, -1}
+      {"SELECT", ?TEST_SELECT,  1}
+    , {"INSERT", ?TEST_INSERT,  0}
+    , {"CREATE", ?TEST_CREATE,  0}
+    , {"UPDATE", ?TEST_UPDATE,  0}
+    , {"DELETE", ?TEST_DELETE,  0}
+    , {"TRUNCT", ?TEST_TRUNCT,  0}
 ]).

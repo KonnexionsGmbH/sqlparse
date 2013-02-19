@@ -1,0 +1,3 @@
+-define(LexerException(__Reason), throw({'LexerException',__Reason})).
+-define(ParserException(__Reason), throw({'ParserException',__Reason})).
+-define(RenderingException(__Reason), throw({'RenderingException',__Reason})).

@@ -1,5 +1,5 @@
 -record(box,{ ind
-			, idx
+			% , idx
 			, name      = <<"">>
 			, children  = []
 			, collapsed = true

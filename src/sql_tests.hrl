@@ -75,30 +75,89 @@
 % 	order by
 % 		ordered
 % ",
-"select
-	/*+003*/
+"SELECT
+	/*+011*/
 		a
 		,
-		b as bb
+		b
+	FROM
+		c
 		,
+		d
+	WHERE
+		e
+		=
+		f
+",
+"select
+		name
+		,
+		lastLoginTime
+	from
+		ddAccount
+	where
+		lastLoginTime
+		>
+			sysdate
+			-
+			1.1574074074074073e-4
+",
+"select
+	/*+001*/
+		a
+	from
+		abc
+	where
+			a
+			=
+			10
+		and
+			b
+			=
+			10.5
+		and
 			c
-			+
-			1 as cc
-		,
-			(
-				d
-				-
-				1
-			)
-			/
-			4
-		,
-		5
-		,
-			upper
+			=
+			-10
+		and
+			e
+			=
+			-10.5
+		and
+			f
+			=
+			-11.5
+",
+"select
+		3
+		+
+		a
+	from
+		def
+	where
+			a
+			in
 				(
-					b
+					5
+					,
+					7
+					,
+					3
 				)
+		and
+			b
+			in
+				(
+					\"bikram\"
+					,
+					\"stefan\"
+				)
+	order by
+		a asc
+",
+"select
+	/*+003*/
+		*
 	from
 		abc
 		,
@@ -141,48 +200,39 @@
 								)
 				)
 ",
+"select
+	/*+003*/
+		a
+		,
+		b as bb
+		,
+			c
+			+
+			1 as cc
+		,
+			(
+				d
+				-
+				1
+			)
+			/
+			4
+		,
+		5
+		,
+			upper
+				(
+					b
+				)
+	from
+		abc
+		,
+		def as d
+",
 "select * from def where (((a = a1 or b = b1)) and (((w=(3)))))",
 "select * from def where a = abs(abs(1-2+(3)))",
 "select * from def where t1.col1 in (5,7) and abs((sin(t2.col1) - trunc((t2.col1/t1.col1)))) = 1 and t2.col1 > ( t1.col1 div 2 )",
-"select
-		*
-	from
-		def
-	where
-			a
-			in
-				(
-					5
-					,
-					7
-					,
-					3
-				)
-		and
-			b
-			in
-				(
-					\"bikram\"
-					,
-					\"stefan\"
-				)
-	order by
-		a asc
-",
 "select * from def where t1.col1 in (5,7) and abs(sin(t2.col1) - trunc(t2.col1/t1.col1)) = 1 and t2.col1 > t1.col1 div 2",
-"select
-		name
-		,
-		lastLoginTime
-	from
-		ddAccount
-	where
-		lastLoginTime
-		>
-			sysdate
-			-
-			1.1574074074074073e-4
-",
 "select
 		d.col1
 		,
@@ -397,20 +447,6 @@
 				12.9
 ",
 "SELECT
-	/*+011*/
-		a
-		,
-		b
-	FROM
-		c
-		,
-		d
-	WHERE
-		e
-		=
-		f
-",
-"SELECT
 		a
 		,
 			(
@@ -427,32 +463,6 @@
 		*
 	from
 		abc
-",
-"select
-	/*+001*/
-		a
-	from
-		abc
-	where
-			a
-			=
-			10
-		and
-			b
-			=
-			10.5
-		and
-			c
-			=
-			-10
-		and
-			e
-			=
-			-10.5
-		and
-			-10.6
-			=
-			g
 ",
 "select
 	/*+002*/
@@ -1845,7 +1855,7 @@ select
 ]).
 
 -define (TEST_SQLS, [
-      {"SELECT", ?TEST_SELECT,  1}
+      {"SELECT", ?TEST_SELECT,  4}
     , {"INSERT", ?TEST_INSERT,  0}
     , {"CREATE", ?TEST_CREATE,  0}
     , {"UPDATE", ?TEST_UPDATE,  0}

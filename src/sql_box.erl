@@ -43,7 +43,31 @@ flat_from_pt(ParseTree) ->
 		_:Reason ->	?RenderingException({"Cannot render parse tree to flat SQL",{Reason,ParseTree}})
 	end.
 
+validate_box([]) -> ok;
+validate_box(#box{children=[]}) -> ok;
+validate_box(#box{children=CH}) ->
+	validate_children(CH), 
+	[validate_box(C) || C <-CH];
+validate_box([Box|Boxes]) ->
+	validate_box(Box),
+	validate_box(Boxes).
+
+validate_children([]) -> ok;
+validate_children([#box{}]) -> ok;
+validate_children(Children) ->
+	try
+		case length(lists:usort([C#box.ind || C <- Children])) of
+			1 ->	ok;
+			_ ->	?RenderingException({"Mixed identation error",Children})
+		end
+	catch
+		% _:_ -> 	ChStr = lists:flatten("Illegal box structure " ++ io_lib:format("~p",[Children])),
+		% 		?RenderingException({ChStr})
+		_:_ -> 	?RenderingException({"Illegal box structure ",Children})
+	end.
+
 flat_from_box([]) -> "";
+flat_from_box(#box{name= <<",">> ,children=[]}) -> ",";
 flat_from_box(#box{name=Name,children=[]}) -> 
  	lists:flatten([" ",binary_to_list(Name)]);
 flat_from_box(#box{name= <<>>,children=CH}) -> 
@@ -63,11 +87,11 @@ pretty_from_pt(ParseTree) ->
 
 pretty_from_box([]) -> "";
 pretty_from_box(#box{ind=Ind,name=Name,children=[]}) -> 
- 	lists:flatten(["\n",lists:duplicate(Ind,9),binary_to_list(Name)]);
+ 	lists:flatten(["\r\n",lists:duplicate(Ind,9),binary_to_list(Name)]);
 pretty_from_box(#box{name= <<>>,children=CH}) -> 
 	lists:flatten([[pretty_from_box(C) || C <-CH]]);
 pretty_from_box(#box{ind=Ind,name=Name,children=CH}) -> 
-	lists:flatten(["\n",lists:duplicate(Ind,9),binary_to_list(Name),[pretty_from_box(C) || C <-CH]]);
+	lists:flatten(["\r\n",lists:duplicate(Ind,9),binary_to_list(Name),[pretty_from_box(C) || C <-CH]]);
 pretty_from_box([Box|Boxes]) ->
 	lists:flatten([pretty_from_box(Box),pretty_from_box(Boxes)]).
 
@@ -95,8 +119,9 @@ binding('>') -> 150;
 binding('like') -> 150;
 binding('is') -> 150;
 binding('between') -> 150;
-binding('lists') -> 145;
+% binding('lists') -> 145;
 binding('in') -> 140;
+binding('list') -> 135;
 binding('not') -> 130;
 binding('and') -> 120;
 binding('or') -> 100;
@@ -154,28 +179,41 @@ foldb(Ind, {'as', Item, Alias}) ->
 foldb(Ind, {hints, Hint}) -> fb(Ind, [], Hint);
 foldb(Ind, {opt, Opt}) -> fb(Ind, [], Opt);
 
-foldb(Ind, {where, WC}) -> 
-	Child = foldb(Ind, WC),
-	fb(Ind, [Child], where);
+foldb(Ind, {where, WC}) ->
+	case foldb(Ind+1, WC) of
+		Ch when is_list(Ch) -> 
+			fb(Ind, Ch, where);
+		#box{children=Children} ->
+			fb(Ind, Children, where)
+	end;
 
-foldb(Ind, {having, HC}) -> foldb(Ind+1, HC);
+foldb(Ind, {having, HC}) -> 
+	fb(Ind, foldb(Ind+1, HC), having);
 
 foldb(Ind, {'fun', Fun, List}) ->
-	Ch = foldb_commas(neItems([foldb(Ind+3, Li) || Li <- List])),
-	B0 = fb(Ind+2, [], <<"(">>),
-	B1 = fb(Ind+2, Ch, <<>>),
-	B2 = fb(Ind+2, [], <<")">>),
-	Child = fb(Ind+1, [B0,B1,B2], Fun),
+	Ch = foldb_commas(neItems([foldb(Ind+2, Li) || Li <- List])),
+	B0 = fb(Ind+1, [], <<"(">>),
+	B1 = fb(Ind+1, Ch, <<>>),
+	B2 = fb(Ind+1, [], <<")">>),
+	Child = fb(Ind, [B0,B1,B2], Fun),
 	fb(Ind, [Child],<<>>);
 foldb(Ind, {fields, List}) when is_list(List) ->	%% Sli from, 'group by', 'order by'
-	Ch = neItems([foldb(Ind+1, Li) || Li <- List]),
+	Ch = [foldb(Ind+1, Li) || Li <- List],
 	fb(Ind, foldb_commas(Ch), bStr(<<>>));
 foldb(Ind, {list, List}) when is_list(List) ->	
-	case neItems([foldb(Ind+1, Li) || Li <- List]) of
-		[] ->	empty; 
-		Ch ->	fb(Ind,foldb_commas(Ch), <<>>)
+	Ch = [foldb(Ind, Li) || Li <- List],
+	fb(Ind,foldb_commas(Ch), <<>>);
+foldb(Ind, {Item, Dir}) when is_binary(Dir) ->	
+	B = foldb(Ind, Item),
+	case B#box.children of
+		[] ->	EName=lists:flatten([binary_to_list(B#box.name)," ", binary_to_list(Dir)]),
+				B#box{name=list_to_binary(EName)};
+		Ch ->	{CF,[CL]} = lists:split(length(Ch)-1,Ch),
+				ECName=lists:flatten([binary_to_list(CL#box.name)," ", binary_to_list(Dir)]),
+				EChildren = [CF|[CL#box{name=list_to_binary(ECName)}]],
+		 		B#box{children=EChildren}
 	end;
-foldb(Ind, {Sli, List}) when is_list(List) ->	%% Sli from, 'group by', 'order by'
+foldb(Ind, {Sli, List}) when is_list(List) ->		%% Sli from, 'group by', 'order by'
 	case neItems([foldb(Ind+1, Li) || Li <- List]) of
 		[] ->	empty; 
 		Ch ->	fb(Ind, foldb_commas(Ch), Sli)
@@ -187,68 +225,99 @@ foldb(Ind, {Op, L, R}) when is_atom(Op), is_tuple(L), is_tuple(R) ->
 	Br = binding(R),
     Fl = if
     	Bo > Bl ->
-			L0 = fb(Ind+2, [], <<"(">>),
-			L1 = fb(Ind+2, [foldb(Ind+3,L)], <<>>),
-			L2 = fb(Ind+2, [], <<")">>),
-			fb(Ind+1, [L0,L1,L2], <<>>);
+			L0 = fb(Ind+1, [], <<"(">>),
+			L1 = fb(Ind+1, [foldb(Ind+2,L)], <<>>),
+			L2 = fb(Ind+1, [], <<")">>),
+			fb(Ind, [L0,L1,L2], <<>>);
+			%[L0,L1,L2];
+        Bo == Bl ->
+        	% fb(Ind, [foldb(Ind,L)], <<>>);
+        	foldb(Ind,L);
         true ->
-        	fb(Ind+1, [foldb(Ind+2,L)], <<>>)
+        	fb(Ind, foldb(Ind+1,L), <<>>)
+        	% foldb(Ind+1,L)
     end,
     Fr = if
     	Bo > Br ->
-			R0 = fb(Ind+2, [], <<"(">>),
-			R1 = fb(Ind+2, [foldb(Ind+3,R)], <<>>),
-			R2 = fb(Ind+2, [], <<")">>),
-			fb(Ind+1, [R0,R1,R2], <<>>);
+			R0 = fb(Ind+1, [], <<"(">>),
+			R1 = fb(Ind+1, [foldb(Ind+2,R)], <<>>),
+			R2 = fb(Ind+1, [], <<")">>),
+			%fb(Ind, [R0,R1,R2], <<>>);
+			[R0,R1,R2];
+        Bo == Br ->
+        	% fb(Ind, [foldb(Ind,R)], <<>>);
+        	foldb(Ind,R);
         true ->
-        	fb(Ind+1, [foldb(Ind+2,R)], <<>>)
+        	fb(Ind, foldb(Ind+1,R), <<>>)
+        	% foldb(Ind+1,R)
     end,
-    fb(Ind, [Fl,foldb(Ind+1,Op),Fr], <<>>);
+    lists:flatten([Fl,foldb(Ind,Op),Fr]);
+    % fb(Ind, [Fl,foldb(Ind,Op),Fr], <<>>);
+    % neItems([Fl,foldb(Ind,Op),Fr]);
 foldb(Ind, {Op, L, R}) when is_atom(Op), is_binary(L), is_tuple(R) ->
 	Bo = binding(Op),
 	Br = binding(R),
     Fr = if
     	Bo > Br ->
-			R0 = fb(Ind+2, [], <<"(">>),
-			R1 = fb(Ind+2, [foldb(Ind+3,R)], <<>>),
-			R2 = fb(Ind+2, [], <<")">>),
-			fb(Ind+1, [R0,R1,R2], <<>>);
+			R0 = fb(Ind+1, [], <<"(">>),
+			R1 = fb(Ind+1, [foldb(Ind+2,R)], <<>>),
+			R2 = fb(Ind+1, [], <<")">>),
+			fb(Ind, [R0,R1,R2], <<>>);
+			% [R0,R1,R2];
+        Bo == Br ->
+        	% fb(Ind, [foldb(Ind,R)], <<>>);
+        	foldb(Ind,R);
         true ->
-        	fb(Ind+1, [foldb(Ind+2,R)], <<>>)
+        	fb(Ind, foldb(Ind+1,R), <<>>)
+        	% foldb(Ind+1,R)
     end,
-    fb(Ind, [foldb(Ind+1,L),foldb(Ind+1,Op),Fr], <<>>);
+    % fb(Ind, [foldb(Ind,L),foldb(Ind,Op),Fr], <<>>);
+    lists:flatten([foldb(Ind,L),foldb(Ind,Op),Fr]);
 foldb(Ind, {Op, L, R}) when is_atom(Op), is_tuple(L), is_binary(R) ->
 	Bo = binding(Op),
 	Bl = binding(L),
     Fl = if
     	Bo > Bl ->
-			L0 = fb(Ind+2, [], <<"(">>),
-			L1 = fb(Ind+2, [foldb(Ind+3,L)], <<>>),
-			L2 = fb(Ind+2, [], <<")">>),
-			fb(Ind+1, [L0,L1,L2], <<>>);
+			L0 = fb(Ind+1, [], <<"(">>),
+			L1 = fb(Ind+1, [foldb(Ind+2,L)], <<>>),
+			L2 = fb(Ind+1, [], <<")">>),
+			%fb(Ind, [L0,L1,L2], <<>>);
+			[L0,L1,L2];
+        Bo == Bl ->
+        	% fb(Ind, [foldb(Ind,L)], <<>>);
+        	foldb(Ind,L);
         true ->
-        	fb(Ind+1, [foldb(Ind+2,L)], <<>>)
+        	fb(Ind, foldb(Ind+1,L), <<>>)
+        	% foldb(Ind+1,L)
     end,
-    fb(Ind, [Fl,foldb(Ind+1,Op),foldb(Ind+1,R)], <<>>);
+    % fb(Ind, [Fl,foldb(Ind,Op),foldb(Ind,R)], <<>>);
+    lists:flatten([Fl,foldb(Ind,Op),foldb(Ind,R)]);
 foldb(Ind, {Op, L, R}) when is_atom(Op), is_binary(L), is_binary(R) ->    
-    fb(Ind, [foldb(Ind+1,L),foldb(Ind+1,Op),foldb(Ind+1,R)], <<>>);
+    % fb(Ind, [foldb(Ind,L),foldb(Ind,Op),foldb(Ind,R)], <<>>);
+    [foldb(Ind,L),foldb(Ind,Op),foldb(Ind,R)];
 
-foldb(Ind, Term) ->	
-	fb(Ind, [], list_to_binary(io_lib:format("~p",[Term]))).
-	% Error = {"Unrecognized parse tree term in foldb",Term},
-	% ?RenderingException(Error).
+foldb(_Ind, Term) ->	
+	% fb(Ind, [], list_to_binary(io_lib:format("~p",[Term]))).
+	Error = {"Unrecognized parse tree term in foldb",Term},
+	?RenderingException(Error).
 
+fb(Ind, Child,Name) when is_tuple(Child) ->
+	fb(Ind,[Child],Name);
 fb(0,Children,Name) ->
+	% validate_children(Children),
 	#box{ind=0, collapsed=false, children=Children, name=bStr(Name)};
 fb(1,Children,Name) ->
+	% validate_children(Children),
 	#box{ind=1, collapsed=false, children=Children, name=bStr(Name)};
 fb(Ind,Children,Name) ->
+	% validate_children(Children),
 	#box{ind=Ind, collapsed=true, children=Children, name=bStr(Name)}.
 
 foldb_commas(Boxes) ->
 	Comma = (hd(Boxes))#box{children=[],name=bStr(<<",">>)},
 	[_|Result] = lists:flatten([[Comma,B] || B <- Boxes]),
 	Result.
+
 
 %% TESTS ------------------------------------------------------------------
 
@@ -292,12 +361,21 @@ sqlb_loop(PrintParseTree, [Sql|Rest], N, Limit, Private) ->
 			SqlBox = foldb(ParseTree),
 			print_box(SqlBox),
 			?assertMatch(#box{ind=0},SqlBox),
+			?assert(is_list(validate_box(SqlBox))),
 			FlatSql = (catch flat_from_box(SqlBox)),
 			io:format(user, FlatSql ++ "~n", []),
 			?assertEqual(ParseTree, parse(FlatSql)),
 			PrettySql = (catch pretty_from_box(SqlBox)),
 			io:format(user, PrettySql ++ "~n", []),
 			?assertEqual(ParseTree, parse(PrettySql)),
+			CleanSql = clean(Sql),
+			CleanPrettySql = clean(PrettySql),
+			case str_diff(CleanSql,CleanPrettySql) of
+				same -> ok;
+				Diff ->
+					io:format(user, "Sql Difference: ~p~n", [Diff])
+			end,
+			?assertEqual(CleanSql,CleanPrettySql),
 			NewPrivate = sql_test:update_counters(ParseTree, Private),
             if 
             	(Limit =:= 1) -> 
@@ -315,29 +393,29 @@ print_box(_Box) ->
 	io:format(user, "~p~n", [_Box]),
 	ok.
 
-% -define(REG_COL, [
-%     {"(--.*[\n\r]+)",                             " "}    % comments                      -> removed
-%   , {"([\n\r\t ]+)",                              " "}    % \r,\n or spaces               -> single space
-%   , {"(^[ ]+)|([ ]+$)",                           ""}     % leading or trailing spaces    -> removed
-%   , {"([ ]*)([\(\),])([ ]*)",                     "\\2"}  % spaces before or after ( or ) -> removed
-%   , {"([ ]*)([\\/\\*\\+\\-\\=\\<\\>]+)([ ]*)",    "\\2"}  % spaces around math operators  -> removed
-% % , {"([\)])([ ]*)",                              "\\1 "} % no space after )              -> added one space
-% ]).
+-define(REG_COL, [
+    {"(--.*[\n\r]+)",                             " "}    % comments                      -> removed
+  , {"([\n\r\t ]+)",                              " "}    % \r,\n or spaces               -> single space
+  , {"(^[ ]+)|([ ]+$)",                           ""}     % leading or trailing spaces    -> removed
+  , {"([ ]*)([\(\),])([ ]*)",                     "\\2"}  % spaces before or after ( or ) -> removed
+  , {"([ ]*)([\\/\\*\\+\\-\\=\\<\\>]+)([ ]*)",    "\\2"}  % spaces around math operators  -> removed
+% , {"([\)])([ ]*)",                              "\\1 "} % no space after )              -> added one space
+]).
 
-% -define(REG_CR, [
-%     {"(\r)",                 		""}     % all carriage returns		-> removed
-% ]).
+-define(REG_CR, [
+    {"(\r)",                 		""}     % all carriage returns		-> removed
+]).
 
-% -define(REG_NL, [
-%     {"(^[\r\n]+)",             		""}     % leading newline    		-> removed
-%   , {"([\r\n]+$)",             		""}     % trailing newline    		-> removed
-% ]).
+-define(REG_NL, [
+    {"(^[\r\n]+)",             		""}     % leading newline    		-> removed
+  , {"([\r\n]+$)",             		""}     % trailing newline    		-> removed
+]).
 
-%% str_diff([], [])                                            -> same;
-%% str_diff(String1, []) when length(String1) > 0              -> {String1, ""};
-%% str_diff([], String2) when length(String2) > 0              -> {"", String2};
-%% str_diff([S0|_] = String1, [S1|_] = String2) when S0 =/= S1 -> {String1, String2};
-%% str_diff([_|String1], [_|String2])                          -> str_diff(String1, String2).
+str_diff([], [])                                            -> same;
+str_diff(String1, []) when length(String1) > 0              -> {String1, ""};
+str_diff([], String2) when length(String2) > 0              -> {"", String2};
+str_diff([S0|_] = String1, [S1|_] = String2) when S0 =/= S1 -> {String1, String2};
+str_diff([_|String1], [_|String2])                          -> str_diff(String1, String2).
 
 %% Child Type Label ------------------------------------------
 % ct([]) -> [];
@@ -357,14 +435,17 @@ print_box(_Box) ->
 %         Sql,
 %         ?REG_COL).
 
-% clean_cr(Sql) ->
-%     lists:foldl(
-%         fun({Re,R}, S) -> re:replace(S, Re, R, [{return, list}, global]) end,
-%         Sql,
-%         ?REG_CR).
+clean(Sql) ->
+	trim_nl(clean_cr(string:to_lower(Sql))).
 
-% trim_nl(Sql) ->
-%     lists:foldl(
-%         fun({Re,R}, S) -> re:replace(S, Re, R, [{return, list}, global]) end,
-%         Sql,
-%         ?REG_NL).
+clean_cr(Sql) ->
+    lists:foldl(
+        fun({Re,R}, S) -> re:replace(S, Re, R, [{return, list}, global]) end,
+        Sql,
+        ?REG_CR).
+
+trim_nl(Sql) ->
+    lists:foldl(
+        fun({Re,R}, S) -> re:replace(S, Re, R, [{return, list}, global]) end,
+        Sql,
+        ?REG_NL).

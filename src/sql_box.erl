@@ -121,17 +121,19 @@ binding('is') -> 150;
 binding('between') -> 150;
 % binding('lists') -> 145;
 binding('in') -> 140;
-binding('list') -> 135;
+% binding('list') -> 135;
 binding('not') -> 130;
 binding('and') -> 120;
 binding('or') -> 100;
 binding('as') -> 90;
+binding('where') -> 88;
+binding('list') -> 85;
 binding('fields') -> 80;
 binding('into') -> 80;
 binding('hints') -> 80;
 binding('opt') -> 80;
 binding('from') -> 80;
-binding('where') -> 80;
+% binding('where') -> 80;
 binding('order by') -> 80;
 binding('group by') -> 80;
 binding('having') -> 80;
@@ -155,56 +157,76 @@ bStr(B) when is_binary(B) -> B;
 bStr(C) -> ?RenderingException({"Expected atom or binary, got",C}).
 
 foldb(ParseTree) ->
-	foldb(0, ParseTree).	
+	foldb(0, undefined, ParseTree).	
 
-foldb(Ind, {select, List}) when is_list(List) ->
-	Ch = neItems([foldb(Ind+1, Sli) || Sli <- List]),
+foldb(Ind, P, {select, List}) when is_list(List) ->
+	Ch = neItems([foldb(Ind+1, P, Sli) || Sli <- List]),
 	fb(Ind, neItems(Ch), select);
-foldb(_, {hints,<<>>}) -> empty;
-foldb(_, {opt,  <<>>}) -> empty;
-foldb(_, {into,   _ }) -> empty;
-foldb(_, {where,  []}) -> empty;
-foldb(_, {having, {}}) -> empty;
-foldb(Ind, T) when is_binary(T);is_atom(T) -> fb(Ind, [], T);
-foldb(Ind, {'as', Item, Alias}) ->
-	B = foldb(Ind, Item),
+foldb(_, _P, {hints,<<>>}) -> empty;
+foldb(_, _P, {opt,  <<>>}) -> empty;
+foldb(_, _P, {into,   _ }) -> empty;
+foldb(_, _P, {where,  []}) -> empty;
+foldb(_, _P, {having, {}}) -> empty;
+foldb(Ind, _P, T) when is_binary(T);is_atom(T) -> fb(Ind, [], T);
+foldb(Ind, P, {'as', {'fun',Fun,List}, Alias}) ->
+	B = foldb(Ind, P, {'fun',Fun,List}),
+	[BChild] = B#box.children,
+	GChildren = BChild#box.children, 
+	{CF,[CL]} = lists:split(length(GChildren)-1,GChildren),
+	ECName=lists:flatten([binary_to_list(CL#box.name)," as ", binary_to_list(Alias)]),
+	NewGChildren = CF ++ [CL#box{name=list_to_binary(ECName)}],
+	NewChild = BChild#box{children=NewGChildren},
+	B#box{children=[NewChild]};
+
+foldb(Ind, P, {'as', Item, Alias}) ->
+	B = foldb(Ind, P, Item),
 	case B#box.children of
 		[] ->	EName=lists:flatten([binary_to_list(B#box.name)," as ", binary_to_list(Alias)]),
 				B#box{name=list_to_binary(EName)};
 		Ch ->	{CF,[CL]} = lists:split(length(Ch)-1,Ch),
 				ECName=lists:flatten([binary_to_list(CL#box.name)," as ", binary_to_list(Alias)]),
-				EChildren = [CF|[CL#box{name=list_to_binary(ECName)}]],
+				EChildren = CF ++ [CL#box{name=list_to_binary(ECName)}],
 		 		B#box{children=EChildren}
 	end;
-foldb(Ind, {hints, Hint}) -> fb(Ind, [], Hint);
-foldb(Ind, {opt, Opt}) -> fb(Ind, [], Opt);
+foldb(Ind, _P, {hints, Hint}) -> fb(Ind, [], Hint);
+foldb(Ind, _P, {opt, Opt}) -> fb(Ind, [], Opt);
 
-foldb(Ind, {where, WC}) ->
-	case foldb(Ind+1, WC) of
+foldb(Ind, _P, {where, WC}) ->
+	case foldb(Ind+1, where, WC) of
 		Ch when is_list(Ch) -> 
 			fb(Ind, Ch, where);
-		#box{children=Children} ->
-			fb(Ind, Children, where)
+		#box{name= <<>>, children=Children} ->
+			fb(Ind, Children, where);
+		Fold ->
+			fb(Ind, Fold, where)
 	end;
 
-foldb(Ind, {having, HC}) -> 
-	fb(Ind, foldb(Ind+1, HC), having);
+foldb(Ind, _P, {having, HC}) -> 
+	fb(Ind, foldb(Ind+1, having, HC), having);
 
-foldb(Ind, {'fun', Fun, List}) ->
-	Ch = foldb_commas(neItems([foldb(Ind+2, Li) || Li <- List])),
-	B0 = fb(Ind+1, [], <<"(">>),
-	B1 = fb(Ind+1, Ch, <<>>),
-	B2 = fb(Ind+1, [], <<")">>),
-	Child = fb(Ind, [B0,B1,B2], Fun),
-	fb(Ind, [Child],<<>>);
-foldb(Ind, {fields, List}) when is_list(List) ->	%% Sli from, 'group by', 'order by'
-	Ch = [foldb(Ind+1, Li) || Li <- List],
+foldb(Ind, P, {'fun', Fun, List}) ->
+	case (binding(P) =< binding('list')) of
+		true ->
+			Ch = foldb_commas([foldb(Ind+3, 'list', Li) || Li <- List]),
+			B0 = fb(Ind+2, [], <<"(">>),
+			B1 = fb(Ind+2, Ch, <<>>),
+			B2 = fb(Ind+2, [], <<")">>),
+			fb(Ind, fb(Ind+1, [B0,B1,B2], Fun),<<>>);
+		false ->
+			Ch = foldb_commas([foldb(Ind+2, 'list', Li) || Li <- List]),
+			B0 = fb(Ind+1, [], <<"(">>),
+			B1 = fb(Ind+1, Ch, <<>>),
+			B2 = fb(Ind+1, [], <<")">>),
+			fb(Ind, [B0,B1,B2], Fun)
+	end;			
+foldb(Ind, _P, {fields, List}) when is_list(List) ->	%% Sli from, 'group by', 'order by'
+	Ch = [foldb(Ind+1, fields, Li) || Li <- List],
 	fb(Ind, foldb_commas(Ch), bStr(<<>>));
-foldb(Ind, {list, List}) when is_list(List) ->	
-	Ch = [foldb(Ind, Li) || Li <- List],
+foldb(Ind, _P, {list, List}) when is_list(List) ->	
+	Ch = [foldb(Ind, list, Li) || Li <- List],
 	fb(Ind,foldb_commas(Ch), <<>>);
-foldb(Ind, {Item, Dir}) when is_binary(Dir) ->	
-	B = foldb(Ind, Item),
+foldb(Ind, _P, {Item, Dir}) when is_binary(Dir) ->	
+	B = foldb(Ind, 'order by', Item),
 	case B#box.children of
 		[] ->	EName=lists:flatten([binary_to_list(B#box.name)," ", binary_to_list(Dir)]),
 				B#box{name=list_to_binary(EName)};
@@ -213,92 +235,202 @@ foldb(Ind, {Item, Dir}) when is_binary(Dir) ->
 				EChildren = [CF|[CL#box{name=list_to_binary(ECName)}]],
 		 		B#box{children=EChildren}
 	end;
-foldb(Ind, {Sli, List}) when is_list(List) ->		%% Sli from, 'group by', 'order by'
-	case neItems([foldb(Ind+1, Li) || Li <- List]) of
+foldb(Ind, _P, {Sli, List}) when is_list(List) ->		%% Sli from, 'group by', 'order by'
+	case neItems([foldb(Ind+1, Sli, Li) || Li <- List]) of
 		[] ->	empty; 
 		Ch ->	fb(Ind, foldb_commas(Ch), Sli)
 	end;
 
-foldb(Ind, {Op, L, R}) when is_atom(Op), is_tuple(L), is_tuple(R) ->
-	Bo = binding(Op),
-	Bl = binding(L),
-	Br = binding(R),
-    Fl = if
-    	Bo > Bl ->
-			L0 = fb(Ind+1, [], <<"(">>),
-			L1 = fb(Ind+1, [foldb(Ind+2,L)], <<>>),
-			L2 = fb(Ind+1, [], <<")">>),
-			fb(Ind, [L0,L1,L2], <<>>);
-			%[L0,L1,L2];
-        Bo == Bl ->
-        	% fb(Ind, [foldb(Ind,L)], <<>>);
-        	foldb(Ind,L);
-        true ->
-        	fb(Ind, foldb(Ind+1,L), <<>>)
-        	% foldb(Ind+1,L)
-    end,
-    Fr = if
-    	Bo > Br ->
-			R0 = fb(Ind+1, [], <<"(">>),
-			R1 = fb(Ind+1, [foldb(Ind+2,R)], <<>>),
-			R2 = fb(Ind+1, [], <<")">>),
-			%fb(Ind, [R0,R1,R2], <<>>);
-			[R0,R1,R2];
-        Bo == Br ->
-        	% fb(Ind, [foldb(Ind,R)], <<>>);
-        	foldb(Ind,R);
-        true ->
-        	fb(Ind, foldb(Ind+1,R), <<>>)
-        	% foldb(Ind+1,R)
-    end,
-    lists:flatten([Fl,foldb(Ind,Op),Fr]);
-    % fb(Ind, [Fl,foldb(Ind,Op),Fr], <<>>);
-    % neItems([Fl,foldb(Ind,Op),Fr]);
-foldb(Ind, {Op, L, R}) when is_atom(Op), is_binary(L), is_tuple(R) ->
+foldb(Ind, P, {Op, R}) when is_atom(Op), is_tuple(R) ->
 	Bo = binding(Op),
 	Br = binding(R),
-    Fr = if
-    	Bo > Br ->
-			R0 = fb(Ind+1, [], <<"(">>),
-			R1 = fb(Ind+1, [foldb(Ind+2,R)], <<>>),
-			R2 = fb(Ind+1, [], <<")">>),
-			fb(Ind, [R0,R1,R2], <<>>);
-			% [R0,R1,R2];
-        Bo == Br ->
-        	% fb(Ind, [foldb(Ind,R)], <<>>);
-        	foldb(Ind,R);
-        true ->
-        	fb(Ind, foldb(Ind+1,R), <<>>)
-        	% foldb(Ind+1,R)
-    end,
-    % fb(Ind, [foldb(Ind,L),foldb(Ind,Op),Fr], <<>>);
-    lists:flatten([foldb(Ind,L),foldb(Ind,Op),Fr]);
-foldb(Ind, {Op, L, R}) when is_atom(Op), is_tuple(L), is_binary(R) ->
-	Bo = binding(Op),
-	Bl = binding(L),
-    Fl = if
-    	Bo > Bl ->
-			L0 = fb(Ind+1, [], <<"(">>),
-			L1 = fb(Ind+1, [foldb(Ind+2,L)], <<>>),
-			L2 = fb(Ind+1, [], <<")">>),
-			%fb(Ind, [L0,L1,L2], <<>>);
-			[L0,L1,L2];
-        Bo == Bl ->
-        	% fb(Ind, [foldb(Ind,L)], <<>>);
-        	foldb(Ind,L);
-        true ->
-        	fb(Ind, foldb(Ind+1,L), <<>>)
-        	% foldb(Ind+1,L)
-    end,
-    % fb(Ind, [Fl,foldb(Ind,Op),foldb(Ind,R)], <<>>);
-    lists:flatten([Fl,foldb(Ind,Op),foldb(Ind,R)]);
-foldb(Ind, {Op, L, R}) when is_atom(Op), is_binary(L), is_binary(R) ->    
-    % fb(Ind, [foldb(Ind,L),foldb(Ind,Op),foldb(Ind,R)], <<>>);
-    [foldb(Ind,L),foldb(Ind,Op),foldb(Ind,R)];
+	case (binding(P) =< binding('list')) of
+		true ->
+		    Fr = if
+		    	Bo > Br ->
+					R0 = fb(Ind+2, [], <<"(">>),
+					R1 = fb(Ind+2, foldb(Ind+3, Op, R), <<>>),
+					R2 = fb(Ind+2, [], <<")">>),
+					fb(Ind+1, [R0,R1,R2], <<>>);
+		        Bo == Br ->
+		        	foldb(Ind+1, Op, R);
+		        true ->
+		        	fb(Ind+1, foldb(Ind+2, Op, R), <<>>)
+		    end,
+    		fb(Ind, lists:flatten([foldb(Ind+1, P, Op),Fr]), <<>>);
+		false ->
+		    Fr = if
+		    	Bo > Br ->
+					R0 = fb(Ind+1, [], <<"(">>),
+					R1 = fb(Ind+1, foldb(Ind+2, Op, R), <<>>),
+					R2 = fb(Ind+1, [], <<")">>),
+					fb(Ind, [R0,R1,R2], <<>>);
+		        Bo == Br ->
+		        	foldb(Ind, Op, R);
+		        true ->
+		        	fb(Ind, foldb(Ind+1, Op, R), <<>>)
+		    end,
+		    lists:flatten([foldb(Ind, P, Op), Fr])
+	end;
 
-foldb(_Ind, Term) ->	
+foldb(Ind, P, {Op, R}) when is_atom(Op), is_binary(R) ->
+	case (binding(P) =< binding('list')) of
+    	true ->		fb(Ind, [foldb(Ind+1, P, Op), foldb(Ind+1, Op, R)], <<>>);
+    	false ->	[foldb(Ind, P, Op), foldb(Ind, Op, R)]
+    end;
+
+foldb(Ind, P, {Op, L, R}) when is_atom(Op), is_tuple(L), is_tuple(R) ->
+	Bo = binding(Op),
+	Bl = binding(L),
+	Br = binding(R),
+	case (binding(P) =< binding('list')) of
+		true ->
+		    Fl = if
+		    	Bo > Bl ->
+					L0 = fb(Ind+2, [], <<"(">>),
+					L1 = fb(Ind+2, foldb(Ind+3, Op, L), <<>>),
+					L2 = fb(Ind+2, [], <<")">>),
+					fb(Ind+1, lists:flatten([L0,L1,L2]), <<>>);
+					%[L0,L1,L2];
+		        Bo == Bl ->
+		        	% fb(Ind, [foldb(Ind,L)], <<>>);
+		        	foldb(Ind+1, Op, L);
+		        true ->
+		        	fb(Ind+1, foldb(Ind+2, Op, L), <<>>)
+		        	% foldb(Ind+1,L)
+		    end,
+		    Fr = if
+		    	Bo > Br ->
+					R0 = fb(Ind+2, [], <<"(">>),
+					R1 = fb(Ind+2, foldb(Ind+3, Op, R), <<>>),
+					R2 = fb(Ind+2, [], <<")">>),
+					fb(Ind+1, [R0,R1,R2], <<>>);
+					%[R0,R1,R2];
+		        Bo == Br ->
+		        	% fb(Ind, [foldb(Ind,R)], <<>>);
+		        	foldb(Ind+1, Op, R);
+		        true ->
+		        	fb(Ind+1, foldb(Ind+2, Op, R), <<>>)
+		        	% foldb(Ind+1,R)
+		    end,
+    		fb(Ind, lists:flatten([Fl,foldb(Ind+1, P, Op),Fr]), <<>>);
+		false ->
+		    Fl = if
+		    	Bo > Bl ->
+					L0 = fb(Ind+1, [], <<"(">>),
+					L1 = fb(Ind+1, foldb(Ind+2, Op, L), <<>>),
+					L2 = fb(Ind+1, [], <<")">>),
+					fb(Ind, [L0,L1,L2], <<>>);
+					%[L0,L1,L2];
+		        Bo == Bl ->
+		        	% fb(Ind, [foldb(Ind,L)], <<>>);
+		        	foldb(Ind, Op, L);
+		        true ->
+		        	fb(Ind, foldb(Ind+1, Op, L), <<>>)
+		        	% foldb(Ind+1,L)
+		    end,
+		    Fr = if
+		    	Bo > Br ->
+					R0 = fb(Ind+1, [], <<"(">>),
+					R1 = fb(Ind+1, foldb(Ind+2, Op, R), <<>>),
+					R2 = fb(Ind+1, [], <<")">>),
+					fb(Ind, [R0,R1,R2], <<>>);
+					% [R0,R1,R2];
+		        Bo == Br ->
+		        	% fb(Ind, [foldb(Ind,R)], <<>>);
+		        	foldb(Ind, Op, R);
+		        true ->
+		        	fb(Ind, foldb(Ind+1, Op, R), <<>>)
+		        	% foldb(Ind+1,R)
+		    end,
+		    lists:flatten([Fl, foldb(Ind, P, Op), Fr])
+	end;
+
+foldb(Ind, P, {Op, L, R}) when is_atom(Op), is_binary(L), is_tuple(R) ->
+	Bo = binding(Op),
+	Br = binding(R),
+	case (binding(P) =< binding('list')) of
+		true ->
+		    Fr = if
+		    	Bo > Br ->
+					R0 = fb(Ind+2, [], <<"(">>),
+					R1 = fb(Ind+2, foldb(Ind+3, Op, R), <<>>),
+					R2 = fb(Ind+2, [], <<")">>),
+					fb(Ind+1, [R0,R1,R2], <<>>);
+					% [R0,R1,R2];
+		        Bo == Br ->
+		        	% fb(Ind, [foldb(Ind,R)], <<>>);
+		        	foldb(Ind+1, Op, R);
+		        true ->
+		        	fb(Ind+1, foldb(Ind+2, Op, R), <<>>)
+		        	% foldb(Ind+1,R)
+		    end,
+    		fb(Ind, lists:flatten([foldb(Ind+1, Op, L), foldb(Ind+1, P, Op), Fr]), <<>>);
+		false ->
+		    Fr = if
+		    	Bo > Br ->
+					R0 = fb(Ind+1, [], <<"(">>),
+					R1 = fb(Ind+1, foldb(Ind+2, Op, R), <<>>),
+					R2 = fb(Ind+1, [], <<")">>),
+					fb(Ind, [R0,R1,R2], <<>>);
+					% [R0,R1,R2];
+		        Bo == Br ->
+		        	% fb(Ind, [foldb(Ind,R)], <<>>);
+		        	foldb(Ind, Op, R);
+		        true ->
+		        	fb(Ind, foldb(Ind+1, Op, R), <<>>)
+		        	% foldb(Ind+1,R)
+		    end,
+		    lists:flatten([foldb(Ind, Op, L),foldb(Ind, P, Op),Fr])
+	end;
+
+foldb(Ind, P, {Op, L, R}) when is_atom(Op), is_tuple(L), is_binary(R) ->
+	Bo = binding(Op),
+	Bl = binding(L),
+	case (binding(P) =< binding('list')) of
+    	true ->		
+		    Fl = if
+		    	Bo > Bl ->
+					L0 = fb(Ind+2, [], <<"(">>),
+					L1 = fb(Ind+2, foldb(Ind+3, Op, L), <<>>),
+					L2 = fb(Ind+2, [], <<")">>),
+					fb(Ind+1, [L0,L1,L2], <<>>);
+					% [L0,L1,L2];
+		        Bo == Bl ->
+		        	% fb(Ind, [foldb(Ind,L)], <<>>);
+		        	foldb(Ind+1, Op, L);
+		        true ->
+		        	fb(Ind+1, foldb(Ind+2, Op, L), <<>>)
+		        	% foldb(Ind+1,L)
+		    end,
+    		fb(Ind, lists:flatten([Fl,foldb(Ind+1, P, Op),foldb(Ind+1, Op, R)]), <<>>);
+    	false ->	
+		    Fl = if
+		    	Bo > Bl ->
+					L0 = fb(Ind+1, [], <<"(">>),
+					L1 = fb(Ind+1, foldb(Ind+2, Op, L), <<>>),
+					L2 = fb(Ind+1, [], <<")">>),
+					fb(Ind, [L0,L1,L2], <<>>);
+					% [L0,L1,L2];
+		        Bo == Bl ->
+		        	% fb(Ind, [foldb(Ind,L)], <<>>);
+		        	foldb(Ind, Op, L);
+		        true ->
+		        	fb(Ind, foldb(Ind+1, Op, L), <<>>)
+		        	% foldb(Ind+1,L)
+		    end,
+    		lists:flatten([Fl,foldb(Ind, P, Op),foldb(Ind, Op, R)])
+    end;
+
+foldb(Ind, P, {Op, L, R}) when is_atom(Op), is_binary(L), is_binary(R) ->
+	case (binding(P) =< binding('list')) of
+    	true ->		fb(Ind, [foldb(Ind+1, Op,L), foldb(Ind+1, P, Op), foldb(Ind+1, Op, R)], <<>>);
+    	false ->	[foldb(Ind, Op, L), foldb(Ind, P, Op), foldb(Ind, Op, R)]
+    end;
+
+foldb(_Ind, P, Term) ->	
 	% fb(Ind, [], list_to_binary(io_lib:format("~p",[Term]))).
-	Error = {"Unrecognized parse tree term in foldb",Term},
+	Error = {"Unrecognized parse tree term in foldb under parent ",{Term,P}},
 	?RenderingException(Error).
 
 fb(Ind, Child,Name) when is_tuple(Child) ->
@@ -313,10 +445,14 @@ fb(Ind,Children,Name) ->
 	% validate_children(Children),
 	#box{ind=Ind, collapsed=true, children=Children, name=bStr(Name)}.
 
-foldb_commas(Boxes) ->
+foldb_commas(Boxes) when is_list(Boxes) ->
+	validate_children(Boxes),
 	Comma = (hd(Boxes))#box{children=[],name=bStr(<<",">>)},
 	[_|Result] = lists:flatten([[Comma,B] || B <- Boxes]),
-	Result.
+	Result;
+foldb_commas(Boxes) ->
+	?ParserException({"Invalid list for folding in commas",Boxes}).
+
 
 
 %% TESTS ------------------------------------------------------------------
@@ -354,43 +490,48 @@ sqlb_loop(PrintParseTree, [Sql|Rest], N, Limit, Private) ->
 			sqlb_loop(PrintParseTree, Rest, N+1, Limit, Private);
 		_ ->		
 		    io:format(user, "[~p]===============================~n", [N]),
-		    io:format(user, Sql ++ "~n", []),
-			ParseTree = parse(Sql),
-   			print_parse_tree(ParseTree), 
-			% SqlBox = fold_tree(ParseTree, fun sqlb/6, []),
-			SqlBox = foldb(ParseTree),
-			print_box(SqlBox),
-			?assertMatch(#box{ind=0},SqlBox),
-			?assert(is_list(validate_box(SqlBox))),
-			FlatSql = (catch flat_from_box(SqlBox)),
-			io:format(user, FlatSql ++ "~n", []),
-			?assertEqual(ParseTree, parse(FlatSql)),
-			PrettySql = (catch pretty_from_box(SqlBox)),
-			io:format(user, PrettySql ++ "~n", []),
-			?assertEqual(ParseTree, parse(PrettySql)),
-			CleanSql = clean(Sql),
-			CleanPrettySql = clean(PrettySql),
-			case str_diff(CleanSql,CleanPrettySql) of
-				same -> ok;
-				Diff ->
-					io:format(user, "Sql Difference: ~p~n", [Diff])
-			end,
-			?assertEqual(CleanSql,CleanPrettySql),
-			NewPrivate = sql_test:update_counters(ParseTree, Private),
-            if 
-            	(Limit =:= 1) -> 
-            		NewPrivate; 
-            	true ->
-                	sqlb_loop(PrintParseTree, Rest, N+1, Limit-1, NewPrivate)
-            end
-	end.
+				NewPrivate = try
+				    io:format(user, Sql ++ "~n", []),
+					ParseTree = parse(Sql),
+		   			print_parse_tree(ParseTree), 
+					% SqlBox = fold_tree(ParseTree, fun sqlb/6, []),
+					SqlBox = foldb(ParseTree),
+					print_box(SqlBox),
+					?assertMatch(#box{ind=0},SqlBox),
+					?assert(is_list(validate_box(SqlBox))),
+					FlatSql = (catch flat_from_box(SqlBox)),
+					io:format(user, FlatSql ++ "~n", []),
+					?assertEqual(ParseTree, parse(FlatSql)),
+					PrettySql = (catch pretty_from_box(SqlBox)),
+					io:format(user, PrettySql ++ "~n", []),
+					?assertEqual(ParseTree, parse(PrettySql)),
+					CleanSql = clean(Sql),
+					CleanPrettySql = clean(PrettySql),
+					case str_diff(CleanSql,CleanPrettySql) of
+						same -> ok;
+						Diff ->
+							io:format(user, "Sql Difference: ~p~n", [Diff])
+					end,
+					?assertEqual(CleanSql,CleanPrettySql),
+					sql_test:update_counters(ParseTree, Private)
+				catch
+			        Class:Reason ->  io:format(user,"Exception ~p:~p~n~p~n", [Class, Reason, erlang:get_stacktrace()]),
+			        ?assert( true == "all tests completed")
+			    end,
+	            if 
+	            	(Limit =:= 1) -> 
+	            		NewPrivate; 
+	            	true ->
+	                	sqlb_loop(PrintParseTree, Rest, N+1, Limit-1, NewPrivate)
+	            end
+		end.
 
 print_parse_tree(_ParseTree) -> 
-	io:format(user, "~p~n", [_ParseTree]),
+	io:format(user, "~p~n~n", [_ParseTree]),
 	ok.
 
 print_box(_Box) -> 
-	io:format(user, "~p~n", [_Box]),
+	io:format(user, "~p~n~n", [_Box]),
 	ok.
 
 -define(REG_COL, [

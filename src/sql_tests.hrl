@@ -1,4 +1,454 @@
 -define (TEST_SELECT,[
+% "select
+% 	/*+004*/
+% 		-
+% 		c
+% 	from
+% 		abc
+% 		,
+% 		def
+% 	where
+% 				a
+% 				in
+% 					(
+% 						a
+% 						,
+% 						b
+% 						,
+% 						c
+% 					)
+% 			and
+% 				c
+% 				=
+% 				d
+% 			and
+% 				e
+% 				=
+% 				f
+% 		or
+% 			g
+% 			between
+% 			h
+% 			and
+% 			i
+% "
+% ,
+% "
+% select
+% 	/*+032*/
+% 		*
+% 	from
+% 		abc
+% 	where
+% 				a
+% 				between
+% 				b
+% 				and
+% 				c
+% 			and
+% 				d
+% 				between
+% 				e
+% 				and
+% 				f
+% 		or
+% 			g
+% 			=
+% 			h
+% "
+% ,
+% "select
+% 	/*+031*/
+% 		*
+% 	from
+% 		abc
+% 	where
+% 			not
+% 				a
+% 				between
+% 				b
+% 				and
+% 				c
+% 		and
+% 			d
+% 			between
+% 			e
+% 			and
+% 			f
+% 		and
+% 			g
+% 			=
+% 			h
+% "
+% ,
+% "SELECT
+% 		a
+% 		,
+% 			(
+% 				SELECT
+% 						c
+% 					FROM
+% 						d
+% 			)
+% 	FROM
+% 		b
+% ",
+% "select
+% 	/*+008*/
+% 	distinct
+% 		a
+% 		,
+% 		-
+% 			nvl
+% 				(
+% 					b
+% 				)
+% 		,
+% 		c
+% 	from
+% 		abc
+% 		,
+% 		def
+% 	where
+% 				a
+% 				in
+% 					(
+% 						select
+% 								b
+% 							from
+% 								def
+% 								,
+% 								ghi
+% 							where
+% 								h
+% 								=
+% 								0
+% 					)
+% 			and
+% 					(
+% 						select
+% 								b
+% 							from
+% 								def
+% 					)
+% 				=
+% 				10
+% 			and
+% 				e
+% 				in
+% 					(
+% 						1
+% 						,
+% 						2
+% 						,
+% 						3
+% 					)
+% 		or
+% 			g
+% 			=
+% 			h
+% "
+% ,
+% "select
+% 	/*+009*/
+% 			NVL
+% 				(
+% 					a
+% 				) as a
+% 	from
+% 		abc
+% 		,
+% 		def
+% 	where
+% 				c
+% 				=
+% 				d
+% 			and
+% 				(
+% 						a
+% 						in
+% 							(
+% 								select
+% 										b
+% 									from
+% 										def
+% 							)
+% 					or
+% 						e
+% 						=
+% 						f
+% 				)
+% 		or
+% 			g
+% 			between
+% 			h
+% 			and
+% 			i
+% ",
+% "select
+% 	/*+029*/
+% 		*
+% 	from
+% 		abc
+% 	where
+% 			a
+% 			between
+% 			b
+% 			and
+% 			c
+% 		and
+% 			d
+% 			between
+% 				(
+% 					select
+% 							e
+% 						from
+% 							fhi
+% 				)
+% 			and
+% 			f
+% 		and
+% 			g
+% 			=
+% 			h038
+% ",
+% "select
+% 	/*+036*/
+% 		NULL as ROW_ID_S
+% 		,
+% 		BDETAIL6.ROWID as ROW_ID_M
+% 		,
+% 		BD_UMSGGRPID as MSGID
+% 		,
+% 			to_char
+% 				(
+% 					BD_DATESUBMIT
+% 					,
+% 					'DD.MM.YYYY HH24:MI:SS'
+% 				) as SUBMITTIME
+% 		,
+% 			to_char
+% 				(
+% 					BD_DATEEXPIRE
+% 					,
+% 					'DD.MM.YYYY HH24:MI:SS'
+% 				) as EXPIRETIME
+% 		,
+% 			to_char
+% 				(
+% 					BD_DATEDELIVERY
+% 					,
+% 					'DD.MM.YYYY HH24:MI:SS'
+% 				) as RECTIME
+% 		,
+% 		BD_MSISDN_A as SENDER
+% 		,
+% 		BD_MSISDN_B as RECEIVER
+% 		,
+% 		BD_MSGSIZE as MSGLEN
+% 		,
+% 			nvl
+% 				(
+% 					MMSCCRT_LANG01
+% 					,
+% 					BD_CDRRECTYPE
+% 				) as TYPE
+% 		,
+% 			nvl
+% 				(
+% 					MMSCCRT_VALUE1
+% 					,
+% 					BD_CDRRECTYPE
+% 				) as TYPE_TT1
+% 		,
+% 			nvl
+% 				(
+% 					MMSCCRT_VALUE2
+% 					,
+% 					BD_CDRRECTYPE
+% 				) as TYPE_TT2
+% 		,
+% 			decode
+% 				(
+% 					BD_MSGTYPE
+% 					,
+% 					01
+% 					,
+% 					'Y'
+% 					,
+% 					012
+% 					,
+% 					'Y'
+% 					,
+% 					'N'
+% 				) as ISDELIV
+% 		,
+% 			nvl
+% 				(
+% 					MMSCET_LANG02
+% 					,
+% 					BD_EVENTDISP
+% 				) as EVENTDISP_STATCODE
+% 		,
+% 			nvl
+% 				(
+% 					MMSCMT_LANG02
+% 					,
+% 					BD_MSGTYPE
+% 				) as MSGTYPE_ERRCODE
+% 		,
+% 			nvl
+% 				(
+% 					MMSCET_VALUE2
+% 					,
+% 					BD_EVENTDISP
+% 				) as EVENTDISP_TT
+% 		,
+% 			nvl
+% 				(
+% 					MMSCMT_VALUE2
+% 					,
+% 					BD_MSGTYPE
+% 				) as MSGTYPE_TT
+% 		,
+% 		'MMS' as ROWTYPE
+% 		,
+% 			to_char
+% 				(
+% 					BD_DATETIME
+% 					,
+% 					'DD.MM.YYYY HH24:MI:SS'
+% 				) as DATETIM
+% 	from
+% 		BDETAIL6
+% 		,
+% 		MMSC_CDRRECTYPE
+% 		,
+% 		MMSC_EVENTDISPTYPE
+% 		,
+% 		MMSC_MSGTYPE
+% 	where
+% 			BD_CDRRECTYPE
+% 			=
+% 			MMSCCRT_ID
+% 		and
+% 				ltrim
+% 					(
+% 							to_char
+% 								(
+% 									BD_EVENTDISP
+% 								)
+% 					)
+% 			=
+% 			MMSCET_ID
+% 		and
+% 				ltrim
+% 					(
+% 							to_char
+% 								(
+% 									BD_MSGTYPE
+% 								)
+% 					)
+% 			=
+% 			MMSCMT_ID
+% 		and
+% 			BD_UMSGGRPID
+% 			=
+% 			'mj78yk7r307fga5a01'
+% 		and
+% 			BD_MSISDN_B
+% 			=
+% 			'41796187332'
+% 		and
+% 			BD_DATETIME
+% 			>=
+% 					to_date
+% 						(
+% 							'19.06.12 11:15:09'
+% 							,
+% 							'DD.MM.YY HH24:MI:SS'
+% 						)
+% 				-
+% 				14
+% 		and
+% 			BD_DATETIME
+% 			<=
+% 					to_date
+% 						(
+% 							'19.06.12 11:15:09'
+% 							,
+% 							'DD.MM.YY HH24:MI:SS'
+% 						)
+% 				+
+% 				14
+% 	order by
+% 		BD_DATETIME
+% 		,
+% 			nvl
+% 				(
+% 					BD_DATEDELIVERY
+% 					,
+% 					BD_DATETIME
+% 				)
+% 		,
+% 		BD_MSGTYPE
+% "
+% ,
+% "select
+% 	/*+030*/
+% 		*
+% 	from
+% 		abc
+% 	where
+% 				(
+% 					select
+% 							a
+% 						from
+% 							klm
+% 				)
+% 			between
+% 			b
+% 			and
+% 			c
+% 		or
+% 				d
+% 				between
+% 				e
+% 				and
+% 				f
+% 			and
+% 				g
+% 				=
+% 				h
+% ",
+% "select
+% 	/*+017*/
+% 		a
+% 		,
+% 			(
+% 				select
+% 						c
+% 					from
+% 						def
+% 			)
+% 	from
+% 			(
+% 				select
+% 						d
+% 					from
+% 						ghi
+% 			)
+% 	where
+% 			(
+% 				select
+% 						b
+% 					from
+% 						def
+% 			)
+% 		=
+% 		b
+% "
+% ,
 %"SELECT f,SUM(d) FROM def where a=b GROUP BY f HAVING SUM(d) < 2 order by f",
 %"select 'aa' || 'b\nb' || 'cc' || field from def",
 %"select \"aa\" || \"b\nb\" || \"c\r\nc\" || field from def",
@@ -129,9 +579,9 @@
 			-11.5
 ",
 "select
-		3
-		+
-		a
+			3
+			+
+			a
 	from
 		def
 	where
@@ -140,7 +590,9 @@
 				(
 					5
 					,
-					7
+						7
+						+
+						1
 					,
 					3
 				)
@@ -210,11 +662,11 @@
 			+
 			1 as cc
 		,
-			(
-				d
-				-
-				1
-			)
+				(
+					d
+					-
+					1
+				)
 			/
 			4
 		,
@@ -353,112 +805,6 @@
 		'table_1'
 ",
 "select
-	/*+038*/
-		AC_ID
-		,
-		AC_NAME
-		,
-		AC_ETID
-		,
-		AC_SHORT
-		,
-		AC_DEPTID
-		,
-		AC_LANGID
-		,
-		AC_LOGRET
-		,
-			nvl
-				(
-					AC_MAXLOG
-					,
-					SYS_MAXLOG
-				) as MAXLOG
-		,
-		AC_LASTLOGINTIME
-		,
-		AC_IPMASK
-		,
-		AC_REMOTEADDR
-		,
-					(
-						sysdate
-						-
-							nvl
-								(
-									AC_LASTLOGINTIME
-									,
-									sysdate
-								)
-					)
-				*
-				24
-				*
-				60
-			-
-				nvl
-					(
-						SYS_DELAY
-						,
-						3
-					)
-	from
-		ACC
-		,
-		SYSPARAMETERS
-	where
-			AC_ESID
-			=
-			'A'
-		and
-			AC_SHORT
-			=
-			'ADMIN'
-		and
-				1
-				+
-				-4
-			=
-			-3
-		and
-			2
-			=
-				5
-				-
-				3
-		and
-			2.3
-			=
-				5.9
-				-
-				3.6
-		and
-				a
-				-
-				10.5
-			=
-			-
-			c
-		and
-			-10.5
-			=
-				a
-				-
-				12.9
-",
-"SELECT
-		a
-		,
-			(
-				SELECT
-						c
-					FROM
-						d
-			)
-	FROM
-		b
-",
-"select
 	/*+000*/
 		*
 	from
@@ -516,40 +862,7 @@
 			0
 "
 ,
-"select
-	/*+004*/
-		-
-		c
-	from
-		abc
-		,
-		def
-	where
-				a
-				in
-					(
-						a
-						,
-						b
-						,
-						c
-					)
-			and
-				c
-				=
-				d
-			and
-				e
-				=
-				f
-		or
-			g
-			between
-			h
-			and
-			i
-"
-,
+
 "select
 	/*+005*/
 			a
@@ -575,8 +888,7 @@
 ,
 "select
 	/*+006*/
-		-
-		c as cc
+		- c as cc
 	from
 		abc
 		,
@@ -614,62 +926,6 @@
 			e
 			=
 			f
-		or
-			g
-			=
-			h
-"
-,
-"select
-	/*+008*/
-	distinct
-		a
-		,
-		-
-			nvl
-				(
-					b
-				)
-		,
-		c
-	from
-		abc
-		,
-		def
-	where
-				a
-				in
-					(
-						select
-								b
-							from
-								def
-								,
-								ghi
-							where
-								h
-								=
-								0
-					)
-			and
-					(
-						select
-								b
-							from
-								def
-					)
-				=
-				10
-			and
-				e
-				in
-					(
-						1
-						,
-						2
-						,
-						3
-					)
 		or
 			g
 			=
@@ -816,43 +1072,6 @@
 "
 ,
 "select
-	/*+009*/
-			NVL
-				(
-					a
-				) as a
-	from
-		abc
-		,
-		def
-	where
-				c
-				=
-				d
-			and
-				(
-						a
-						in
-							(
-								select
-										b
-									from
-										def
-							)
-					or
-						e
-						=
-						f
-				)
-		or
-			g
-			between
-			h
-			and
-			i
-"
-,
-"select
 	/*+016*/
 		*
 	from
@@ -873,34 +1092,6 @@
 			g
 			=
 			h
-"
-,
-"select
-	/*+017*/
-		a
-		,
-			(
-				select
-						c
-					from
-						def
-			)
-	from
-			(
-				select
-						d
-					from
-						ghi
-			)
-	where
-			(
-				select
-						b
-					from
-						def
-			)
-		=
-		b
 "
 ,
 "
@@ -1185,110 +1376,6 @@ select
 ,
 "
 select
-	/*+029*/
-		*
-	from
-		abc
-	where
-			a
-			between
-			b
-			and
-			c
-		and
-			d
-			between
-				(
-					select
-							e
-						from
-							fhi
-				)
-			and
-			f
-		and
-			g
-			=
-			h
-"
-,
-"
-select
-	/*+030*/
-		*
-	from
-		abc
-	where
-				(
-					select
-							a
-						from
-							klm
-				)
-			between
-			b
-			and
-			c
-		or
-				d
-				between
-				e
-				and
-				f
-			and
-				g
-				=
-				h",
-"select
-	/*+031*/
-		*
-	from
-		abc
-	where
-			not
-				a
-				between
-				b
-				and
-				c
-		and
-			d
-			between
-			e
-			and
-			f
-		and
-			g
-			=
-			h
-"
-,
-"
-select
-	/*+032*/
-		*
-	from
-		abc
-	where
-				a
-				between
-				b
-				and
-				c
-			and
-				d
-				between
-				e
-				and
-				f
-		or
-			g
-			=
-			h
-"
-,
-"
-select
 	/*+033*/
 	distinct
 		a
@@ -1317,12 +1404,11 @@ select
 					h
 			)
 	order by
-		c
+		c 
 		,
 		d desc
 		,
-		e
-"
+		e "
 ,
 "
 select
@@ -1358,188 +1444,6 @@ select
 		=
 		b",
 %	,decode(BD_MSGTYPE||BD_EVENTDISP,01,'Y',012,'Y','N') ISDELIV
-"select
-	/*+036*/
-		NULL as ROW_ID_S
-		,
-		BDETAIL6.ROWID as ROW_ID_M
-		,
-		BD_UMSGGRPID as MSGID
-		,
-			to_char
-				(
-					BD_DATESUBMIT
-					,
-					'DD.MM.YYYY HH24:MI:SS'
-				) as SUBMITTIME
-		,
-			to_char
-				(
-					BD_DATEEXPIRE
-					,
-					'DD.MM.YYYY HH24:MI:SS'
-				) as EXPIRETIME
-		,
-			to_char
-				(
-					BD_DATEDELIVERY
-					,
-					'DD.MM.YYYY HH24:MI:SS'
-				) as RECTIME
-		,
-		BD_MSISDN_A as SENDER
-		,
-		BD_MSISDN_B as RECEIVER
-		,
-		BD_MSGSIZE as MSGLEN
-		,
-			nvl
-				(
-					MMSCCRT_LANG01
-					,
-					BD_CDRRECTYPE
-				) as TYPE
-		,
-			nvl
-				(
-					MMSCCRT_VALUE1
-					,
-					BD_CDRRECTYPE
-				) as TYPE_TT1
-		,
-			nvl
-				(
-					MMSCCRT_VALUE2
-					,
-					BD_CDRRECTYPE
-				) as TYPE_TT2
-		,
-			decode
-				(
-					BD_MSGTYPE
-					,
-					01
-					,
-					'Y'
-					,
-					012
-					,
-					'Y'
-					,
-					'N'
-				) as ISDELIV
-		,
-			nvl
-				(
-					MMSCET_LANG02
-					,
-					BD_EVENTDISP
-				) as EVENTDISP_STATCODE
-		,
-			nvl
-				(
-					MMSCMT_LANG02
-					,
-					BD_MSGTYPE
-				) as MSGTYPE_ERRCODE
-		,
-			nvl
-				(
-					MMSCET_VALUE2
-					,
-					BD_EVENTDISP
-				) as EVENTDISP_TT
-		,
-			nvl
-				(
-					MMSCMT_VALUE2
-					,
-					BD_MSGTYPE
-				) as MSGTYPE_TT
-		,
-		'MMS' as ROWTYPE
-		,
-			to_char
-				(
-					BD_DATETIME
-					,
-					'DD.MM.YYYY HH24:MI:SS'
-				) as DATETIM
-	from
-		BDETAIL6
-		,
-		MMSC_CDRRECTYPE
-		,
-		MMSC_EVENTDISPTYPE
-		,
-		MMSC_MSGTYPE
-	where
-			BD_CDRRECTYPE
-			=
-			MMSCCRT_ID
-		and
-				ltrim
-					(
-							to_char
-								(
-									BD_EVENTDISP
-								)
-					)
-			=
-			MMSCET_ID
-		and
-				ltrim
-					(
-							to_char
-								(
-									BD_MSGTYPE
-								)
-					)
-			=
-			MMSCMT_ID
-		and
-			BD_UMSGGRPID
-			=
-			'mj78yk7r307fga5a01'
-		and
-			BD_MSISDN_B
-			=
-			'41796187332'
-		and
-			BD_DATETIME
-			>=
-					to_date
-						(
-							'19.06.12 11:15:09'
-							,
-							'DD.MM.YY HH24:MI:SS'
-						)
-				-
-				14
-		and
-			BD_DATETIME
-			<=
-					to_date
-						(
-							'19.06.12 11:15:09'
-							,
-							'DD.MM.YY HH24:MI:SS'
-						)
-				+
-				14
-	order by
-		BD_DATETIME
-		,
-			nvl
-				(
-					BD_DATEDELIVERY
-					,
-					BD_DATETIME
-				)
-		,
-		BD_MSGTYPE
-"
-,
 "
 select
 	/*+037*/
@@ -1669,8 +1573,7 @@ select
 				-
 				10.5
 			=
-			-
-			c
+				- c
 		and
 			-10.5
 			=
@@ -1683,53 +1586,27 @@ select
 		,
 		t2.col1
 	from
-		def t1
-		,
-		def t2
-	where
-			t1.col1
-			in
-				(
-					5
-					,
-					7
-				)
-		and
-				abs
-					(
-						t2.col1
-						-
-						t1.col1
-					)
-			=
-			1
-",
-"select
-		t1.col1
-		,
-		t2.col1
-	from
 		def as t1
 		,
 		def as t2
 	where
-			abs
-				(
-						t2.col1
-						-
-						t1.col1
-					,
-					t3.col4
-				)
+				abs
+					(
+							t2.col1
+							-
+							t1.col1
+						,
+						t3.col4
+					)
 			=
 			1
 		and
-			abs
-				(
-					t2.col1
-					-
-					t1.col1
-				)
+				abs
+					(
+							t2.col1
+							-
+							t1.col1
+					)
 			=
 			2
 "
@@ -1855,7 +1732,7 @@ select
 ]).
 
 -define (TEST_SQLS, [
-      {"SELECT", ?TEST_SELECT,  4}
+      {"SELECT", ?TEST_SELECT,  -1}
     , {"INSERT", ?TEST_INSERT,  0}
     , {"CREATE", ?TEST_CREATE,  0}
     , {"UPDATE", ?TEST_UPDATE,  0}

@@ -19,6 +19,8 @@
 -include("sql_tests.hrl").
 -include("sql_box.hrl").
 
+-define(DefCollInd,3).	% First indentation level which will be collapsed by default
+
 parse(Sql) ->
 	case sql_lex:string(Sql ++ ";") of
 		{ok, Tokens, _} -> 
@@ -67,13 +69,13 @@ validate_children(Children) ->
 	end.
 
 flat_from_box([]) -> "";
-flat_from_box(#box{name= <<",">> ,children=[]}) -> ",";
+flat_from_box(#box{name= <<",">> ,children=[]}) -> ", ";
 flat_from_box(#box{name=Name,children=[]}) -> 
- 	lists:flatten([" ",binary_to_list(Name)]);
+ 	lists:flatten([binary_to_list(Name), " "]);
 flat_from_box(#box{name= <<>>,children=CH}) -> 
 	lists:flatten([[flat_from_box(C) || C <-CH]]);
 flat_from_box(#box{name=Name,children=CH}) -> 
-	lists:flatten([" ",binary_to_list(Name),[flat_from_box(C) || C <-CH]]);
+	lists:flatten([binary_to_list(Name)," ",[flat_from_box(C) || C <-CH]]);
 flat_from_box([Box|Boxes]) ->
 	lists:flatten([flat_from_box(Box),flat_from_box(Boxes)]).
 
@@ -85,15 +87,40 @@ pretty_from_pt(ParseTree) ->
 	SqlBox = foldb(ParseTree),
 	pretty_from_box(SqlBox).
 
-pretty_from_box([]) -> "";
+pretty_from_box([]) -> [];
+pretty_from_box(#box{collapsed=true}=Box) -> flat_from_box(Box);
+pretty_from_box(#box{name= <<>>,children=[]}) -> [];
 pretty_from_box(#box{ind=Ind,name=Name,children=[]}) -> 
- 	lists:flatten(["\r\n",lists:duplicate(Ind,9),binary_to_list(Name)]);
-pretty_from_box(#box{name= <<>>,children=CH}) -> 
-	lists:flatten([[pretty_from_box(C) || C <-CH]]);
-pretty_from_box(#box{ind=Ind,name=Name,children=CH}) -> 
-	lists:flatten(["\r\n",lists:duplicate(Ind,9),binary_to_list(Name),[pretty_from_box(C) || C <-CH]]);
+ 	lists:flatten([indent(Ind),binary_to_list(Name),"\r\n"]);
+pretty_from_box(#box{ind=Ind,name= <<>>,children=CH}) ->
+	if
+	 	(hd(CH))#box.collapsed ->
+	 		lists:flatten([indent(Ind+1),[flat_from_box(C) || C <-CH],"\r\n"]);
+		true ->
+			lists:flatten([[pretty_from_box(C) || C <-CH]])
+	end;
+pretty_from_box(#box{ind=Ind,name=Name,children=CH}) ->
+	if
+	 	(hd(CH))#box.collapsed ->
+	 		lists:flatten([indent(Ind),binary_to_list(Name),"\r\n",
+	 			indent(Ind+1),[flat_from_box(C) || C <-CH],"\r\n"]);
+		true ->
+			lists:flatten([indent(Ind),binary_to_list(Name),"\r\n",[pretty_from_box(C) || C <-CH]])
+	end; 
 pretty_from_box([Box|Boxes]) ->
 	lists:flatten([pretty_from_box(Box),pretty_from_box(Boxes)]).
+
+indent(Ind) -> lists:duplicate(Ind*2,32).
+
+pretty_from_box_exp([]) -> "";
+pretty_from_box_exp(#box{ind=Ind,name=Name,children=[]}) -> 
+ 	lists:flatten(["\r\n",lists:duplicate(Ind,9),binary_to_list(Name)]);
+pretty_from_box_exp(#box{name= <<>>,children=CH}) -> 
+	lists:flatten([[pretty_from_box_exp(C) || C <-CH]]);
+pretty_from_box_exp(#box{ind=Ind,name=Name,children=CH}) -> 
+	lists:flatten(["\r\n",lists:duplicate(Ind,9),binary_to_list(Name),[pretty_from_box_exp(C) || C <-CH]]);
+pretty_from_box_exp([Box|Boxes]) ->
+	lists:flatten([pretty_from_box_exp(Box),pretty_from_box_exp(Boxes)]).
 
 boxed(Sql) ->
 	ParseTree = parse(Sql),
@@ -167,7 +194,9 @@ foldb(_, _P, {opt,  <<>>}) -> empty;
 foldb(_, _P, {into,   _ }) -> empty;
 foldb(_, _P, {where,  []}) -> empty;
 foldb(_, _P, {having, {}}) -> empty;
+
 foldb(Ind, _P, T) when is_binary(T);is_atom(T) -> fb(Ind, [], T);
+
 foldb(Ind, P, {'as', {'fun',Fun,List}, Alias}) ->
 	B = foldb(Ind, P, {'fun',Fun,List}),
 	[BChild] = B#box.children,
@@ -204,6 +233,36 @@ foldb(Ind, _P, {where, WC}) ->
 foldb(Ind, _P, {having, HC}) -> 
 	fb(Ind, foldb(Ind+1, having, HC), having);
 
+foldb(Ind, P, {'fun', Fun, [B]}) when is_binary(B) ->
+	case (binding(P) =< binding('list')) of
+		true ->
+			Ch = [fb_coll(Ind+3, [], B)],
+			B0 = fb_coll(Ind+2, [], <<"(">>),
+			B1 = fb_coll(Ind+2, Ch, <<>>),
+			B2 = fb_coll(Ind+2, [], <<")">>),
+			fb(Ind, fb_coll(Ind+1, [B0,B1,B2], Fun),<<>>);
+		false ->
+			Ch = [fb_coll(Ind+2, [], B)],
+			B0 = fb_coll(Ind+1, [], <<"(">>),
+			B1 = fb_coll(Ind+1, Ch, <<>>),
+			B2 = fb_coll(Ind+1, [], <<")">>),
+			fb_coll(Ind, [B0,B1,B2], Fun)
+	end;			
+foldb(Ind, P, {'fun', Fun, [A,B]}) when is_binary(A), is_binary(B) ->
+	case (binding(P) =< binding('list')) of
+		true ->
+			Ch = foldb_commas([fb_coll(Ind+3, [], A),fb_coll(Ind+3, [], B)]),
+			B0 = fb_coll(Ind+2, [], <<"(">>),
+			B1 = fb_coll(Ind+2, Ch, <<>>),
+			B2 = fb_coll(Ind+2, [], <<")">>),
+			fb(Ind, fb_coll(Ind+1, [B0,B1,B2], Fun),<<>>);
+		false ->
+			Ch = foldb_commas([fb_coll(Ind+2, [], A),fb_coll(Ind+2, [], B)]),
+			B0 = fb_coll(Ind+1, [], <<"(">>),
+			B1 = fb_coll(Ind+1, Ch, <<>>),
+			B2 = fb_coll(Ind+1, [], <<")">>),
+			fb_coll(Ind, [B0,B1,B2], Fun)
+	end;			
 foldb(Ind, P, {'fun', Fun, List}) ->
 	case (binding(P) =< binding('list')) of
 		true ->
@@ -424,8 +483,8 @@ foldb(Ind, P, {Op, L, R}) when is_atom(Op), is_tuple(L), is_binary(R) ->
 
 foldb(Ind, P, {Op, L, R}) when is_atom(Op), is_binary(L), is_binary(R) ->
 	case (binding(P) =< binding('list')) of
-    	true ->		fb(Ind, [foldb(Ind+1, Op,L), foldb(Ind+1, P, Op), foldb(Ind+1, Op, R)], <<>>);
-    	false ->	[foldb(Ind, Op, L), foldb(Ind, P, Op), foldb(Ind, Op, R)]
+    	true ->		fb(Ind, [fb_coll(Ind+1, [], L), fb_coll(Ind+1, [], Op), fb_coll(Ind+1, [], R)], <<>>);
+    	false ->	[fb_coll(Ind, [], L), fb_coll(Ind, [], Op), fb_coll(Ind, [], R)]
     end;
 
 foldb(_Ind, P, Term) ->	
@@ -433,17 +492,21 @@ foldb(_Ind, P, Term) ->
 	Error = {"Unrecognized parse tree term in foldb under parent ",{Term,P}},
 	?RenderingException(Error).
 
+fb_coll(Ind, Child,Name) when is_tuple(Child) ->
+	fb_coll(Ind,[Child],Name);
+fb_coll(Ind,Children,Name) ->
+	#box{ind=Ind, collapsed=true, children=Children, name=bStr(Name)}.
+
 fb(Ind, Child,Name) when is_tuple(Child) ->
 	fb(Ind,[Child],Name);
-fb(0,Children,Name) ->
-	% validate_children(Children),
-	#box{ind=0, collapsed=false, children=Children, name=bStr(Name)};
-fb(1,Children,Name) ->
-	% validate_children(Children),
-	#box{ind=1, collapsed=false, children=Children, name=bStr(Name)};
 fb(Ind,Children,Name) ->
-	% validate_children(Children),
-	#box{ind=Ind, collapsed=true, children=Children, name=bStr(Name)}.
+	Collapsed = if
+		Ind < ?DefCollInd -> 	
+			false;
+		true ->		
+			true
+	end,
+	#box{ind=Ind, collapsed=Collapsed, children=Children, name=bStr(Name)}.
 
 foldb_commas(Boxes) when is_list(Boxes) ->
 	validate_children(Boxes),
@@ -504,15 +567,16 @@ sqlb_loop(PrintParseTree, [Sql|Rest], N, Limit, Private) ->
 					?assertEqual(ParseTree, parse(FlatSql)),
 					PrettySql = (catch pretty_from_box(SqlBox)),
 					io:format(user, PrettySql ++ "~n", []),
-					?assertEqual(ParseTree, parse(PrettySql)),
+					PrettySqlExp = (catch pretty_from_box_exp(SqlBox)),
+					?assertEqual(ParseTree, parse(PrettySqlExp)),
 					CleanSql = clean(Sql),
-					CleanPrettySql = clean(PrettySql),
-					case str_diff(CleanSql,CleanPrettySql) of
+					CleanPrettySqlExp = clean(PrettySqlExp),
+					case str_diff(CleanSql,CleanPrettySqlExp) of
 						same -> ok;
 						Diff ->
 							io:format(user, "Sql Difference: ~p~n", [Diff])
 					end,
-					?assertEqual(CleanSql,CleanPrettySql),
+					?assertEqual(CleanSql,CleanPrettySqlExp),
 					sql_test:update_counters(ParseTree, Private)
 				catch
 			        Class:Reason ->  io:format(user,"Exception ~p:~p~n~p~n", [Class, Reason, erlang:get_stacktrace()]),

@@ -825,15 +825,25 @@
 				not
 					c
 					=
-					d
+						d
+						+
+						1
 		or
 			e
 			=
 			f
 		or
 			g
-			=
-			h
+			in
+				(
+					h
+					,
+						i
+						+
+						1
+					,
+					k
+				)
 "
 ,
 "select

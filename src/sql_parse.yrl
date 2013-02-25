@@ -768,6 +768,7 @@ column_ref -> NAME '.' NAME '.' '*'                                             
 
 %% data types
 
+data_type -> STRING                                                                             : datatype('$1').
 data_type -> NAME                                                                               : datatype('$1').
 data_type -> NAME '(' opt_sgn_num ')'                                                           : {datatype('$1'), '$3'}.
 data_type -> NAME '(' opt_sgn_num ',' opt_sgn_num ')'                                           : {datatype('$1'), '$3', '$5'}.
@@ -859,38 +860,39 @@ unwrap({_,_,X}) -> X.
 unwrap_bin({_,_,X}) -> list_to_binary(X).
 datatype({_,_,X}) ->
     case string:to_lower(X) of
-    "atom"      -> 'atom';
-    "float"     -> 'float';
-    "fun"       -> 'fun';
-    "term"      -> 'term';
-    "timestamp" -> 'timestamp';
-    "tuple"     -> 'tuple';
-    "ipaddr"    -> 'ipaddr';
-    "list"      -> 'list';
-    "pid"       -> 'pid';
-    "ref"       -> 'ref';
-    "binary"    -> 'binary';
-    "raw"       -> 'raw';
-    "blob"      -> 'blob';
-    "rowid"     -> 'rowid';
-    "binstr"    -> 'binstr';
-    "clob"      -> 'clob';
-    "nclob"     -> 'nclob';
-    "bool"      -> 'bool';
-    "boolean"   -> 'boolean';
-    "datetime"  -> 'datetime';
-    "date"      -> 'date';
-    "decimal"   -> 'decimal';
-    "number"    -> 'number';
-    "userid"    -> 'userid';
-    "integer"   -> 'integer';
-    "int"       -> 'int';
-    "string"    -> 'string';
-    "varchar2"  -> 'varchar2';
-    "nvarchar2" -> 'nvarchar2';
-    "char"      -> 'char';
-    "nchar"     -> 'nchar';
-    Other -> throw("unknown datatype " ++ Other)
+    "atom"              -> 'atom';
+    "float"             -> 'float';
+    "fun"               -> 'fun';
+    "term"              -> 'term';
+    "timestamp"         -> 'timestamp';
+    "tuple"             -> 'tuple';
+    "ipaddr"            -> 'ipaddr';
+    "list"              -> 'list';
+    "pid"               -> 'pid';
+    "ref"               -> 'ref';
+    "binary"            -> 'binary';
+    "raw"               -> 'raw';
+    "blob"              -> 'blob';
+    "rowid"             -> 'rowid';
+    "binstr"            -> 'binstr';
+    "clob"              -> 'clob';
+    "nclob"             -> 'nclob';
+    "bool"              -> 'bool';
+    "boolean"           -> 'boolean';
+    "datetime"          -> 'datetime';
+    "date"              -> 'date';
+    "decimal"           -> 'decimal';
+    "number"            -> 'number';
+    "userid"            -> 'userid';
+    "integer"           -> 'integer';
+    "int"               -> 'int';
+    "string"            -> 'string';
+    "varchar2"          -> 'varchar2';
+    "nvarchar2"         -> 'nvarchar2';
+    "char"              -> 'char';
+    "nchar"             -> 'nchar';
+    S when is_list(S)   -> list_to_binary(S);
+    Other               -> throw("unknown datatype " ++ Other)
     end.
 
 make_list(L) when is_list(L) -> L;
@@ -996,9 +998,10 @@ fold({'create table', Tab, Fields, Opts}) when is_binary(Tab) ->
     "create " ++ fold(Opts) ++ " table " ++ binary_to_list(Tab)
     ++ " (" ++ string:join(
         [case Clm of
-            {C, {T, N}, O} when is_binary(C)        -> lists:flatten([binary_to_list(C), " ", atom_to_list(T), "(", N, ") ", fold(O)]);
-            {C, {T, N, N1}, O} when is_binary(C)    -> lists:flatten([binary_to_list(C), " ", atom_to_list(T), "(",N,",",N1,") ", fold(O)]);
-            {C, T, O} when is_binary(C)             -> lists:flatten([binary_to_list(C), " ", atom_to_list(T), " ", fold(O)]);
+            {C, {T, N}, O} when is_binary(C)                -> lists:flatten([binary_to_list(C), " ", atom_to_list(T), "(", N, ") ", fold(O)]);
+            {C, {T, N, N1}, O} when is_binary(C)            -> lists:flatten([binary_to_list(C), " ", atom_to_list(T), "(",N,",",N1,") ", fold(O)]);
+            {C, T, O} when is_binary(C) and is_binary(T)    -> lists:flatten([binary_to_list(C), " ", binary_to_list(T), " ", fold(O)]);
+            {C, T, O} when is_binary(C)                     -> lists:flatten([binary_to_list(C), " ", atom_to_list(T), " ", fold(O)]);
             C -> fold(C)
         end
         || Clm <- Fields], ", ") ++ ")";

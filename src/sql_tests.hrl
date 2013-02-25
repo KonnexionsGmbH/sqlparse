@@ -1640,6 +1640,7 @@ select
 ]).
 
 -define (TEST_CREATE, [
+                                        "create table key_test (col1 '{atom,integer}', col2 '{string,binstr}')",
                                         "CREATE TABLE Persons
                                         (
                                         P_Id int,
@@ -1743,9 +1744,9 @@ select
 
 -define (TEST_SQLS, [
       {"SELECT", ?TEST_SELECT,  -1}
-    , {"INSERT", ?TEST_INSERT,  0}
-    , {"CREATE", ?TEST_CREATE,  0}
-    , {"UPDATE", ?TEST_UPDATE,  0}
-    , {"DELETE", ?TEST_DELETE,  0}
-    , {"TRUNCT", ?TEST_TRUNCT,  0}
+    , {"INSERT", ?TEST_INSERT,  -1}
+    , {"CREATE", ?TEST_CREATE,  -1}
+    , {"UPDATE", ?TEST_UPDATE,  -1}
+    , {"DELETE", ?TEST_DELETE,  -1}
+    , {"TRUNCT", ?TEST_TRUNCT,  -1}
 ]).

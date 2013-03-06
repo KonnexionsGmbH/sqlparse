@@ -852,7 +852,7 @@ Erlang code.
 
 -include_lib("eunit/include/eunit.hrl").
 -include("sql_tests.hrl").
--export([test_parse/5, fold/1]).
+-export([test_parse/5, fold/1, string/1]).
 
 -define(PARSETREE, 0).
 
@@ -898,6 +898,17 @@ datatype({_,_,X}) ->
 make_list(L) when is_list(L) -> L;
 make_list(L) -> [L].
 
+string(Sql) when is_list(Sql)  ->
+    [C|_] = lists:reverse(string:strip(Sql)),
+    NSql = if C =:= $; -> Sql; true -> string:strip(Sql) ++ ";" end,
+    case sql_lex:string(NSql) of
+        {ok, Toks, _} ->
+            case sql_parse:parse(Toks) of
+                {ok, [PTree|_]} -> {ok, PTree};
+                {error,Error} -> {error, Error}
+            end;
+        {error,Error,_} -> {error, Error}
+    end.
 
 -ifdef(PARSETREE).
 parse_test() ->
@@ -1249,4 +1260,3 @@ fold({'list', Elms}) ->
 fold(PTree) ->
     io:format(user, "Parse tree not supported ~p~n", [PTree]),
     {error,{"Parse tree not supported",PTree}}.
-

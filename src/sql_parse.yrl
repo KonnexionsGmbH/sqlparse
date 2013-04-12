@@ -621,7 +621,7 @@ table_ref -> table range_variable                                               
 where_clause -> WHERE search_condition                                                          : {'where', '$2'}.
 
 opt_group_by_clause  -> '$empty'                                                                : {'group by', []}.
-opt_group_by_clause  -> GROUP BY column_ref_commalist                                           : {'group by', '$2'}.
+opt_group_by_clause  -> GROUP BY column_ref_commalist                                           : {'group by', '$3'}.
 
 column_ref_commalist -> column_ref                                                              : ['$1'].
 column_ref_commalist -> column_ref_commalist ',' column_ref                                     : '$1' ++ ['$3'].
@@ -723,7 +723,7 @@ function_ref -> FUNS  '(' fun_args ')'                                          
 function_ref -> AMMSC '(' '*' ')'                                                               : {'fun', unwrap('$1'), [<<"*">>]}.
 function_ref -> AMMSC '(' DISTINCT column_ref ')'                                               : {'fun', unwrap('$1'), {'distinct', '$4'}}.
 function_ref -> AMMSC '(' ALL scalar_exp ')'                                                    : {'fun', unwrap('$1'), {'all', '$4'}}.
-function_ref -> AMMSC '(' scalar_exp ')'                                                        : {'fun', unwrap('$1'), {'$4'}}.
+function_ref -> AMMSC '(' scalar_exp ')'                                                        : {'fun', unwrap('$1'), make_list('$3')}.
 
 fun_args -> '(' fun_args ')'                                                                    : '$2'.
 fun_args -> function_ref                                                                        : '$1'.
@@ -1136,10 +1136,14 @@ fold({from, Forms}) ->
     ++ " ";
 fold({'group by', GroupBy}) ->
     Size = length(GroupBy),
-    if Size > 0 -> "group by " ++ string:join([binary_to_list(F) || F <- GroupBy], ", ") ++ " ";
+    if Size > 0 -> " group by " ++ string:join([binary_to_list(F) || F <- GroupBy], ", ");
     true -> ""
     end;
-fold({having, _Having}) -> "";
+fold({having, Having}) ->
+    Size = size(Having),
+    if Size > 0 -> " having " ++ fold(Having);
+    true -> ""
+    end;
 fold({'order by', OrderBy}) ->
     Size = length(OrderBy),
     if Size > 0 ->

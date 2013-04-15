@@ -1744,6 +1744,8 @@ select
 ]).
 
 -define (TEST_GRANTS,[
+										"GRANT manage_system TO user_1",
+										"GRANT a,b,c TO user2",
 										"GRANT SELECT ON ddTable TO user_1",
 										"GRANT SELECT ON schema1.ddTable TO user_1",
 										"GRANT ALL ON ddTable TO user1,user2",
@@ -1754,6 +1756,8 @@ select
 ]).
 
 -define (TEST_REVOKE,[
+										"REVOKE manage_system FROM user_1",
+										"REVOKE a,b,c FROM user1,user2",
 										"REVOKE SELECT ON ddTable FROM user_1",
 										"REVOKE ALL ON schema1.ddTable FROM user1,user2",
 										"REVOKE EXECUTE ON module1 FROM user1",

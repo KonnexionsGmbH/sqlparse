@@ -1745,15 +1745,18 @@ select
 
 -define (TEST_GRANTS,[
 										"GRANT SELECT ON ddTable TO user_1",
-										"GRANT ALL ON ddTable TO user1",
-										"GRANT all privileges ON ddTable TO role2",
+										"GRANT SELECT ON schema1.ddTable TO user_1",
+										"GRANT ALL ON ddTable TO user1,user2",
+										"GRANT execute ON module1 TO user1",
+										"GRANT all privileges ON schema1.ddTable TO role2",
 										"grant update, delete on ddTable to test_user_1",
 										"grant insert on ddTable to test_user_1 WITH GRANT OPTION"
 ]).
 
 -define (TEST_REVOKE,[
 										"REVOKE SELECT ON ddTable FROM user_1",
-										"REVOKE ALL ON ddTable FROM user1",
+										"REVOKE ALL ON schema1.ddTable FROM user1,user2",
+										"REVOKE EXECUTE ON module1 FROM user1",
 										"revoke update, delete on ddTable from test_user_1"
 ]).
 

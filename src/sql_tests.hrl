@@ -1743,6 +1743,20 @@ select
                                         "truncate table tbl purge materialized view log drop storage"
 ]).
 
+-define (TEST_GRANTS,[
+										"GRANT SELECT ON ddTable TO user_1",
+										"GRANT ALL ON ddTable TO user1",
+										"GRANT all privileges ON ddTable TO role2",
+										"grant update, delete on ddTable to test_user_1",
+										"grant insert on ddTable to test_user_1 WITH GRANT OPTION"
+]).
+
+-define (TEST_REVOKE,[
+										"REVOKE SELECT ON ddTable FROM user_1",
+										"REVOKE ALL ON ddTable FROM user1",
+										"revoke update, delete on ddTable from test_user_1"
+]).
+
 -define (TEST_SQLS, [
       {"SELECT", ?TEST_SELECT,  -1}
     , {"INSERT", ?TEST_INSERT,  -1}
@@ -1750,4 +1764,6 @@ select
     , {"UPDATE", ?TEST_UPDATE,  -1}
     , {"DELETE", ?TEST_DELETE,  -1}
     , {"TRUNCT", ?TEST_TRUNCT,  -1}
+    , {"GRANTS", ?TEST_GRANTS,  -1}
+    , {"REVOKE", ?TEST_REVOKE,  -1}
 ]).

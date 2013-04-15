@@ -111,6 +111,8 @@ Erlang code.
     {"^(?i)(FROM)$",                     'FROM'},
     {"^(?i)((GO[\s\t]*TO))$",            'GOTO'},
     {"^(?i)(GRANT)$",                    'GRANT'},
+    {"^(?i)(CONSTRAINS)$",               'CONSTRAINS'},
+    {"^(?i)(FORCE)$",                    'FORCE'},
     {"^(?i)(GROUP)$",                    'GROUP'},
     {"^(?i)(HAVING)$",                   'HAVING'},
     {"^(?i)(IN)$",                       'IN'},

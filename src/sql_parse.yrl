@@ -25,11 +25,12 @@ Nonterminals
  view_def
  opt_with_check_option
  opt_column_commalist
- privilege_def
+ grant_def
+ revoke_def
+ opt_on_obj_clause
  opt_with_grant_option
- privileges
- operation_commalist
- operation
+ opt_with_revoke_option
+ system_priviledge_list
  grantee_commalist
  grantee
  cursor_def
@@ -127,6 +128,7 @@ Nonterminals
  table_name 
  opt_materialized
  opt_storage
+ system_priviledge
 .
 
     %% symbolic tokens
@@ -148,32 +150,6 @@ Terminals
  AUTHORIZATION
  BETWEEN
  BY
- % CHARACTER
- % VARCHARACTER
- % DECIMAL
- % FLOAT
- % INTEGER
- % NUMERIC
- % RAW
- % BLOB
- % CLOB
- % ROWID
- % DATE
- % DATETIME
- % TIMESTAMP
- % ETUPLE
- % ETERM
- % EBOOL
- % EBINARY
- % EATOM 
- % EIPADDR
- % ELIST 
- % EBINSTR
- % EPID
- % EREF
- % EFUN
- % ESTRING
- % EUSERID
  CHECK
  CLOSE
  COMMIT
@@ -239,7 +215,6 @@ Terminals
  WHERE
  WITH
  WORK
- %COMMENT
  HINT
  IDENTIFIED
  EXTERNALLY
@@ -274,6 +249,14 @@ Terminals
  LOG
  REUSE
  STORAGE
+ ADMIN
+ HIERARCHY
+ DIRECTORY
+ JAVA
+ SOURCE
+ RESOURCE
+ CONSTRAINS
+ FORCE
  'AND'
  'NOT'
  'OR'
@@ -322,7 +305,6 @@ schema_element_list -> schema_element_list schema_element                       
 
 schema_element -> base_table_def                                                                : '$1'.
 schema_element -> view_def                                                                      : '$1'.
-schema_element -> privilege_def                                                                 : '$1'.
 
 base_table_def -> CREATE create_opts TABLE table '(' base_table_element_commalist ')'           : {'create table', '$4', '$6', '$2'}.
 base_table_def -> CREATE USER NAME identified opt_user_opts_list                                : {'create user', unwrap_bin('$3'), '$4', '$5'}.
@@ -443,30 +425,50 @@ opt_with_check_option -> WITH CHECK OPTION                                      
 opt_column_commalist -> '$empty'                                                                : [].
 opt_column_commalist -> '(' column_commalist ')'                                                : '$2'.
 
-privilege_def -> GRANT privileges ON table TO grantee_commalist opt_with_grant_option           : {'grant', '$2', {'on', '$4'}, {'to', '$6'}, '$7'}.
+grant_def ->
+ GRANT system_priviledge_list opt_on_obj_clause TO grantee_commalist opt_with_grant_option      : {'grant', '$2', '$3', {'to', '$5'}, '$6'}.
 
-opt_with_grant_option -> '$empty'                                                               : [].
+revoke_def ->
+ REVOKE system_priviledge_list opt_on_obj_clause FROM grantee_commalist opt_with_revoke_option  : {'revoke', '$2', '$3', {'from', '$5'}, '$6'}.
+
+opt_on_obj_clause -> '$empty'                                                                   : {'on', <<"">>}.
+opt_on_obj_clause -> ON table                                                                   : {'on', '$2'}.
+opt_on_obj_clause -> ON DIRECTORY NAME                                                          : {'on directory', unwrap_bin('$3')}.
+opt_on_obj_clause -> ON JAVA SOURCE table                                                       : {'on java source', unwrap_bin('$4')}.
+opt_on_obj_clause -> ON JAVA RESOURCE table                                                     : {'on java resource', unwrap_bin('$4')}.
+
+system_priviledge_list -> '$empty'                                                              : [].
+system_priviledge_list -> system_priviledge                                                     : ['$1'].
+system_priviledge_list -> system_priviledge ',' system_priviledge_list                          : ['$1'|'$3'].
+system_priviledge_list -> ALL                                                                   : ['all'].
+system_priviledge_list -> ALL PRIVILEGES                                                        : ['all privileges'].
+
+system_priviledge -> SELECT                                                                     : 'select'.
+system_priviledge -> UPDATE                                                                     : 'update'.
+system_priviledge -> DELETE                                                                     : 'delete'.
+system_priviledge -> INSERT                                                                     : 'insert'.
+system_priviledge -> DROP                                                                       : 'drop'.
+system_priviledge -> NAME                                                                       : strl2atom(['$1']).
+system_priviledge -> NAME NAME                                                                  : strl2atom(['$1', '$2']).
+system_priviledge -> NAME NAME NAME                                                             : strl2atom(['$1', '$2', '$3']).
+system_priviledge -> NAME NAME NAME NAME                                                        : strl2atom(['$1', '$2', '$3', '$4']).
+system_priviledge -> NAME NAME NAME NAME NAME                                                   : strl2atom(['$1', '$2', '$3', '$4', '$5']).
+
+opt_with_grant_option -> '$empty'                                                               : ''.
 opt_with_grant_option -> WITH GRANT OPTION                                                      : 'with grant option'.
+opt_with_grant_option -> WITH ADMIN OPTION                                                      : 'with admin option'.
+opt_with_grant_option -> WITH HIERARCHY OPTION                                                  : 'with hierarchy option'.
 
-privileges -> ALL PRIVILEGES                                                                    : 'all privileges'.
-privileges -> ALL                                                                               : 'all'.
-privileges -> operation_commalist                                                               : '$1'.
-
-operation_commalist -> operation                                                                : ['$1'].
-operation_commalist -> operation_commalist ',' operation                                        : '$1' ++ ['$3'].
-
-operation -> SELECT                                                                             : 'select'.
-operation -> INSERT                                                                             : 'insert'.
-operation -> DELETE                                                                             : 'delete'.
-operation -> UPDATE opt_column_commalist                                                        : {'update', '$2'}.
-operation -> REFERENCES opt_column_commalist                                                    : {'referances', '$2'}.
-
+opt_with_revoke_option -> '$empty'                                                              : ''.
+opt_with_revoke_option -> CASCADE CONSTRAINS                                                    : 'cascade constrains'.
+opt_with_revoke_option -> FORCE                                                                 : 'force'.
 
 grantee_commalist -> grantee                                                                    : ['$1'].
 grantee_commalist -> grantee_commalist ',' grantee                                              : '$1' ++ ['$3'].
 
 grantee -> PUBLIC                                                                               : 'public'.
-grantee -> user                                                                                 : '$1'.
+grantee -> NAME                                                                                 : unwrap_bin('$1').
+grantee -> NAME IDENTIFIED BY NAME                                                              : {'identified by', unwrap_bin('$1'), unwrap_bin('$4')}.
 
     %% cursor definition
 
@@ -510,6 +512,8 @@ manipulative_statement -> alter_user_def                                        
 manipulative_statement -> drop_user_def                                                         : '$1'.
 manipulative_statement -> view_def                                                              : '$1'.
 manipulative_statement -> truncate_table                                                        : '$1'.
+manipulative_statement -> grant_def                                                             : '$1'.
+manipulative_statement -> revoke_def                                                            : '$1'.
 
 truncate_table -> TRUNCATE TABLE table_name opt_materialized opt_storage                        : {'truncate table', '$3', '$4', '$5'}.
 table_name -> NAME                                                                              : unwrap_bin('$1').
@@ -858,6 +862,10 @@ Erlang code.
 
 unwrap({_,_,X}) -> X.
 unwrap_bin({_,_,X}) -> list_to_binary(X).
+
+strl2atom([]) -> '';
+strl2atom(Strs) -> list_to_atom(lists:flatten(string:join([unwrap(S) || S <- Strs], " "))).
+
 datatype({_,_,X}) ->
     case string:to_lower(X) of
     "atom"              -> 'atom';
@@ -1064,6 +1072,26 @@ fold({'drop table', {tables, Ts}, {exists, E}, {opt, R}}) when is_atom(R) ->
     ++ if E =:= true -> " if exists "; true -> "" end
     ++ string:join([binary_to_list(T) || T <- Ts], ", ")
     ++ " " ++ atom_to_list(R);
+
+%
+% GRANT
+%
+fold({'grant', Objs, {OnTyp, On}, {'to', Tos}, Opts}) when is_atom(OnTyp), is_atom(Opts) ->
+    "grant "
+    ++ string:join([atom_to_list(O)||O<-Objs], ",") ++ " "
+    ++ if On =/= <<"">> -> atom_to_list(OnTyp) ++ " " ++ binary_to_list(On) ++ " "; true -> "" end
+    ++ if length(Tos) > 0 -> "to " ++ string:join([binary_to_list(O)||O<-Tos], ",") ++ " "; true -> "" end
+    ++ atom_to_list(Opts);
+
+%
+% REVOKE
+%
+fold({'revoke', Objs, {OnTyp, On}, {'from', Tos}, Opts}) when is_atom(OnTyp), is_atom(Opts) ->
+    "revoke "
+    ++ string:join([atom_to_list(O)||O<-Objs], ",") ++ " "
+    ++ if On =/= <<"">> -> atom_to_list(OnTyp) ++ " " ++ binary_to_list(On) ++ " "; true -> "" end
+    ++ if length(Tos) > 0 -> "from " ++ string:join([binary_to_list(O)||O<-Tos], ",") ++ " "; true -> "" end
+    ++ atom_to_list(Opts);
 
 %--------------------------------------------------------------------
 % component matching patterns

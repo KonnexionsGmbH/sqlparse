@@ -4,32 +4,44 @@
 
 -export([parse_groups/2, update_counters/2]).
 
-parse_groups(T, S) when is_function(T) -> parse_groups(T, S, ?TEST_SQLS, {0,0,0,0,0,0}).
-parse_groups(_, _, [], {S,C,I,U,D,T}) ->
-    io:format(user, "~n---------------~n", []),
-    io:format(user, "select   : ~p~ninsert   : ~p~ncreate   : ~p~nupdate   : ~p~ndelete   : ~p~ntruncate : ~p",[S,I,C,U,D,T]),
-    io:format(user, "~n---------------~n", []),
-    io:format(user, "total    : ~p~n", [S+I+C+U+D+T]),
-    io:format(user, "===============================~n", []);
+-define(Log(__F),       io:format(user, __F++"~n", [])).
+-define(Log(__F,__A),   io:format(user, __F++"~n", __A)).
+
+print_counters(Ts, Cs) -> print_counters(Ts, Cs, 0).
+print_counters([], [], S) -> S;
+print_counters([{T,_,_}|R], [C|Cs], S) ->
+    ?Log(T++"   : ~p", [C]),
+    print_counters(R, Cs, C+S).
+
+parse_groups(T, S) when is_function(T) -> parse_groups(T, S, ?TEST_SQLS, lists:duplicate(length(?TEST_SQLS),0)).
+parse_groups(_, _, [], Counters) ->
+    ?Log("~n---------------"),
+    ?Log("---------------~ntotal    : ~p", [print_counters(?TEST_SQLS, Counters)]),
+    ?Log("===============================");
 parse_groups(TestFun, ShowParseTree, [{Title, SqlGroup, Limit}|SqlGroups], Counters) ->
-    io:format(user, "+-------------------------------+~n", []),
-    io:format(user, "|\t"++Title++"(~p)\t\t|~n", [Limit]),
-    io:format(user, "+-------------------------------+~n", []),
+    ?Log("+-------------------------------+"),
+    ?Log("|\t"++Title++"(~p)\t\t|", [Limit]),
+    ?Log("+-------------------------------+"),
     NewCounters = if Limit =:= 0 -> Counters; true -> TestFun(ShowParseTree, SqlGroup, 1, Limit, Counters) end,
     parse_groups(TestFun, ShowParseTree, SqlGroups, NewCounters).
 
-update_counters(ParseTree, {S,C,I,U,D,T}) ->
+update_counters(ParseTree, Counters) ->
     case element(1, ParseTree) of
-        select           -> {S+1,C,I,U,D,T};
-        'create table'   -> {S,C+1,I,U,D,T};
-        'create user'    -> {S,C+1,I,U,D,T};
-        insert           -> {S,C,I+1,U,D,T};
-        update           -> {S,C,I,U+1,D,T};
-        'alter user'     -> {S,C,I,U+1,D,T};
-        'alter table'    -> {S,C,I,U+1,D,T};
-        delete           -> {S,C,I,U,D+1,T};
-        'drop user'      -> {S,C,I,U,D+1,T};
-        'drop table'     -> {S,C,I,U,D+1,T};
-        'truncate table' -> {S,C,I,U,D,T+1};
-        _                -> {S,C,I,U,D,T}
+        'select'         -> incr(1, Counters);
+        'insert'         -> incr(2, Counters);
+        'create table'   -> incr(3, Counters);
+        'create user'    -> incr(3, Counters);
+        'update'         -> incr(4, Counters);
+        'alter user'     -> incr(4, Counters);
+        'alter table'    -> incr(4, Counters);
+        'delete'         -> incr(5, Counters);
+        'drop user'      -> incr(5, Counters);
+        'drop table'     -> incr(5, Counters);
+        'truncate table' -> incr(6, Counters);
+        'grant'          -> incr(7, Counters);
+        'revoke'         -> incr(8, Counters);
+        _                -> Counters
     end.
+
+incr(Idx, L) ->
+    lists:sublist(L, Idx-1) ++ [lists:nth(Idx, L) + 1] ++ lists:sublist(L, Idx+1, length(L)).

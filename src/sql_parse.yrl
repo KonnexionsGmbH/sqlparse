@@ -249,7 +249,6 @@ Terminals
  LOG
  REUSE
  STORAGE
- ADMIN
  HIERARCHY
  DIRECTORY
  JAVA
@@ -456,7 +455,7 @@ system_priviledge -> NAME NAME NAME NAME NAME                                   
 
 opt_with_grant_option -> '$empty'                                                               : ''.
 opt_with_grant_option -> WITH GRANT OPTION                                                      : 'with grant option'.
-opt_with_grant_option -> WITH ADMIN OPTION                                                      : 'with admin option'.
+opt_with_grant_option -> WITH NAME OPTION                                                       : strl2atom(["with", '$2', "option"]).
 opt_with_grant_option -> WITH HIERARCHY OPTION                                                  : 'with hierarchy option'.
 
 opt_with_revoke_option -> '$empty'                                                              : ''.
@@ -860,11 +859,13 @@ Erlang code.
 
 -define(PARSETREE, 0).
 
-unwrap({_,_,X}) -> X.
+unwrap({_,_,X}) -> X;
+unwrap(X) -> X.
+
 unwrap_bin({_,_,X}) -> list_to_binary(X).
 
 strl2atom([]) -> '';
-strl2atom(Strs) -> list_to_atom(lists:flatten(string:join([unwrap(S) || S <- Strs], " "))).
+strl2atom(Strs) -> list_to_atom(lists:flatten(string:join([string:to_lower(unwrap(S)) || S <- Strs], " "))).
 
 datatype({_,_,X}) ->
     case string:to_lower(X) of

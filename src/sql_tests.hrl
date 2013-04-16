@@ -1749,14 +1749,15 @@ select
 										"GRANT SELECT ON ddTable TO user_1",
 										"GRANT SELECT ON schema1.ddTable TO user_1",
 										"GRANT ALL ON ddTable TO user1,user2",
-										"GRANT execute ON module1 TO user1",
+										"GRANT EXECUTE ON module1 TO user1",
 										"GRANT all privileges ON schema1.ddTable TO role2",
 										"grant update, delete on ddTable to test_user_1",
-										"grant insert on ddTable to test_user_1 WITH GRANT OPTION"
+										"grant insert on ddTable to test_user_1 WITH GRANT OPTION",
+                                        "GRANT manage_system TO test_user_1 with admin option"
 ]).
 
 -define (TEST_REVOKE,[
-										"REVOKE manage_system FROM user_1",
+										"REVOKE manage_system FROM admin",
 										"REVOKE a,b,c FROM user1,user2",
 										"REVOKE SELECT ON ddTable FROM user_1",
 										"REVOKE ALL ON schema1.ddTable FROM user1,user2",

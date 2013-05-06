@@ -1,6 +1,6 @@
 -define (TEST_SELECT,[
-"select a,b from d where a = \"üטיצהא\"",
- "select
+<<"select a,b from d where a = \"üטיצהא\"">>,
+<<"select
  	/*+004*/
  		-
  		c
@@ -32,9 +32,9 @@
  			h
  			and
  			i
- "
+">>
  ,
- "
+ <<"
  select
  	/*+032*/
  		*
@@ -56,9 +56,9 @@
  			g
  			=
  			h
- "
+">>
  ,
- "select
+<<"select
  	/*+031*/
  		*
  	from
@@ -80,9 +80,9 @@
  			g
  			=
  			h
- "
+">>
  ,
- "SELECT
+<<"SELECT
  		a
  		,
  			(
@@ -93,7 +93,7 @@
  			)
  	FROM
  		b
- ",
+">>,
  "select
  	/*+008*/
  	distinct

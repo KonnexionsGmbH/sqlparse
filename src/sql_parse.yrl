@@ -855,7 +855,7 @@ Erlang code.
 
 -include_lib("eunit/include/eunit.hrl").
 -include("sql_tests.hrl").
--export([test_parse/5, fold/1, string/1]).
+-export([test_parse/5, fold/1, parsetree/1]).
 
 -define(PARSETREE, 0).
 
@@ -907,16 +907,17 @@ datatype({_,_,X}) ->
 make_list(L) when is_list(L) -> L;
 make_list(L) -> [L].
 
-string(Sql) when is_list(Sql)  ->
+parsetree(Sql) when is_binary(Sql) -> parsetree(binary_to_list(Sql));
+parsetree(Sql) when is_list(Sql) ->
     [C|_] = lists:reverse(string:strip(Sql)),
     NSql = if C =:= $; -> Sql; true -> string:strip(Sql) ++ ";" end,
     case sql_lex:string(NSql) of
         {ok, Toks, _} ->
             case sql_parse:parse(Toks) of
-                {ok, [PTree|_]} -> {ok, PTree};
-                {error,Error} -> {error, Error}
+                {ok, PTree} -> {ok, {PTree, Toks}};
+                {error,Error} -> {parse_error, {Error, Toks}}
             end;
-        {error,Error,_} -> {error, Error}
+        {error,Error,_} -> {lex_error, Error}
     end.
 
 -ifdef(PARSETREE).
@@ -934,45 +935,42 @@ parse_test() ->
 -endif.
 
 test_parse(_, [], _, _, Private) -> Private;
-test_parse(ShowParseTree, [Sql|Sqls], N, Limit, Private) ->
+test_parse(ShowParseTree, [BinSql|Sqls], N, Limit, Private) ->
     %FlatSql = re:replace(Sql, "([\n\r\t ]+)", " ", [{return, list}, global]),
+    Sql = case BinSql of
+        BinSql when is_list(BinSql)   -> BinSql;
+        BinSql when is_binary(BinSql) -> binary_to_list(BinSql)
+    end,
     io:format(user, "[~p]~n"++Sql++"~n", [N]),
-    case (catch sql_lex:string(Sql ++ ";")) of
-        {ok, Tokens, _} ->
-            case (catch sql_parse:parse(Tokens)) of
-                {ok, [ParseTree|_]} -> 
-                    if ShowParseTree ->
-                	    io:format(user, "~p~n", [ParseTree]),
-                        NSql = fold(ParseTree),
-                        io:format(user,  "~n> " ++ NSql ++ "~n", []),
-                        {ok, NToks, _} = sql_lex:string(NSql ++ ";"),
-                        {ok, [NPTree|_]} = sql_parse:parse(NToks),
-                        try
-                            ParseTree = NPTree
-                        catch
-                            _:_ ->
-                    	    io:format(user, "~n> ~p~n", [NPTree]),
-                    	    io:format(user, "~n> ~p~n", [Tokens]),
-                    	    io:format(user, "~n> ~p~n", [NToks])
-                        end,
-                        ?assertEqual(ParseTree, NPTree),
-                        io:format("~p~n", [ParseTree]),
-                	    io:format(user, lists:flatten(lists:duplicate(79, "-")) ++ "~n", []);
-                    true -> ok
-                    end,
-                    NewPrivate = sql_test:update_counters(ParseTree, Private),
-                    if (Limit =:= 1) -> NewPrivate; true ->
-                    test_parse(ShowParseTree, Sqls, N+1, Limit-1, NewPrivate)
-                    end;
-                {'EXIT', Error} ->
-                    io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens]),
-                    ?assertEqual(ok, Error);
-                Error ->
-                    io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens]),
-                    ?assertEqual(ok, Error)
+    case sql_parse:parsetree(BinSql) of
+        {ok, {[ParseTree|_], Tokens}} -> 
+            if ShowParseTree ->
+        	    io:format(user, "~p~n", [ParseTree]),
+                NSql = fold(ParseTree),
+                io:format(user,  "~n> " ++ NSql ++ "~n", []),
+                {ok, {[NPTree|_], NToks}} = sql_parse:parsetree(NSql),
+                try
+                    ParseTree = NPTree
+                catch
+                    _:_ ->
+            	    io:format(user, "~n> ~p~n", [NPTree]),
+            	    io:format(user, "~n> ~p~n", [Tokens]),
+            	    io:format(user, "~n> ~p~n", [NToks])
+                end,
+                ?assertEqual(ParseTree, NPTree),
+                io:format("~p~n", [ParseTree]),
+        	    io:format(user, lists:flatten(lists:duplicate(79, "-")) ++ "~n", []);
+            true -> ok
+            end,
+            NewPrivate = sql_test:update_counters(ParseTree, Private),
+            if (Limit =:= 1) -> NewPrivate; true ->
+            test_parse(ShowParseTree, Sqls, N+1, Limit-1, NewPrivate)
             end;
-        {'EXIT', Error} ->
-            io:format(user, "Failed ~p~n", [Error]),
+        {lex_error, Error} ->
+            io:format(user, "Failed lexer ~p~n", [Error]),
+            ?assertEqual(ok, Error);
+        {parse_error, {Error, Tokens}} ->
+            io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens]),
             ?assertEqual(ok, Error)
     end.
 

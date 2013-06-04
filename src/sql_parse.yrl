@@ -89,6 +89,7 @@ Nonterminals
  scalar_sub_exp_append_list 
  scalar_sub_exp_append_elm 
  scalar_exp_commalist
+ select_field_commalist
  atom
  parameter_ref
  function_ref
@@ -604,8 +605,11 @@ opt_into -> '$empty'                                                            
 opt_into -> INTO target_commalist                                                               : {'$2', {}}.
 opt_into -> INTO target_commalist IN NAME                                                       : {'$2', {'in', unwrap_bin('$4')}}.
 
-selection -> scalar_exp_commalist                                                               : '$1'.
-selection -> '*'                                                                                : [<<"*">>].
+selection -> select_field_commalist                                                             : '$1'.
+
+select_field_commalist -> scalar_exp                                                            : ['$1'].
+select_field_commalist -> '*'                                                                   : [<<"*">>].
+select_field_commalist -> select_field_commalist ',' select_field_commalist                     : '$1' ++ '$3'.
 
 table_exp ->
      from_clause opt_where_clause opt_group_by_clause opt_having_clause opt_order_by_clause     : ['$1', '$2', '$3', '$4', '$5'].

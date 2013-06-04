@@ -1,4 +1,12 @@
 -define (TEST_SELECT,[
+<<"select * from d">>,
+<<"select rowid, * from d">>,
+<<"select *, rowid from d">>,
+<<"select a, rowid, * from d">>,
+<<"select a, *, rowid from d">>,
+<<"select *, a, rowid from d">>,
+<<"select a || 'test', rowid, * from d">>,
+<<"select rowid, *, col1 * col from d">>,
 <<"select a,b from d where a = \"üטיצהא\"">>,
 <<"select
  	/*+004*/

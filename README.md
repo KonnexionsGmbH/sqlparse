@@ -6,7 +6,7 @@ LALR grammar based SQL Parser
 Example use
 -----------
 Parsing
-````js
+````erlang
 1> {ok, {ParseTree, Tokens}} = sql_parse:parsetree("select * from table_1").
 2> ParseTree.
 [{select,[{hints,<<>>},
@@ -26,7 +26,7 @@ Parsing
  {';',1}]
 ````
 Compiling
-````js
+````erlang
 4> sql_parse:fold(ParseTree).
-"select * from table_1 "
+"select * from table_1"
 ````

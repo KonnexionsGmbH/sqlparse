@@ -7,7 +7,7 @@
 to_json(Sql) -> to_json(Sql, "Query").
 to_json(Sql,File) ->
     {ok, Tokens, _} = sql_lex:string(Sql ++ ";"),
-    case sql_parse:parse(Tokens) of
+    case sqlparse:parse(Tokens) of
         {ok, [ParseTree|_]} ->
            Json = parse_tree_json(tuple_to_list(ParseTree)),
            PathPrefix = case lists:last(filename:split(filename:absname(""))) of
@@ -201,7 +201,7 @@ is_string(XY) ->
 %           		not	c=d 
 %   	or	e=f
 %   	or	g=h;").
-%    {ok, [P|_]} = sql_parse:parse(Tokens).           
+%    {ok, [P|_]} = sqlparse:parse(Tokens).           
 % sql2json:json_tree(P).
 
 -include_lib("eunit/include/eunit.hrl").

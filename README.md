@@ -7,7 +7,7 @@ Example use
 -----------
 Parsing
 ````erlang
-1> {ok, {ParseTree, Tokens}} = sql_parse:parsetree("select * from table_1").
+1> {ok, {ParseTree, Tokens}} = sqlparse:parsetree("select * from table_1").
 2> ParseTree.
 [{select,[{hints,<<>>},
           {opt,<<>>},
@@ -27,6 +27,6 @@ Parsing
 ````
 Compiling
 ````erlang
-4> sql_parse:fold(ParseTree).
+4> sqlparse:fold(ParseTree).
 "select * from table_1"
 ````

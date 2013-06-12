@@ -7,6 +7,6 @@
                   kernel,
                   stdlib
                  ]},
-  {mod, { sql_parse, []}},
+  {mod, { sqlparse, []}},
   {env, []}
  ]}.

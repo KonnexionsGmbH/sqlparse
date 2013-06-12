@@ -6,7 +6,7 @@ deps
 ebin
 *.swp
 sql_lex.erl
-sql_parse.erl
+sqlparse.erl
 sql.js
 priv/3rdParty
 *.sql

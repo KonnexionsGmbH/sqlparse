@@ -24,7 +24,7 @@
 parse(Sql) ->
 	case sql_lex:string(Sql ++ ";") of
 		{ok, Tokens, _} -> 
-			case sql_parse:parse(Tokens) of
+			case sqlparse:parse(Tokens) of
 				{ok, [ParseTree|_]} ->
 					ParseTree;
 				PError -> 
@@ -40,7 +40,7 @@ flat(Sql) ->
 
 flat_from_pt(ParseTree) ->
 	try
-		sql_parse:fold(ParseTree)
+		sqlparse:fold(ParseTree)
 	catch
 		_:Reason ->	?RenderingException({"Cannot render parse tree to flat SQL",{Reason,ParseTree}})
 	end.

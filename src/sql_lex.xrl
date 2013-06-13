@@ -38,6 +38,9 @@ Rules.
 
 
 Erlang code.
+
+-export([reserved_keywords/0]).
+
 -define(TokenPatters, [
 
     % sql joins
@@ -228,6 +231,8 @@ Erlang code.
     {"^(?i)(REUSE)$",                    'REUSE'},
     {"^(?i)(STORAGE)$",                  'STORAGE'}
 ]).
+
+reserved_keywords() -> [T || {_, T} <- ?TokenPatters].
 
 match_any(TokenChars, TokenLen, _TokenLine, []) ->
     {token, {'NAME', TokenLen, TokenChars}};

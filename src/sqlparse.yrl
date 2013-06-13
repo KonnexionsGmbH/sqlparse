@@ -870,7 +870,7 @@ Erlang code.
 -export([init/1]).
 
 % parser and compiler interface
--export([fold/1, parsetree/1]).
+-export([fold/1, parsetree/1, is_reserved/1]).
 
 % eunit helper function
 -export([test_parse/5]).
@@ -955,6 +955,10 @@ parsetree(Sql) when is_list(Sql) ->
             end;
         {error,Error,_} -> {lex_error, Error}
     end.
+
+is_reserved(Word) when is_binary(Word)  -> is_reserved(erlang:binary_to_list(Word));
+is_reserved(Word) when is_atom(Word)    -> is_reserved(erlang:atom_to_list(Word));
+is_reserved(Word) when is_list(Word)    -> lists:member(erlang:list_to_atom(string:to_upper(Word)), sql_lex:reserved_keywords()).
 
 %%-----------------------------------------------------------------------------
 

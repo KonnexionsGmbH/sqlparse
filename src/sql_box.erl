@@ -637,6 +637,8 @@ str_diff([_|String1], [_|String2])                          -> str_diff(String1,
 %         Sql,
 %         ?REG_COL).
 
+clean(Sql) when is_binary(Sql) ->
+	trim_nl(clean_cr(string:to_lower(binary_to_list(Sql))));
 clean(Sql) ->
 	trim_nl(clean_cr(string:to_lower(Sql))).
 

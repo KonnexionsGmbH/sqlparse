@@ -12,27 +12,22 @@
 		, pretty_from_box/1
 		]).
 
+-include("sql_parse.hrl").
+-include("sql_box.hrl").
+
+-ifdef(TEST).
 -export([ sqlb_loop/5	%% needed for test interface (sql iterator)
 		]).
-
--include("sql_parse.hrl").
--include("sql_tests.hrl").
--include("sql_box.hrl").
+-endif.
 
 -define(DefCollInd,3).	% First indentation level which will be collapsed by default
 
 parse(Sql) ->
-	case sql_lex:string(Sql ++ ";") of
-		{ok, Tokens, _} -> 
-			case sqlparse:parse(Tokens) of
-				{ok, [ParseTree|_]} ->
-					ParseTree;
-				PError -> 
-					?ParserException({"Parser Error",{PError,Tokens}})
-			end;
-		LError ->
-			?LexerException({"Lexer Error",LError})
-	end.
+    case sqlparse:parsetree(Sql) of
+        {ok, {[ParseTree|_], _}}        -> ParseTree;
+        {parse_error, {PError, Tokens}} -> ?ParserException({"Parser Error",{PError,Tokens}});
+        {lex_error, LError}             -> ?LexerException({"Lexer Error",LError})
+    end.
 
 flat(Sql) ->
 	ParseTree = parse(Sql),
@@ -44,15 +39,6 @@ flat_from_pt(ParseTree) ->
 	catch
 		_:Reason ->	?RenderingException({"Cannot render parse tree to flat SQL",{Reason,ParseTree}})
 	end.
-
-validate_box([]) -> ok;
-validate_box(#box{children=[]}) -> ok;
-validate_box(#box{children=CH}) ->
-	validate_children(CH), 
-	[validate_box(C) || C <-CH];
-validate_box([Box|Boxes]) ->
-	validate_box(Box),
-	validate_box(Boxes).
 
 validate_children([]) -> ok;
 validate_children([#box{}]) -> ok;
@@ -111,16 +97,6 @@ pretty_from_box([Box|Boxes]) ->
 	lists:flatten([pretty_from_box(Box),pretty_from_box(Boxes)]).
 
 indent(Ind) -> lists:duplicate(Ind*2,32).
-
-pretty_from_box_exp([]) -> "";
-pretty_from_box_exp(#box{ind=Ind,name=Name,children=[]}) -> 
- 	lists:flatten(["\r\n",lists:duplicate(Ind,9),binary_to_list(Name)]);
-pretty_from_box_exp(#box{name= <<>>,children=CH}) -> 
-	lists:flatten([[pretty_from_box_exp(C) || C <-CH]]);
-pretty_from_box_exp(#box{ind=Ind,name=Name,children=CH}) -> 
-	lists:flatten(["\r\n",lists:duplicate(Ind,9),binary_to_list(Name),[pretty_from_box_exp(C) || C <-CH]]);
-pretty_from_box_exp([Box|Boxes]) ->
-	lists:flatten([pretty_from_box_exp(Box),pretty_from_box_exp(Boxes)]).
 
 boxed(Sql) ->
 	ParseTree = parse(Sql),
@@ -518,6 +494,8 @@ foldb_commas(Boxes) ->
 
 
 
+-ifdef(TEST).
+-include("sql_tests.hrl").
 %% TESTS ------------------------------------------------------------------
 
 -include_lib("eunit/include/eunit.hrl").
@@ -554,7 +532,7 @@ sqlb_loop(PrintParseTree, [Sql|Rest], N, Limit, Private) ->
 		_ ->		
 		    io:format(user, "[~p]===============================~n", [N]),
 				NewPrivate = try
-				    io:format(user, Sql ++ "~n", []),
+				    io:format(user, "~p~n", [Sql]),
 					ParseTree = parse(Sql),
 		   			print_parse_tree(ParseTree), 
 					% SqlBox = fold_tree(ParseTree, fun sqlb/6, []),
@@ -589,6 +567,25 @@ sqlb_loop(PrintParseTree, [Sql|Rest], N, Limit, Private) ->
 	                	sqlb_loop(PrintParseTree, Rest, N+1, Limit-1, NewPrivate)
 	            end
 		end.
+
+validate_box([]) -> ok;
+validate_box(#box{children=[]}) -> ok;
+validate_box(#box{children=CH}) ->
+	validate_children(CH), 
+	[validate_box(C) || C <-CH];
+validate_box([Box|Boxes]) ->
+	validate_box(Box),
+	validate_box(Boxes).
+
+pretty_from_box_exp([]) -> "";
+pretty_from_box_exp(#box{ind=Ind,name=Name,children=[]}) -> 
+ 	lists:flatten(["\r\n",lists:duplicate(Ind,9),binary_to_list(Name)]);
+pretty_from_box_exp(#box{name= <<>>,children=CH}) -> 
+	lists:flatten([[pretty_from_box_exp(C) || C <-CH]]);
+pretty_from_box_exp(#box{ind=Ind,name=Name,children=CH}) -> 
+	lists:flatten(["\r\n",lists:duplicate(Ind,9),binary_to_list(Name),[pretty_from_box_exp(C) || C <-CH]]);
+pretty_from_box_exp([Box|Boxes]) ->
+	lists:flatten([pretty_from_box_exp(Box),pretty_from_box_exp(Boxes)]).
 
 print_parse_tree(_ParseTree) -> 
 	io:format(user, "~p~n~n", [_ParseTree]),
@@ -654,3 +651,4 @@ trim_nl(Sql) ->
         fun({Re,R}, S) -> re:replace(S, Re, R, [{return, list}, global]) end,
         Sql,
         ?REG_NL).
+-endif. % TEST

@@ -1,3 +1,4 @@
+-ifdef(TEST).
 -define (TEST_SELECT,[
 <<"select * from d">>,
 <<"select rowid, * from d">>,
@@ -1783,3 +1784,4 @@ select
     , {"GRANTS", ?TEST_GRANTS, -1} % 7 
     , {"REVOKE", ?TEST_REVOKE, -1} % 8 
 ]).
+-endif.

@@ -1,5 +1,6 @@
 -module(sql_test).
 
+-ifdef(TEST).
 -include("sql_tests.hrl").
 
 -export([parse_groups/2, update_counters/2]).
@@ -45,3 +46,4 @@ update_counters(ParseTree, Counters) ->
 
 incr(Idx, L) ->
     lists:sublist(L, Idx-1) ++ [lists:nth(Idx, L) + 1] ++ lists:sublist(L, Idx+1, length(L)).
+-endif.

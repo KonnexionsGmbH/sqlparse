@@ -860,9 +860,6 @@ Erlang code.
 -behaviour(application).
 -behaviour(supervisor).
 
--include_lib("eunit/include/eunit.hrl").
--include("sql_tests.hrl").
-
 % application callbacks
 -export([start/2, stop/1]).
 
@@ -872,8 +869,11 @@ Erlang code.
 % parser and compiler interface
 -export([fold/1, parsetree/1, is_reserved/1]).
 
+-ifdef(TEST).
 % eunit helper function
 -export([test_parse/5]).
+-endif.
+
 -define(PARSETREE, 0).
 
 %%-----------------------------------------------------------------------------
@@ -1284,6 +1284,9 @@ fold(PTree) ->
 %%-----------------------------------------------------------------------------
 
 
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+-include("sql_tests.hrl").
 %%-----------------------------------------------------------------------------
 %%                               EUnit test
 %%-----------------------------------------------------------------------------
@@ -1343,3 +1346,4 @@ test_parse(ShowParseTree, [BinSql|Sqls], N, Limit, Private) ->
     end.
 
 %%-----------------------------------------------------------------------------
+-endif.

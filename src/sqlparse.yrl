@@ -130,6 +130,7 @@ Nonterminals
  opt_materialized
  opt_storage
  system_priviledge
+ extra
 .
 
     %% symbolic tokens
@@ -288,9 +289,11 @@ Left        400 '*' '/'.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-sql_list -> sql ';'                                                                             : ['$1'].
-sql_list -> sql_list sql ';'                                                                    : '$1' ++ ['$2'].
+sql_list -> sql ';' extra                                                                       : [{'$1','$3'}].
+sql_list -> sql_list sql ';' extra                                                              : '$1' ++ [{'$2','$4'}].
 
+extra -> '$empty'                                                                               : {extra, <<>>}.
+extra -> NAME  ';'                                                                              : {extra, unwrap_bin('$1')}.
 
     %% schema definition language
 sql -> schema                                                                                   : '$1'.
@@ -1314,12 +1317,12 @@ test_parse(ShowParseTree, [BinSql|Sqls], N, Limit, Private) ->
     end,
     io:format(user, "[~p]~n"++Sql++"~n", [N]),
     case sqlparse:parsetree(BinSql) of
-        {ok, {[ParseTree|_], Tokens}} -> 
+        {ok, {[{ParseTree,_}|_], Tokens}} -> 
             if ShowParseTree ->
         	    io:format(user, "~p~n", [ParseTree]),
                 NSql = fold(ParseTree),
                 io:format(user,  "~n> " ++ NSql ++ "~n", []),
-                {ok, {[NPTree|_], NToks}} = sqlparse:parsetree(NSql),
+                {ok, {[{NPTree,_}|_], NToks}} = sqlparse:parsetree(NSql),
                 try
                     ParseTree = NPTree
                 catch

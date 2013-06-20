@@ -24,7 +24,7 @@
 
 parse(Sql) ->
     case sqlparse:parsetree(Sql) of
-        {ok, {[ParseTree|_], _}}        -> ParseTree;
+        {ok, {[{ParseTree,_}|_], _}}    -> ParseTree;
         {parse_error, {PError, Tokens}} -> ?ParserException({"Parser Error",{PError,Tokens}});
         {lex_error, LError}             -> ?LexerException({"Lexer Error",LError})
     end.

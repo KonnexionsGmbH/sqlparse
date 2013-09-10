@@ -1,5 +1,6 @@
 -ifdef(TEST).
 -define (TEST_SELECT,[
+<<"select employee_id, last_name, salary from employee where employee_id = :EMPNO">>,
 <<"select * from d">>,
 <<"select rowid, * from d">>,
 <<"select *, rowid from d">>,
@@ -1634,6 +1635,7 @@ select
 
 
 -define (TEST_UPDATE,[
+                                        "update employees set salary = :sal where employee_id = :id",
                                         "ALTER USER test_user_123 IDENTIFIED BY new_password",
                                         "ALTER USER test_user_123 ACCOUNT LOCK",
                                         "ALTER USER test_user_123 ACCOUNT UNLOCK",
@@ -1775,13 +1777,13 @@ select
 ]).
 
 -define (TEST_SQLS, [
-      {"SELECT", ?TEST_SELECT, -1} % 1
-    , {"INSERT", ?TEST_INSERT, -1} % 2
-    , {"CREATE", ?TEST_CREATE, -1} % 3 
-    , {"UPDATE", ?TEST_UPDATE, -1} % 4 
-    , {"DELETE", ?TEST_DELETE, -1} % 5 
-    , {"TRUNCT", ?TEST_TRUNCT, -1} % 6 
-    , {"GRANTS", ?TEST_GRANTS, -1} % 7 
-    , {"REVOKE", ?TEST_REVOKE, -1} % 8 
+      {"SELECT", ?TEST_SELECT, 1} % 1
+    , {"INSERT", ?TEST_INSERT, 0} % 2
+    , {"CREATE", ?TEST_CREATE, 0} % 3 
+    , {"UPDATE", ?TEST_UPDATE, 1} % 4 
+    , {"DELETE", ?TEST_DELETE, 0} % 5 
+    , {"TRUNCT", ?TEST_TRUNCT, 0} % 6 
+    , {"GRANTS", ?TEST_GRANTS, 0} % 7 
+    , {"REVOKE", ?TEST_REVOKE, 0} % 8 
 ]).
 -endif.

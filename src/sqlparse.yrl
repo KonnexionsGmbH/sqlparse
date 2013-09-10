@@ -842,7 +842,7 @@ column -> STRING                                                                
 
 cursor -> NAME                                                                                  : {'cur', unwrap('$1')}.
 
-parameter -> PARAMETER                                                                          : {'param', unwrap('$1')}.
+parameter -> PARAMETER                                                                          : {'param', unwrap_bin('$1')}.
 
 range_variable -> NAME                                                                          : unwrap('$1').
 
@@ -1276,6 +1276,12 @@ fold({'list', Elms}) ->
         || E <- Elms]
     , ", ")
     ++ ")";
+
+fold({'param', P}) ->
+    case P of
+        P when is_binary(P) -> binary_to_list(P);
+        P -> P
+    end;
 
 %
 % UNSUPPORTED

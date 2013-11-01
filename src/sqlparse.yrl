@@ -131,6 +131,7 @@ Nonterminals
  opt_storage
  system_priviledge
  extra
+ returning
 .
 
     %% symbolic tokens
@@ -258,6 +259,8 @@ Terminals
  RESOURCE
  CONSTRAINS
  FORCE
+ RETURNING
+ RETURN
  'AND'
  'NOT'
  'OR'
@@ -541,7 +544,7 @@ delete_statement_searched -> DELETE FROM table opt_where_clause                 
 
 fetch_statement -> FETCH cursor INTO target_commalist                                           : {'fetch', '$2', {'into', '$4'}}.
 
-insert_statement -> INSERT INTO table opt_column_commalist values_or_query_spec                 : {'insert', '$3', {cols, '$4'}, '$5'}.
+insert_statement -> INSERT INTO table opt_column_commalist values_or_query_spec returning       : {'insert', '$3', {cols, '$4'}, '$5', '$6'}.
 
 values_or_query_spec -> VALUES '(' insert_atom_commalist ')'                                    : {'values', '$3'}.
 values_or_query_spec -> query_spec                                                              : '$1'.
@@ -569,14 +572,15 @@ opt_all_distinct -> '$empty'                                                    
 opt_all_distinct -> ALL                                                                         : {opt, <<"all">>}.
 opt_all_distinct -> DISTINCT                                                                    : {opt, <<"distinct">>}.
 
-update_statement_positioned -> UPDATE table SET assignment_commalist WHERE CURRENT OF cursor    : {'update', '$2', {'set', '$4'}, {'where_cur_of', '$8'}}.
+update_statement_positioned -> UPDATE table SET assignment_commalist
+                                                           WHERE CURRENT OF cursor returning    : {'update', '$2', {'set', '$4'}, {'where_cur_of', '$8'}, '$9'}.
 
 assignment_commalist -> assignment                                                              : ['$1'].
 assignment_commalist -> assignment_commalist ',' assignment                                     : '$1' ++ ['$3'].
 
 assignment -> column COMPARISON scalar_exp                                                      : {'=', '$1', '$3'}.
 
-update_statement_searched -> UPDATE table SET assignment_commalist opt_where_clause             : {'update', '$2', {'set', '$4'}, '$5'}.
+update_statement_searched -> UPDATE table SET assignment_commalist opt_where_clause returning   : {'update', '$2', {'set', '$4'}, '$5', '$6'}.
 
 target_commalist -> target                                                                      : ['$1'].
 target_commalist -> target_commalist ',' target                                                 : '$1' ++ ['$3'].
@@ -594,6 +598,10 @@ query_exp -> query_exp UNION query_term                                         
 query_exp -> query_exp UNION ALL query_term                                                     : {'union all', '$1', '$4'}.
 query_exp -> query_exp INTERSECT query_term                                                     : {'intersect', '$1', '$3'}.
 query_exp -> query_exp MINUS query_term                                                         : {'minus', '$1', '$3'}.
+
+returning -> '$empty'                                                                           : {}.
+returning -> RETURNING selection INTO selection                                                 : {returning, '$2', '$4'}.
+returning -> RETURN selection INTO selection                                                    : {return, '$2', '$4'}.
 
 query_term -> query_spec                                                                        : '$1'.
 query_term -> '(' query_exp ')'                                                                 : '$2'.

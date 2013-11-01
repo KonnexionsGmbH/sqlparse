@@ -121,6 +121,8 @@ Erlang code.
     {"^(?i)(IN)$",                       'IN'},
     {"^(?i)(INDICATOR)$",                'INDICATOR'},
     {"^(?i)(INSERT)$",                   'INSERT'},
+    {"^(?i)(RETURNING)$",                'RETURNING'},
+    {"^(?i)(RETURN)$",                   'RETURN'},
     {"^(?i)(INTO)$",                     'INTO'},
     {"^(?i)(IS)$",                       'IS'},
     {"^(?i)(KEY)$",                      'KEY'},

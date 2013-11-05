@@ -132,6 +132,13 @@ Nonterminals
  system_priviledge
  extra
  returning
+ join_clause
+ inner_cross_join
+ outer_join
+ opt_join_on_or_using_clause
+ join_on_or_using_clause
+ outer_join_type
+ query_partition_clause
 .
 
     %% symbolic tokens
@@ -261,6 +268,16 @@ Terminals
  FORCE
  RETURNING
  RETURN
+ INNER
+ OUTER
+ LEFT
+ RIGHT
+ FULL
+ CROSS
+ NATURAL
+ JOIN
+ USING
+ PARTITION
  'AND'
  'NOT'
  'OR'
@@ -538,9 +555,9 @@ close_statement -> CLOSE cursor                                                 
 
 commit_statement -> COMMIT WORK                                                                 : 'commit work'.
 
-delete_statement_positioned -> DELETE FROM table WHERE CURRENT OF cursor                        : {'delete', '$3',{'where_current_of', '$7'}}.
+delete_statement_positioned -> DELETE FROM table WHERE CURRENT OF cursor returning              : {'delete', '$3',{'where_current_of', '$7'}, '$8'}.
 
-delete_statement_searched -> DELETE FROM table opt_where_clause                                 : {'delete', '$3', '$4'}.
+delete_statement_searched -> DELETE FROM table opt_where_clause returning                       : {'delete', '$3', '$4', '$5'}.
 
 fetch_statement -> FETCH cursor INTO target_commalist                                           : {'fetch', '$2', {'into', '$4'}}.
 
@@ -599,7 +616,7 @@ query_exp -> query_exp UNION ALL query_term                                     
 query_exp -> query_exp INTERSECT query_term                                                     : {'intersect', '$1', '$3'}.
 query_exp -> query_exp MINUS query_term                                                         : {'minus', '$1', '$3'}.
 
-returning -> '$empty'                                                                           : {}.
+returning -> '$empty'                                                                           : {returning, {}}.
 returning -> RETURNING selection INTO selection                                                 : {returning, '$2', '$4'}.
 returning -> RETURN selection INTO selection                                                    : {return, '$2', '$4'}.
 
@@ -629,6 +646,53 @@ from_clause -> FROM table_ref_commalist                                         
 
 table_ref_commalist -> table_ref                                                                : ['$1'].
 table_ref_commalist -> table_ref_commalist ',' table_ref                                        : '$1' ++ ['$3'].
+table_ref_commalist -> join_clause                                                              : '$1'.
+table_ref_commalist -> join_clause ',' join_clause                                              : '$1' ++ ['$3'].
+
+join_clause -> table_ref inner_cross_join                                                       : {'$1', '$2'}.
+join_clause -> table_ref outer_join                                                             : {'$1', '$2'}.
+
+inner_cross_join -> INNER JOIN table_ref join_on_or_using_clause                                : {join_inner, '$3', '$4'}.
+inner_cross_join -> JOIN table_ref join_on_or_using_clause                                      : {join, '$2', '$3'}.
+
+join_on_or_using_clause -> ON search_condition                                                  : {on, '$2'}.
+join_on_or_using_clause -> USING '(' select_field_commalist ')'                                 : {using, '$3'}.
+
+opt_join_on_or_using_clause -> '$empty'                                                         : {}.
+opt_join_on_or_using_clause -> join_on_or_using_clause                                          : '$1'.
+
+% ----------------------------------------------------------------------------------------------- {{join_type, partition, opt_natural} ... }
+outer_join -> NATURAL outer_join_type JOIN table_ref opt_join_on_or_using_clause                : {{'$2', {}, natural}, '$4', {}, '$5'}.
+outer_join -> NATURAL outer_join_type JOIN table_ref query_partition_clause
+              opt_join_on_or_using_clause                                                       : {{'$2', {}, natural}, '$4', '$5', '$6'}.
+
+outer_join -> query_partition_clause outer_join_type JOIN table_ref opt_join_on_or_using_clause : {{'$2', '$1', {}}, '$4', {}, '$5'}.
+outer_join -> query_partition_clause outer_join_type JOIN table_ref
+              query_partition_clause opt_join_on_or_using_clause                                : {{'$2', '$1', {}}, '$4', '$5', '$6'}.
+
+outer_join -> outer_join_type JOIN table_ref opt_join_on_or_using_clause                        : {{'$1', {}, {}}, '$3', {}, '$4'}.
+outer_join -> outer_join_type JOIN table_ref query_partition_clause
+              opt_join_on_or_using_clause                                                       : {{'$1', {}, {}}, '$3', '$4', '$5'}.
+
+outer_join -> query_partition_clause NATURAL outer_join_type JOIN table_ref
+              opt_join_on_or_using_clause                                                       : {{'$3', '$1', natural}, '$5', {}, '$6'}.
+outer_join -> query_partition_clause NATURAL outer_join_type JOIN
+              table_ref query_partition_clause opt_join_on_or_using_clause                      : {{'$3', '$1', natural}, '$5', '$6', '$7'}.
+% -----------------------------------------------------------------------------------------------
+
+query_partition_clause -> PARTITION BY '(' scalar_exp_commalist ')'                             : {partition_by, '$4'}.
+query_partition_clause -> PARTITION BY scalar_exp_commalist                                     : {partition_by, '$3'}.
+
+outer_join_type -> FULL                                                                         : full.
+outer_join_type -> LEFT                                                                         : left.
+outer_join_type -> RIGHT                                                                        : right.
+outer_join_type -> FULL OUTER                                                                   : full_outer.
+outer_join_type -> LEFT OUTER                                                                   : left_outer.
+outer_join_type -> RIGHT OUTER                                                                  : right_outer.
+
+inner_cross_join -> CROSS JOIN table_ref                                                        : {cross_join, '$3'}.
+inner_cross_join -> NATURAL JOIN table_ref                                                      : {natural_join, '$3'}.
+inner_cross_join -> NATURAL INNER JOIN table_ref                                                : {natural_inner_join, '$4'}.
 
 table_ref -> table                                                                              : '$1'.
 table_ref -> '(' query_exp ')'                                                                  : '$2'.
@@ -978,22 +1042,28 @@ is_reserved(Word) when is_list(Word)    -> lists:member(erlang:list_to_atom(stri
 %%                                  COMPILER
 %%-----------------------------------------------------------------------------
 
+fold(PTree) ->
+    case foldi(PTree) of
+        {error,_} = Error -> Error;
+        Sql -> list_to_binary(Sql)
+    end.
+
 %
 % SELECT
 %
-fold({select, Opts}) ->
+foldi({select, Opts}) ->
     "select "
     ++
-    lists:flatten([fold(O) || O <- Opts]);
+    lists:flatten([foldi(O) || O <- Opts]);
 
 %
 % INSERT
 %
-fold({insert, Tab, {cols, Cols}, {values, Values}}) when is_binary(Tab) ->
+foldi({insert, Tab, {cols, Cols}, {values, Values}, Return}) when is_binary(Tab) ->
     CStrs =
       [case C of
             C when is_binary(C) -> binary_to_list(C);
-            C -> fold(C)
+            C -> foldi(C)
         end
         || C <- Cols],
     ColsStr = case length(CStrs) of
@@ -1005,42 +1075,43 @@ fold({insert, Tab, {cols, Cols}, {values, Values}}) when is_binary(Tab) ->
     ++ " values (" ++ string:join(
         [case V of
             V when is_binary(V) -> binary_to_list(V);
-            V -> fold(V)
+            V -> foldi(V)
         end
-        || V <- Values], ",") ++ ")";
+        || V <- Values], ",") ++ ")"
+    ++ foldi(Return);
 
 %
 % CREATE TABLE
 %
-fold({'create table', Tab, Fields, Opts}) when is_binary(Tab) ->
-    "create " ++ fold(Opts) ++ " table " ++ binary_to_list(Tab)
+foldi({'create table', Tab, Fields, Opts}) when is_binary(Tab) ->
+    "create " ++ foldi(Opts) ++ " table " ++ binary_to_list(Tab)
     ++ " (" ++ string:join(
         [case Clm of
-            {C, {T, N}, O} when is_binary(C)                -> lists:flatten([binary_to_list(C), " ", atom_to_list(T), "(", N, ") ", fold(O)]);
-            {C, {T, N, N1}, O} when is_binary(C)            -> lists:flatten([binary_to_list(C), " ", atom_to_list(T), "(",N,",",N1,") ", fold(O)]);
-            {C, T, O} when is_binary(C) and is_binary(T)    -> lists:flatten([binary_to_list(C), " ", binary_to_list(T), " ", fold(O)]);
-            {C, T, O} when is_binary(C)                     -> lists:flatten([binary_to_list(C), " ", atom_to_list(T), " ", fold(O)]);
-            C -> fold(C)
+            {C, {T, N}, O} when is_binary(C)                -> lists:flatten([binary_to_list(C), " ", atom_to_list(T), "(", N, ") ", foldi(O)]);
+            {C, {T, N, N1}, O} when is_binary(C)            -> lists:flatten([binary_to_list(C), " ", atom_to_list(T), "(",N,",",N1,") ", foldi(O)]);
+            {C, T, O} when is_binary(C) and is_binary(T)    -> lists:flatten([binary_to_list(C), " ", binary_to_list(T), " ", foldi(O)]);
+            {C, T, O} when is_binary(C)                     -> lists:flatten([binary_to_list(C), " ", atom_to_list(T), " ", foldi(O)]);
+            C -> foldi(C)
         end
         || Clm <- Fields], ", ") ++ ")";
 
 %
 % CREATE USER
 %
-fold({'create user', Usr, Id, Opts}) when is_binary(Usr) ->
+foldi({'create user', Usr, Id, Opts}) when is_binary(Usr) ->
     "create user " ++ binary_to_list(Usr)
-    ++ fold(Id) ++ " " ++ fold(Opts);
+    ++ foldi(Id) ++ " " ++ foldi(Opts);
 
 %
 % ALTER USER
 %
-fold({'alter user', Usr, {spec, Opts}}) when is_binary(Usr) ->
-    lists:flatten(["alter user ", binary_to_list(Usr), " ", fold(Opts)]);
+foldi({'alter user', Usr, {spec, Opts}}) when is_binary(Usr) ->
+    lists:flatten(["alter user ", binary_to_list(Usr), " ", foldi(Opts)]);
 
 %
 % TRUNCATE TABLE
 %
-fold({'truncate table', Tbl, Mvl, Storage}) when is_binary(Tbl) ->
+foldi({'truncate table', Tbl, Mvl, Storage}) when is_binary(Tbl) ->
     "truncate table " ++ binary_to_list(Tbl) ++ " " ++
     case Mvl of
         {} -> "";
@@ -1055,27 +1126,34 @@ fold({'truncate table', Tbl, Mvl, Storage}) when is_binary(Tbl) ->
 %
 % UPDATE TABLE
 %
-fold({'update', Tbl, {set, Set}, Where}) when is_binary(Tbl) ->
+foldi({'update', Tbl, {set, Set}, Where, Return}) when is_binary(Tbl) ->
     "update " ++ binary_to_list(Tbl)
-    ++ " set " ++ string:join([fold(S) || S <- Set], ",")
-    ++ " " ++fold(Where);
+    ++ " set " ++ string:join([foldi(S) || S <- Set], ",")
+    ++ " " ++foldi(Where) ++ foldi(Return);
 
 %
 % DROPS
 %
-fold({'drop user', Usr, Opts}) when is_binary(Usr) ->
+foldi({'drop user', Usr, Opts}) when is_binary(Usr) ->
     "drop user " ++ binary_to_list(Usr)
-    ++ " " ++ fold(Opts);
-fold({'drop table', {tables, Ts}, {exists, E}, {opt, R}}) when is_atom(R) ->
+    ++ " " ++ foldi(Opts);
+foldi({'drop table', {tables, Ts}, {exists, E}, {opt, R}}) when is_atom(R) ->
     "drop table "
     ++ if E =:= true -> " if exists "; true -> "" end
     ++ string:join([binary_to_list(T) || T <- Ts], ", ")
     ++ " " ++ atom_to_list(R);
 
 %
+% DELETE
+%
+foldi({'delete', Table, Where, Return}) when is_binary(Table) ->
+    "delete from " ++ binary_to_list(Table)
+    ++ " " ++ foldi(Where) ++ foldi(Return);
+
+%
 % GRANT
 %
-fold({'grant', Objs, {OnTyp, On}, {'to', Tos}, Opts}) when is_atom(OnTyp), is_atom(Opts) ->
+foldi({'grant', Objs, {OnTyp, On}, {'to', Tos}, Opts}) when is_atom(OnTyp), is_atom(Opts) ->
     "grant "
     ++ string:join([atom_to_list(O)||O<-Objs], ",") ++ " "
     ++ if On =/= <<"">> -> atom_to_list(OnTyp) ++ " " ++ binary_to_list(On) ++ " "; true -> "" end
@@ -1085,7 +1163,7 @@ fold({'grant', Objs, {OnTyp, On}, {'to', Tos}, Opts}) when is_atom(OnTyp), is_at
 %
 % REVOKE
 %
-fold({'revoke', Objs, {OnTyp, On}, {'from', Tos}, Opts}) when is_atom(OnTyp), is_atom(Opts) ->
+foldi({'revoke', Objs, {OnTyp, On}, {'from', Tos}, Opts}) when is_atom(OnTyp), is_atom(Opts) ->
     "revoke "
     ++ string:join([atom_to_list(O)||O<-Objs], ",") ++ " "
     ++ if On =/= <<"">> -> atom_to_list(OnTyp) ++ " " ++ binary_to_list(On) ++ " "; true -> "" end
@@ -1097,81 +1175,86 @@ fold({'revoke', Objs, {OnTyp, On}, {'from', Tos}, Opts}) when is_atom(OnTyp), is
 %
 
 % Empty list or tuples
-fold(X) when X =:= {}; X =:= [] -> "";
+foldi(X) when X =:= {}; X =:= [] -> "";
 
 % All option and optionlist and its variants
-fold({'identified globally', E}) -> " identified globally " ++ fold(E);
-fold({'identified extern', E}) -> " identified externally " ++ fold(E);
-fold({'identified by', Pswd}) -> " identified by " ++ binary_to_list(Pswd);
-fold([{'scope', S}|Opts]) -> lists:flatten([" ", atom_to_list(S), " ", fold(Opts)]);
-fold([{'type', T}|Opts]) -> lists:flatten([" ", atom_to_list(T), " ", fold(Opts)]);
-fold([{'limited', Q, T}|O]) when is_binary(Q), is_binary(T) -> lists:flatten(["quota ", binary_to_list(Q), " on ", binary_to_list(T), " ", fold(O)]);
-fold([cascade|Opts]) -> lists:flatten([" cascade ", fold(Opts)]);
-fold([{Tok, T}|Opts]) ->
+foldi({'identified globally', E}) -> " identified globally " ++ foldi(E);
+foldi({'identified extern', E}) -> " identified externally " ++ foldi(E);
+foldi({'identified by', Pswd}) -> " identified by " ++ binary_to_list(Pswd);
+foldi([{'scope', S}|Opts]) -> lists:flatten([" ", atom_to_list(S), " ", foldi(Opts)]);
+foldi([{'type', T}|Opts]) -> lists:flatten([" ", atom_to_list(T), " ", foldi(Opts)]);
+foldi([{'limited', Q, T}|O]) when is_binary(Q), is_binary(T) -> lists:flatten(["quota ", binary_to_list(Q), " on ", binary_to_list(T), " ", foldi(O)]);
+foldi([cascade|Opts]) -> lists:flatten([" cascade ", foldi(Opts)]);
+foldi([{Tok, T}|Opts]) ->
     if is_binary(T) andalso (
         Tok =:= 'default tablespace' orelse
         Tok =:= 'temporary tablespace' orelse
-        Tok =:= 'profile') -> lists:flatten([atom_to_list(Tok), " ", binary_to_list(T), " ", fold(Opts)]);
+        Tok =:= 'profile') -> lists:flatten([atom_to_list(Tok), " ", binary_to_list(T), " ", foldi(Opts)]);
         true ->
             case {Tok, T} of
                 {'password', 'expire'}                  -> "password expire ";
                 {'account', 'lock'}                     -> "account lock ";
                 {'account', 'unlock'}                   -> "account unlock ";
                 {'unlimited on', T} when is_binary(T)   -> lists:flatten(["quota unlimited on ", binary_to_list(T)]);
-                {'quotas', Qs}                          -> fold(Qs);
-                _                                       -> fold({Tok, T})
+                {'quotas', Qs}                          -> foldi(Qs);
+                _                                       -> foldi({Tok, T})
             end
     end;
-fold({'default', Def}) ->
+foldi({'default', Def}) ->
     lists:flatten([" default ", 
         case Def of
             Def when is_binary(Def) -> binary_to_list(Def);
-            Def -> fold(Def)
+            Def -> foldi(Def)
         end, "\n "]);
 
 % select sub-part patterns
-fold({hints, Hints}) ->
+foldi({hints, Hints}) ->
     Size = byte_size(Hints),
     if Size > 0 -> binary_to_list(Hints);
     true        -> ""
     end;
-fold({opt, Opt}) ->
+foldi({opt, Opt}) ->
     Size = byte_size(Opt),
     if Size > 0 -> binary_to_list(Opt) ++ " ";
     true        -> ""
     end;
-fold({fields, Fields}) ->
+foldi({fields, Fields}) ->
     string:join(
         [case F of
             F when is_binary(F) -> binary_to_list(F);
-            {'select', _} = F   -> lists:flatten(["(", fold(F), ")"]);
-            Other               -> fold(Other)
+            {'select', _} = F   -> lists:flatten(["(", foldi(F), ")"]);
+            Other               -> foldi(Other)
         end
         || F <- Fields]
     , ", ");
-fold({into, Into}) -> string:join([binary_to_list(I) || I <- Into], ", ") ++ " ";
-fold({from, Forms}) ->
+foldi({into, Into}) -> string:join([binary_to_list(I) || I <- Into], ", ") ++ " ";
+foldi({from, Forms}) ->
     "from " ++
-    string:join(
-        [case F of
-            F when is_binary(F) -> binary_to_list(F);
-            {'select', _} = F   -> lists:flatten(["(", fold(F), ")"]);
-            Other               -> fold(Other)
-        end
-        || F <- Forms]
-    , ", ")
+    case Forms of
+        Forms when is_list(Forms) ->
+            string:join(
+                [case F of
+                    F when is_binary(F) -> binary_to_list(F);
+                    {'select', _} = F   -> lists:flatten(["(", foldi(F), ")"]);
+                    Other               -> foldi(Other)
+                end
+                || F <- Forms]
+            , ", ");
+        Forms ->
+            foldi(Forms)
+    end
     ++ " ";
-fold({'group by', GroupBy}) ->
+foldi({'group by', GroupBy}) ->
     Size = length(GroupBy),
     if Size > 0 -> " group by " ++ string:join([binary_to_list(F) || F <- GroupBy], ", ");
     true -> ""
     end;
-fold({having, Having}) ->
+foldi({having, Having}) ->
     Size = size(Having),
-    if Size > 0 -> " having " ++ fold(Having);
+    if Size > 0 -> " having " ++ foldi(Having);
     true -> ""
     end;
-fold({'order by', OrderBy}) ->
+foldi({'order by', OrderBy}) ->
     Size = length(OrderBy),
     if Size > 0 ->
         " order by " ++
@@ -1179,7 +1262,7 @@ fold({'order by', OrderBy}) ->
             [case F of
             F when is_binary(F) -> binary_to_list(F);
             {O, Op} when is_binary(O), is_binary(Op) -> string:strip(lists:flatten([binary_to_list(O), " ", binary_to_list(Op)]));
-            {O, Op} when is_binary(Op)               -> string:strip(lists:flatten([fold(O), " ", binary_to_list(Op)]))
+            {O, Op} when is_binary(Op)               -> string:strip(lists:flatten([foldi(O), " ", binary_to_list(Op)]))
             end
             || F <- OrderBy]
         , ", ")
@@ -1187,105 +1270,172 @@ fold({'order by', OrderBy}) ->
     true -> ""
     end;
 
+% joins
+foldi({Tab, {JoinType, Tab1}})
+when ((JoinType =:= cross_join)
+     orelse (JoinType =:= natural_join)
+     orelse (JoinType =:= natural_inner_join)) ->
+    foldi(Tab) ++
+    case JoinType of
+        cross_join          -> " cross join ";
+        natural_join        -> " natural join ";
+        natural_inner_join  -> " natural inner join "
+    end ++
+    foldi(Tab1);
+foldi({Tab, {{JoinType,OptPartition,OptNatural},Tab1,OptPartition1,OnOrUsing}})
+when ((JoinType =:= full)
+      orelse (JoinType =:= left)
+      orelse (JoinType =:= right)
+      orelse (JoinType =:= full_outer)
+      orelse (JoinType =:= left_outer)
+      orelse (JoinType =:= right_outer)) ->
+    foldi(Tab) ++
+    foldi(OptPartition) ++
+    foldi(OptNatural) ++
+    case JoinType of
+        full        -> " full join ";
+        left        -> " left join ";
+        right       -> " right join ";
+        full_outer  -> " full outer join ";
+        left_outer  -> " left outer join ";
+        right_outer -> " right outer join "
+    end ++
+    foldi(Tab1) ++
+    foldi(OptPartition1) ++
+    foldi(OnOrUsing);
+foldi({Tab, {JoinType, Tab1, OnOrUsing}})
+when ((JoinType =:= join)
+      orelse (JoinType =:= join_inner)) ->
+    foldi(Tab) ++
+    case JoinType of
+        join        -> " join ";
+        join_inner -> " inner join "
+    end ++
+    foldi(Tab1) ++
+    foldi(OnOrUsing);
+foldi({partition_by,Fields}) ->
+    " partition by (" ++ string:join([binary_to_list(F) || F<-Fields], ",") ++ ")";
+foldi({on, Condition}) -> " on " ++ foldi(Condition);
+foldi({using, ColumnList}) -> " using (" ++ string:join([binary_to_list(C) || C<-ColumnList], ",") ++ ")";
+foldi(natural) -> "natural";
+
+
+
 % betwen operator
-fold({'between', A, B, C}) ->
-    A1 = if is_binary(A) -> binary_to_list(A); true -> fold(A) end,
-    B1 = if is_binary(B) -> binary_to_list(B); true -> fold(B) end,
-    C1 = if is_binary(C) -> binary_to_list(C); true -> fold(C) end,
+foldi({'between', A, B, C}) ->
+    A1 = if is_binary(A) -> binary_to_list(A); true -> foldi(A) end,
+    B1 = if is_binary(B) -> binary_to_list(B); true -> foldi(B) end,
+    C1 = if is_binary(C) -> binary_to_list(C); true -> foldi(C) end,
     lists:flatten([A1,  " between ", B1, " and ", C1]);
 
 % PL/SQL concatenate operator
-fold({'||', Args}) ->
+foldi({'||', Args}) ->
     string:join(
     [case A of
         A when is_binary(A) -> binary_to_list(A);
-        A -> fold(A)
+        A -> foldi(A)
     end
     || A <- Args], " || ");
 
 % All aliases
-fold({as, A, B}) when is_binary(A), is_binary(B) -> lists:flatten([binary_to_list(A), " ", binary_to_list(B)]);
-fold({as, A, B}) when is_binary(B)               -> lists:flatten([fold(A), " ", binary_to_list(B)]);
-fold({as, A}) when is_binary(A)                  -> lists:flatten(["as ", binary_to_list(A)]);
+foldi({as, A, B}) when is_binary(A), is_binary(B) -> lists:flatten([binary_to_list(A), " ", binary_to_list(B)]);
+foldi({as, A, B}) when is_binary(B)               -> lists:flatten([foldi(A), " ", binary_to_list(B)]);
+foldi({as, A}) when is_binary(A)                  -> lists:flatten(["as ", binary_to_list(A)]);
+foldi(Tab) when is_binary(Tab)                    -> binary_to_list(Tab);
 
 % Union
-fold({union, A, B})                              -> lists:flatten(["(", fold(A), " union ", fold(B), ")"]);
+foldi({union, A, B})                              -> lists:flatten(["(", foldi(A), " union ", foldi(B), ")"]);
 
 % All where clauses
-fold({where, []}) -> "";
-fold({where, Where}) -> "where " ++ fold(Where);
+foldi({where, []}) -> "";
+foldi({where, Where}) -> "where " ++ foldi(Where);
 
 % In operator
 % for right hand non list argument extra parenthesis added
-fold({'in', L, {'list', _} = R}) when is_binary(L) ->
-    lists:flatten([binary_to_list(L), " in ", fold(R)]);
-fold({'in', L, R}) when is_binary(L), is_tuple(R) ->
-    lists:flatten([binary_to_list(L), " in (", fold(R), ")"]);
+foldi({'in', L, {'list', _} = R}) when is_binary(L) ->
+    lists:flatten([binary_to_list(L), " in ", foldi(R)]);
+foldi({'in', L, R}) when is_binary(L), is_tuple(R) ->
+    lists:flatten([binary_to_list(L), " in (", foldi(R), ")"]);
+
+% Optional Returning phrase
+foldi({R, Sel, Var}) when (R =:= return) orelse (R =:= returning) ->
+    " " ++ atom_to_list(R)++" "
+    ++
+    string:join([case S of
+            S when is_binary(S) -> binary_to_list(S);
+            S -> foldi(S)
+        end || S <- Sel], ",")
+    ++ " INTO " ++
+    string:join([case V of
+            V when is_binary(V) -> binary_to_list(V);
+            V -> foldi(V)
+        end || {param, V} <- Var], ",");
+foldi({R, {}}) when (R =:= return) orelse (R =:= returning) -> "";
 
 % Boolean and arithmetic binary operators handled with precedence
 % *,/ > +,- > and > or
-fold({Op, L, R}) when is_atom(Op), is_tuple(L), is_tuple(R) ->
+foldi({Op, L, R}) when is_atom(Op), is_tuple(L), is_tuple(R) ->
     Fl = case {Op, element(1, L)} of
-        {'*', Ol} when Ol =:= '-'; Ol =:= '+' -> lists:flatten(["(", fold(L), ")"]);
-        {'/', Ol} when Ol =:= '-'; Ol =:= '+' -> lists:flatten(["(", fold(L), ")"]);
-        {'and', 'or'}                         -> lists:flatten(["(", fold(L), ")"]);
-        _ -> fold(L)
+        {'*', Ol} when Ol =:= '-'; Ol =:= '+' -> lists:flatten(["(", foldi(L), ")"]);
+        {'/', Ol} when Ol =:= '-'; Ol =:= '+' -> lists:flatten(["(", foldi(L), ")"]);
+        {'and', 'or'}                         -> lists:flatten(["(", foldi(L), ")"]);
+        _ -> foldi(L)
     end,
     Fr = case {Op, element(1, R)} of
-        {'*', Or} when Or =:= '-'; Or =:= '+' -> lists:flatten(["(", fold(R), ")"]);
-        {'/', Or} when Or =:= '-'; Or =:= '+' -> lists:flatten(["(", fold(R), ")"]);
-        {'and', 'or'}                         -> lists:flatten(["(", fold(R), ")"]);
-        _ -> fold(R)
+        {'*', Or} when Or =:= '-'; Or =:= '+' -> lists:flatten(["(", foldi(R), ")"]);
+        {'/', Or} when Or =:= '-'; Or =:= '+' -> lists:flatten(["(", foldi(R), ")"]);
+        {'and', 'or'}                         -> lists:flatten(["(", foldi(R), ")"]);
+        _ -> foldi(R)
     end,
     lists:flatten([Fl, " ", atom_to_list(Op), " ", Fr]);
-fold({Op, L, R}) when is_atom(Op), is_binary(L), is_tuple(R) ->
+foldi({Op, L, R}) when is_atom(Op), is_binary(L), is_tuple(R) ->
     Fr = case {Op, element(1, R)} of
-        {'*', Or} when Or =:= '-'; Or =:= '+' -> lists:flatten(["(", fold(R), ")"]);
-        {'/', Or} when Or =:= '-'; Or =:= '+' -> lists:flatten(["(", fold(R), ")"]);
-        _ -> fold(R)
+        {'*', Or} when Or =:= '-'; Or =:= '+' -> lists:flatten(["(", foldi(R), ")"]);
+        {'/', Or} when Or =:= '-'; Or =:= '+' -> lists:flatten(["(", foldi(R), ")"]);
+        _ -> foldi(R)
     end,
     lists:flatten([binary_to_list(L), " ", atom_to_list(Op), " ", Fr]);
-fold({Op, L, R}) when is_atom(Op), is_tuple(L), is_binary(R) ->
+foldi({Op, L, R}) when is_atom(Op), is_tuple(L), is_binary(R) ->
     Fl = case {Op, element(1, L)} of
-        {'*', Ol} when Ol =:= '-'; Ol =:= '+' -> lists:flatten(["(", fold(L), ")"]);
-        {'/', Ol} when Ol =:= '-'; Ol =:= '+' -> lists:flatten(["(", fold(L), ")"]);
-        _ -> fold(L)
+        {'*', Ol} when Ol =:= '-'; Ol =:= '+' -> lists:flatten(["(", foldi(L), ")"]);
+        {'/', Ol} when Ol =:= '-'; Ol =:= '+' -> lists:flatten(["(", foldi(L), ")"]);
+        _ -> foldi(L)
     end,
     lists:flatten([Fl, " ", atom_to_list(Op), " ", binary_to_list(R)]);
-fold({Op, L, R}) when is_atom(Op), is_binary(L), is_binary(R) ->    lists:flatten([binary_to_list(L), " ", atom_to_list(Op), " ", binary_to_list(R)]);
+foldi({Op, L, R}) when is_atom(Op), is_binary(L), is_binary(R) ->    lists:flatten([binary_to_list(L), " ", atom_to_list(Op), " ", binary_to_list(R)]);
 
 % Unary - and 'not' operators
-fold({Op, A}) when Op =:= '-'; Op =:= 'not' ->
+foldi({Op, A}) when Op =:= '-'; Op =:= 'not' ->
     case A of
         A when is_binary(A) -> lists:flatten([atom_to_list(Op), " (", binary_to_list(A), ")"]);
-        A                   -> lists:flatten([atom_to_list(Op)," (", fold(A), ")"])
+        A                   -> lists:flatten([atom_to_list(Op)," (", foldi(A), ")"])
     end;
 
 % funs
-fold({'fun', N, Args}) when is_atom(N) ->
+foldi({'fun', N, Args}) when is_atom(N) ->
     atom_to_list(N) ++ "(" ++
     string:join(
         [case A of
             A when is_binary(A) -> binary_to_list(A);
-            A -> fold(A)
+            A -> foldi(A)
         end
         || A <- Args]
     , ", ")
     ++ ")";
 
 % lists
-fold({'list', Elms}) ->
+foldi({'list', Elms}) ->
     "(" ++
     string:join(
         [case E of
             E when is_binary(E) -> binary_to_list(E);
-            E -> fold(E)
+            E -> foldi(E)
         end
         || E <- Elms]
     , ", ")
     ++ ")";
 
-fold({'param', P}) ->
+foldi({'param', P}) ->
     case P of
         P when is_binary(P) -> binary_to_list(P);
         P -> P
@@ -1294,7 +1444,7 @@ fold({'param', P}) ->
 %
 % UNSUPPORTED
 %
-fold(PTree) ->
+foldi(PTree) ->
     io:format(user, "Parse tree not supported ~p~n", [PTree]),
     {error,{"Parse tree not supported",PTree}}.
 
@@ -1335,7 +1485,7 @@ test_parse(ShowParseTree, [BinSql|Sqls], N, Limit, Private) ->
             if ShowParseTree ->
         	    io:format(user, "~p~n", [ParseTree]),
                 NSql = fold(ParseTree),
-                io:format(user,  "~n> " ++ NSql ++ "~n", []),
+                io:format(user,  "~n> " ++ binary_to_list(NSql) ++ "~n", []),
                 {ok, {[{NPTree,_}|_], NToks}} = sqlparse:parsetree(NSql),
                 try
                     ParseTree = NPTree

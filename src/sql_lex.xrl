@@ -47,6 +47,16 @@ Erlang code.
     {"^(?i)(UNION)$",                    'UNION'},
     {"^(?i)(INTERSECT)$",                'INTERSECT'},
     {"^(?i)(MINUS)$",                    'MINUS'},
+    {"^(?i)(INNER)$",                    'INNER'},
+    {"^(?i)(OUTER)$",                    'OUTER'},
+    {"^(?i)(LEFT)$",                     'LEFT'},
+    {"^(?i)(RIGHT)$",                    'RIGHT'},
+    {"^(?i)(PARTITION)$",                'PARTITION'},
+    {"^(?i)(FULL)$",                     'FULL'},
+    {"^(?i)(CROSS)$",                    'CROSS'},
+    {"^(?i)(NATURAL)$",                  'NATURAL'},
+    {"^(?i)(JOIN)$",                     'JOIN'},
+    {"^(?i)(USING)$",                    'USING'},
 
     % Data Types (SQL)
 %    {"^(?i)((N)?CHAR(ACTER)?)$",         'CHARACTER'},

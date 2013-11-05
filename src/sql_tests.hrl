@@ -1,5 +1,16 @@
 -ifdef(TEST).
 -define (TEST_SELECT,[
+<<"SELECT * from tab1 PARTITION BY col1 NATURAL FULL outer join tab2 PARTITION BY col2 using (a)">>,
+<<"SELECT * from tab1 INNER JOIN tab2 using (a, b, c)">>,
+<<"SELECT * from tab1 NATURAL INNER JOIN tab2">>,
+<<"SELECT * from def PARTITION BY (a, b) right outer join times on (a = b and c = d)">>,
+<<"SELECT * FROM employee CROSS JOIN department">>,
+<<"SELECT * FROM employee NATURAL JOIN department">>,
+<<"SELECT * FROM employee LEFT OUTER JOIN department ON employee.DepartmentID = department.DepartmentID">>,
+<<"SELECT * FROM employee RIGHT OUTER JOIN department ON employee.DepartmentID = department.DepartmentID">>,
+<<"SELECT * FROM employee FULL OUTER JOIN department ON employee.DepartmentID = department.DepartmentID">>,
+<<"SELECT * FROM Employee F INNER JOIN Employee S ON F.Country = S.Country WHERE F.EmployeeID < S.EmployeeID">>,
+<<"select USERNAME, PUBLISHER from ALL_USERS INNER JOIN ERLOCI_TABLE_2 ON ALL_USERS.USER_ID = ERLOCI_TABLE2.RANK">>,
 <<"select employee_id, last_name, salary from employee where employee_id = :EMPNO">>,
 <<"select * from d">>,
 <<"select rowid, * from d">>,
@@ -1635,16 +1646,21 @@ select
 
 
 -define (TEST_UPDATE,[
-                                        "update employees set salary = :sal where employee_id = :id",
+                                        "UPDATE employees set salary = :sal where employee_id = :id",
+                                        "UPDATE employees set salary = :sal where employee_id = :id RETURNING c,d INTO :c, :d",
+                                        "UPDATE employees set salary = :sal where employee_id = :id RETURNING lob_column INTO :out_locator",
                                         "ALTER USER test_user_123 IDENTIFIED BY new_password",
                                         "ALTER USER test_user_123 ACCOUNT LOCK",
                                         "ALTER USER test_user_123 ACCOUNT UNLOCK",
                                         "ALTER USER test_user_123 PASSWORD EXPIRE",
-                                        "update abc set a='a', b='b\nb', c='c' || \"c\r\nc\" where a is NULL",
-                                        "update abc set a='a', b='b\nb', c='c' || \"c\r\nc\" where a || b = 'c' || 'd'"
+                                        "UPDATE abc set a='a', b='b\nb', c='c' || \"c\r\nc\" where a is NULL",
+                                        "UPDATE abc set a='a', b='b\nb', c='c' || \"c\r\nc\" where a || b = 'c' || 'd'"
 ]).
 
 -define (TEST_DELETE,[
+                                        "DELETE FROM table_name WHERE some_column=some_value",
+                                        "DELETE FROM table_name WHERE some_column=some_value RETURNING c,d INTO :c, :d",
+                                        "DELETE FROM table_name WHERE some_column=some_value RETURNING lob_column INTO :out_locator",
                                         "DROP USER test_user_123",
                                         "DROP USER test_user_123 CASCADE",
                                         "DROP TABLE table_name",
@@ -1731,6 +1747,7 @@ select
 ]).
 
 -define (TEST_INSERT,[
+                                        "INSERT INTO some_table VALUES (:a, :b) RETURNING c,d INTO :c, :d",
                                         "INSERT INTO some_table VALUES (:in_locator) RETURNING lob_column INTO :out_locator",
                                         "insert into number (float,integer) values ('C', \"undefined\")",
                                         "insert into def (col1,col2) values ('C', \"undefined\")",
@@ -1778,13 +1795,13 @@ select
 ]).
 
 -define (TEST_SQLS, [
-      {"SELECT", ?TEST_SELECT, 0} % 1
-    , {"INSERT", ?TEST_INSERT, 1} % 2
-    , {"CREATE", ?TEST_CREATE, 0} % 3 
-    , {"UPDATE", ?TEST_UPDATE, 0} % 4 
-    , {"DELETE", ?TEST_DELETE, 0} % 5 
-    , {"TRUNCT", ?TEST_TRUNCT, 0} % 6 
-    , {"GRANTS", ?TEST_GRANTS, 0} % 7 
-    , {"REVOKE", ?TEST_REVOKE, 0} % 8 
+      {"SELECT", ?TEST_SELECT, -1} % 1
+    , {"INSERT", ?TEST_INSERT, -1} % 2
+    , {"CREATE", ?TEST_CREATE, -1} % 3 
+    , {"UPDATE", ?TEST_UPDATE, -1} % 4 
+    , {"DELETE", ?TEST_DELETE, -1} % 5 
+    , {"TRUNCT", ?TEST_TRUNCT, -1} % 6 
+    , {"GRANTS", ?TEST_GRANTS, -1} % 7 
+    , {"REVOKE", ?TEST_REVOKE, -1} % 8 
 ]).
 -endif.

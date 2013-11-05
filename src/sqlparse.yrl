@@ -1017,7 +1017,7 @@ make_list(L) -> [L].
 %%-----------------------------------------------------------------------------
 %%                                  PARSER
 %%-----------------------------------------------------------------------------
-
+-spec parsetree(binary()|list()) -> {parse_error, term()} | {lex_error, term()} | {ok, {tuple(), list()}}.
 parsetree(Sql) when is_binary(Sql) -> parsetree(binary_to_list(Sql));
 parsetree(Sql) when is_list(Sql) ->
     [C|_] = lists:reverse(string:strip(Sql)),
@@ -1031,6 +1031,7 @@ parsetree(Sql) when is_list(Sql) ->
         {error,Error,_} -> {lex_error, Error}
     end.
 
+-spec is_reserved(binary() | atom() | list()) -> true | false.
 is_reserved(Word) when is_binary(Word)  -> is_reserved(erlang:binary_to_list(Word));
 is_reserved(Word) when is_atom(Word)    -> is_reserved(erlang:atom_to_list(Word));
 is_reserved(Word) when is_list(Word)    -> lists:member(erlang:list_to_atom(string:to_upper(Word)), sql_lex:reserved_keywords()).
@@ -1042,6 +1043,7 @@ is_reserved(Word) when is_list(Word)    -> lists:member(erlang:list_to_atom(stri
 %%                                  COMPILER
 %%-----------------------------------------------------------------------------
 
+-spec fold(tuple()) -> {error, term()} | binary().
 fold(PTree) ->
     case foldi(PTree) of
         {error,_} = Error -> Error;

@@ -1,5 +1,12 @@
 -ifdef(TEST).
 -define (TEST_SELECT,[
+%<<"SELECT * from tab1 INNER JOIN tab2 tab3 tab4 on a = b">>, %% INVALID - negative test
+<<"SELECT * from tab1 a INNER JOIN tab2 on a = b INNER JOIN tab3 on c = d,
+                 tab4 f,
+                 tab2,
+                 tab3 b INNER JOIN tab2 on a1 = b4,
+                 tab5 PARTITION BY col1 NATURAL FULL outer join tab2 PARTITION BY col2 using (a)">>,
+<<"SELECT * from tab1 INNER JOIN tab2 on a = b INNER JOIN tab3 on c = d">>,
 <<"SELECT * from tab1 PARTITION BY col1 NATURAL FULL outer join tab2 PARTITION BY col2 using (a)">>,
 <<"SELECT * from tab1 INNER JOIN tab2 using (a, b, c)">>,
 <<"SELECT * from tab1 NATURAL INNER JOIN tab2">>,

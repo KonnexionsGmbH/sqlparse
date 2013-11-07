@@ -66,8 +66,9 @@ Nonterminals
  selection
  table_exp
  from_clause
- table_ref_commalist
+ form_commalist
  table_ref
+ join_ref
  where_clause
  opt_group_by_clause
  column_ref_commalist
@@ -133,6 +134,7 @@ Nonterminals
  extra
  returning
  join_clause
+ join_list
  inner_cross_join
  outer_join
  opt_join_on_or_using_clause
@@ -605,7 +607,7 @@ target_commalist -> target_commalist ',' target                                 
 target -> NAME                                                                                  : unwrap_bin('$1').
 target -> parameter_ref                                                                         : '$1'.
 
-opt_where_clause -> '$empty'                                                                    : {'where', []}.
+opt_where_clause -> '$empty'                                                                    : {'where', {}}.
 opt_where_clause -> where_clause                                                                : '$1'.
 
     %% query expressions
@@ -642,18 +644,21 @@ select_field_commalist -> select_field_commalist ',' select_field_commalist     
 table_exp ->
      from_clause opt_where_clause opt_group_by_clause opt_having_clause opt_order_by_clause     : ['$1', '$2', '$3', '$4', '$5'].
 
-from_clause -> FROM table_ref_commalist                                                         : {from, '$2'}.
+from_clause -> FROM form_commalist                                                              : {from, '$2'}.
 
-table_ref_commalist -> table_ref                                                                : ['$1'].
-table_ref_commalist -> table_ref_commalist ',' table_ref                                        : '$1' ++ ['$3'].
-table_ref_commalist -> join_clause                                                              : '$1'.
-table_ref_commalist -> join_clause ',' join_clause                                              : '$1' ++ ['$3'].
+form_commalist -> table_ref                                                                     : ['$1'].
+form_commalist -> '(' join_clause ')'                                                           : ['$2'].
+form_commalist -> join_clause                                                                   : ['$1'].
+form_commalist -> form_commalist ',' form_commalist                                             : '$1'++'$3'.
 
-join_clause -> table_ref inner_cross_join                                                       : {'$1', '$2'}.
-join_clause -> table_ref outer_join                                                             : {'$1', '$2'}.
+join_clause -> table_ref join_list                                                              : {'$1', '$2'}.
 
-inner_cross_join -> INNER JOIN table_ref join_on_or_using_clause                                : {join_inner, '$3', '$4'}.
-inner_cross_join -> JOIN table_ref join_on_or_using_clause                                      : {join, '$2', '$3'}.
+join_list -> inner_cross_join                                                                   : ['$1'].
+join_list -> outer_join                                                                         : ['$1'].
+join_list -> join_list join_list                                                                : '$1'++'$2'.
+
+inner_cross_join -> INNER JOIN join_ref join_on_or_using_clause                                 : {join_inner, '$3', '$4'}.
+inner_cross_join -> JOIN join_ref join_on_or_using_clause                                       : {join, '$2', '$3'}.
 
 join_on_or_using_clause -> ON search_condition                                                  : {on, '$2'}.
 join_on_or_using_clause -> USING '(' select_field_commalist ')'                                 : {using, '$3'}.
@@ -662,22 +667,22 @@ opt_join_on_or_using_clause -> '$empty'                                         
 opt_join_on_or_using_clause -> join_on_or_using_clause                                          : '$1'.
 
 % ----------------------------------------------------------------------------------------------- {{join_type, partition, opt_natural} ... }
-outer_join -> NATURAL outer_join_type JOIN table_ref opt_join_on_or_using_clause                : {{'$2', {}, natural}, '$4', {}, '$5'}.
-outer_join -> NATURAL outer_join_type JOIN table_ref query_partition_clause
+outer_join -> NATURAL outer_join_type JOIN join_ref opt_join_on_or_using_clause                 : {{'$2', {}, natural}, '$4', {}, '$5'}.
+outer_join -> NATURAL outer_join_type JOIN join_ref query_partition_clause
               opt_join_on_or_using_clause                                                       : {{'$2', {}, natural}, '$4', '$5', '$6'}.
 
-outer_join -> query_partition_clause outer_join_type JOIN table_ref opt_join_on_or_using_clause : {{'$2', '$1', {}}, '$4', {}, '$5'}.
-outer_join -> query_partition_clause outer_join_type JOIN table_ref
+outer_join -> query_partition_clause outer_join_type JOIN join_ref opt_join_on_or_using_clause  : {{'$2', '$1', {}}, '$4', {}, '$5'}.
+outer_join -> query_partition_clause outer_join_type JOIN join_ref
               query_partition_clause opt_join_on_or_using_clause                                : {{'$2', '$1', {}}, '$4', '$5', '$6'}.
 
-outer_join -> outer_join_type JOIN table_ref opt_join_on_or_using_clause                        : {{'$1', {}, {}}, '$3', {}, '$4'}.
-outer_join -> outer_join_type JOIN table_ref query_partition_clause
+outer_join -> outer_join_type JOIN join_ref opt_join_on_or_using_clause                         : {{'$1', {}, {}}, '$3', {}, '$4'}.
+outer_join -> outer_join_type JOIN join_ref query_partition_clause
               opt_join_on_or_using_clause                                                       : {{'$1', {}, {}}, '$3', '$4', '$5'}.
 
-outer_join -> query_partition_clause NATURAL outer_join_type JOIN table_ref
+outer_join -> query_partition_clause NATURAL outer_join_type JOIN join_ref
               opt_join_on_or_using_clause                                                       : {{'$3', '$1', natural}, '$5', {}, '$6'}.
 outer_join -> query_partition_clause NATURAL outer_join_type JOIN
-              table_ref query_partition_clause opt_join_on_or_using_clause                      : {{'$3', '$1', natural}, '$5', '$6', '$7'}.
+              join_ref query_partition_clause opt_join_on_or_using_clause                       : {{'$3', '$1', natural}, '$5', '$6', '$7'}.
 % -----------------------------------------------------------------------------------------------
 
 query_partition_clause -> PARTITION BY '(' scalar_exp_commalist ')'                             : {partition_by, '$4'}.
@@ -690,15 +695,20 @@ outer_join_type -> FULL OUTER                                                   
 outer_join_type -> LEFT OUTER                                                                   : left_outer.
 outer_join_type -> RIGHT OUTER                                                                  : right_outer.
 
-inner_cross_join -> CROSS JOIN table_ref                                                        : {cross_join, '$3'}.
-inner_cross_join -> NATURAL JOIN table_ref                                                      : {natural_join, '$3'}.
-inner_cross_join -> NATURAL INNER JOIN table_ref                                                : {natural_inner_join, '$4'}.
+inner_cross_join -> CROSS JOIN join_ref                                                         : {cross_join, '$3'}.
+inner_cross_join -> NATURAL JOIN join_ref                                                       : {natural_join, '$3'}.
+inner_cross_join -> NATURAL INNER JOIN join_ref                                                 : {natural_inner_join, '$4'}.
 
 table_ref -> table                                                                              : '$1'.
 table_ref -> '(' query_exp ')'                                                                  : '$2'.
 table_ref -> '(' query_exp ')' AS NAME                                                          : {'as','$2',unwrap_bin('$5')}.
 table_ref -> '(' query_exp ')' NAME                                                             : {'as','$2',unwrap_bin('$4')}.
 table_ref -> table range_variable                                                               : {'$1', '$2'}.
+
+join_ref -> table                                                                               : '$1'.
+join_ref -> '(' query_exp ')'                                                                   : '$2'.
+join_ref -> '(' query_exp ')' AS NAME                                                           : {'as','$2',unwrap_bin('$5')}.
+join_ref -> '(' query_exp ')' NAME                                                              : {'as','$2',unwrap_bin('$4')}.
 
 where_clause -> WHERE search_condition                                                          : {'where', '$2'}.
 
@@ -1273,25 +1283,23 @@ foldi({'order by', OrderBy}) ->
     end;
 
 % joins
-foldi({Tab, {JoinType, Tab1}})
+foldi({JoinType, Tab1})
 when ((JoinType =:= cross_join)
      orelse (JoinType =:= natural_join)
      orelse (JoinType =:= natural_inner_join)) ->
-    foldi(Tab) ++
     case JoinType of
         cross_join          -> " cross join ";
         natural_join        -> " natural join ";
         natural_inner_join  -> " natural inner join "
     end ++
     foldi(Tab1);
-foldi({Tab, {{JoinType,OptPartition,OptNatural},Tab1,OptPartition1,OnOrUsing}})
+foldi({{JoinType,OptPartition,OptNatural},Tab1,OptPartition1,OnOrUsing})
 when ((JoinType =:= full)
       orelse (JoinType =:= left)
       orelse (JoinType =:= right)
       orelse (JoinType =:= full_outer)
       orelse (JoinType =:= left_outer)
       orelse (JoinType =:= right_outer)) ->
-    foldi(Tab) ++
     foldi(OptPartition) ++
     foldi(OptNatural) ++
     case JoinType of
@@ -1305,10 +1313,9 @@ when ((JoinType =:= full)
     foldi(Tab1) ++
     foldi(OptPartition1) ++
     foldi(OnOrUsing);
-foldi({Tab, {JoinType, Tab1, OnOrUsing}})
+foldi({JoinType, Tab1, OnOrUsing})
 when ((JoinType =:= join)
       orelse (JoinType =:= join_inner)) ->
-    foldi(Tab) ++
     case JoinType of
         join        -> " join ";
         join_inner -> " inner join "
@@ -1319,9 +1326,10 @@ foldi({partition_by,Fields}) ->
     " partition by (" ++ string:join([binary_to_list(F) || F<-Fields], ",") ++ ")";
 foldi({on, Condition}) -> " on " ++ foldi(Condition);
 foldi({using, ColumnList}) -> " using (" ++ string:join([binary_to_list(C) || C<-ColumnList], ",") ++ ")";
-foldi(natural) -> "natural";
-
-
+foldi(natural) -> " natural";
+foldi({Tab, [J|_] = Joins})
+when (is_tuple(J) andalso (is_binary(Tab) orelse is_tuple(Tab))) ->
+    foldi(Tab)++[foldi(Join) || Join <- Joins];
 
 % betwen operator
 foldi({'between', A, B, C}) ->
@@ -1349,8 +1357,8 @@ foldi(Tab) when is_binary(Tab)                    -> binary_to_list(Tab);
 foldi({union, A, B})                              -> lists:flatten(["(", foldi(A), " union ", foldi(B), ")"]);
 
 % All where clauses
-foldi({where, []}) -> "";
-foldi({where, Where}) -> "where " ++ foldi(Where);
+foldi({where, {}}) -> "";
+foldi({where, Where}) when is_tuple(Where) -> "where " ++ foldi(Where);
 
 % In operator
 % for right hand non list argument extra parenthesis added

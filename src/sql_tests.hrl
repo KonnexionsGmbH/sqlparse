@@ -1,6 +1,11 @@
 -ifdef(TEST).
 -define (TEST_SELECT,[
 %<<"SELECT * from tab1 INNER JOIN tab2 tab3 tab4 on a = b">>, %% INVALID - negative test
+%<<"select * from ALL_USERS where order by user_id asc">>, %% INVALID
+<<"select USERNAME from ALL_USERS where username Like '%YS'">>,
+<<"select USERNAME from ALL_USERS where username NOT Like '%YS'">>,
+<<"select USERNAME from ALL_USERS where username Like '%YS' ESCAPE 'abcd'">>,
+<<"select USERNAME from ALL_USERS where not (username Like '%YS' ESCAPE 'abcd')">>,
 <<"SELECT * from tab1 a INNER JOIN tab2 on a = b INNER JOIN tab3 on c = d,
                  tab4 f,
                  tab2,

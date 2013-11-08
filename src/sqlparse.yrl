@@ -774,7 +774,7 @@ scalar_exp -> scalar_sub_exp                                                    
 scalar_exp -> scalar_sub_exp NAME                                                               : {as, '$1', unwrap_bin('$2')}.
 scalar_exp -> scalar_sub_exp AS NAME                                                            : {as, '$1', unwrap_bin('$3')}. 
 
-scalar_sub_exp -> scalar_sub_exp_append_list                                                    : {'||','$1'}.
+scalar_sub_exp -> scalar_sub_exp_append_list                                                    : {'||', lists:flatten('$1')}.
 scalar_sub_exp -> scalar_sub_exp '+' scalar_sub_exp                                             : {'+','$1','$3'}.
 scalar_sub_exp -> scalar_sub_exp '-' scalar_sub_exp                                             : {'-','$1','$3'}.
 scalar_sub_exp -> scalar_sub_exp '*' scalar_sub_exp                                             : {'*','$1','$3'}.
@@ -791,12 +791,15 @@ scalar_sub_exp -> column_ref                                                    
 scalar_sub_exp -> function_ref                                                                  : '$1'.
 scalar_sub_exp -> '(' scalar_sub_exp ')'                                                        : '$2'.
 
-scalar_sub_exp_append_list -> '$empty'                                                          : [].
-scalar_sub_exp_append_list -> scalar_sub_exp_append_elm '||' scalar_sub_exp_append_elm          : ['$1','$3'].
-scalar_sub_exp_append_list -> scalar_sub_exp_append_elm '||' scalar_sub_exp_append_list         : ['$1'] ++ '$3'.
+% scalar_sub_exp_append_list -> '$empty'                                                        : [].
+% scalar_sub_exp_append_list -> scalar_sub_exp_append_elm '||' scalar_sub_exp_append_elm        : ['$1','$3'].
+% scalar_sub_exp_append_list -> scalar_sub_exp_append_elm '||' scalar_sub_exp_append_list       : ['$1'] ++ '$3'.
 
-scalar_sub_exp_append_elm -> STRING                                                             : unwrap_bin('$1').
-scalar_sub_exp_append_elm -> column_ref                                                         : '$1'.
+scalar_sub_exp_append_list -> scalar_sub_exp_append_elm '||' scalar_sub_exp_append_elm          : ['$1' | '$3'].
+scalar_sub_exp_append_list -> scalar_sub_exp_append_elm '||' scalar_sub_exp_append_list         : ['$1' | '$3'].
+
+scalar_sub_exp_append_elm -> STRING                                                             : [unwrap_bin('$1')].
+scalar_sub_exp_append_elm -> column_ref                                                         : ['$1'].
 
 scalar_exp_commalist -> scalar_exp                                                              : ['$1'].
 scalar_exp_commalist -> scalar_exp_commalist ',' scalar_exp                                     : '$1' ++ ['$3'].
@@ -1039,7 +1042,8 @@ parsetree(Sql) when is_list(Sql) ->
                 {error,Error} -> {parse_error, {Error, Toks}}
             end;
         {error,Error,_} -> {lex_error, Error}
-    end.
+    end;
+parsetree(SomethingElse) -> {parse_error, {not_a_valid_sql, SomethingElse}}.
 
 -spec is_reserved(binary() | atom() | list()) -> true | false.
 is_reserved(Word) when is_binary(Word)  -> is_reserved(erlang:binary_to_list(Word));
@@ -1055,9 +1059,11 @@ is_reserved(Word) when is_list(Word)    -> lists:member(erlang:list_to_atom(stri
 
 -spec fold(tuple()) -> {error, term()} | binary().
 fold(PTree) ->
-    case foldi(PTree) of
+    try foldi(PTree) of
         {error,_} = Error -> Error;
         Sql -> list_to_binary(Sql)
+    catch
+        _:Error -> {error, Error}
     end.
 
 %
@@ -1360,6 +1366,15 @@ foldi({union, A, B})                              -> lists:flatten(["(", foldi(A
 foldi({where, {}}) -> "";
 foldi({where, Where}) when is_tuple(Where) -> "where " ++ foldi(Where);
 
+% Like operator
+foldi({'like',Var,Like,OptEsc}) when is_binary(Like) andalso is_binary(OptEsc) ->
+    foldi(Var) ++
+    " like " ++
+    binary_to_list(Like) ++
+    if byte_size(OptEsc) > 0 -> " escape "++binary_to_list(OptEsc);
+       true -> ""
+    end;
+
 % In operator
 % for right hand non list argument extra parenthesis added
 foldi({'in', L, {'list', _} = R}) when is_binary(L) ->
@@ -1456,7 +1471,7 @@ foldi({'param', P}) ->
 %
 foldi(PTree) ->
     io:format(user, "Parse tree not supported ~p~n", [PTree]),
-    {error,{"Parse tree not supported",PTree}}.
+    throw({"Parse tree not supported",PTree}).
 
 %%-----------------------------------------------------------------------------
 

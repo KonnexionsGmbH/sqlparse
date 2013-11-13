@@ -7,7 +7,7 @@ Rules.
 
 % strings
 (\'([^\']*(\'\')*)*\')                              : {token, {'STRING', TokenLine, TokenChars}}.
-(\"([^\"]*(\"\")*)*\")                              : {token, {'NAME', TokenLine, TokenChars}}.
+(\"((\$|[^\"]*)*(\"\")*)*\")                        : {token, {'NAME', TokenLine, TokenChars}}.
 
 % hint
 ((\/\*)[^\*\/]*(\*\/))                              : {token, {'HINT', TokenLine, TokenChars}}.
@@ -18,7 +18,7 @@ Rules.
 
 % names
 %[A-Za-z][A-Za-z0-9_@:#]*                           : {token, {'NAME', TokenLen, TokenChars}}.
-[A-Za-z][A-Za-z0-9_@:#]*                            : match_any(TokenChars, TokenLen, TokenLine, ?TokenPatters).
+[A-Za-z][A-Za-z0-9_@:#\$]*                          : match_any(TokenChars, TokenLen, TokenLine, ?TokenPatters).
 
 % parameters
 (\:[A-Za-z][A-Za-z0-9_]*)                           : {token, {'PARAMETER', TokenLine, TokenChars}}.

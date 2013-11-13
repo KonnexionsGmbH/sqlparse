@@ -1,4 +1,6 @@
 -ifdef(TEST).
+-include("sbs_samples.hrl").
+
 -define (TEST_SELECT,[
 %<<"SELECT * from tab1 INNER JOIN tab2 tab3 tab4 on a = b">>, %% INVALID - negative test
 %<<"select * from ALL_USERS where order by user_id asc">>, %% INVALID
@@ -1806,7 +1808,7 @@ select
 										"revoke update, delete on ddTable from test_user_1"
 ]).
 
--define (TEST_SQLS, [
+-define(TEST_SQLS, [
       {"SELECT", ?TEST_SELECT, -1} % 1
     , {"INSERT", ?TEST_INSERT, -1} % 2
     , {"CREATE", ?TEST_CREATE, -1} % 3 
@@ -1815,5 +1817,6 @@ select
     , {"TRUNCT", ?TEST_TRUNCT, -1} % 6 
     , {"GRANTS", ?TEST_GRANTS, -1} % 7 
     , {"REVOKE", ?TEST_REVOKE, -1} % 8 
+    , {"SBSTST", ?SBS_SAMPLES, -1} % 9
 ]).
 -endif.

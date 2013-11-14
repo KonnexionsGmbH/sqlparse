@@ -1809,14 +1809,15 @@ select
 ]).
 
 -define(TEST_SQLS, [
-      {"SELECT", ?TEST_SELECT, -1} % 1
-    , {"INSERT", ?TEST_INSERT, -1} % 2
-    , {"CREATE", ?TEST_CREATE, -1} % 3 
-    , {"UPDATE", ?TEST_UPDATE, -1} % 4 
-    , {"DELETE", ?TEST_DELETE, -1} % 5 
-    , {"TRUNCT", ?TEST_TRUNCT, -1} % 6 
-    , {"GRANTS", ?TEST_GRANTS, -1} % 7 
-    , {"REVOKE", ?TEST_REVOKE, -1} % 8 
-    , {"SBSTST", ?SBS_SAMPLES, -1} % 9
+      {"SELECT", ?TEST_SELECT, 1-1} % 1
+    , {"INSERT", ?TEST_INSERT, 1-1} % 2
+    , {"CREATE", ?TEST_CREATE, 1-1} % 3 
+    , {"UPDATE", ?TEST_UPDATE, 1-1} % 4 
+    , {"DELETE", ?TEST_DELETE, 1-1} % 5 
+    , {"TRUNCT", ?TEST_TRUNCT, 1-1} % 6 
+    , {"GRANTS", ?TEST_GRANTS, 1-1} % 7 
+    , {"REVOKE", ?TEST_REVOKE, 1-1} % 8 
+    , {"SBSTST", ?SBS_SAMPLES, 1-1} % 9
+    , {"SBSTS0", ?SBS_SAMPLES0, -1} % 9
 ]).
 -endif.

@@ -508,7 +508,7 @@ opt_order_by_clause -> ORDER BY ordering_spec_commalist                         
 ordering_spec_commalist -> ordering_spec                                                        : ['$1'].
 ordering_spec_commalist -> ordering_spec_commalist ',' ordering_spec                            : '$1' ++ ['$3'].
 
-ordering_spec -> INTNUM opt_asc_desc                                                            : {'intnum', '$2'}.
+ordering_spec -> INTNUM opt_asc_desc                                                            : {unwrap_bin('$1'), '$2'}.
 ordering_spec -> column_ref opt_asc_desc                                                        : {'$1', '$2'}.
 ordering_spec -> function_ref opt_asc_desc                                                      : {'$1', '$2'}.
 
@@ -715,8 +715,10 @@ where_clause -> WHERE search_condition                                          
 opt_group_by_clause  -> '$empty'                                                                : {'group by', []}.
 opt_group_by_clause  -> GROUP BY column_ref_commalist                                           : {'group by', '$3'}.
 
+column_ref_commalist -> function_ref                                                            : ['$1'].
 column_ref_commalist -> column_ref                                                              : ['$1'].
 column_ref_commalist -> column_ref_commalist ',' column_ref                                     : '$1' ++ ['$3'].
+column_ref_commalist -> column_ref_commalist ',' function_ref                                   : '$1' ++ ['$3'].
 
 opt_having_clause -> '$empty'                                                                   : {'having', {}}.
 opt_having_clause -> HAVING search_condition                                                    : {'having', '$2'}.
@@ -1058,7 +1060,7 @@ is_reserved(Word) when is_list(Word)    -> lists:member(erlang:list_to_atom(stri
 fold(PTree) ->
     try foldi(PTree) of
         {error,_} = Error -> Error;
-        Sql -> list_to_binary(Sql)
+        Sql -> list_to_binary(string:strip(Sql))
     catch
         _:Error -> {error, Error}
     end.
@@ -1261,7 +1263,10 @@ foldi({from, Forms}) ->
     ++ " ";
 foldi({'group by', GroupBy}) ->
     Size = length(GroupBy),
-    if Size > 0 -> " group by " ++ string:join([binary_to_list(F) || F <- GroupBy], ", ");
+    if Size > 0 -> " group by " ++ string:join([case foldi(F) of
+                                                    F1 when is_binary(F1) -> binary_to_list(F1);
+                                                    F1 when is_list(F1) ->F1
+                                                end || F <- GroupBy], ", ");
     true -> ""
     end;
 foldi({having, Having}) ->
@@ -1506,8 +1511,8 @@ test_parse(ShowParseTree, [BinSql|Sqls], N, Limit, Private) ->
         {ok, {[{ParseTree,_}|_], Tokens}} -> 
             if ShowParseTree ->
         	    io:format(user, "~p~n", [ParseTree]),
-                NSql = fold(ParseTree),
-                io:format(user,  "~n> " ++ binary_to_list(NSql) ++ "~n", []),
+                NSql = foldi(ParseTree),
+                io:format(user,  "~n> " ++ NSql ++ "~n", []),
                 {ok, {[{NPTree,_}|_], NToks}} = sqlparse:parsetree(NSql),
                 try
                     ParseTree = NPTree

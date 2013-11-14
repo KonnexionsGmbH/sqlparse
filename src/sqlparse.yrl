@@ -806,18 +806,21 @@ scalar_exp_commalist -> scalar_exp_commalist ',' scalar_exp                     
 atom -> parameter_ref                                                                           : '$1'.
 atom -> literal                                                                                 : '$1'.
 atom -> USER                                                                                    : <<"user">>.
+atom -> PASSWORD                                                                                : <<"password">>.
 
 parameter_ref -> parameter                                                                      : '$1'.
 parameter_ref -> parameter parameter                                                            : {'$1', '$2'}.
 parameter_ref -> parameter INDICATOR parameter                                                  : {'indicator', '$1', '$3'}.
 
-function_ref -> NAME  '(' fun_args ')'                                                          : {'fun', list_to_atom(unwrap('$1')), make_list('$3')}.
-function_ref -> FUNS                                                                            : {'fun', unwrap('$1'), []}.
-function_ref -> FUNS  '(' fun_args ')'                                                          : {'fun', unwrap('$1'), make_list('$3')}.
-function_ref -> AMMSC '(' '*' ')'                                                               : {'fun', unwrap('$1'), [<<"*">>]}.
-function_ref -> AMMSC '(' DISTINCT column_ref ')'                                               : {'fun', unwrap('$1'), {'distinct', '$4'}}.
-function_ref -> AMMSC '(' ALL scalar_exp ')'                                                    : {'fun', unwrap('$1'), {'all', '$4'}}.
-function_ref -> AMMSC '(' scalar_exp ')'                                                        : {'fun', unwrap('$1'), make_list('$3')}.
+function_ref -> NAME '.' NAME '.' NAME '(' fun_args ')'                                         : {'fun', list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]), make_list('$7')}.
+function_ref -> NAME '.' NAME '(' fun_args ')'                                                  : {'fun', list_to_binary([unwrap('$1'),".",unwrap('$3')]), make_list('$5')}.
+function_ref -> NAME  '(' fun_args ')'                                                          : {'fun', unwrap_bin('$1'), make_list('$3')}.
+function_ref -> FUNS                                                                            : {'fun', unwrap_bin('$1'), []}.
+function_ref -> FUNS  '(' fun_args ')'                                                          : {'fun', unwrap_bin('$1'), make_list('$3')}.
+function_ref -> AMMSC '(' '*' ')'                                                               : {'fun', unwrap_bin('$1'), [<<"*">>]}.
+function_ref -> AMMSC '(' DISTINCT column_ref ')'                                               : {'fun', unwrap_bin('$1'), {'distinct', '$4'}}.
+function_ref -> AMMSC '(' ALL scalar_exp ')'                                                    : {'fun', unwrap_bin('$1'), {'all', '$4'}}.
+function_ref -> AMMSC '(' scalar_exp ')'                                                        : {'fun', unwrap_bin('$1'), make_list('$3')}.
 
 fun_args -> '(' fun_args ')'                                                                    : '$2'.
 fun_args -> function_ref                                                                        : '$1'.
@@ -851,12 +854,12 @@ table -> NAME '.' NAME                                                          
 table -> NAME '.' NAME AS NAME                                                                  : {as, list_to_binary(unwrap('$1') ++ "." ++ unwrap('$3')), unwrap_bin('$5')}.
 table -> NAME '.' NAME NAME                                                                     : {as, list_to_binary(unwrap('$1') ++ "." ++ unwrap('$3')), unwrap_bin('$4')}.
 
-% column_ref -> ROWID                                                                             : <<"rowid">>.
-% column_ref -> NAME '.' ROWID                                                                    : list_to_binary([unwrap('$1'),".","rowid"]).
-% column_ref -> NAME '.' NAME '.' ROWID                                                           : list_to_binary([unwrap('$1'),".",unwrap('$3'),".","rowid"]).
 column_ref -> NAME                                                                              : unwrap_bin('$1').
 column_ref -> NAME '.' NAME                                                                     : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
 column_ref -> NAME '.' NAME '.' NAME                                                            : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).
+column_ref -> NAME '(' '+' ')'                                                                  : list_to_binary([unwrap('$1'),"(+)"]).
+column_ref -> NAME '.' NAME '(' '+' ')'                                                         : list_to_binary([unwrap('$1'),".",unwrap('$3'),"(+)"]).
+column_ref -> NAME '.' NAME '.' NAME '(' '+' ')'                                                : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5'),"(+)"]).
 column_ref -> NAME '.' '*'                                                                      : list_to_binary([unwrap('$1'),".*"]).
 column_ref -> NAME '.' NAME '.' '*'                                                             : list_to_binary([unwrap('$1'),".",unwrap('$3'),".*"]).
 
@@ -866,55 +869,6 @@ data_type -> STRING                                                             
 data_type -> NAME                                                                               : datatype('$1').
 data_type -> NAME '(' opt_sgn_num ')'                                                           : {datatype('$1'), '$3'}.
 data_type -> NAME '(' opt_sgn_num ',' opt_sgn_num ')'                                           : {datatype('$1'), '$3', '$5'}.
-
-% data_type -> CHARACTER                                                                          : 'string'.
-% data_type -> CHARACTER '(' opt_sgn_num ')'                                                      : {'string', '$3'}.
-% data_type -> VARCHARACTER                                                                       : 'string'.
-% data_type -> VARCHARACTER '(' opt_sgn_num ')'                                                   : {'string', '$3'}.
-% data_type -> NUMERIC                                                                            : 'decimal'.
-% data_type -> NUMERIC '(' opt_sgn_num ')'                                                        : {'decimal', '$3'}.
-% data_type -> NUMERIC '(' opt_sgn_num ',' opt_sgn_num ')'                                        : {'decimal', '$3', '$5'}.
-% data_type -> INTEGER                                                                            : 'integer'.
-% data_type -> INTEGER '(' opt_sgn_num ',' opt_sgn_num  ')'                                       : {'integer', '$3', '$5'}.
-% data_type -> FLOAT                                                                              : 'float'.
-% data_type -> FLOAT '(' opt_sgn_num ')'                                                          : {'float', '$3'}.
-% data_type -> FLOAT '(' opt_sgn_num ',' opt_sgn_num ')'                                          : {'float', '$3', '$5'}.
-% data_type -> DECIMAL                                                                            : 'decimal'.
-% data_type -> DECIMAL '(' opt_sgn_num ')'                                                        : {'decimal', '$3'}.
-% data_type -> DECIMAL '(' opt_sgn_num ',' opt_sgn_num ')'                                        : {'decimal', '$3', '$5'}.
-% 
-% data_type -> DATE                                                                               : 'datetime'.
-% data_type -> DATETIME                                                                           : 'datetime'.
-% data_type -> TIMESTAMP                                                                          : 'timestamp'.
-% data_type -> TIMESTAMP '(' opt_sgn_num ')'                                                      : {'timestamp', '$3'}.
-% 
-% data_type -> RAW                                                                                : 'binary'.
-% data_type -> RAW '(' opt_sgn_num ')'                                                            : {'binary', '$3'}.
-% data_type -> BLOB                                                                               : 'binary'.
-% data_type -> BLOB '(' opt_sgn_num ')'                                                           : {'binary', '$3'}.
-% data_type -> CLOB                                                                               : 'binary'.
-% data_type -> CLOB '(' opt_sgn_num ')'                                                           : {'binary', '$3'}.
-% data_type -> ROWID                                                                              : 'binary'.
-% 
-% data_type -> ETERM                                                                              : 'term'.
-% data_type -> EBOOL                                                                              : 'boolean'.
-% data_type -> ETUPLE                                                                             : 'tuple'.
-% data_type -> ETUPLE '(' opt_sgn_num ')'                                                         : {'tuple', '$3'}.
-% data_type -> EBINARY                                                                            : 'binary'.
-% data_type -> EBINARY '(' opt_sgn_num ')'                                                        : {'binary', '$3'}.
-% data_type -> EATOM                                                                              : 'atom'.
-% data_type -> EIPADDR                                                                            : 'ipaddr'.
-% data_type -> EIPADDR '(' opt_sgn_num ')'                                                        : {'ipaddr', '$3'}.
-% data_type -> ELIST                                                                              : 'list'.
-% data_type -> ELIST '(' opt_sgn_num ')'                                                          : {'list', '$3'}.
-% data_type -> EBINSTR                                                                            : 'binstr'.
-% data_type -> EBINSTR '(' opt_sgn_num ')'                                                        : {'binstr', '$3'}.
-% data_type -> EPID                                                                               : 'pid'.
-% data_type -> EREF                                                                               : 'ref'.
-% data_type -> EFUN                                                                               : 'fun'.
-% data_type -> EFUN '(' opt_sgn_num ')'                                                           : {'fun', '$3'}.
-% data_type -> ESTRING                                                                            : 'string'.
-% data_type -> EUSERID                                                                            : 'userid'.
 
 opt_sgn_num -> INTNUM                                                                           : unwrap('$1').
 opt_sgn_num -> '-' INTNUM                                                                       : "-"++unwrap('$2').
@@ -978,7 +932,8 @@ init([])            -> {ok, { {one_for_one, 5, 10}, []} }.
 unwrap({_,_,X}) -> X;
 unwrap(X) -> X.
 
-unwrap_bin({_,_,X}) -> list_to_binary(X).
+unwrap_bin({_,_,X}) when is_list(X) -> list_to_binary(X);
+unwrap_bin({_,_,X}) when is_atom(X) -> atom_to_binary(X, unicode).
 
 strl2atom([]) -> '';
 strl2atom(Strs) -> list_to_atom(lists:flatten(string:join([string:to_lower(unwrap(S)) || S <- Strs], " "))).
@@ -1439,8 +1394,8 @@ foldi({Op, A}) when Op =:= '-'; Op =:= 'not' ->
     end;
 
 % funs
-foldi({'fun', N, Args}) when is_atom(N) ->
-    atom_to_list(N) ++ "(" ++
+foldi({'fun', N, Args}) when is_binary(N) ->
+    binary_to_list(N) ++ "(" ++
     string:join(
         [case A of
             A when is_binary(A) -> binary_to_list(A);

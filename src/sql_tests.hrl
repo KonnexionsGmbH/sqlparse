@@ -1,9 +1,9 @@
 -ifdef(TEST).
--include("sbs_samples.hrl").
 
 -define (TEST_SELECT,[
 %<<"SELECT * from tab1 INNER JOIN tab2 tab3 tab4 on a = b">>, %% INVALID - negative test
 %<<"select * from ALL_USERS where order by user_id asc">>, %% INVALID
+<<"select  A || (A + B) || fun('a' || fld3 || fun('a' || fld3)) from def where field2 = field4 || fun('a' || fld3 || fun('a' || fld3)) and 's' || fld2 = 'd' || fld4">>,
 <<"SELECT column FROM tab WHERE column(+) = 1">>,
 <<"SELECT FUN1(FUN2(VAR), '', FUN3(e)), A.FUN(VAR), B.A.FUN(VAR) FROM tab">>,
 <<"select USERNAME from ALL_USERS where username Like '%YS'">>,
@@ -1811,15 +1811,13 @@ select
 ]).
 
 -define(TEST_SQLS, [
-      {"SELECT", ?TEST_SELECT, 1-1} % 1
-    , {"INSERT", ?TEST_INSERT, 1-1} % 2
-    , {"CREATE", ?TEST_CREATE, 1-1} % 3 
-    , {"UPDATE", ?TEST_UPDATE, 1-1} % 4 
-    , {"DELETE", ?TEST_DELETE, 1-1} % 5 
-    , {"TRUNCT", ?TEST_TRUNCT, 1-1} % 6 
-    , {"GRANTS", ?TEST_GRANTS, 1-1} % 7 
-    , {"REVOKE", ?TEST_REVOKE, 1-1} % 8 
-    , {"SBSTST", ?SBS_SAMPLES, 1-1} % 9
-    , {"SBSTS0", ?SBS_SAMPLES0, -1} % 9
+      {"SELECT", ?TEST_SELECT, -1} % 1
+    , {"INSERT", ?TEST_INSERT, -1} % 2
+    , {"CREATE", ?TEST_CREATE, -1} % 3
+    , {"UPDATE", ?TEST_UPDATE, -1} % 4
+    , {"DELETE", ?TEST_DELETE, -1} % 5
+    , {"TRUNCT", ?TEST_TRUNCT, -1} % 6
+    , {"GRANTS", ?TEST_GRANTS, -1} % 7
+    , {"REVOKE", ?TEST_REVOKE, -1} % 8
 ]).
 -endif.

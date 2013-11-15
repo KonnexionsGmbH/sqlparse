@@ -87,8 +87,6 @@ Nonterminals
  subquery
  scalar_exp
  scalar_sub_exp
- scalar_sub_exp_append_list 
- scalar_sub_exp_append_elm 
  scalar_exp_commalist
  select_field_commalist
  atom
@@ -571,7 +569,7 @@ values_or_query_spec -> query_spec                                              
 insert_atom_commalist -> insert_atom                                                            : ['$1'].
 insert_atom_commalist -> insert_atom_commalist ',' insert_atom                                  : '$1' ++ ['$3'].
 
-insert_atom -> scalar_sub_exp                                                                   : '$1'.
+insert_atom -> scalar_exp                                                                       : '$1'.
 
 open_statement -> OPEN cursor                                                                   : {'open', '$2'}.
 
@@ -772,11 +770,11 @@ subquery -> query_spec                                                          
 
     %% scalar expressions
 
+scalar_exp -> scalar_sub_exp '||' scalar_exp                                                    : {'||', lists:flatten(['$1','$3'])}.
 scalar_exp -> scalar_sub_exp                                                                    : '$1'.
 scalar_exp -> scalar_sub_exp NAME                                                               : {as, '$1', unwrap_bin('$2')}.
 scalar_exp -> scalar_sub_exp AS NAME                                                            : {as, '$1', unwrap_bin('$3')}. 
 
-scalar_sub_exp -> scalar_sub_exp_append_list                                                    : {'||', lists:flatten('$1')}.
 scalar_sub_exp -> scalar_sub_exp '+' scalar_sub_exp                                             : {'+','$1','$3'}.
 scalar_sub_exp -> scalar_sub_exp '-' scalar_sub_exp                                             : {'-','$1','$3'}.
 scalar_sub_exp -> scalar_sub_exp '*' scalar_sub_exp                                             : {'*','$1','$3'}.
@@ -792,13 +790,6 @@ scalar_sub_exp -> subquery                                                      
 scalar_sub_exp -> column_ref                                                                    : '$1'.
 scalar_sub_exp -> function_ref                                                                  : '$1'.
 scalar_sub_exp -> '(' scalar_sub_exp ')'                                                        : '$2'.
-
-scalar_sub_exp_append_list -> scalar_sub_exp_append_elm '||' scalar_sub_exp_append_elm          : ['$1' | '$3'].
-scalar_sub_exp_append_list -> scalar_sub_exp_append_elm '||' scalar_sub_exp_append_list         : ['$1' | '$3'].
-
-scalar_sub_exp_append_elm -> STRING                                                             : [unwrap_bin('$1')].
-%scalar_sub_exp_append_elm -> scalar_sub_exp                                                     : ['$1'].
-scalar_sub_exp_append_elm -> column_ref                                                         : ['$1'].
 
 scalar_exp_commalist -> scalar_exp                                                              : ['$1'].
 scalar_exp_commalist -> scalar_exp_commalist ',' scalar_exp                                     : '$1' ++ ['$3'].
@@ -825,12 +816,13 @@ function_ref -> AMMSC '(' scalar_exp ')'                                        
 fun_args -> '(' fun_args ')'                                                                    : '$2'.
 fun_args -> function_ref                                                                        : '$1'.
 fun_args -> column_ref                                                                          : '$1'.
-fun_args -> scalar_sub_exp_append_list                                                          : {'||',lists:flatten('$1')}.
+%fun_args -> scalar_sub_exp                                                                      : '$1'.
 fun_args -> fun_args '+' fun_args                                                               : {'+','$1','$3'}.
 fun_args -> fun_args '-' fun_args                                                               : {'-','$1','$3'}.
 fun_args -> fun_args '*' fun_args                                                               : {'*','$1','$3'}.
 fun_args -> fun_args '/' fun_args                                                               : {'/','$1','$3'}.
 fun_args -> fun_args 'div' fun_args                                                             : {'div','$1','$3'}.
+fun_args -> fun_args '||' fun_args                                                              : {'||', lists:flatten(['$1','$3'])}.
 fun_args -> '+' fun_args                                                                        : {'+','$2'}. %prec UMINU
 fun_args -> '-' fun_args                                                                        : {'-','$2'}. %prec UMINU
 fun_args -> '+' literal                                                                         : '$2'.
@@ -916,6 +908,12 @@ Erlang code.
 -endif.
 
 -define(PARSETREE, 0).
+
+-define(Dbg(__Rule, __Production),
+begin
+    io:format(user, "__ "??__Rule" (~p)~n", [__Production]),
+    __Production
+end). 
 
 %%-----------------------------------------------------------------------------
 %%                          dummy application interface

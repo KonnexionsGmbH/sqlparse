@@ -816,7 +816,6 @@ function_ref -> AMMSC '(' scalar_exp ')'                                        
 fun_args -> '(' fun_args ')'                                                                    : '$2'.
 fun_args -> function_ref                                                                        : '$1'.
 fun_args -> column_ref                                                                          : '$1'.
-%fun_args -> scalar_sub_exp                                                                      : '$1'.
 fun_args -> fun_args '+' fun_args                                                               : {'+','$1','$3'}.
 fun_args -> fun_args '-' fun_args                                                               : {'-','$1','$3'}.
 fun_args -> fun_args '*' fun_args                                                               : {'*','$1','$3'}.

@@ -3,13 +3,11 @@
 -define (TEST_SELECT,[
 %<<"SELECT * from tab1 INNER JOIN tab2 tab3 tab4 on a = b">>, %% INVALID - negative test
 %<<"select * from ALL_USERS where order by user_id asc">>, %% INVALID
+<<"SELECT fun1(arg3) \"alias2\", fun(arg1-arg2, fun1(arg3)) \"alias1\" FROM tab1">>,
 <<"select  A || (A + B) || fun('a' || fld3 || fun('a' || fld3)) from def where field2 = field4 || fun('a' || fld3 || fun('a' || fld3)) and 's' || fld2 = 'd' || fld4">>,
 <<"SELECT column FROM tab WHERE column(+) = 1">>,
 <<"SELECT FUN1(FUN2(VAR), '', FUN3(e)), A.FUN(VAR), B.A.FUN(VAR) FROM tab">>,
-<<"select USERNAME from ALL_USERS where username Like '%YS'">>,
-<<"select USERNAME from ALL_USERS where username NOT Like '%YS'">>,
-<<"select USERNAME from ALL_USERS where username Like '%YS' ESCAPE 'abcd'">>,
-<<"select USERNAME from ALL_USERS where not (username Like '%YS' ESCAPE 'abcd')">>,
+<<"select USERNAME from ALL_USERS where username Like '%YS' and username NOT Like '%YS' or username Like '%YS' ESCAPE 'abcd' and not (username Like '%YS' ESCAPE 'abcd')">>,
 <<"SELECT * from tab1 a INNER JOIN tab2 on a = b INNER JOIN tab3 on c = d,
                  tab4 f,
                  tab2,

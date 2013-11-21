@@ -1396,6 +1396,14 @@ foldi({'fun', N, Args}) when is_binary(N) ->
     string:join(
         [case A of
             A when is_binary(A) -> binary_to_list(A);
+            A when is_tuple(A) ->
+                case lists:member(element(1, A), [ 'select', 'insert', 'create table'
+                                                 , 'create user', 'alter user'
+                                                 , 'truncate table', 'update', 'delete'
+                                                 , 'grant', 'revoke']) of
+                    true -> "(" ++ string:strip(foldi(A)) ++ ")";
+                    _ -> foldi(A)
+                end;
             A -> foldi(A)
         end
         || A <- Args]

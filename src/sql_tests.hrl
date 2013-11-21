@@ -3,6 +3,15 @@
 -define (TEST_SELECT,[
 %<<"SELECT * from tab1 INNER JOIN tab2 tab3 tab4 on a = b">>, %% INVALID - negative test
 %<<"select * from ALL_USERS where order by user_id asc">>, %% INVALID
+<<"SELECT NVL((SELECT * FROM tableinner),'some string') alias FROM outertable">>,
+%<<"
+%SELECT AC_NAME, AC_SHORT, AC_PWD, AC_LOGRET, AC_MAXLOG, AC_LASTLOGINTIME,
+%AC_REMOTEADDR, AC_PWDHIST, AC_DATEPWDMOD, AC_PWDVALIDITY
+%FROM
+%SBS1_ADMIN.ACCOUNT
+%WHERE AC_ID IN ('ADMIN') AND
+%AC_ESID IN ('A')
+%">>,
 <<"SELECT fun1(arg3) \"alias2\", fun(arg1-arg2, fun1(arg3)) \"alias1\" FROM tab1">>,
 <<"select  A || (A + B) || fun('a' || fld3 || fun('a' || fld3)) from def where field2 = field4 || fun('a' || fld3 || fun('a' || fld3)) and 's' || fld2 = 'd' || fld4">>,
 <<"SELECT column FROM tab WHERE column(+) = 1">>,
@@ -1809,13 +1818,13 @@ select
 ]).
 
 -define(TEST_SQLS, [
-      {"SELECT", ?TEST_SELECT, -1} % 1
-    , {"INSERT", ?TEST_INSERT, -1} % 2
-    , {"CREATE", ?TEST_CREATE, -1} % 3
-    , {"UPDATE", ?TEST_UPDATE, -1} % 4
-    , {"DELETE", ?TEST_DELETE, -1} % 5
-    , {"TRUNCT", ?TEST_TRUNCT, -1} % 6
-    , {"GRANTS", ?TEST_GRANTS, -1} % 7
-    , {"REVOKE", ?TEST_REVOKE, -1} % 8
+      {"SELECT", ?TEST_SELECT, 2-1} % 1
+    , {"INSERT", ?TEST_INSERT, 1-1} % 2
+    , {"CREATE", ?TEST_CREATE, 1-1} % 3
+    , {"UPDATE", ?TEST_UPDATE, 1-1} % 4
+    , {"DELETE", ?TEST_DELETE, 1-1} % 5
+    , {"TRUNCT", ?TEST_TRUNCT, 1-1} % 6
+    , {"GRANTS", ?TEST_GRANTS, 1-1} % 7
+    , {"REVOKE", ?TEST_REVOKE, 1-1} % 8
 ]).
 -endif.

@@ -744,8 +744,8 @@ comparison_predicate -> scalar_exp COMPARISON subquery                          
 between_predicate -> scalar_exp NOT BETWEEN scalar_exp AND scalar_exp                           : {'not', {'between', '$1', '$4', '$6'}}.
 between_predicate -> scalar_exp BETWEEN scalar_exp AND scalar_exp                               : {'between', '$1', '$3', '$5'}.
 
-like_predicate -> scalar_exp NOT LIKE atom opt_escape                                           : {'not', {'like', '$1', '$4', '$5'}}.
-like_predicate -> scalar_exp LIKE atom opt_escape                                               : {'like', '$1', '$3', '$4'}.
+like_predicate -> scalar_exp NOT LIKE scalar_exp opt_escape                                     : {'not', {'like', '$1', '$4', '$5'}}.
+like_predicate -> scalar_exp LIKE scalar_exp opt_escape                                         : {'like', '$1', '$3', '$4'}.
 
 opt_escape -> '$empty'                                                                          : <<>>.
 opt_escape -> ESCAPE atom                                                                       : '$2'.
@@ -757,6 +757,8 @@ in_predicate -> scalar_exp NOT IN '(' subquery ')'                              
 in_predicate -> scalar_exp IN '(' subquery ')'                                                  : {'in', '$1', '$4'}.
 in_predicate -> scalar_exp NOT IN '(' scalar_exp_commalist ')'                                  : {'not', {'in', '$1', {'list', '$5'}}}.
 in_predicate -> scalar_exp IN '(' scalar_exp_commalist ')'                                      : {'in', '$1', {'list', '$4'}}.
+in_predicate -> scalar_exp NOT IN scalar_exp_commalist                                          : {'not', {'in', '$1', {'list', '$4'}}}.
+in_predicate -> scalar_exp IN scalar_exp_commalist                                              : {'in', '$1', {'list', '$3'}}.
 
 all_or_any_predicate -> scalar_exp COMPARISON any_all_some subquery                             : {unwrap('$2'), '$1', {'$3', '$4'}}.
            
@@ -1321,10 +1323,8 @@ foldi({where, {}}) -> "";
 foldi({where, Where}) when is_tuple(Where) -> "where " ++ foldi(Where);
 
 % Like operator
-foldi({'like',Var,Like,OptEsc}) when is_binary(Like) andalso is_binary(OptEsc) ->
-    foldi(Var) ++
-    " like " ++
-    binary_to_list(Like) ++
+foldi({'like',Var,Like,OptEsc}) ->
+    foldi(Var) ++ " like " ++ foldi(Like) ++
     if byte_size(OptEsc) > 0 -> " escape "++binary_to_list(OptEsc);
        true -> ""
     end;

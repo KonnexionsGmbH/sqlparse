@@ -58,7 +58,6 @@ Nonterminals
  update_statement_searched
  target_commalist
  target
- opt_where_clause
  query_exp
  query_term
  query_spec
@@ -69,8 +68,12 @@ Nonterminals
  form_commalist
  table_ref
  join_ref
+ opt_where_clause
  where_clause
+ opt_hierarchical_query_clause
+ hierarchical_query_clause
  opt_group_by_clause
+ opt_nocycle
  column_ref_commalist
  opt_having_clause
  search_condition
@@ -232,11 +235,7 @@ Terminals
  TABLESPACE
  TEMPORARY
  PROFILE
- EXPIRE
- PASSWORD
- ACCOUNT
- LOCK
- UNLOCK
+ PRIOR
  QUOTA
  UNLIMITED
  ALTER
@@ -278,6 +277,8 @@ Terminals
  JOIN
  USING
  PARTITION
+ START
+ NOCYCLE
  'AND'
  'NOT'
  'OR'
@@ -385,9 +386,6 @@ user_opt -> DEFAULT TABLESPACE NAME                                             
 user_opt -> TEMPORARY TABLESPACE NAME                                                           : [{'temporary tablespace', unwrap_bin('$3')}].
 user_opt -> quota_list                                                                          : [{'quotas', '$1'}].
 user_opt -> PROFILE NAME                                                                        : [{'profile', unwrap_bin('$2')}].
-user_opt -> PASSWORD EXPIRE                                                                     : [{'password','expire'}].
-user_opt -> ACCOUNT LOCK                                                                        : [{'account', 'lock'}].
-user_opt -> ACCOUNT UNLOCK                                                                      : [{'account', 'unlock'}].
 
 quota_list -> quota                                                                             : ['$1'].
 quota_list -> quota quota_list                                                                  : ['$1'] ++ '$2'.
@@ -608,6 +606,9 @@ target -> parameter_ref                                                         
 opt_where_clause -> '$empty'                                                                    : {'where', {}}.
 opt_where_clause -> where_clause                                                                : '$1'.
 
+opt_hierarchical_query_clause -> '$empty'                                                       : {'hierarchical query', {}}.
+opt_hierarchical_query_clause -> hierarchical_query_clause                                      : '$1'.
+
     %% query expressions
 
 query_exp -> query_term                                                                         : '$1'.
@@ -640,7 +641,11 @@ select_field_commalist -> '*'                                                   
 select_field_commalist -> select_field_commalist ',' select_field_commalist                     : '$1' ++ '$3'.
 
 table_exp ->
-     from_clause opt_where_clause opt_group_by_clause opt_having_clause opt_order_by_clause     : ['$1', '$2', '$3', '$4', '$5'].
+     from_clause opt_where_clause
+                 opt_hierarchical_query_clause
+                 opt_group_by_clause
+                 opt_having_clause
+                 opt_order_by_clause                                                            : ['$1', '$2', '$3', '$4', '$5', '$6'].
 
 from_clause -> FROM form_commalist                                                              : {from, '$2'}.
 
@@ -708,6 +713,12 @@ join_ref -> '(' query_exp ')'                                                   
 join_ref -> '(' query_exp ')' AS NAME                                                           : {'as','$2',unwrap_bin('$5')}.
 join_ref -> '(' query_exp ')' NAME                                                              : {'as','$2',unwrap_bin('$4')}.
 
+hierarchical_query_clause -> START WITH search_condition CONNECT BY opt_nocycle search_condition: {'hierarchical query', {{'start with', '$3'}, {'connect by', '$6', '$7'}}}.
+hierarchical_query_clause -> CONNECT BY opt_nocycle search_condition START WITH search_condition: {'hierarchical query', {{'connect by', '$3', '$4'}, {'start with', '$7'}}}.
+
+opt_nocycle -> '$empty'                                                                         : <<>>.
+opt_nocycle -> NOCYCLE                                                                          : <<"nocycle">>.
+
 where_clause -> WHERE search_condition                                                          : {'where', '$2'}.
 
 opt_group_by_clause  -> '$empty'                                                                : {'group by', []}.
@@ -739,6 +750,8 @@ predicate -> existence_test                                                     
 
 comparison_predicate -> scalar_exp                                                              : '$1'.
 comparison_predicate -> scalar_exp COMPARISON scalar_exp                                        : {unwrap('$2'), '$1', '$3'}.
+comparison_predicate -> PRIOR scalar_exp COMPARISON scalar_exp                                  : {unwrap('$3'), {prior, '$2'}, '$4'}.
+comparison_predicate -> scalar_exp COMPARISON PRIOR scalar_exp                                  : {unwrap('$2'), '$1', {prior, '$4'}}.
 comparison_predicate -> scalar_exp COMPARISON subquery                                          : {unwrap('$2'), '$1', '$3'}.
 
 between_predicate -> scalar_exp NOT BETWEEN scalar_exp AND scalar_exp                           : {'not', {'between', '$1', '$4', '$6'}}.
@@ -768,7 +781,7 @@ any_all_some -> SOME                                                            
 
 existence_test -> EXISTS subquery                                                               : {exists, '$2'}.
 
-subquery -> query_spec                                                                          : '$1'.
+subquery -> query_exp                                                                           : '$1'.
 
     %% scalar expressions
 
@@ -799,7 +812,6 @@ scalar_exp_commalist -> scalar_exp_commalist ',' scalar_exp                     
 atom -> parameter_ref                                                                           : '$1'.
 atom -> literal                                                                                 : '$1'.
 atom -> USER                                                                                    : <<"user">>.
-atom -> PASSWORD                                                                                : <<"password">>.
 
 parameter_ref -> parameter                                                                      : '$1'.
 parameter_ref -> parameter parameter                                                            : {'$1', '$2'}.
@@ -992,6 +1004,7 @@ parsetree(Sql) when is_list(Sql) ->
         {ok, Toks, _} ->
             case sqlparse:parse(Toks) of
                 {ok, PTree} -> {ok, {PTree, Toks}};
+                {error,{N,?MODULE,ErrorTerms}} -> {parse_error, {lists:flatten([integer_to_list(N), ": ", ErrorTerms]), Toks}};
                 {error,Error} -> {parse_error, {Error, Toks}}
             end;
         {error,Error,_} -> {lex_error, Error}
@@ -1410,6 +1423,16 @@ foldi({'fun', N, Args}) when is_binary(N) ->
     , ", ")
     ++ ")";
 
+% hierarchical query
+foldi({'hierarchical query', {}}) -> "";
+foldi({'hierarchical query', {Part1, Part2}}) -> lists:flatten([foldi(Part1), " ", foldi(Part2)]);
+foldi({'start with', StartWith}) -> lists:flatten([" start with ", foldi(StartWith)]);
+foldi({'connect by', NoCycle, ConnectBy}) ->
+    lists:flatten(["connect by "
+                  , if byte_size(NoCycle) > 0 -> foldi(NoCycle)++" "; true -> "" end
+                  , foldi(ConnectBy)]);
+foldi({'prior', Field}) -> lists:flatten(["prior ", foldi(Field)]);
+
 % lists
 foldi({'list', Elms}) ->
     "(" ++
@@ -1488,8 +1511,8 @@ test_parse(ShowParseTree, [BinSql|Sqls], N, Limit, Private) ->
             true -> ok
             end,
             NewPrivate = sql_test:update_counters(ParseTree, Private),
-            if (Limit =:= 1) -> NewPrivate; true ->
-            test_parse(ShowParseTree, Sqls, N+1, Limit-1, NewPrivate)
+            if (Limit =:= 1) -> NewPrivate;
+                true -> test_parse(ShowParseTree, Sqls, N+1, Limit-1, NewPrivate)
             end;
         {lex_error, Error} ->
             io:format(user, "Failed lexer ~p~n", [Error]),

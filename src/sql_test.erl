@@ -29,6 +29,10 @@ parse_groups(TestFun, ShowParseTree, [{Title, SqlGroup, Limit}|SqlGroups], Count
 update_counters(ParseTree, Counters) ->
     case element(1, ParseTree) of
         'select'         -> incr(1, Counters);
+        'union'          -> incr(1, Counters);
+        'union all'      -> incr(1, Counters);
+        'minus'          -> incr(1, Counters);
+        'intersect'      -> incr(1, Counters);
         'insert'         -> incr(2, Counters);
         'create table'   -> incr(3, Counters);
         'create user'    -> incr(3, Counters);
@@ -41,7 +45,9 @@ update_counters(ParseTree, Counters) ->
         'truncate table' -> incr(6, Counters);
         'grant'          -> incr(7, Counters);
         'revoke'         -> incr(8, Counters);
-        _                -> Counters
+        _Unknown         ->
+            io:format(user, "Unknown counter increment for ~p~n", [_Unknown]),
+            Counters
     end.
 
 incr(Idx, L) ->

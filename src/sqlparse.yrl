@@ -1050,12 +1050,12 @@ foldi({insert, Tab, {cols, Cols}, {values, Values}, Return}) when is_binary(Tab)
             C -> foldi(C)
         end
         || C <- Cols],
-    ColsStr = case length(CStrs) of
+    "insert into " ++ binary_to_list(Tab)
+    ++
+    case length(CStrs) of
         0 -> "";
         _ -> lists:flatten(["(", string:join(CStrs, ","), ")"])
-    end,
-    "insert into " ++ binary_to_list(Tab)
-    ++ ColsStr
+    end
     ++ " values (" ++ string:join(
         [case V of
             V when is_binary(V) -> binary_to_list(V);

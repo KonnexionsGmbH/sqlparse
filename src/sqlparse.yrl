@@ -785,7 +785,7 @@ subquery -> query_exp                                                           
 
     %% scalar expressions
 
-scalar_exp -> scalar_sub_exp '||' scalar_exp                                                    : {'||', lists:flatten(['$1','$3'])}.
+scalar_exp -> scalar_sub_exp '||' scalar_exp                                                    : {'||','$1','$3'}.
 scalar_exp -> scalar_sub_exp                                                                    : '$1'.
 scalar_exp -> scalar_sub_exp NAME                                                               : {as, '$1', unwrap_bin('$2')}.
 scalar_exp -> scalar_sub_exp AS NAME                                                            : {as, '$1', unwrap_bin('$3')}. 
@@ -835,7 +835,7 @@ fun_args -> fun_args '-' fun_args                                               
 fun_args -> fun_args '*' fun_args                                                               : {'*','$1','$3'}.
 fun_args -> fun_args '/' fun_args                                                               : {'/','$1','$3'}.
 fun_args -> fun_args 'div' fun_args                                                             : {'div','$1','$3'}.
-fun_args -> fun_args '||' fun_args                                                              : {'||', lists:flatten(['$1','$3'])}.
+fun_args -> fun_args '||' fun_args                                                              : {'||','$1','$3'}.
 fun_args -> '+' fun_args                                                                        : {'+','$2'}. %prec UMINU
 fun_args -> '-' fun_args                                                                        : {'-','$2'}. %prec UMINU
 fun_args -> '+' literal                                                                         : '$2'.

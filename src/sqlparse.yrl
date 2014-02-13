@@ -142,6 +142,8 @@ Nonterminals
  join_on_or_using_clause
  outer_join_type
  query_partition_clause
+ case_when_exp
+ opt_else
 .
 
     %% symbolic tokens
@@ -279,6 +281,11 @@ Terminals
  PARTITION
  START
  NOCYCLE
+ CASE
+ WHEN
+ THEN
+ ELSE
+ END
  'AND'
  'NOT'
  'OR'
@@ -636,9 +643,17 @@ opt_into -> INTO target_commalist IN NAME                                       
 
 selection -> select_field_commalist                                                             : '$1'.
 
+select_field_commalist -> case_when_exp                                                         : ['$1'].
 select_field_commalist -> scalar_exp                                                            : ['$1'].
+%select_field_commalist -> search_condition                                                      : ['$1'].
 select_field_commalist -> '*'                                                                   : [<<"*">>].
 select_field_commalist -> select_field_commalist ',' select_field_commalist                     : '$1' ++ '$3'.
+
+case_when_exp -> '(' CASE WHEN search_condition THEN scalar_exp opt_else END ')'                : {'case', '$4', '$6', '$7'}.
+case_when_exp -> CASE WHEN search_condition THEN scalar_exp opt_else END                        : {'case', '$3', '$5', '$6'}.
+
+opt_else -> '$empty'                                                                            : {}.
+opt_else -> ELSE scalar_exp                                                                     : '$2'.
 
 table_exp ->
      from_clause opt_where_clause
@@ -1450,6 +1465,15 @@ foldi({'param', P}) ->
         P when is_binary(P) -> binary_to_list(P);
         P -> P
     end;
+
+foldi({'case', When, Then, Else}) ->
+    "case when " ++ foldi(When) ++
+    " then " ++ foldi(Then) ++
+    case Else of
+        {} -> "";
+        Else -> " else " ++ foldi(Else)
+    end ++
+    " end";
 
 %
 % UNSUPPORTED

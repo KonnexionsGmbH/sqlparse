@@ -3,11 +3,12 @@
 -define (TEST_SELECT,[
 %<<"SELECT * from tab1 INNER JOIN tab2 tab3 tab4 on a = b">>, %% INVALID - negative test
 %<<"select * from ALL_USERS where order by user_id asc">>, %% INVALID
-
+%<<"select a < 0 from abc">>, %% SUPPORT IN PROGRESS
 <<"sElect
     /*+004*/
     distinct
     - a.b,
+    (CASE WHEN CNT < 10 and (c = d or e = f) THEN '1' ELSE 2 END),
     m.\"'$_'\" + 1 d,
     \"'$_'\".m + 2 as e,
     'aa' || 'b\nb' || \"c\r\nc\" || USERNAME || (A + account) || a.fun('a' || fld3 || fun('a' || fld3)),

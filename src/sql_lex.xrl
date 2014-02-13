@@ -194,6 +194,11 @@ Erlang code.
     {"^(?i)(EXCEPT)$",                   'EXCEPT'},
     {"^(?i)(NONE)$",                     'NONE'},
     {"^(?i)(CONNECT)$",                  'CONNECT'},
+    {"^(?i)(CASE)$",                     'CASE'},
+    {"^(?i)(WHEN)$",                     'WHEN'},
+    {"^(?i)(THEN)$",                     'THEN'},
+    {"^(?i)(ELSE)$",                     'ELSE'},
+    {"^(?i)(END)$",                      'END'},
 
     % create options
     {"^(?i)(CLUSTER)$",                  'CLUSTER'},

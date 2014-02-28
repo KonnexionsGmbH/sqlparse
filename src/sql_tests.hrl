@@ -8,6 +8,8 @@
     /*+004*/
     distinct
     - a.b,
+    a || fun(a,b) d,
+    fun(a,b) || e as d,
     (CASE WHEN CNT < 10 and (c = d or e = f) THEN '1' ELSE 2 END),
     m.\"'$_'\" + 1 d,
     \"'$_'\".m + 2 as e,

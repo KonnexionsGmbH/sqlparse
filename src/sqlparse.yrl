@@ -89,6 +89,7 @@ Nonterminals
  existence_test
  subquery
  scalar_exp
+ scalar_opt_as_exp
  scalar_sub_exp
  scalar_exp_commalist
  select_field_commalist
@@ -574,7 +575,7 @@ values_or_query_spec -> query_spec                                              
 insert_atom_commalist -> insert_atom                                                            : ['$1'].
 insert_atom_commalist -> insert_atom_commalist ',' insert_atom                                  : '$1' ++ ['$3'].
 
-insert_atom -> scalar_exp                                                                       : '$1'.
+insert_atom -> scalar_opt_as_exp                                                                : '$1'.
 
 open_statement -> OPEN cursor                                                                   : {'open', '$2'}.
 
@@ -600,7 +601,7 @@ update_statement_positioned -> UPDATE table SET assignment_commalist
 assignment_commalist -> assignment                                                              : ['$1'].
 assignment_commalist -> assignment_commalist ',' assignment                                     : '$1' ++ ['$3'].
 
-assignment -> column COMPARISON scalar_exp                                                      : {'=', '$1', '$3'}.
+assignment -> column COMPARISON scalar_opt_as_exp                                               : {'=', '$1', '$3'}.
 
 update_statement_searched -> UPDATE table SET assignment_commalist opt_where_clause returning   : {'update', '$2', {'set', '$4'}, '$5', '$6'}.
 
@@ -644,16 +645,16 @@ opt_into -> INTO target_commalist IN NAME                                       
 selection -> select_field_commalist                                                             : '$1'.
 
 select_field_commalist -> case_when_exp                                                         : ['$1'].
-select_field_commalist -> scalar_exp                                                            : ['$1'].
+select_field_commalist -> scalar_opt_as_exp                                                     : ['$1'].
 %select_field_commalist -> search_condition                                                      : ['$1'].
 select_field_commalist -> '*'                                                                   : [<<"*">>].
 select_field_commalist -> select_field_commalist ',' select_field_commalist                     : '$1' ++ '$3'.
 
-case_when_exp -> '(' CASE WHEN search_condition THEN scalar_exp opt_else END ')'                : {'case', '$4', '$6', '$7'}.
-case_when_exp -> CASE WHEN search_condition THEN scalar_exp opt_else END                        : {'case', '$3', '$5', '$6'}.
+case_when_exp -> '(' CASE WHEN search_condition THEN scalar_opt_as_exp opt_else END ')'         : {'case', '$4', '$6', '$7'}.
+case_when_exp -> CASE WHEN search_condition THEN scalar_opt_as_exp opt_else END                 : {'case', '$3', '$5', '$6'}.
 
 opt_else -> '$empty'                                                                            : {}.
-opt_else -> ELSE scalar_exp                                                                     : '$2'.
+opt_else -> ELSE scalar_opt_as_exp                                                              : '$2'.
 
 table_exp ->
      from_clause opt_where_clause
@@ -719,14 +720,14 @@ inner_cross_join -> NATURAL INNER JOIN join_ref                                 
 
 table_ref -> table                                                                              : '$1'.
 table_ref -> '(' query_exp ')'                                                                  : '$2'.
-table_ref -> '(' query_exp ')' AS NAME                                                          : {'as','$2',unwrap_bin('$5')}.
-table_ref -> '(' query_exp ')' NAME                                                             : {'as','$2',unwrap_bin('$4')}.
+table_ref -> '(' query_exp ')' AS NAME                                                          : {as,'$2',unwrap_bin('$5')}.
+table_ref -> '(' query_exp ')' NAME                                                             : {as,'$2',unwrap_bin('$4')}.
 table_ref -> table range_variable                                                               : {'$1', '$2'}.
 
 join_ref -> table                                                                               : '$1'.
 join_ref -> '(' query_exp ')'                                                                   : '$2'.
-join_ref -> '(' query_exp ')' AS NAME                                                           : {'as','$2',unwrap_bin('$5')}.
-join_ref -> '(' query_exp ')' NAME                                                              : {'as','$2',unwrap_bin('$4')}.
+join_ref -> '(' query_exp ')' AS NAME                                                           : {as,'$2',unwrap_bin('$5')}.
+join_ref -> '(' query_exp ')' NAME                                                              : {as,'$2',unwrap_bin('$4')}.
 
 hierarchical_query_clause -> START WITH search_condition CONNECT BY opt_nocycle search_condition: {'hierarchical query', {{'start with', '$3'}, {'connect by', '$6', '$7'}}}.
 hierarchical_query_clause -> CONNECT BY opt_nocycle search_condition START WITH search_condition: {'hierarchical query', {{'connect by', '$3', '$4'}, {'start with', '$7'}}}.
@@ -763,7 +764,7 @@ predicate -> in_predicate                                                       
 predicate -> all_or_any_predicate                                                               : '$1'.
 predicate -> existence_test                                                                     : '$1'.
 
-comparison_predicate -> scalar_exp                                                              : '$1'.
+comparison_predicate -> scalar_opt_as_exp                                                       : '$1'.
 comparison_predicate -> scalar_exp COMPARISON scalar_exp                                        : {unwrap('$2'), '$1', '$3'}.
 comparison_predicate -> PRIOR scalar_exp COMPARISON scalar_exp                                  : {unwrap('$3'), {prior, '$2'}, '$4'}.
 comparison_predicate -> scalar_exp COMPARISON PRIOR scalar_exp                                  : {unwrap('$2'), '$1', {prior, '$4'}}.
@@ -800,10 +801,11 @@ subquery -> query_exp                                                           
 
     %% scalar expressions
 
+scalar_opt_as_exp -> scalar_exp                                                                 : '$1'.
+scalar_opt_as_exp -> scalar_exp NAME                                                            : {as, '$1', unwrap_bin('$2')}.
+scalar_opt_as_exp -> scalar_exp AS NAME                                                         : {as, '$1', unwrap_bin('$3')}. 
 scalar_exp -> scalar_sub_exp '||' scalar_exp                                                    : {'||','$1','$3'}.
 scalar_exp -> scalar_sub_exp                                                                    : '$1'.
-scalar_exp -> scalar_sub_exp NAME                                                               : {as, '$1', unwrap_bin('$2')}.
-scalar_exp -> scalar_sub_exp AS NAME                                                            : {as, '$1', unwrap_bin('$3')}. 
 
 scalar_sub_exp -> scalar_sub_exp '+' scalar_sub_exp                                             : {'+','$1','$3'}.
 scalar_sub_exp -> scalar_sub_exp '-' scalar_sub_exp                                             : {'-','$1','$3'}.
@@ -821,8 +823,8 @@ scalar_sub_exp -> column_ref                                                    
 scalar_sub_exp -> function_ref                                                                  : '$1'.
 scalar_sub_exp -> '(' scalar_sub_exp ')'                                                        : '$2'.
 
-scalar_exp_commalist -> scalar_exp                                                              : ['$1'].
-scalar_exp_commalist -> scalar_exp_commalist ',' scalar_exp                                     : '$1' ++ ['$3'].
+scalar_exp_commalist -> scalar_opt_as_exp                                                       : ['$1'].
+scalar_exp_commalist -> scalar_exp_commalist ',' scalar_opt_as_exp                              : '$1' ++ ['$3'].
 
 atom -> parameter_ref                                                                           : '$1'.
 atom -> literal                                                                                 : '$1'.

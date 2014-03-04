@@ -46,7 +46,7 @@
    HAVING SUM(d) < 2
           and a = abs(abs(1-2+(3)))
           or (((a = a1 or b = b1)) and (((w=(3)))))
-   ORDER BY fun2(arg1) desc
+   ORDER BY fun2(arg1) desc, 2 + A*B asc
 UNION
   SELECT /*+002*/ c FROM d where regexp_like(a, '([aeiou])\1', 'i')
 INTERSECT

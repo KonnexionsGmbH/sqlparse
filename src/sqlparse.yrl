@@ -1039,17 +1039,14 @@ is_reserved(Word) when is_list(Word)    -> lists:member(erlang:list_to_atom(stri
 %%-----------------------------------------------------------------------------
 
 -spec fold(tuple()) -> {error, term()} | binary().
-fold(PTree) -> 
-    case fold(PTree, fun(_,_) -> ok end, ok) of
-        {SqlBin, ok} when is_binary(SqlBin) -> SqlBin;
-        Error -> Error
-    end.
+fold(PTree) -> fold(PTree, fun(_,_) -> null_fun end, null_fun).
 
 -spec fold(tuple(), fun(), term()) -> {error, term()} | binary().
 fold(PTree, Fun, Ctx) when is_function(Fun, 2) ->
     try foldi(PTree, Fun, Ctx) of
         {error,_} = Error -> Error;
-        {Sql, NewCtx} -> {list_to_binary(string:strip(Sql)), NewCtx}
+        {Sql, null_fun = Ctx} -> list_to_binary(string:strip(Sql));
+        {_, NewCtx} -> NewCtx
     catch
         _:Error -> {error, Error}
     end.

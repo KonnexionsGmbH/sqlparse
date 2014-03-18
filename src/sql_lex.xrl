@@ -21,7 +21,7 @@ Rules.
 [A-Za-z][A-Za-z0-9_@:#\$]*                          : match_any(TokenChars, TokenLen, TokenLine, ?TokenPatters).
 
 % parameters
-(\:[A-Za-z][A-Za-z0-9_]*)                           : {token, {'PARAMETER', TokenLine, TokenChars}}.
+(\:[A-Za-z0-9][A-Za-z0-9_]*)                        : {token, {'PARAMETER', TokenLine, TokenChars}}.
 
 % numbers
 %(([\+\-]?)([0-9]+\.[0-9]+([eE][\+\-]?[0-9]+)*))    : {token, {'APPROXNUM', TokenLine, list_to_float(TokenChars)}}.

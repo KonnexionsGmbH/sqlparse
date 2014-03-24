@@ -928,7 +928,7 @@ Erlang code.
 -export([init/1]).
 
 % parser and compiler interface
--export([pt_to_string/1, foldtd/3, parsetree/1, is_reserved/1]).
+-export([pt_to_string/1, foldtd/3, foldbu/3, parsetree/1, is_reserved/1]).
 
 -ifdef(TEST).
 % eunit helper function
@@ -1043,7 +1043,17 @@ pt_to_string(PTree) -> foldtd(fun(_,_) -> null_fun end, null_fun, PTree).
 
 -spec foldtd(fun(), term(), tuple()) -> {error, term()} | binary().
 foldtd(Fun, Ctx, PTree) when is_function(Fun, 2) ->
-    try foldi(PTree, Fun, Ctx) of
+    try foldi(top_down, PTree, Fun, Ctx) of
+        {error,_} = Error -> Error;
+        {Sql, null_fun = Ctx} -> list_to_binary(string:strip(Sql));
+        {_, NewCtx} -> NewCtx
+    catch
+        _:Error -> {error, Error}
+    end.
+
+-spec foldbu(fun(), term(), tuple()) -> {error, term()} | binary().
+foldbu(Fun, Ctx, PTree) when is_function(Fun, 2) ->
+    try foldi(bottom_up, PTree, Fun, Ctx) of
         {error,_} = Error -> Error;
         {Sql, null_fun = Ctx} -> list_to_binary(string:strip(Sql));
         {_, NewCtx} -> NewCtx
@@ -1054,29 +1064,39 @@ foldtd(Fun, Ctx, PTree) when is_function(Fun, 2) ->
 %
 % SELECT
 %
-foldi({select, Opts} = ST, Fun, Ctx)
+foldi(FType, {select, Opts} = ST, Fun, Ctx)
  when is_function(Fun, 2) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     {NewOs, NewCtx1} = lists:foldl(fun(O, {Acc, CtxAcc}) ->
-            {SubAcc, CtxAcc1} = foldi(O, Fun, CtxAcc),
+            {SubAcc, CtxAcc1} = foldi(FType, O, Fun, CtxAcc),
             {Acc++[SubAcc], CtxAcc1}
         end,
         {[], NewCtx},
         Opts),
-    {"select "++lists:flatten(NewOs), NewCtx1};
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
+    {"select "++lists:flatten(NewOs), NewCtx2};
 
 %
 % INSERT
 %
-foldi({insert, Tab, {cols, Cols}, {values, Values}, Return} = ST, Fun, Ctx)
+foldi(FType, {insert, Tab, {cols, Cols}, {values, Values}, Return} = ST, Fun, Ctx)
  when is_binary(Tab), is_function(Fun, 2) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     {CStrs, NewCtx1} = lists:foldl(fun(C, {Acc, CtxAcc}) ->
             case C of
                 C when is_binary(C) ->
                     {Acc++[binary_to_list(C)], Fun(C, CtxAcc)};
                 C ->
-                    {CT, CtxAcc1} = foldi(C, Fun, CtxAcc),
+                    {CT, CtxAcc1} = foldi(FType, C, Fun, CtxAcc),
                     {Acc++[CT], CtxAcc1}
             end
         end,
@@ -1087,27 +1107,34 @@ foldi({insert, Tab, {cols, Cols}, {values, Values}, Return} = ST, Fun, Ctx)
                 V when is_binary(V) ->
                     {Acc1++[binary_to_list(V)], Fun(V, CtxAcc1)};
                 V ->
-                    {VT, CtxAcc2} = foldi(V, Fun, CtxAcc1),
+                    {VT, CtxAcc2} = foldi(FType, V, Fun, CtxAcc1),
                     {Acc1++[VT], CtxAcc2}
             end
         end,
         {[], NewCtx1},
         Values),
-    {Ret, NewCtx3} = foldi(Return, Fun, NewCtx2),
+    {Ret, NewCtx3} = foldi(FType, Return, Fun, NewCtx2),
+    NewCtx4 = case FType of
+        top_down -> NewCtx3;
+        bottom_up -> Fun(ST, NewCtx3)
+    end,
     {"insert into " ++ binary_to_list(Tab) ++
      case length(CStrs) of
          0 -> "";
          _ -> lists:flatten(["(", string:join(CStrs, ","), ")"])
      end ++ " values (" ++ string:join(Vals, ",") ++ ")" ++ Ret
-    , NewCtx3};
+    , NewCtx4};
 
 %
 % CREATE TABLE
 %
-foldi({'create table', Tab, Fields, Opts} = ST, Fun, Ctx)
+foldi(FType, {'create table', Tab, Fields, Opts} = ST, Fun, Ctx)
  when is_binary(Tab), is_function(Fun, 2) ->
-    NewCtx = Fun(ST, Ctx),
-    {OptsStr, NewCtx1} = foldi(Opts, Fun, NewCtx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {OptsStr, NewCtx1} = foldi(FType, Opts, Fun, NewCtx),
     NewCtx2 = Fun(Tab, NewCtx1),
     {Clms, NewCtx3} = lists:foldl(fun(Clm, {Acc, CtxAcc}) ->
             case Clm of
@@ -1115,7 +1142,7 @@ foldi({'create table', Tab, Fields, Opts} = ST, Fun, Ctx)
                     CtxAcc1 = Fun(C, CtxAcc),
                     CtxAcc2 = Fun(T, CtxAcc1),
                     CtxAcc3 = Fun(N, CtxAcc2),
-                    {SubAcc, CtxAcc4} = foldi(O, Fun, CtxAcc3),
+                    {SubAcc, CtxAcc4} = foldi(FType, O, Fun, CtxAcc3),
                     {Acc ++ [lists:flatten([binary_to_list(C), " ", atom_to_list(T), "(", N, ") ", SubAcc])]
                     , CtxAcc4};
                 {C, {T, N, N1}, O} when is_binary(C) ->
@@ -1123,65 +1150,90 @@ foldi({'create table', Tab, Fields, Opts} = ST, Fun, Ctx)
                     CtxAcc2 = Fun(T, CtxAcc1),
                     CtxAcc3 = Fun(N, CtxAcc2),
                     CtxAcc4 = Fun(N1, CtxAcc3),
-                    {SubAcc, CtxAcc5} = foldi(O, Fun, CtxAcc4),
+                    {SubAcc, CtxAcc5} = foldi(FType, O, Fun, CtxAcc4),
                     {Acc ++ [lists:flatten([binary_to_list(C), " ", atom_to_list(T), "(",N,",",N1,") ", SubAcc])]
                     , CtxAcc5};
                 {C, T, O} when is_binary(C) and is_binary(T) ->
                     CtxAcc1 = Fun(C, CtxAcc),
                     CtxAcc2 = Fun(T, CtxAcc1),
-                    {SubAcc, CtxAcc3} = foldi(O, Fun, CtxAcc2),
+                    {SubAcc, CtxAcc3} = foldi(FType, O, Fun, CtxAcc2),
                     {Acc ++ [lists:flatten([binary_to_list(C), " ", binary_to_list(T), " ", SubAcc])]
                     , CtxAcc3};
                 {C, T, O} when is_binary(C) ->
                     CtxAcc1 = Fun(C, CtxAcc),
                     CtxAcc2 = Fun(T, CtxAcc1),
-                    {SubAcc, CtxAcc3} = foldi(O, Fun, CtxAcc2),
+                    {SubAcc, CtxAcc3} = foldi(FType, O, Fun, CtxAcc2),
                     {Acc ++ [lists:flatten([binary_to_list(C), " ", atom_to_list(T), " ", SubAcc])]
                     , CtxAcc3};
                 Clm ->
-                    {SubAcc, CtxAcc1} = foldi(Clm, Fun, CtxAcc),
+                    {SubAcc, CtxAcc1} = foldi(FType, Clm, Fun, CtxAcc),
                     {Acc++[SubAcc], CtxAcc1}
             end
         end,
         {[], NewCtx2},
         Fields),
+    NewCtx4 = case FType of
+        top_down -> NewCtx3;
+        bottom_up -> Fun(ST, NewCtx3)
+    end,
     {"create " ++ OptsStr ++ " table " ++ binary_to_list(Tab)
         ++ " (" ++ string:join(Clms, ", ") ++ ")"
-    , NewCtx3};
+    , NewCtx4};
 
 %
 % CREATE USER
 %
-foldi({'create user', Usr, Id, Opts} = ST, Fun, Ctx)
+foldi(FType, {'create user', Usr, Id, Opts} = ST, Fun, Ctx)
  when is_binary(Usr), is_function(Fun, 2) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     NewCtx1 = Fun(Usr, NewCtx),
-    {IdStr, NewCtx2} = foldi(Id, Fun, NewCtx1),
-    {OptsStr, NewCtx3} = foldi(Opts, Fun, NewCtx2),
+    {IdStr, NewCtx2} = foldi(FType, Id, Fun, NewCtx1),
+    {OptsStr, NewCtx3} = foldi(FType, Opts, Fun, NewCtx2),
+    NewCtx4 = case FType of
+        top_down -> NewCtx3;
+        bottom_up -> Fun(ST, NewCtx3)
+    end,
     {"create user " ++ binary_to_list(Usr)
     ++ IdStr ++ " " ++ OptsStr
-    , NewCtx3};
+    , NewCtx4};
 
 %
 % ALTER USER
 %
-foldi({'alter user', Usr, {spec, Opts}} = ST, Fun, Ctx)
+foldi(FType, {'alter user', Usr, {spec, Opts}} = ST, Fun, Ctx)
  when is_binary(Usr), is_function(Fun, 2) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     NewCtx1 = Fun(Usr, NewCtx),
-    {OptsStr, NewCtx2} = foldi(Opts, Fun, NewCtx1),
+    {OptsStr, NewCtx2} = foldi(FType, Opts, Fun, NewCtx1),
+    NewCtx3 = case FType of
+        top_down -> NewCtx2;
+        bottom_up -> Fun(ST, NewCtx2)
+    end,
     {lists:flatten(["alter user ", binary_to_list(Usr), " ", OptsStr])
-    , NewCtx2};
+    , NewCtx3};
 
 %
 % TRUNCATE TABLE
 %
-foldi({'truncate table', Tbl, Mvl, Storage} = ST, Fun, Ctx)
+foldi(FType, {'truncate table', Tbl, Mvl, Storage} = ST, Fun, Ctx)
  when is_binary(Tbl), is_function(Fun, 2) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     NewCtx1 = Fun(Tbl, NewCtx),
     NewCtx2 = Fun(Mvl, NewCtx1),
     NewCtx3 = Fun(Storage, NewCtx2),
+    NewCtx4 = case FType of
+        top_down -> NewCtx3;
+        bottom_up -> Fun(ST, NewCtx3)
+    end,
     {"truncate table " ++ binary_to_list(Tbl) ++ " " ++
     case Mvl of
         {} -> "";
@@ -1192,42 +1244,59 @@ foldi({'truncate table', Tbl, Mvl, Storage} = ST, Fun, Ctx)
         {} -> "";
         {'storage', T} -> lists:flatten([atom_to_list(T), " storage"])
     end
-    , NewCtx3};
+    , NewCtx4};
 
 %
 % UPDATE TABLE
 %
-foldi({'update', Tbl, {set, Set}, Where, Return} = ST, Fun, Ctx)
+foldi(FType, {'update', Tbl, {set, Set}, Where, Return} = ST, Fun, Ctx)
  when is_binary(Tbl), is_function(Fun, 2) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     NewCtx1 = Fun(Tbl, NewCtx),
     {Sets, NewCtx2} = lists:foldl(fun(S, {Acc, CtxAcc}) ->
-            {SubAcc, CtxAcc1} = foldi(S, Fun, CtxAcc),
+            {SubAcc, CtxAcc1} = foldi(FType, S, Fun, CtxAcc),
             {Acc ++ [SubAcc], CtxAcc1}
         end,
         {[], NewCtx1},
         Set),
-    {WhereStr, NewCtx3} = foldi(Where, Fun, NewCtx2),
-    {ReturnStr, NewCtx4} = foldi(Return, Fun, NewCtx3),
+    {WhereStr, NewCtx3} = foldi(FType, Where, Fun, NewCtx2),
+    {ReturnStr, NewCtx4} = foldi(FType, Return, Fun, NewCtx3),
+    NewCtx5 = case FType of
+        top_down -> NewCtx4;
+        bottom_up -> Fun(ST, NewCtx4)
+    end,
     {"update " ++ binary_to_list(Tbl)
     ++ " set " ++ string:join(Sets, ",")
     ++ " " ++ WhereStr ++ ReturnStr
-    , NewCtx4};
+    , NewCtx5};
 
 %
 % DROPS
 %
-foldi({'drop user', Usr, Opts} = ST, Fun, Ctx)
+foldi(FType, {'drop user', Usr, Opts} = ST, Fun, Ctx)
  when is_binary(Usr), is_function(Fun, 2) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     NewCtx1 = Fun(Usr, NewCtx),
-    {OptsStr, NewCtx2} = foldi(Opts, Fun, NewCtx1),
+    {OptsStr, NewCtx2} = foldi(FType, Opts, Fun, NewCtx1),
+    NewCtx3 = case FType of
+        top_down -> NewCtx2;
+        bottom_up -> Fun(ST, NewCtx2)
+    end,
     {"drop user " ++ binary_to_list(Usr)
      ++ " " ++ OptsStr
-    , NewCtx2};
-foldi({'drop table', {tables, Ts}, {exists, E}, {opt, R}} = ST, Fun, Ctx)
+    , NewCtx3};
+foldi(FType, {'drop table', {tables, Ts}, {exists, E}, {opt, R}} = ST, Fun, Ctx)
  when is_atom(R), is_function(Fun, 2) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     NewCtx1 = Fun(E, NewCtx),
     {Tables, NewCtx2} = lists:foldl(fun(T, {Acc, CtxAcc}) ->
             CtxAcc1 = Fun(T, CtxAcc),
@@ -1236,31 +1305,45 @@ foldi({'drop table', {tables, Ts}, {exists, E}, {opt, R}} = ST, Fun, Ctx)
         {[], NewCtx1},
         Ts),
     NewCtx3 = Fun(R, NewCtx2),
+    NewCtx4 = case FType of
+        top_down -> NewCtx3;
+        bottom_up -> Fun(ST, NewCtx3)
+    end,
     {"drop table "
      ++ if E =:= true -> " if exists "; true -> "" end
      ++ string:join(Tables, ", ")
      ++ " " ++ atom_to_list(R)
-    , NewCtx3};
+    , NewCtx4};
 
 %
 % DELETE
 %
-foldi({'delete', Table, Where, Return} = ST, Fun, Ctx)
+foldi(FType, {'delete', Table, Where, Return} = ST, Fun, Ctx)
  when is_binary(Table), is_function(Fun, 2) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     NewCtx1 = Fun(Table, NewCtx),
-    {WhereStr, NewCtx2} = foldi(Where, Fun, NewCtx1),
-    {ReturnStr, NewCtx3} = foldi(Return, Fun, NewCtx2),
+    {WhereStr, NewCtx2} = foldi(FType, Where, Fun, NewCtx1),
+    {ReturnStr, NewCtx3} = foldi(FType, Return, Fun, NewCtx2),
+    NewCtx4 = case FType of
+        top_down -> NewCtx3;
+        bottom_up -> Fun(ST, NewCtx3)
+    end,
     {"delete from " ++ binary_to_list(Table)
      ++ " " ++ WhereStr ++ ReturnStr
-    , NewCtx3};
+    , NewCtx4};
 
 %
 % GRANT
 %
-foldi({'grant', Objs, {OnTyp, On}, {'to', Tos}, Opts} = ST, Fun, Ctx)
+foldi(FType, {'grant', Objs, {OnTyp, On}, {'to', Tos}, Opts} = ST, Fun, Ctx)
  when is_atom(OnTyp), is_atom(Opts), is_function(Fun, 2) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     {ObjsStr, NewCtx1} = lists:foldl(fun(O, {Acc, CtxAcc}) ->
             {Acc++[atom_to_list(O)], Fun(O, CtxAcc)}
         end,
@@ -1274,19 +1357,26 @@ foldi({'grant', Objs, {OnTyp, On}, {'to', Tos}, Opts} = ST, Fun, Ctx)
         {[], NewCtx3},
         Tos),
     NewCtx5 = Fun(Opts, NewCtx4),
+    NewCtx6 = case FType of
+        top_down -> NewCtx5;
+        bottom_up -> Fun(ST, NewCtx5)
+    end,
     {"grant "
      ++ string:join(ObjsStr, ",") ++ " "
      ++ if On =/= <<"">> -> atom_to_list(OnTyp) ++ " " ++ binary_to_list(On) ++ " "; true -> "" end
      ++ if length(Tos) > 0 -> "to " ++ string:join(TosStr, ",") ++ " "; true -> "" end
      ++ atom_to_list(Opts)
-    , NewCtx5};
+    , NewCtx6};
 
 %
 % REVOKE
 %
-foldi({'revoke', Objs, {OnTyp, On}, {'from', Tos}, Opts} = ST, Fun, Ctx)
+foldi(FType, {'revoke', Objs, {OnTyp, On}, {'from', Tos}, Opts} = ST, Fun, Ctx)
  when is_function(Fun, 2), is_atom(OnTyp), is_atom(Opts) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     {ObjsStr, NewCtx1} = lists:foldl(fun(O, {Acc, CtxAcc}) ->
             {Acc++[atom_to_list(O)], Fun(O, CtxAcc)}
         end,
@@ -1300,162 +1390,261 @@ foldi({'revoke', Objs, {OnTyp, On}, {'from', Tos}, Opts} = ST, Fun, Ctx)
         {[], NewCtx3},
         Tos),
     NewCtx5 = Fun(Opts, NewCtx4),
+    NewCtx6 = case FType of
+        top_down -> NewCtx5;
+        bottom_up -> Fun(ST, NewCtx5)
+    end,
     {"revoke "
      ++ string:join(ObjsStr, ",") ++ " "
      ++ if On =/= <<"">> -> atom_to_list(OnTyp) ++ " " ++ binary_to_list(On) ++ " "; true -> "" end
      ++ if length(Tos) > 0 -> "from " ++ string:join(TosStr, ",") ++ " "; true -> "" end
      ++ atom_to_list(Opts)
-    , NewCtx5};
+    , NewCtx6};
 
 %--------------------------------------------------------------------
 % component matching patterns
 %
 
 % Empty list or tuples
-foldi(X, Fun, Ctx) when is_function(Fun, 2) andalso (X =:= {} orelse X =:= []) -> {"", Ctx};
+foldi(_FType, X, Fun, Ctx) when is_function(Fun, 2) andalso (X =:= {} orelse X =:= []) -> {"", Ctx};
 
 % All option and optionlist and its variants
-foldi({'identified globally', E} = ST, Fun, Ctx)
+foldi(FType, {'identified globally', E} = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
-    {IdStr, NewCtx1} = foldi(E, Fun, NewCtx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {IdStr, NewCtx1} = foldi(FType, E, Fun, NewCtx),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
     {" identified globally " ++ IdStr
-    , NewCtx1};
-foldi({'identified extern', E} = ST, Fun, Ctx)
+    , NewCtx2};
+foldi(FType, {'identified extern', E} = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
-    {IdStr, NewCtx1} = foldi(E, Fun, NewCtx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {IdStr, NewCtx1} = foldi(FType, E, Fun, NewCtx),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
     {" identified externally " ++ IdStr
-    , NewCtx1};
-foldi({'identified by', Pswd} = ST, Fun, Ctx)
+    , NewCtx2};
+foldi(FType, {'identified by', Pswd} = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     NewCtx1 = Fun(Pswd, NewCtx),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
     {" identified by " ++ binary_to_list(Pswd)
-    , NewCtx1};
-foldi([{'scope', S}|Opts] = ST, Fun, Ctx)
+    , NewCtx2};
+foldi(FType, [{'scope', S}|Opts] = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     NewCtx1 = Fun(S, NewCtx),
-    {OptsStr, NewCtx2} = foldi(Opts, Fun, NewCtx1),
+    {OptsStr, NewCtx2} = foldi(FType, Opts, Fun, NewCtx1),
+    NewCtx3 = case FType of
+        top_down -> NewCtx2;
+        bottom_up -> Fun(ST, NewCtx2)
+    end,
     {lists:flatten([" ", atom_to_list(S), " ", OptsStr])
-    , NewCtx2};
-foldi([{'type', T}|Opts] = ST, Fun, Ctx)
+    , NewCtx3};
+foldi(FType, [{'type', T}|Opts] = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     NewCtx1 = Fun(T, NewCtx),
-    {OptsStr, NewCtx2} = foldi(Opts, Fun, NewCtx1),
+    {OptsStr, NewCtx2} = foldi(FType, Opts, Fun, NewCtx1),
+    NewCtx3 = case FType of
+        top_down -> NewCtx2;
+        bottom_up -> Fun(ST, NewCtx2)
+    end,
     {lists:flatten([" ", atom_to_list(T), " ", OptsStr])
-    , NewCtx2};
-foldi([{'limited', Q, T}|O] = ST, Fun, Ctx)
+    , NewCtx3};
+foldi(FType, [{'limited', Q, T}|O] = ST, Fun, Ctx)
  when is_binary(Q), is_binary(T), is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     NewCtx1 = Fun(Q, NewCtx),
     NewCtx2 = Fun(T, NewCtx1),
-    {Os, NewCtx3} = foldi(O, Fun, NewCtx2),
+    {Os, NewCtx3} = foldi(FType, O, Fun, NewCtx2),
+    NewCtx4 = case FType of
+        top_down -> NewCtx3;
+        bottom_up -> Fun(ST, NewCtx3)
+    end,
     {lists:flatten(["quota ", binary_to_list(Q), " on ", binary_to_list(T), " ", Os])
-    , NewCtx3};
-foldi([cascade|Opts] = ST, Fun, Ctx)
+    , NewCtx4};
+foldi(FType, [cascade|Opts] = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
-    {OptsStr, NewCtx1} = foldi(Opts, Fun, NewCtx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {OptsStr, NewCtx1} = foldi(FType, Opts, Fun, NewCtx),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
     {lists:flatten([" cascade ", OptsStr])
-    , NewCtx1};
-foldi([{Tok, T}|Opts] = ST, Fun, Ctx)
+    , NewCtx2};
+foldi(FType, [{Tok, T}|Opts] = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
-    if is_binary(T) andalso (Tok =:= 'default tablespace'
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {Str, NewCtx4} = if is_binary(T) andalso (Tok =:= 'default tablespace'
                              orelse Tok =:= 'temporary tablespace'
                              orelse Tok =:= 'profile') ->
             NewCtx1 = Fun(Tok, NewCtx),
             NewCtx2 = Fun(T, NewCtx1),
-            {OptsStr, NewCtx3} = foldi(Opts, Fun, NewCtx2),
+            {OptsStr, NewCtx3} = foldi(FType, Opts, Fun, NewCtx2),
             {lists:flatten([atom_to_list(Tok), " ", binary_to_list(T), " ", OptsStr])
             , NewCtx3};
         true ->
             case {Tok, T} of
-                {'password', 'expire'}                  -> {"password expire ", Fun({Tok, T}, NewCtx)};
-                {'account', 'lock'}                     -> {"account lock ", Fun({Tok, T}, NewCtx)};
-                {'account', 'unlock'}                   -> {"account unlock ", Fun({Tok, T}, NewCtx)};
+                {'password', 'expire'}  -> {"password expire ", Fun({Tok, T}, NewCtx)};
+                {'account', 'lock'}     -> {"account lock ", Fun({Tok, T}, NewCtx)};
+                {'account', 'unlock'}   -> {"account unlock ", Fun({Tok, T}, NewCtx)};
                 {'unlimited on', T} when is_binary(T)   ->
                     {lists:flatten(["quota unlimited on ", binary_to_list(T)])
                     , Fun({Tok, T}, NewCtx)};
-                {'quotas', Qs}                          -> foldi(Qs, Fun, NewCtx);
-                _                                       -> foldi({Tok, T}, Fun, NewCtx)
+                {'quotas', Qs} -> foldi(FType, Qs, Fun, NewCtx);
+                _ -> foldi(FType, {Tok, T}, Fun, NewCtx)
             end
-    end;
-foldi({'default', Def} = ST, Fun, Ctx)
+    end,
+    NewCtx5 = case FType of
+        top_down -> NewCtx4;
+        bottom_up -> Fun(ST, NewCtx4)
+    end,
+    {Str, NewCtx5};
+foldi(FType, {'default', Def} = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
-    {DefStr, NewCtx1} = foldi(Def, Fun, NewCtx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {DefStr, NewCtx1} = foldi(FType, Def, Fun, NewCtx),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
     {lists:flatten([" default ", 
         case Def of
             Def when is_binary(Def) -> binary_to_list(Def);
             Def -> DefStr
         end, "\n "])
-    , NewCtx1};
+    , NewCtx2};
 
 % select sub-part patterns
-foldi({hints, Hints} = ST, Fun, Ctx)
+foldi(FType, {hints, Hints} = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     Size = byte_size(Hints),
     NewCtx1 = Fun(Hints, NewCtx),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
     {if Size > 0 -> binary_to_list(Hints);
      true        -> ""
      end
-    , NewCtx1};
-foldi({opt, Opt} = ST, Fun, Ctx)
+    , NewCtx2};
+foldi(FType, {opt, Opt} = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     Size = byte_size(Opt),
     NewCtx1 = Fun(Opt, NewCtx),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
     {if Size > 0 -> binary_to_list(Opt) ++ " ";
      true        -> ""
      end
-    , NewCtx1};
-foldi({fields, Fields} = ST, Fun, Ctx)
+    , NewCtx2};
+foldi(FType, {fields, Fields} = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     {FieldsStr, NewCtx1} = lists:foldl(fun(F, {Acc, CtxAcc}) ->
             case F of
                 F when is_binary(F) -> {Acc++[binary_to_list(F)], Fun(F, CtxAcc)};
                 {'select', _} = F   ->
-                    {SubAcc, CtxAcc1} = foldi(F, Fun, CtxAcc),
+                    {SubAcc, CtxAcc1} = foldi(FType, F, Fun, CtxAcc),
                     {Acc++[lists:flatten(["(", SubAcc, ")"])], CtxAcc1};
                 Other ->
-                    {SubAcc, CtxAcc1} = foldi(Other, Fun, CtxAcc),
+                    {SubAcc, CtxAcc1} = foldi(FType, Other, Fun, CtxAcc),
                     {Acc++[SubAcc], CtxAcc1}
             end
         end,
         {[], NewCtx},
         Fields),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
     {string:join(FieldsStr, ", ")
-    , NewCtx1};
-foldi({into, Into} = ST, Fun, Ctx)
+    , NewCtx2};
+foldi(FType, {into, Into} = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     {IntoStr, NewCtx1} = lists:foldl(fun(I, {Acc, CtxAcc}) ->
             {Acc++[binary_to_list(I)], Fun(I, CtxAcc)}
         end,
         {[], NewCtx},
         Into),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
     {string:join(IntoStr, ", ") ++ " "
-    , NewCtx1};
-foldi({from, Forms} = ST, Fun, Ctx)
+    , NewCtx2};
+foldi(FType, {from, Forms} = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     {FormStr, NewCtx1} = case Forms of
         Forms when is_list(Forms) ->
             {FrmStr, NewCtx2} = lists:foldl(fun(F, {Acc, CtxAcc}) ->
                     case F of
                         F when is_binary(F) -> {Acc++[binary_to_list(F)], Fun(F,CtxAcc)};
                         {'select', _} = F   ->
-                            {FoldFStr, CtxAcc1} = foldi(F, Fun, Ctx),
+                            {FoldFStr, CtxAcc1} = foldi(FType, F, Fun, Ctx),
                             {lists:flatten(["(", FoldFStr, ")"])
                             , CtxAcc1};
                         Other               ->
-                            {SubAcc, CtxAcc1} = foldi(Other, Fun, Ctx),
+                            {SubAcc, CtxAcc1} = foldi(FType, Other, Fun, Ctx),
                             {Acc++[SubAcc], CtxAcc1}
                     end
                 end,
@@ -1464,38 +1653,59 @@ foldi({from, Forms} = ST, Fun, Ctx)
             {string:join(FrmStr, ", ")
             , NewCtx2};
         Forms ->
-            foldi(Forms, Fun, NewCtx)
+            foldi(FType, Forms, Fun, NewCtx)
+    end,
+    NewCtx3 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
     end,
     {"from " ++FormStr++ " "
-    , NewCtx1};
-foldi({'group by', GroupBy} = ST, Fun, Ctx)
+    , NewCtx3};
+foldi(FType, {'group by', GroupBy} = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     Size = length(GroupBy),
     {GroupByStr, NewCtx1} = lists:foldl(fun(F, {Acc, CtxAcc}) ->
-            case foldi(F, Fun, CtxAcc) of
+            case foldi(FType, F, Fun, CtxAcc) of
                 {F1, CtxAcc1} when is_binary(F1) -> {Acc++binary_to_list(F1), CtxAcc1};
                 {F1, CtxAcc1} when is_list(F1) -> {Acc++[F1], CtxAcc1}
             end
         end,
         {[], NewCtx},
         GroupBy),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
     {if Size > 0 -> " group by " ++ string:join(GroupByStr, ", ");
         true -> ""
      end
-    , NewCtx1};
-foldi({having, Having} = ST, Fun, Ctx)
+    , NewCtx2};
+foldi(FType, {having, Having} = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     Size = size(Having),
-    {HavingStr, NewCtx1} = foldi(Having, Fun, NewCtx),
+    {HavingStr, NewCtx1} = foldi(FType, Having, Fun, NewCtx),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
     {if Size > 0 -> " having " ++ HavingStr;
         true -> ""
      end
-    , NewCtx1};
-foldi({'order by', OrderBy} = ST, Fun, Ctx)
+    , NewCtx2};
+foldi(FType, {'order by', OrderBy} = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     Size = length(OrderBy),
     {OrderByStr, NewCtx1} = lists:foldl(fun(F, {Acc, CtxAcc}) ->
             case F of
@@ -1506,7 +1716,7 @@ foldi({'order by', OrderBy} = ST, Fun, Ctx)
                     {Acc++[string:strip(lists:flatten([binary_to_list(O), " ", binary_to_list(Op)]))]
                     , CtxAcc2};
                 {O, Op} when is_binary(Op) ->
-                    {Os, CtxAcc1} = foldi(O, Fun, CtxAcc),
+                    {Os, CtxAcc1} = foldi(FType, O, Fun, CtxAcc),
                     CtxAcc2 = Fun(Op, CtxAcc1),
                     {Acc++[string:strip(lists:flatten([Os, " ", binary_to_list(Op)]))]
                     , CtxAcc2}
@@ -1514,30 +1724,41 @@ foldi({'order by', OrderBy} = ST, Fun, Ctx)
         end,
         {[], NewCtx},
         OrderBy),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
     {if Size > 0 ->
         " order by " ++ string:join(OrderByStr, ", ")
         ++ " ";
         true -> ""
      end
-    , NewCtx1};
+    , NewCtx2};
 
 % joins
-foldi({JoinType, Tab} = ST, Fun, Ctx)
+foldi(FType, {JoinType, Tab} = ST, Fun, Ctx)
  when (is_function(Fun,2) andalso (
         (JoinType =:= cross_join) orelse
         (JoinType =:= natural_join) orelse
         (JoinType =:= natural_inner_join)
      )) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     NewCtx1 = Fun(JoinType, NewCtx),
-    {TabStr, NewCtx2} = foldi(Tab, Fun, NewCtx1),
+    {TabStr, NewCtx2} = foldi(FType, Tab, Fun, NewCtx1),
+    NewCtx3 = case FType of
+        top_down -> NewCtx2;
+        bottom_up -> Fun(ST, NewCtx2)
+    end,
     {case JoinType of
         cross_join          -> " cross join ";
         natural_join        -> " natural join ";
         natural_inner_join  -> " natural inner join "
      end ++ TabStr
-    , NewCtx2};
-foldi({{JoinType,OptPartition,OptNatural},Tab,OptPartition1,OnOrUsing} = ST, Fun, Ctx)
+    , NewCtx3};
+foldi(FType, {{JoinType,OptPartition,OptNatural},Tab,OptPartition1,OnOrUsing} = ST, Fun, Ctx)
  when (is_function(Fun,2) andalso (
         (JoinType =:= full) orelse
         (JoinType =:= left) orelse
@@ -1546,14 +1767,21 @@ foldi({{JoinType,OptPartition,OptNatural},Tab,OptPartition1,OnOrUsing} = ST, Fun
         (JoinType =:= left_outer) orelse
         (JoinType =:= right_outer)
       )) ->
-    NewCtx = Fun(ST, Ctx),
-    {OptPartitionStr, NewCtx1}  = foldi(OptPartition, Fun,   NewCtx),
-    {OptNaturalStr,   NewCtx2} = foldi(OptNatural, Fun,     NewCtx1),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {OptPartitionStr, NewCtx1}  = foldi(FType, OptPartition, Fun,   NewCtx),
+    {OptNaturalStr,   NewCtx2} = foldi(FType, OptNatural, Fun,     NewCtx1),
                       NewCtx3  = Fun(JoinType,              NewCtx2),
-    {TabStr,          NewCtx4} = foldi(Tab, Fun,            NewCtx3),
-    {OptPartition1Str,NewCtx5} = foldi(OptPartition1, Fun,  NewCtx4),
-    {OnOrUsingStr,    NewCtx6} = foldi(OnOrUsing, Fun,      NewCtx5),
+    {TabStr,          NewCtx4} = foldi(FType, Tab, Fun,            NewCtx3),
+    {OptPartition1Str,NewCtx5} = foldi(FType, OptPartition1, Fun,  NewCtx4),
+    {OnOrUsingStr,    NewCtx6} = foldi(FType, OnOrUsing, Fun,      NewCtx5),
 
+    NewCtx7 = case FType of
+        top_down -> NewCtx6;
+        bottom_up -> Fun(ST, NewCtx6)
+    end,
     {OptPartitionStr ++ OptNaturalStr ++
     case JoinType of
         full        -> " full join ";
@@ -1563,183 +1791,289 @@ foldi({{JoinType,OptPartition,OptNatural},Tab,OptPartition1,OnOrUsing} = ST, Fun
         left_outer  -> " left outer join ";
         right_outer -> " right outer join "
     end ++ TabStr ++ OptPartition1Str ++ OnOrUsingStr
-    , NewCtx6};
-foldi({JoinType, Tab, OnOrUsing} = ST, Fun, Ctx)
+    , NewCtx7};
+foldi(FType, {JoinType, Tab, OnOrUsing} = ST, Fun, Ctx)
  when (is_function(Fun,2) andalso (
         (JoinType =:= join) orelse
         (JoinType =:= join_inner)
       )) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     NewCtx1 = Fun(JoinType, NewCtx),
-    {TabStr, NewCtx2} = foldi(Tab, Fun, NewCtx1),
-    {OnOrUsingStr, NewCtx3} = foldi(OnOrUsing, Fun, NewCtx2),
+    {TabStr, NewCtx2} = foldi(FType, Tab, Fun, NewCtx1),
+    {OnOrUsingStr, NewCtx3} = foldi(FType, OnOrUsing, Fun, NewCtx2),
+    NewCtx4 = case FType of
+        top_down -> NewCtx3;
+        bottom_up -> Fun(ST, NewCtx3)
+    end,
     {case JoinType of
         join        -> " join ";
         join_inner -> " inner join "
      end ++ TabStr ++ OnOrUsingStr
-    , NewCtx3};
-foldi({partition_by,Fields} = ST, Fun, Ctx)
+    , NewCtx4};
+foldi(FType, {partition_by,Fields} = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     {FieldsStr, NewCtx1} = lists:foldl(fun(F, {Acc, CtxAcc}) ->
             {Acc++[binary_to_list(F)], Fun(F, CtxAcc)}
         end,
         {[], NewCtx},
         Fields),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
     {" partition by (" ++ string:join(FieldsStr, ",") ++ ")"
-    , NewCtx1};
-foldi({on, Condition} = ST, Fun, Ctx)
+    , NewCtx2};
+foldi(FType, {on, Condition} = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
-    {CondStr, NewCtx1} = foldi(Condition, Fun, NewCtx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {CondStr, NewCtx1} = foldi(FType, Condition, Fun, NewCtx),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
     {" on " ++ CondStr
-    , NewCtx1};
-foldi({using, ColumnList} = ST, Fun, Ctx)
+    , NewCtx2};
+foldi(FType, {using, ColumnList} = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     {ColumnListStr, NewCtx1} = lists:foldl(fun(C, {Acc, CtxAcc}) ->
             {Acc++[binary_to_list(C)], Fun(C, CtxAcc)}
         end,
         {[], NewCtx},
         ColumnList),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
     {" using (" ++ string:join(ColumnListStr, ",") ++ ")"
-    , NewCtx1};
-foldi(natural, Fun, Ctx)
+    , NewCtx2};
+foldi(_FType, natural, Fun, Ctx)
  when is_function(Fun,2) ->
     {" natural", Fun(natural, Ctx)};
-foldi({Tab, [J|_] = Joins} = ST, Fun, Ctx)
+foldi(FType, {Tab, [J|_] = Joins} = ST, Fun, Ctx)
  when is_function(Fun,2) andalso
         (is_tuple(J) andalso (is_binary(Tab) orelse is_tuple(Tab))) ->
-    NewCtx = Fun(ST, Ctx),
-    {TabStr, NewCtx1} = foldi(Tab, Fun, NewCtx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {TabStr, NewCtx1} = foldi(FType, Tab, Fun, NewCtx),
     {JoinsStr, NewCtx2} = lists:foldl(fun(Join, {Acc, CtxAcc}) ->
-            {SubAcc, CtxAcc1} = foldi(Join, Fun, CtxAcc),
+            {SubAcc, CtxAcc1} = foldi(FType, Join, Fun, CtxAcc),
             {Acc++[SubAcc], CtxAcc1}
         end,
         {[], NewCtx1},
         Joins),
+    NewCtx3 = case FType of
+        top_down -> NewCtx2;
+        bottom_up -> Fun(ST, NewCtx2)
+    end,
     {TabStr++JoinsStr
-    , NewCtx2};
-
-% betwen operator
-foldi({'between', A, B, C} = ST, Fun, Ctx)
- when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
-    {A1, NewCtx1}  = if is_binary(A) -> {binary_to_list(A), NewCtx}; true -> foldi(A, Fun, NewCtx) end,
-    {B1, NewCtx2} = if is_binary(B) -> {binary_to_list(B), NewCtx1}; true -> foldi(B, Fun, NewCtx1) end,
-    {C1, NewCtx3} = if is_binary(C) -> {binary_to_list(C), NewCtx2}; true -> foldi(C, Fun, NewCtx2) end,
-    {lists:flatten([A1,  " between ", B1, " and ", C1])
     , NewCtx3};
 
-% PL/SQL concatenate operator
-foldi({'||', Args} = ST, Fun, Ctx)
+% betwen operator
+foldi(FType, {'between', A, B, C} = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {A1, NewCtx1}  = if is_binary(A) -> {binary_to_list(A), NewCtx}; true -> foldi(FType, A, Fun, NewCtx) end,
+    {B1, NewCtx2} = if is_binary(B) -> {binary_to_list(B), NewCtx1}; true -> foldi(FType, B, Fun, NewCtx1) end,
+    {C1, NewCtx3} = if is_binary(C) -> {binary_to_list(C), NewCtx2}; true -> foldi(FType, C, Fun, NewCtx2) end,
+    NewCtx4 = case FType of
+        top_down -> NewCtx3;
+        bottom_up -> Fun(ST, NewCtx3)
+    end,
+    {lists:flatten([A1,  " between ", B1, " and ", C1])
+    , NewCtx4};
+
+% PL/SQL concatenate operator
+foldi(FType, {'||', Args} = ST, Fun, Ctx)
+ when is_function(Fun,2) ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     {ArgsStr, NewCtx1} = lists:foldl(fun(A, {Acc, CtxAcc}) ->
             case A of
                 A when is_binary(A) -> {Acc++[binary_to_list(A)], Fun(A, CtxAcc)};
                 A ->
-                    {SubAcc, CtxAcc1} = foldi(A, Fun, CtxAcc),
+                    {SubAcc, CtxAcc1} = foldi(FType, A, Fun, CtxAcc),
                     {Acc++[SubAcc], CtxAcc1}
             end
         end,
         {[], NewCtx},
         Args),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
     {string:join(ArgsStr, " || ")
-    , NewCtx1};
+    , NewCtx2};
 
 % All aliases
-foldi({as, A, B} = ST, Fun, Ctx)
+foldi(FType, {as, A, B} = ST, Fun, Ctx)
  when is_function(Fun,2), is_binary(A), is_binary(B) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     NewCtx1 = Fun(A, NewCtx),
     NewCtx2 = Fun(B, NewCtx1),
+    NewCtx3 = case FType of
+        top_down -> NewCtx2;
+        bottom_up -> Fun(ST, NewCtx2)
+    end,
     {lists:flatten([binary_to_list(A), " ", binary_to_list(B)])
-    , NewCtx2};
-foldi({as, A, B} = ST, Fun, Ctx)
+    , NewCtx3};
+foldi(FType, {as, A, B} = ST, Fun, Ctx)
     when is_function(Fun,2), is_binary(B) ->
-    NewCtx = Fun(ST, Ctx),
-    {AStr, NewCtx1} = foldi(A, Fun, NewCtx), 
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {AStr, NewCtx1} = foldi(FType, A, Fun, NewCtx), 
     NewCtx2 = Fun(B, NewCtx1),
+    NewCtx3 = case FType of
+        top_down -> NewCtx2;
+        bottom_up -> Fun(ST, NewCtx2)
+    end,
     {lists:flatten([AStr, " ", binary_to_list(B)])
-    , NewCtx2};
-foldi({as, A} = ST, Fun, Ctx)
+    , NewCtx3};
+foldi(FType, {as, A} = ST, Fun, Ctx)
  when is_function(Fun,2), is_binary(A) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     NewCtx1 = Fun(A, NewCtx),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
     {lists:flatten(["as ", binary_to_list(A)])
-    , NewCtx1};
-foldi(Tab, Fun, Ctx)
+    , NewCtx2};
+foldi(_FType, Tab, Fun, Ctx)
  when is_function(Fun,2), is_binary(Tab) ->
-    NewCtx = Fun(Tab, Ctx),
     {binary_to_list(Tab)
-    , NewCtx};
+    , Fun(Tab, Ctx)};
 
 % Union
-foldi({union, A, B} = ST, Fun, Ctx)
+foldi(FType, {union, A, B} = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
-    {AStr, NewCtx1} = foldi(A, Fun, NewCtx),
-    {BStr, NewCtx2} = foldi(B, Fun, NewCtx1),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {AStr, NewCtx1} = foldi(FType, A, Fun, NewCtx),
+    {BStr, NewCtx2} = foldi(FType, B, Fun, NewCtx1),
+    NewCtx3 = case FType of
+        top_down -> NewCtx2;
+        bottom_up -> Fun(ST, NewCtx2)
+    end,
     {lists:flatten(["(", AStr, " union ", BStr, ")"])
-    , NewCtx2};
+    , NewCtx3};
 
 % All where clauses
-foldi({where, {}} = ST, Fun, Ctx)
+foldi(_FType, {where, {}} = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
     {""
-    , NewCtx};
-foldi({where, Where} = ST, Fun, Ctx)
+    , Fun(ST, Ctx)};
+foldi(FType, {where, Where} = ST, Fun, Ctx)
  when is_function(Fun,2), is_tuple(Where) ->
-    NewCtx = Fun(ST, Ctx),
-    {WhereStr, NewCtx1} = foldi(Where, Fun, NewCtx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {WhereStr, NewCtx1} = foldi(FType, Where, Fun, NewCtx),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
     {"where " ++ WhereStr
-    , NewCtx1};
+    , NewCtx2};
 
 % Like operator
-foldi({'like',Var,Like,OptEsc} = ST, Fun, Ctx)
+foldi(FType, {'like',Var,Like,OptEsc} = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
-    {VarStr, NewCtx1} = foldi(Var, Fun, NewCtx),
-    {LikeStr, NewCtx2} = foldi(Like, Fun, NewCtx1),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {VarStr, NewCtx1} = foldi(FType, Var, Fun, NewCtx),
+    {LikeStr, NewCtx2} = foldi(FType, Like, Fun, NewCtx1),
     NewCtx3 = Fun(OptEsc, NewCtx2),
+    NewCtx4 = case FType of
+        top_down -> NewCtx3;
+        bottom_up -> Fun(ST, NewCtx3)
+    end,
     {VarStr ++ " like " ++ LikeStr ++
     if byte_size(OptEsc) > 0 -> " escape "++binary_to_list(OptEsc);
        true -> ""
     end
-    , NewCtx3};
+    , NewCtx4};
 
 % In operator
 % for right hand non list argument extra parenthesis added
-foldi({'in', L, {'list', _} = R} = ST, Fun, Ctx)
+foldi(FType, {'in', L, {'list', _} = R} = ST, Fun, Ctx)
  when is_function(Fun,2), is_binary(L) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     NewCtx1 = Fun(L, NewCtx),
-    {RStr, NewCtx2} = foldi(R, Fun, NewCtx1),
+    {RStr, NewCtx2} = foldi(FType, R, Fun, NewCtx1),
+    NewCtx3 = case FType of
+        top_down -> NewCtx2;
+        bottom_up -> Fun(ST, NewCtx2)
+    end,
     {lists:flatten([binary_to_list(L), " in ", RStr])
-    , NewCtx2};
-foldi({'in', L, R} = ST, Fun, Ctx)
+    , NewCtx3};
+foldi(FType, {'in', L, R} = ST, Fun, Ctx)
  when is_function(Fun,2), is_binary(L), is_tuple(R) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     NewCtx1 = Fun(L, NewCtx),
-    {RStr, NewCtx2} = foldi(R, Fun, NewCtx1),
+    {RStr, NewCtx2} = foldi(FType, R, Fun, NewCtx1),
+    NewCtx3 = case FType of
+        top_down -> NewCtx2;
+        bottom_up -> Fun(ST, NewCtx2)
+    end,
     {lists:flatten([binary_to_list(L), " in (", RStr, ")"])
-    , NewCtx2};
+    , NewCtx3};
 
 % Optional Returning phrase
-foldi({R, Sel, Var} = ST, Fun, Ctx)
+foldi(FType, {R, Sel, Var} = ST, Fun, Ctx)
  when is_function(Fun,2) andalso (
         (R =:= return) orelse
         (R =:= returning)
       ) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     NewCtx1 = Fun(R, NewCtx),
     {SelStr, NewCtx2} = lists:foldl(fun(S, {Acc, CtxAcc}) ->
             case S of
                 S when is_binary(S) -> {Acc++[binary_to_list(S)], Fun(S, CtxAcc)};
                 S ->
-                    {SubAcc, CtxAcc1} = foldi(S, Fun, CtxAcc),
+                    {SubAcc, CtxAcc1} = foldi(FType, S, Fun, CtxAcc),
                     {Acc++[SubAcc], CtxAcc1}
             end
         end,
@@ -1749,96 +2083,140 @@ foldi({R, Sel, Var} = ST, Fun, Ctx)
             case V of
                 V when is_binary(V) -> {Acc++[binary_to_list(V)], Fun(V, CtxAcc)};
                 V ->
-                    {SubAcc, CtxAcc1} = foldi(V, Fun, CtxAcc),
+                    {SubAcc, CtxAcc1} = foldi(FType, V, Fun, CtxAcc),
                     {Acc++[SubAcc], CtxAcc1}
             end
         end,
         {[], NewCtx2},
         Var),
+    NewCtx4 = case FType of
+        top_down -> NewCtx3;
+        bottom_up -> Fun(ST, NewCtx3)
+    end,
     {" "++atom_to_list(R)++" "++string:join(SelStr, ",")
     ++ " INTO " ++
     string:join(VarStr, ",")
-    , NewCtx3};
-foldi({R, {}}, Fun, Ctx)
+    , NewCtx4};
+foldi(_FType, {R, {}}, Fun, Ctx)
  when is_function(Fun,2) andalso (
         (R =:= return) orelse
         (R =:= returning)
       ) ->
-    {"", Fun(R, Ctx)};
+    {""
+    , Fun(R, Ctx)};
 
 % Boolean and arithmetic binary operators handled with precedence
 % *,/ > +,- > and > or
-foldi({Op, L, R} = ST, Fun, Ctx)
+foldi(FType, {Op, L, R} = ST, Fun, Ctx)
  when is_function(Fun,2), is_atom(Op), is_tuple(L), is_tuple(R) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     {Fl, NewCtx1} = case {Op, element(1, L)} of
-        {'*', Ol} when Ol =:= '-'; Ol =:= '+' -> {Ls, NC1} = foldi(L, Fun, NewCtx), {lists:flatten(["(",Ls,")"]), NC1};
-        {'/', Ol} when Ol =:= '-'; Ol =:= '+' -> {Ls, NC1} = foldi(L, Fun, NewCtx), {lists:flatten(["(",Ls,")"]), NC1};
-        {'and', 'or'}                         -> {Ls, NC1} = foldi(L, Fun, NewCtx), {lists:flatten(["(",Ls,")"]), NC1};
-        _ -> foldi(L, Fun, NewCtx)
+        {'*', Ol} when Ol =:= '-'; Ol =:= '+' -> {Ls, NC1} = foldi(FType, L, Fun, NewCtx), {lists:flatten(["(",Ls,")"]), NC1};
+        {'/', Ol} when Ol =:= '-'; Ol =:= '+' -> {Ls, NC1} = foldi(FType, L, Fun, NewCtx), {lists:flatten(["(",Ls,")"]), NC1};
+        {'and', 'or'}                         -> {Ls, NC1} = foldi(FType, L, Fun, NewCtx), {lists:flatten(["(",Ls,")"]), NC1};
+        _ -> foldi(FType, L, Fun, NewCtx)
     end,
     NewCtx2 = Fun(Op, NewCtx1),
     {Fr, NewCtx3} = case {Op, element(1, R)} of
-        {'*', Or} when Or =:= '-'; Or =:= '+' -> {Rs, NC2} = foldi(R, Fun, NewCtx2), {lists:flatten(["(",Rs,")"]), NC2};
-        {'/', Or} when Or =:= '-'; Or =:= '+' -> {Rs, NC2} = foldi(R, Fun, NewCtx2), {lists:flatten(["(",Rs,")"]), NC2};
-        {'and', 'or'}                         -> {Rs, NC2} = foldi(R, Fun, NewCtx2), {lists:flatten(["(",Rs,")"]), NC2};
-        _ -> foldi(R, Fun, NewCtx2)
+        {'*', Or} when Or =:= '-'; Or =:= '+' -> {Rs, NC2} = foldi(FType, R, Fun, NewCtx2), {lists:flatten(["(",Rs,")"]), NC2};
+        {'/', Or} when Or =:= '-'; Or =:= '+' -> {Rs, NC2} = foldi(FType, R, Fun, NewCtx2), {lists:flatten(["(",Rs,")"]), NC2};
+        {'and', 'or'}                         -> {Rs, NC2} = foldi(FType, R, Fun, NewCtx2), {lists:flatten(["(",Rs,")"]), NC2};
+        _ -> foldi(FType, R, Fun, NewCtx2)
+    end,
+    NewCtx4 = case FType of
+        top_down -> NewCtx3;
+        bottom_up -> Fun(ST, NewCtx3)
     end,
     {lists:flatten([Fl, " ", atom_to_list(Op), " ", Fr])
-    , NewCtx3};
-foldi({Op, L, R} = ST, Fun, Ctx)
+    , NewCtx4};
+foldi(FType, {Op, L, R} = ST, Fun, Ctx)
  when is_function(Fun,2), is_atom(Op), is_binary(L), is_tuple(R) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     NewCtx1 = Fun(L, NewCtx),
     NewCtx2 = Fun(Op, NewCtx1),
     {Fr, NewCtx3} = case {Op, element(1, R)} of
-        {'*', Or} when Or =:= '-'; Or =:= '+' -> {Rs, NC} = foldi(R, Fun, NewCtx2), {lists:flatten(["(",Rs,")"]), NC};
-        {'/', Or} when Or =:= '-'; Or =:= '+' -> {Rs, NC} = foldi(R, Fun, NewCtx2), {lists:flatten(["(",Rs,")"]), NC};
-        _ -> foldi(R, Fun, NewCtx2)
+        {'*', Or} when Or =:= '-'; Or =:= '+' -> {Rs, NC} = foldi(FType, R, Fun, NewCtx2), {lists:flatten(["(",Rs,")"]), NC};
+        {'/', Or} when Or =:= '-'; Or =:= '+' -> {Rs, NC} = foldi(FType, R, Fun, NewCtx2), {lists:flatten(["(",Rs,")"]), NC};
+        _ -> foldi(FType, R, Fun, NewCtx2)
+    end,
+    NewCtx4 = case FType of
+        top_down -> NewCtx3;
+        bottom_up -> Fun(ST, NewCtx3)
     end,
     {lists:flatten([binary_to_list(L), " ", atom_to_list(Op), " ", Fr])
-    , NewCtx3};
-foldi({Op, L, R} = ST, Fun, Ctx)
+    , NewCtx4};
+foldi(FType, {Op, L, R} = ST, Fun, Ctx)
  when is_function(Fun,2), is_atom(Op), is_tuple(L), is_binary(R) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     {Fl, NewCtx1} = case {Op, element(1, L)} of
-        {'*', Ol} when Ol =:= '-'; Ol =:= '+' -> {Ls, NC} = foldi(L, Fun, NewCtx), {lists:flatten(["(",Ls,")"]), NC};
-        {'/', Ol} when Ol =:= '-'; Ol =:= '+' -> {Ls, NC} = foldi(L, Fun, NewCtx), {lists:flatten(["(",Ls,")"]), NC};
-        _ -> foldi(L, Fun, NewCtx)
+        {'*', Ol} when Ol =:= '-'; Ol =:= '+' -> {Ls, NC} = foldi(FType, L, Fun, NewCtx), {lists:flatten(["(",Ls,")"]), NC};
+        {'/', Ol} when Ol =:= '-'; Ol =:= '+' -> {Ls, NC} = foldi(FType, L, Fun, NewCtx), {lists:flatten(["(",Ls,")"]), NC};
+        _ -> foldi(FType, L, Fun, NewCtx)
     end,
     NewCtx2 = Fun(Op, NewCtx1),
     NewCtx3 = Fun(R, NewCtx2),
+    NewCtx4 = case FType of
+        top_down -> NewCtx3;
+        bottom_up -> Fun(ST, NewCtx3)
+    end,
     {lists:flatten([Fl, " ", atom_to_list(Op), " ", binary_to_list(R)])
-    , NewCtx3};
-foldi({Op, L, R} = ST, Fun, Ctx)
+    , NewCtx4};
+foldi(FType, {Op, L, R} = ST, Fun, Ctx)
  when is_function(Fun,2), is_atom(Op), is_binary(L), is_binary(R) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     NewCtx1 = Fun(L, NewCtx),
     NewCtx2 = Fun(Op, NewCtx1),
     NewCtx3 = Fun(R, NewCtx2),
+    NewCtx4 = case FType of
+        top_down -> NewCtx3;
+        bottom_up -> Fun(ST, NewCtx3)
+    end,
     {lists:flatten([binary_to_list(L), " ", atom_to_list(Op), " ", binary_to_list(R)])
-    , NewCtx3};
+    , NewCtx4};
 
 % Unary - and 'not' operators
-foldi({Op, A} = ST, Fun, Ctx)
+foldi(FType, {Op, A} = ST, Fun, Ctx)
  when is_function(Fun,2) andalso (Op =:= '-' orelse Op =:= 'not') ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     NewCtx1 = Fun(Op, NewCtx),
-    case A of
+    {Str, NewCtx3} = case A of
         A when is_binary(A) ->
             NewCtx2 = Fun(A, NewCtx1),
             {lists:flatten([atom_to_list(Op), " (", binary_to_list(A), ")"])
             , NewCtx2};
         A ->
-            {As, NewCtx2} = foldi(A, Fun, NewCtx1),
+            {As, NewCtx2} = foldi(FType, A, Fun, NewCtx1),
             {lists:flatten([atom_to_list(Op)," (", As, ")"])
             , NewCtx2}
-    end;
+    end,
+    NewCtx4 = case FType of
+        top_down -> NewCtx3;
+        bottom_up -> Fun(ST, NewCtx3)
+    end,
+    {Str, NewCtx4};
 
 % funs
-foldi({'fun', N, Args} = ST, Fun, Ctx)
+foldi(FType, {'fun', N, Args} = ST, Fun, Ctx)
  when is_function(Fun,2), is_binary(N) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     NewCtx1 = Fun(N, NewCtx),
     {ArgsStr, NewCtx2} = lists:foldl(fun(A, {Acc, CtxAcc}) ->
             case A of
@@ -1849,104 +2227,157 @@ foldi({'fun', N, Args} = ST, Fun, Ctx)
                                                      , 'truncate table', 'update', 'delete'
                                                      , 'grant', 'revoke']) of
                         true ->
-                            {SubAcc, CtxAcc1} = foldi(A, Fun, CtxAcc),
+                            {SubAcc, CtxAcc1} = foldi(FType, A, Fun, CtxAcc),
                             {Acc++["(" ++ string:strip(SubAcc) ++ ")"], CtxAcc1};
                         _ ->
-                            {SubAcc, CtxAcc1} = foldi(A, Fun, CtxAcc),
+                            {SubAcc, CtxAcc1} = foldi(FType, A, Fun, CtxAcc),
                             {Acc++[SubAcc], CtxAcc1}
                     end;
                 A ->
-                    {SubAcc, CtxAcc1} = foldi(A, Fun, CtxAcc),
+                    {SubAcc, CtxAcc1} = foldi(FType, A, Fun, CtxAcc),
                     {Acc++[SubAcc], CtxAcc1}
             end
         end,
         {[], NewCtx1},
         Args),
+    NewCtx3 = case FType of
+        top_down -> NewCtx2;
+        bottom_up -> Fun(ST, NewCtx2)
+    end,
     {binary_to_list(N) ++ "(" ++
     string:join(ArgsStr, ", ")
     ++ ")"
-    , NewCtx2};
+    , NewCtx3};
 
 % hierarchical query
-foldi({'hierarchical query', {}} = ST, Fun, Ctx)
+foldi(_FType, {'hierarchical query', {}} = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
-    {"", NewCtx};
-foldi({'hierarchical query', {Part1, Part2}} = ST, Fun, Ctx)
+    {""
+    , Fun(ST, Ctx)};
+foldi(FType, {'hierarchical query', {Part1, Part2}} = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
-    {Part1Str, NewCtx1} = foldi(Part1, Fun, NewCtx),
-    {Part2Str, NewCtx2} = foldi(Part2, Fun, NewCtx1),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {Part1Str, NewCtx1} = foldi(FType, Part1, Fun, NewCtx),
+    {Part2Str, NewCtx2} = foldi(FType, Part2, Fun, NewCtx1),
+    NewCtx3 = case FType of
+        top_down -> NewCtx2;
+        bottom_up -> Fun(ST, NewCtx2)
+    end,
     {lists:flatten([Part1Str, " ", Part2Str])
-    , NewCtx2};
-foldi({'start with', StartWith} = ST, Fun, Ctx)
+    , NewCtx3};
+foldi(FType, {'start with', StartWith} = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
-    {StartWithStr, NewCtx1} = foldi(StartWith, Fun, NewCtx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {StartWithStr, NewCtx1} = foldi(FType, StartWith, Fun, NewCtx),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
     {lists:flatten([" start with ", StartWithStr])
-    , NewCtx1};
-foldi({'connect by', NoCycle, ConnectBy} = ST, Fun, Ctx)
+    , NewCtx2};
+foldi(FType, {'connect by', NoCycle, ConnectBy} = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
-    {NoCycleStr, NewCtx1} = foldi(NoCycle, Fun, NewCtx),
-    {ConnectByStr, NewCtx2} = foldi(ConnectBy, Fun, NewCtx1),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {NoCycleStr, NewCtx1} = foldi(FType, NoCycle, Fun, NewCtx),
+    {ConnectByStr, NewCtx2} = foldi(FType, ConnectBy, Fun, NewCtx1),
+    NewCtx3 = case FType of
+        top_down -> NewCtx2;
+        bottom_up -> Fun(ST, NewCtx2)
+    end,
     {lists:flatten(["connect by "
                   , if byte_size(NoCycle) > 0 -> NoCycleStr++" "; true -> "" end
                   , ConnectByStr])
-    , NewCtx2};
-foldi({'prior', Field} = ST, Fun, Ctx)
+    , NewCtx3};
+foldi(FType, {'prior', Field} = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
-    {FieldsStr, NewCtx1} = foldi(Field, Fun, NewCtx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {FieldsStr, NewCtx1} = foldi(FType, Field, Fun, NewCtx),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
     {lists:flatten(["prior ", FieldsStr])
-    , NewCtx1};
+    , NewCtx2};
 
 % lists
-foldi({'list', Elms} = ST, Fun, Ctx)
+foldi(FType, {'list', Elms} = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     {ElmsStr, NewCtx1} = lists:foldl(fun(E, {Acc, CtxAcc}) ->
             case E of
                 E when is_binary(E) -> {Acc++[binary_to_list(E)], Fun(E, CtxAcc)};
                 E ->
-                    {SubAcc, CtxAcc1} = foldi(E, Fun, CtxAcc),
+                    {SubAcc, CtxAcc1} = foldi(FType, E, Fun, CtxAcc),
                     {Acc++[SubAcc], CtxAcc1}
             end
         end,
         {[], NewCtx},
         Elms),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
     {"(" ++
      string:join(ElmsStr, ", ")
      ++ ")"
-    , NewCtx1};
+    , NewCtx2};
 
-foldi({'param', P} = ST, Fun, Ctx)
+foldi(FType, {'param', P} = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
     NewCtx1 = Fun(P, NewCtx),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
     case P of
-        P when is_binary(P) -> {binary_to_list(P), NewCtx1};
-        P -> {P, NewCtx1}
+        P when is_binary(P) -> {binary_to_list(P), NewCtx2};
+        P -> {P, NewCtx2}
     end;
 
-foldi({'case', When, Then, Else} = ST, Fun, Ctx)
+foldi(FType, {'case', When, Then, Else} = ST, Fun, Ctx)
  when is_function(Fun,2) ->
-    NewCtx = Fun(ST, Ctx),
-    {WhenStr, NewCtx1} = foldi(When, Fun, NewCtx),
-    {ThenStr, NewCtx2} = foldi(Then, Fun, NewCtx1),
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {WhenStr, NewCtx1} = foldi(FType, When, Fun, NewCtx),
+    {ThenStr, NewCtx2} = foldi(FType, Then, Fun, NewCtx1),
     {ElseStr, NewCtx3} = case Else of
         {} -> {"", NewCtx2};
         Else ->
-            {EStr, NewCtx21} = foldi(Else, Fun, NewCtx2),
+            {EStr, NewCtx21} = foldi(FType, Else, Fun, NewCtx2),
             {" else " ++ EStr, NewCtx21}
     end,
+    NewCtx4 = case FType of
+        top_down -> NewCtx3;
+        bottom_up -> Fun(ST, NewCtx3)
+    end,
     {"case when " ++WhenStr++" then "++ThenStr++ElseStr++" end"
-    , NewCtx3};
+    , NewCtx4};
 
 %
 % UNSUPPORTED
 %
-foldi(PTree, Fun, Ctx)
+foldi(_FType, PTree, Fun, Ctx)
  when is_function(Fun,2) ->
     Fun(PTree, Ctx),
     io:format(user, "Parse tree not supported ~p~n", [PTree]),
@@ -1958,8 +2389,6 @@ foldi(PTree, Fun, Ctx)
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
 -include("sql_tests.hrl").
-
-foldi(PTree) -> foldi(PTree, fun(_,_) -> ok end, ok).
 
 %%-----------------------------------------------------------------------------
 %%                               EUnit test

@@ -928,7 +928,7 @@ Erlang code.
 -export([init/1]).
 
 % parser and compiler interface
--export([fold/1, fold/3, parsetree/1, is_reserved/1]).
+-export([pt_to_string/1, foldtd/3, parsetree/1, is_reserved/1]).
 
 -ifdef(TEST).
 % eunit helper function
@@ -1038,11 +1038,11 @@ is_reserved(Word) when is_list(Word)    -> lists:member(erlang:list_to_atom(stri
 %%                                  COMPILER
 %%-----------------------------------------------------------------------------
 
--spec fold(tuple()) -> {error, term()} | binary().
-fold(PTree) -> fold(PTree, fun(_,_) -> null_fun end, null_fun).
+-spec pt_to_string(tuple()) -> {error, term()} | binary().
+pt_to_string(PTree) -> foldtd(fun(_,_) -> null_fun end, null_fun, PTree).
 
--spec fold(tuple(), fun(), term()) -> {error, term()} | binary().
-fold(PTree, Fun, Ctx) when is_function(Fun, 2) ->
+-spec foldtd(fun(), term(), tuple()) -> {error, term()} | binary().
+foldtd(Fun, Ctx, PTree) when is_function(Fun, 2) ->
     try foldi(PTree, Fun, Ctx) of
         {error,_} = Error -> Error;
         {Sql, null_fun = Ctx} -> list_to_binary(string:strip(Sql));
@@ -1991,8 +1991,8 @@ test_parse(ShowParseTree, [BinSql|Sqls], N, Limit, Private) ->
         {ok, {[{ParseTree,_}|_], Tokens}} -> 
             if ShowParseTree ->
         	    io:format(user, "~p~n", [ParseTree]),
-                {NSql, _} = foldi(ParseTree),
-                io:format(user,  "~n> " ++ NSql ++ "~n", []),
+                NSql = pt_to_string(ParseTree),
+                io:format(user,  "~n> ~s~n", [NSql]),
                 {ok, {[{NPTree,_}|_], NToks}} = sqlparse:parsetree(NSql),
                 try
                     ParseTree = NPTree

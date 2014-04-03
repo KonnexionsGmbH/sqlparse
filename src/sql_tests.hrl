@@ -5,7 +5,7 @@
 %<<"SELECT * from tab1 INNER JOIN tab2 tab3 tab4 on a = b">>, %% INVALID - negative test
 %<<"select * from ALL_USERS where order by user_id asc">>, %% INVALID
 %<<"select a < 0 from abc">>, %% SUPPORT IN PROGRESS
-<<"select 'öüäéèà', 'شلاؤيثبلتهتنمةىخ' from dual"/utf8>>,
+<<"select 'öüäéèà', 'شلاؤيثبلتهتنمةىخ','นี่คือการทดสอบ' from dual"/utf8>>,
 <<"sElect
     /*+004*/
     distinct

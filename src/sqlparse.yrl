@@ -2416,13 +2416,13 @@ test_parse(ShowParseTree, [BinSql|Sqls], N, Limit, Private) ->
         BinSql when is_list(BinSql)   -> BinSql;
         BinSql when is_binary(BinSql) -> binary_to_list(BinSql)
     end,
-    io:format(user, "[~p]~n~ts~n", [N,list_to_binary(Sql)]),
+    io:format(user, "[~p]~n~ts~n", [N,Sql]),
     case sqlparse:parsetree(BinSql) of
         {ok, {[{ParseTree,_}|_], Tokens}} -> 
             if ShowParseTree ->
         	    io:format(user, "~p~n", [ParseTree]),
                 NSql = pt_to_string(ParseTree),
-                io:format(user,  "~n> ~ts~n", [NSql]),
+                io:format(user,  "~n> ~ts~n", [binary_to_list(NSql)]),
                 {ok, {[{NPTree,_}|_], NToks}} = sqlparse:parsetree(NSql),
                 try
                     ParseTree = NPTree

@@ -1012,6 +1012,7 @@ make_list(L) -> [L].
 %%-----------------------------------------------------------------------------
 -spec parsetree(binary()|list()) -> {parse_error, term()} | {lex_error, term()} | {ok, {[tuple()], list()}}.
 parsetree(Sql) when is_binary(Sql) -> parsetree(binary_to_list(Sql));
+parsetree([]) -> {parse_error, {not_a_valid_sql, []}};
 parsetree(Sql) when is_list(Sql) ->
     [C|_] = lists:reverse(string:strip(Sql)),
     NSql = if C =:= $; -> Sql; true -> string:strip(Sql) ++ ";" end,

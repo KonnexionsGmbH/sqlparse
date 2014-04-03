@@ -1,9 +1,11 @@
+%% -*- coding: utf-8 -*-
 -ifdef(TEST).
 
 -define (TEST_SELECT,[
 %<<"SELECT * from tab1 INNER JOIN tab2 tab3 tab4 on a = b">>, %% INVALID - negative test
 %<<"select * from ALL_USERS where order by user_id asc">>, %% INVALID
 %<<"select a < 0 from abc">>, %% SUPPORT IN PROGRESS
+<<"select 'öüäéèà', 'شلاؤيثبلتهتنمةىخ' from dual"/utf8>>,
 <<"sElect
     /*+004*/
     distinct
@@ -33,7 +35,7 @@
         tab2 alias INNER JOIN a alias1 ON b.c = c.d
    WHERE field1 IN (to_timestamp('2001-05-23 00:56:00.000000'))
          and employee_id = :EMPNO
-         or a = \"������\"
+         or a = \"üèéöäà\"
          and f2 Like fun(arg1) || '%'
          and column(+) = 1
          or (field2 = field4 || fun('a' || fld3 || fun('a' || fld3)) and 's' || fld2 = 'd' || fld4)

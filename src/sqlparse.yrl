@@ -1042,13 +1042,15 @@ is_reserved(Word) when is_list(Word)    -> lists:member(erlang:list_to_atom(stri
 -spec pt_to_string(tuple()) -> {error, term()} | binary().
 pt_to_string(PTree) when is_tuple(PTree) -> foldtd(fun(_,_) -> null_fun end, null_fun, PTree);
 pt_to_string(PTrees) when is_list(PTrees) ->
-    list_to_binary(string:join([
-        begin
-            {Pt, {extra, Extra}} = PTree,
-            Sql = foldtd(fun(_,_) -> null_fun end, null_fun, Pt),
-            binary_to_list(<< Sql/binary, "; ", Extra/binary >>)
-        end
-    || PTree <- PTrees], "; ")).
+    list_to_binary([string:join([
+        binary_to_list(case PTree of
+            {Pt, {extra, <<>>}} ->
+                foldtd(fun(_,_) -> null_fun end, null_fun, Pt);
+            {Pt, {extra, Extra}} ->
+                Sql = foldtd(fun(_,_) -> null_fun end, null_fun, Pt),
+                << Sql/binary, "; ", Extra/binary >>
+        end)
+    || PTree <- PTrees], "; "), ";"]).
 
 -spec foldtd(fun(), term(), tuple()) -> {error, term()} | binary().
 foldtd(Fun, Ctx, PTree) when is_function(Fun, 2) ->

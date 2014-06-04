@@ -324,6 +324,41 @@ sql_list -> sql_list sql ';' extra                                              
 extra -> '$empty'                                                                               : {extra, <<>>}.
 extra -> NAME  ';'                                                                              : {extra, unwrap_bin('$1')}.
 
+%%     %% procedure definition language
+%% sql -> procedure                                                                                : '$1'.
+%% 
+%% procedure -> CREATE opt_replace PROCEDURE proc_name opt_proc_args proc_body                     : {'create procedure', '$4', '$5', '$6', '$2'}.
+%% 
+%% opt_replace -> '$empty'                                                                         : [].
+%% opt_replace -> OR REPLCE                                                                        : 'replace'.
+%% 
+%% proc_name -> NAME                                                                               : unwrap_bin('$1').
+%% proc_name -> NAME '.' NAME                                                                      : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
+%% 
+%% opt_proc_args -> '$empty'                                                                       : {[], []}.
+%% opt_proc_args -> opt_proc_invoker_rights                                                        : {[], '$1'}.
+%% opt_proc_args -> '(' opt_proc_arg_list ')'                                                      : {'$2', []}.
+%% opt_proc_args -> '(' opt_proc_arg_list ')' opt_proc_invoker_rights                              : {'$2', '$4'}.
+%% opt_proc_arg_list -> opt_proc_arg                                                               : ['$1'].
+%% opt_proc_arg_list -> opt_proc_arg ',' opt_proc_arg_list                                         : ['$1'|'$2'].
+%% 
+%% proc_body -> proc_is_or_as proc_opt_dec body
+%% proc_body -> proc_is_or_as call_spec
+%% proc_body -> proc_is_or_as EXTERNAL
+%% 
+%% opt_proc_invoker_rights -> AUTHID CURRENT_USER                                                  : 'authid current_user'.
+%% opt_proc_invoker_rights -> AUTHID DEFINER                                                       : 'authid definer'.
+%% 
+%% opt_proc_arg -> NAME                                                                            : unwrap_bin('$1').
+%% opt_proc_arg -> NAME proc_arg_qualifier                                                         : {unwrap_bin('$1'), '$2'}.
+%% 
+%% proc_arg_qualifier -> IN NAME opt_proc_arg_default                                              :
+%% proc_arg_qualifier -> NAME opt_proc_arg_default                                                 :
+%% proc_arg_qualifier -> OUT NOCOPY NAME                                                           :
+%% proc_arg_qualifier -> IN OUT NOCOPY NAME                                                        :
+%% proc_arg_qualifier -> OUT NAME                                                                  :
+%% proc_arg_qualifier -> IN OUT NAME                                                               :
+
     %% schema definition language
 sql -> schema                                                                                   : '$1'.
    
@@ -2422,10 +2457,10 @@ parse_test() ->
 test_parse(_, [], _, _, Private) -> Private;
 test_parse(ShowParseTree, [BinSql|Sqls], N, Limit, Private) ->
     %FlatSql = re:replace(Sql, "([\n\r\t ]+)", " ", [{return, list}, global]),
-    Sql = case BinSql of
-        BinSql when is_list(BinSql)   -> BinSql;
-        BinSql when is_binary(BinSql) -> binary_to_list(BinSql)
-    end,
+    %Sql = case BinSql of
+    %    BinSql when is_list(BinSql)   -> BinSql;
+    %    BinSql when is_binary(BinSql) -> binary_to_list(BinSql)
+    %end,
     io:format(user, "[~p]~n~ts~n", [N,BinSql]),
     case sqlparse:parsetree(BinSql) of
         {ok, {[{ParseTree,_}|_], Tokens}} -> 

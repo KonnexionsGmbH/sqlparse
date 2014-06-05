@@ -80,7 +80,11 @@ UNION ALL
                                         "DROP USER test_user_123",
                                         "DROP USER test_user_123 CASCADE",
                                         "DROP TABLE table_name",
-                                        "DROP TABLE IF EXISTS table_name RESTRICT"
+                                        "DROP TABLE IF EXISTS table_name RESTRICT",
+                                        "drop function funny",
+                                        "drop function schm.funny",
+                                        "drop procedure proc",
+                                        "drop procedure schem.proc"
 ]).
 
 -define (TEST_CREATE, [
@@ -218,14 +222,24 @@ UNION ALL
 										"revoke update, delete on ddTable from test_user_1"
 ]).
 
+-define (TEST_PLSQLS,[
+										"declare begin schm.proc(:p_first,:p_second,:p_result); end",
+										"declare begin proc(:p_first,:p_second,:p_result); end",
+										"call proc(:p_first,:p_second,:p_result)",
+										"call schm.proc(:p_first,:p_second,:p_result)",
+										"begin schm.proc(:p_first,:p_second,:p_result); end",
+										"begin proc(:p_first,:p_second,:p_result); end"
+]).
+
 -define(TEST_SQLS, [
-      {"SELECT", ?TEST_SELECT, 1-1} % 1
-    , {"INSERT", ?TEST_INSERT, 1-1} % 2
+      {"SELECT", ?TEST_SELECT, -1} % 1
+    , {"INSERT", ?TEST_INSERT, -1} % 2
     , {"CREATE", ?TEST_CREATE, -1} % 3
-    , {"UPDATE", ?TEST_UPDATE, 1-1} % 4
-    , {"DELETE", ?TEST_DELETE, 1-1} % 5
-    , {"TRUNCT", ?TEST_TRUNCT, 1-1} % 6
-    , {"GRANTS", ?TEST_GRANTS, 1-1} % 7
-    , {"REVOKE", ?TEST_REVOKE, 1-1} % 8
+    , {"UPDATE", ?TEST_UPDATE, -1} % 4
+    , {"DELETE", ?TEST_DELETE, -1} % 5
+    , {"TRUNCT", ?TEST_TRUNCT, -1} % 6
+    , {"GRANTS", ?TEST_GRANTS, -1} % 7
+    , {"REVOKE", ?TEST_REVOKE, -1} % 8
+    , {"PLSQLS", ?TEST_PLSQLS, -1} % 8
 ]).
 -endif.

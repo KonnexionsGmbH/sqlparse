@@ -12,9 +12,10 @@ Nonterminals
  schema_element_list
  schema_element
  base_table_def
- drop_table_def
  alter_user_def
+ drop_table_def
  drop_user_def
+ drop_procfun_def
  base_table_element_commalist
  base_table_element
  column_def
@@ -145,6 +146,7 @@ Nonterminals
  query_partition_clause
  case_when_exp
  opt_else
+ procedure_call
 .
 
     %% symbolic tokens
@@ -174,6 +176,7 @@ Terminals
  CURRENT
  CURSOR
  DECLARE
+ BEGIN
  DEFAULT
  DELETE
  DESC
@@ -287,6 +290,9 @@ Terminals
  THEN
  ELSE
  END
+ PROCEDURE
+ FUNCTION
+ CALL
  'AND'
  'NOT'
  'OR'
@@ -359,6 +365,11 @@ extra -> NAME  ';'                                                              
 %% proc_arg_qualifier -> OUT NAME                                                                  :
 %% proc_arg_qualifier -> IN OUT NAME                                                               :
 
+sql -> procedure_call                                                                           : '$1'.
+procedure_call -> DECLARE BEGIN function_ref ';' END                                            : {'declare begin procedure', '$3'}.
+procedure_call -> BEGIN function_ref ';' END                                                    : {'begin procedure', '$2'}.
+procedure_call -> CALL function_ref                                                             : {'call procedure', '$2'}.
+
     %% schema definition language
 sql -> schema                                                                                   : '$1'.
    
@@ -394,6 +405,9 @@ alter_user_def -> ALTER USER NAME spec_list                                     
 
 drop_user_def -> DROP USER NAME                                                                 : {'drop user', unwrap_bin('$3'), []}.
 drop_user_def -> DROP USER NAME CASCADE                                                         : {'drop user', unwrap_bin('$3'), ['cascade']}.
+
+drop_procfun_def -> DROP PROCEDURE table_name                                                   : {'drop procedure', '$3'}.
+drop_procfun_def -> DROP FUNCTION table_name                                                    : {'drop function', '$3'}.
 
 user_list -> NAME                                                                               : [unwrap_bin('$1')].
 user_list -> NAME user_list                                                                     : [unwrap_bin('$1')] ++ '$2'.
@@ -572,6 +586,7 @@ manipulative_statement -> base_table_def                                        
 manipulative_statement -> drop_table_def                                                        : '$1'.
 manipulative_statement -> alter_user_def                                                        : '$1'.
 manipulative_statement -> drop_user_def                                                         : '$1'.
+manipulative_statement -> drop_procfun_def                                                      : '$1'.
 manipulative_statement -> view_def                                                              : '$1'.
 manipulative_statement -> truncate_table                                                        : '$1'.
 manipulative_statement -> grant_def                                                             : '$1'.
@@ -1337,6 +1352,32 @@ foldi(FType, {'drop user', Usr, Opts} = ST, Fun, Ctx)
     {"drop user " ++ binary_to_list(Usr)
      ++ " " ++ OptsStr
     , NewCtx3};
+foldi(FType, {'drop function', FunctionName} = ST, Fun, Ctx)
+ when is_binary(FunctionName), is_function(Fun, 2) ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    NewCtx1 = Fun(FunctionName, NewCtx),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
+    {"drop function " ++ binary_to_list(FunctionName)
+    , NewCtx2};
+foldi(FType, {'drop procedure', ProcedureName} = ST, Fun, Ctx)
+ when is_binary(ProcedureName), is_function(Fun, 2) ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    NewCtx1 = Fun(ProcedureName, NewCtx),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
+    {"drop procedure " ++ binary_to_list(ProcedureName)
+    , NewCtx2};
 foldi(FType, {'drop table', {tables, Ts}, {exists, E}, {opt, R}} = ST, Fun, Ctx)
  when is_atom(R), is_function(Fun, 2) ->
     NewCtx = case FType of
@@ -2420,6 +2461,32 @@ foldi(FType, {'case', When, Then, Else} = ST, Fun, Ctx)
     {"case when " ++WhenStr++" then "++ThenStr++ElseStr++" end"
     , NewCtx4};
 
+% procedure calls ('declare begin procedure' or 'begin procedure')
+foldi(FType, {D, Function} = ST, Fun, Ctx)
+ when is_function(Fun,2) andalso
+    (D =:= 'declare begin procedure' orelse D =:= 'begin procedure') ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {FunctionStr, NewCtx1} = foldi(FType, Function, Fun, NewCtx),
+    {case D of
+        'declare begin procedure' -> "declare begin ";
+        'begin procedure' -> "begin "
+    end++FunctionStr++"; end"
+    , NewCtx1};
+
+% procedure calls ('call ...')
+foldi(FType, {'call procedure', Function} = ST, Fun, Ctx)
+ when is_function(Fun,2) ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {FunctionStr, NewCtx1} = foldi(FType, Function, Fun, NewCtx),
+    {"call " ++FunctionStr
+    , NewCtx1};
+
 %
 % UNSUPPORTED
 %
@@ -2466,8 +2533,11 @@ test_parse(ShowParseTree, [BinSql|Sqls], N, Limit, Private) ->
         {ok, {[{ParseTree,_}|_], Tokens}} -> 
             if ShowParseTree ->
         	    io:format(user, "~p~n", [ParseTree]),
-                NSql = pt_to_string(ParseTree),
-                io:format(user,  "~n> ~ts~n", [NSql]),
+                NSql = case pt_to_string(ParseTree) of
+                    {error, Error} -> throw({error, Error});
+                    NS -> NS
+                end,
+                io:format(user, "~n> ~ts~n", [NSql]),
                 {ok, {[{NPTree,_}|_], NToks}} = sqlparse:parsetree(NSql),
                 try
                     ParseTree = NPTree

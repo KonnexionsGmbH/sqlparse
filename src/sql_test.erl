@@ -28,24 +28,29 @@ parse_groups(TestFun, ShowParseTree, [{Title, SqlGroup, Limit}|SqlGroups], Count
 
 update_counters(ParseTree, Counters) ->
     case element(1, ParseTree) of
-        'select'         -> incr(1, Counters);
-        'union'          -> incr(1, Counters);
-        'union all'      -> incr(1, Counters);
-        'minus'          -> incr(1, Counters);
-        'intersect'      -> incr(1, Counters);
-        'insert'         -> incr(2, Counters);
-        'create table'   -> incr(3, Counters);
-        'create user'    -> incr(3, Counters);
-        'update'         -> incr(4, Counters);
-        'alter user'     -> incr(4, Counters);
-        'alter table'    -> incr(4, Counters);
-        'delete'         -> incr(5, Counters);
-        'drop user'      -> incr(5, Counters);
-        'drop table'     -> incr(5, Counters);
-        'truncate table' -> incr(6, Counters);
-        'grant'          -> incr(7, Counters);
-        'revoke'         -> incr(8, Counters);
-        _Unknown         ->
+        'select'                    -> incr(1, Counters);
+        'union'                     -> incr(1, Counters);
+        'union all'                 -> incr(1, Counters);
+        'minus'                     -> incr(1, Counters);
+        'intersect'                 -> incr(1, Counters);
+        'insert'                    -> incr(2, Counters);
+        'create table'              -> incr(3, Counters);
+        'create user'               -> incr(3, Counters);
+        'update'                    -> incr(4, Counters);
+        'alter user'                -> incr(4, Counters);
+        'alter table'               -> incr(4, Counters);
+        'delete'                    -> incr(5, Counters);
+        'drop user'                 -> incr(5, Counters);
+        'drop table'                -> incr(5, Counters);
+        'drop function'             -> incr(5, Counters);
+        'drop procedure'            -> incr(5, Counters);
+        'truncate table'            -> incr(6, Counters);
+        'grant'                     -> incr(7, Counters);
+        'revoke'                    -> incr(8, Counters);
+        'begin procedure'           -> incr(9, Counters);
+        'declare begin procedure'   -> incr(9, Counters);
+        'call procedure'            -> incr(9, Counters);
+        _Unknown                    ->
             io:format(user, "Unknown counter increment for ~p~n", [_Unknown]),
             Counters
     end.

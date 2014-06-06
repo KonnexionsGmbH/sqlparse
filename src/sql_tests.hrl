@@ -108,17 +108,18 @@ UNION ALL
                                         "create table table_1 (
                                                        owner userid,
                                                        private term,
+                                                       field_e date default fun()-> calendar:localtime() end.,
                                                        field_t decimal,
                                                        field_t1 bool,
                                                        field_t1 boolean,
+                                                       field_e date1 default fun(C,D)-> C+D end.,
                                                        field_t1 number,
                                                        field_t1 number(1),
                                                        field_t1 number(1,2),
                                                        field_a atom default 'undefined',
                                                        field_b list,
                                                        'field_c' string default 'NULL',
-                                                       'field_d' tuple default erl(\"{1,2}\"),
-                                                       field_e date default fun()-> calendar:localtime() end.
+                                                       'field_d' tuple default erl(\"{1,2}\")
                                                        )",
                                         "CREATE LOCAL BAG TABLE test (fld CHAR)",
                                         "CREATE CLUSTER SET TABLE test (fld CHAR)",
@@ -139,19 +140,18 @@ UNION ALL
                                         , fld TIMESTAMP
                                         , fld INT
                                         )",
-                                        "CREATE LOCAL TABLE test
+                                        "CREATE LOCAL TABLE fun_test
                                         (
-                                        fld TUPLE(0) default fun() -> {} end.
+                                        fld TUPLE(0) default fun(_D) -> {} end.
                                         , fld BINARY(1000)
                                         , fld atom
                                         , fld ipaddr(4) default fun() -> {0,0,0,0} end. 
                                         , fld LIST(0) default fun() -> [] end.
-                                        , fld BINSTR(1000) default fun() -> <<\"no_value\">> end.
+                                        , fld BINSTR(1000) default fun(C,D) -> <<\"no_value\">> end.
                                         , fld PID
                                         , fld ref
-                                        , fld FUN(1)
                                         , fld datetime default fun() -> calendar:local_time() end.
-                                        , fld timestamp(3) default fun() -> erlang:now() end.
+                                        , fld timestamp(3) default fun(A,B) -> erlang:now() end.
                                         , fld INTEGER(10,-3)
                                         )",
                                         "CREATE USER test_user_1 IDENTIFIED BY a_password",

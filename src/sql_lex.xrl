@@ -3,7 +3,7 @@ Definitions.
 Rules.
 
 % erlang funcs
-(fun\(\).*end\.)                                    : {token, {'STRING', TokenLine, TokenChars}}.
+(fun\([A-Za-z0-9,_]*\).*\->.*end\.)                 : match_fun(TokenLine, TokenChars).
 
 % strings
 (\'([^\']*(\'\')*)*\')                              : {token, {'STRING', TokenLine, TokenChars}}.
@@ -267,3 +267,8 @@ match_any(TokenChars, TokenLen, TokenLine, [{P,T}|TPs]) ->
         end;
         nomatch     -> match_any(TokenChars, TokenLen, TokenLine, TPs)
     end.
+
+match_fun(TokenLine, TokenChars) ->
+io:format(user, ">>>>>> TokenChars : ~p~n", [TokenChars]),
+    {match,[MatchedFunStr]} = re:run(TokenChars, "^fun.*end\\.", [ungreedy,dotall,{capture, all, list}]),
+    {token, {'STRING', TokenLine, MatchedFunStr}, string:sub_string(TokenChars, length(MatchedFunStr)+1)}.

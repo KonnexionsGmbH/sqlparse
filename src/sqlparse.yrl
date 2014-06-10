@@ -15,7 +15,6 @@ Nonterminals
  alter_user_def
  drop_table_def
  drop_user_def
- drop_procfun_def
  base_table_element_commalist
  base_table_element
  column_def
@@ -290,8 +289,6 @@ Terminals
  THEN
  ELSE
  END
- PROCEDURE
- FUNCTION
  CALL
  'AND'
  'NOT'
@@ -329,41 +326,6 @@ sql_list -> sql_list sql ';' extra                                              
 
 extra -> '$empty'                                                                               : {extra, <<>>}.
 extra -> NAME  ';'                                                                              : {extra, unwrap_bin('$1')}.
-
-%%     %% procedure definition language
-%% sql -> procedure                                                                                : '$1'.
-%% 
-%% procedure -> CREATE opt_replace PROCEDURE proc_name opt_proc_args proc_body                     : {'create procedure', '$4', '$5', '$6', '$2'}.
-%% 
-%% opt_replace -> '$empty'                                                                         : [].
-%% opt_replace -> OR REPLCE                                                                        : 'replace'.
-%% 
-%% proc_name -> NAME                                                                               : unwrap_bin('$1').
-%% proc_name -> NAME '.' NAME                                                                      : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
-%% 
-%% opt_proc_args -> '$empty'                                                                       : {[], []}.
-%% opt_proc_args -> opt_proc_invoker_rights                                                        : {[], '$1'}.
-%% opt_proc_args -> '(' opt_proc_arg_list ')'                                                      : {'$2', []}.
-%% opt_proc_args -> '(' opt_proc_arg_list ')' opt_proc_invoker_rights                              : {'$2', '$4'}.
-%% opt_proc_arg_list -> opt_proc_arg                                                               : ['$1'].
-%% opt_proc_arg_list -> opt_proc_arg ',' opt_proc_arg_list                                         : ['$1'|'$2'].
-%% 
-%% proc_body -> proc_is_or_as proc_opt_dec body
-%% proc_body -> proc_is_or_as call_spec
-%% proc_body -> proc_is_or_as EXTERNAL
-%% 
-%% opt_proc_invoker_rights -> AUTHID CURRENT_USER                                                  : 'authid current_user'.
-%% opt_proc_invoker_rights -> AUTHID DEFINER                                                       : 'authid definer'.
-%% 
-%% opt_proc_arg -> NAME                                                                            : unwrap_bin('$1').
-%% opt_proc_arg -> NAME proc_arg_qualifier                                                         : {unwrap_bin('$1'), '$2'}.
-%% 
-%% proc_arg_qualifier -> IN NAME opt_proc_arg_default                                              :
-%% proc_arg_qualifier -> NAME opt_proc_arg_default                                                 :
-%% proc_arg_qualifier -> OUT NOCOPY NAME                                                           :
-%% proc_arg_qualifier -> IN OUT NOCOPY NAME                                                        :
-%% proc_arg_qualifier -> OUT NAME                                                                  :
-%% proc_arg_qualifier -> IN OUT NAME                                                               :
 
 sql -> procedure_call                                                                           : '$1'.
 procedure_call -> DECLARE BEGIN function_ref ';' END                                            : {'declare begin procedure', '$3'}.
@@ -405,9 +367,6 @@ alter_user_def -> ALTER USER NAME spec_list                                     
 
 drop_user_def -> DROP USER NAME                                                                 : {'drop user', unwrap_bin('$3'), []}.
 drop_user_def -> DROP USER NAME CASCADE                                                         : {'drop user', unwrap_bin('$3'), ['cascade']}.
-
-drop_procfun_def -> DROP PROCEDURE table_name                                                   : {'drop procedure', '$3'}.
-drop_procfun_def -> DROP FUNCTION table_name                                                    : {'drop function', '$3'}.
 
 user_list -> NAME                                                                               : [unwrap_bin('$1')].
 user_list -> NAME user_list                                                                     : [unwrap_bin('$1')] ++ '$2'.
@@ -586,7 +545,6 @@ manipulative_statement -> base_table_def                                        
 manipulative_statement -> drop_table_def                                                        : '$1'.
 manipulative_statement -> alter_user_def                                                        : '$1'.
 manipulative_statement -> drop_user_def                                                         : '$1'.
-manipulative_statement -> drop_procfun_def                                                      : '$1'.
 manipulative_statement -> view_def                                                              : '$1'.
 manipulative_statement -> truncate_table                                                        : '$1'.
 manipulative_statement -> grant_def                                                             : '$1'.
@@ -615,6 +573,7 @@ delete_statement_searched -> DELETE FROM table opt_where_clause returning       
 
 fetch_statement -> FETCH cursor INTO target_commalist                                           : {'fetch', '$2', {'into', '$4'}}.
 
+insert_statement -> INSERT INTO table                                                           : {'insert', '$3', {}, {}, {}}.
 insert_statement -> INSERT INTO table opt_column_commalist values_or_query_spec returning       : {'insert', '$3', {cols, '$4'}, '$5', '$6'}.
 
 values_or_query_spec -> VALUES '(' insert_atom_commalist ')'                                    : {'values', '$3'}.
@@ -1146,6 +1105,14 @@ foldi(FType, {select, Opts} = ST, Fun, Ctx)
 %
 % INSERT
 %
+foldi(FType, {insert, Tab, {}, {}, {}} = ST, Fun, Ctx)
+ when is_binary(Tab), is_function(Fun, 2) ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {"insert into " ++ binary_to_list(Tab)
+    , NewCtx};
 foldi(FType, {insert, Tab, {cols, Cols}, {values, Values}, Return} = ST, Fun, Ctx)
  when is_binary(Tab), is_function(Fun, 2) ->
     NewCtx = case FType of

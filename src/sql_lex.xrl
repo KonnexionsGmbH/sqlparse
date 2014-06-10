@@ -155,8 +155,6 @@ Erlang code.
     {"^(?i)(PRECISION)$",                'PRECISION'},
     {"^(?i)(PRIMARY)$",                  'PRIMARY'},
     {"^(?i)(PRIVILEGES)$",               'PRIVILEGES'},
-    {"^(?i)(PROCEDURE)$",                'PROCEDURE'},
-    {"^(?i)(FUNCTION)$",                 'FUNCTION'},
     {"^(?i)(PUBLIC)$",                   'PUBLIC'},
     {"^(?i)(REAL)$",                     'REAL'},
     {"^(?i)(REFERENCES)$",               'REFERENCES'},

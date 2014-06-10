@@ -80,21 +80,10 @@ UNION ALL
                                         "DROP USER test_user_123",
                                         "DROP USER test_user_123 CASCADE",
                                         "DROP TABLE table_name",
-                                        "DROP TABLE IF EXISTS table_name RESTRICT",
-                                        "drop function funny",
-                                        "drop function schm.funny",
-                                        "drop procedure proc",
-                                        "drop procedure schem.proc"
+                                        "DROP TABLE IF EXISTS table_name RESTRICT"
 ]).
 
 -define (TEST_CREATE, [
-%% UNSUPPORTED
-%                                        "create or replace procedure
-%                                         proc(p_cur out sys_refcursor)
-%                                         is
-%                                         begin
-%                                            open p_cur for select * from test;
-%                                         end proc",
                                         "create table key_test (col1 '{atom,integer}', col2 '{string,binstr}')",
                                         "CREATE TABLE Persons
                                         (
@@ -175,6 +164,7 @@ UNION ALL
 ]).
 
 -define (TEST_INSERT,[
+                                        "INSERT INTO default_values_into_table",
                                         "INSERT INTO some_table VALUES (:a, :b) RETURNING c,d INTO :c, :d",
                                         "INSERT INTO some_table VALUES (:in_locator) RETURNING lob_column INTO :out_locator",
                                         "insert into number (float,integer) values ('C', \"undefined\")",

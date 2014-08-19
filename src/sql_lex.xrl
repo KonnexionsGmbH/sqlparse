@@ -1,3 +1,4 @@
+%% -*- erlang -*-
 Definitions.
 
 Rules.

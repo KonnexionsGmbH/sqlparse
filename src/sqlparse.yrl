@@ -1,3 +1,4 @@
+%% -*- erlang -*-
 Header "%% Copyright (C) K2 Informatics GmbH"
 "%% @private"
 "%% @Author Bikram Chatterjee"

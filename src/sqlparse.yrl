@@ -291,6 +291,7 @@ Terminals
  ELSE
  END
  CALL
+ JSON
  'AND'
  'NOT'
  'OR'
@@ -873,6 +874,7 @@ fun_args -> fun_args ',' fun_args                                               
 literal -> STRING                                                                               : unwrap_bin('$1').
 literal -> INTNUM                                                                               : unwrap_bin('$1').
 literal -> APPROXNUM                                                                            : unwrap_bin('$1').
+%literal -> JSON                                                                                 : jpparse('$1').
 
     %% miscellaneous
 
@@ -884,6 +886,7 @@ table -> NAME '.' NAME                                                          
 table -> NAME '.' NAME AS NAME                                                                  : {as, list_to_binary(unwrap('$1') ++ "." ++ unwrap('$3')), unwrap_bin('$5')}.
 table -> NAME '.' NAME NAME                                                                     : {as, list_to_binary(unwrap('$1') ++ "." ++ unwrap('$3')), unwrap_bin('$4')}.
 
+column_ref -> JSON                                                                              : jpparse('$1').
 column_ref -> NAME                                                                              : unwrap_bin('$1').
 column_ref -> NAME '.' NAME                                                                     : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
 column_ref -> NAME '.' NAME '.' NAME                                                            : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).
@@ -965,10 +968,15 @@ init([])            -> {ok, { {one_for_one, 5, 10}, []} }.
 %%                          parser helper functions
 %%-----------------------------------------------------------------------------
 
+jpparse({_,_,X}) -> jpparse(X);
+jpparse(X) ->
+    {ok, {Pt, _}} = jpparse:parsetree(X),
+    Pt.
+
 unwrap({_,_,X}) -> X;
 unwrap(X) -> X.
 
-unwrap_bin({_,_,X}) when is_list(X) -> list_to_binary(X);
+unwrap_bin({_,_,X}) when is_list(X) -> list_to_binary([X]);
 unwrap_bin({_,_,X}) when is_atom(X) -> atom_to_binary(X, unicode).
 
 strl2atom([]) -> '';

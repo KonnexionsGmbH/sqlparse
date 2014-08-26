@@ -13,6 +13,9 @@ Rules.
 % hint
 ((\/\*)[^\*\/]*(\*\/))                              : {token, {'HINT', TokenLine, TokenChars}}.
 
+% JSON
+([A-Za-z0-9_]+[:#\[\{]+.*)                          : parse_json(TokenLine, TokenChars).
+
 % punctuation
 (=|<>|<|>|<=|>=)                                    : {token, {'COMPARISON', TokenLine, list_to_atom(TokenChars)}}.
 ([\|\-\+\*\/\(\)\,\.\;]|(\|\|)|(div))               : {token, {list_to_atom(TokenChars), TokenLine}}.
@@ -271,3 +274,32 @@ match_fun(TokenLine, TokenChars) ->
 io:format(user, ">>>>>> TokenChars : ~p~n", [TokenChars]),
     {match,[MatchedFunStr]} = re:run(TokenChars, "^fun.*end\\.", [ungreedy,dotall,{capture, all, list}]),
     {token, {'STRING', TokenLine, MatchedFunStr}, string:sub_string(TokenChars, length(MatchedFunStr)+1)}.
+
+parse_json(TokenLine, TokenChars) ->
+    parse_json(TokenLine, TokenChars, "", "", 0).
+parse_json(TokenLine, [], Json, PushBack, 0) ->
+    {token, {'JSON', TokenLine, lists:reverse(Json)}, PushBack};
+parse_json(_TokenLine, [], Json, _PushBack, Open) ->
+    {error, lists:flatten(
+                io_lib:format("malformed JSON path '~s', ~p bracket(s) not closed"
+                             , [lists:reverse(Json), Open]))};
+parse_json(TokenLine, [T|TokenChars], Json, PushBack, Open)
+ when T =:= $]; T =:= $}; T =:= $) ->
+    parse_json(TokenLine, TokenChars, [T|Json], PushBack, Open-1);
+parse_json(TokenLine, [T|TokenChars], Json, PushBack, Open)
+ when T =:= $[; T =:= ${; T =:= $( ->
+    parse_json(TokenLine, TokenChars, [T|Json], PushBack, Open+1);
+parse_json(TokenLine, [T|TokenChars], Json, PushBack, Open)
+ when Open > 0 ->
+    parse_json(TokenLine, TokenChars, [T|Json], PushBack, Open);
+parse_json(TokenLine, [T|TokenChars], Json, PushBack, Open)
+ when (Open =:= 0) andalso (
+        (T =:= $:) orelse (T =:= $#) orelse (T =:= $_)
+        orelse ((T >= $A) andalso (T =< $Z))
+        orelse ((T >= $a) andalso (T =< $z))
+        orelse ((T >= $0) andalso (T =< $9))
+      ) ->
+    parse_json(TokenLine, TokenChars, [T|Json], PushBack, Open);
+parse_json(TokenLine, [T|TokenChars], Json, _PushBack, Open)
+ when (Open =:= 0) ->
+    parse_json(TokenLine, [], Json, [T|TokenChars], Open).

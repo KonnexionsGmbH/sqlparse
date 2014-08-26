@@ -281,11 +281,16 @@ parse_json(TokenLine, [], Json, PushBack, 0) ->
     {token, {'JSON', TokenLine, lists:reverse(Json)}, PushBack};
 parse_json(_TokenLine, [], Json, _PushBack, Open) ->
     {error, lists:flatten(
-                io_lib:format("malformed JSON path '~s', ~p bracket(s) not closed"
+                io_lib:format("malformed JSON path '~s',"
+                              " ~p bracket(s) not closed"
                              , [lists:reverse(Json), Open]))};
 parse_json(TokenLine, [T|TokenChars], Json, PushBack, Open)
  when T =:= $]; T =:= $}; T =:= $) ->
-    parse_json(TokenLine, TokenChars, [T|Json], PushBack, Open-1);
+    if Open > 0 ->
+            parse_json(TokenLine, TokenChars, [T|Json], PushBack, Open-1);
+        true ->
+            parse_json(TokenLine, [], Json, [T|TokenChars], Open)
+    end;
 parse_json(TokenLine, [T|TokenChars], Json, PushBack, Open)
  when T =:= $[; T =:= ${; T =:= $( ->
     parse_json(TokenLine, TokenChars, [T|Json], PushBack, Open+1);

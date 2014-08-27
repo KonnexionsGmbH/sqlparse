@@ -271,7 +271,6 @@ match_any(TokenChars, TokenLen, TokenLine, [{P,T}|TPs]) ->
     end.
 
 match_fun(TokenLine, TokenChars) ->
-io:format(user, ">>>>>> TokenChars : ~p~n", [TokenChars]),
     {match,[MatchedFunStr]} = re:run(TokenChars, "^fun.*end\\.", [ungreedy,dotall,{capture, all, list}]),
     {token, {'STRING', TokenLine, MatchedFunStr}, string:sub_string(TokenChars, length(MatchedFunStr)+1)}.
 

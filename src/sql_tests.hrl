@@ -221,6 +221,15 @@ UNION ALL
 										"begin proc(:p_first,:p_second,:p_result); end"
 ]).
 
+-define (TEST_JSNSQL,[
+                                        "select a:b from x",
+                                        "select a::b from x",
+                                        "select a[] from x",
+                                        "select a{} from x",
+                                        "select a:f() from x",
+                                        "select a:b[f(p:q)] from x"
+]).
+
 -define(TEST_SQLS, [
       {"SELECT", ?TEST_SELECT, -1} % 1
     , {"INSERT", ?TEST_INSERT, -1} % 2
@@ -230,6 +239,7 @@ UNION ALL
     , {"TRUNCT", ?TEST_TRUNCT, -1} % 6
     , {"GRANTS", ?TEST_GRANTS, -1} % 7
     , {"REVOKE", ?TEST_REVOKE, -1} % 8
-    , {"PLSQLS", ?TEST_PLSQLS, -1} % 8
+    , {"PLSQLS", ?TEST_PLSQLS, -1} % 9
+    , {"JSNSQL", ?TEST_JSNSQL, -1} % 10
 ]).
 -endif.

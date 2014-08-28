@@ -1,0 +1,110 @@
+-module(sqlparse_test).
+
+-include_lib("eunit/include/eunit.hrl").
+
+-export([test_sql/3]).
+
+sql_test_() ->
+    {ok, Cwd} = file:get_cwd(),
+    [_|RootPath] = lists:reverse(filename:split(Cwd)),
+    TestDir = filename:join(lists:reverse(["test" | RootPath])),
+    TestFiles = lists:sort([filename:join(TestDir, T)
+                            || T <- filelib:wildcard("*.tst", TestDir)]),
+    group_gen(TestFiles).
+
+group_gen(TestFiles) ->
+    {generator,
+     fun () ->
+             case TestFiles of
+                 [] -> [];
+                 [TestFile|RestTestFiles] ->
+                     {ok, [Opts|Tests]} = file:consult(TestFile),
+                     AugTests = lists:zip(lists:seq(1, length(Tests))
+                                          , Tests),
+                     TestGroup = filename:rootname(
+                                   filename:basename(TestFile)),
+                     [tests_gen(TestGroup, AugTests, Opts)
+                      | group_gen(RestTestFiles)]
+             end
+     end}.
+
+tests_gen(TestGroup, Tests, Opts) ->
+    Verbose = case proplists:get_value(verbose, Opts) of
+                  V when is_integer(V), V >= 0 -> V;
+                  _ -> 0
+              end,
+    SelTests = case proplists:get_value(tests, Opts) of
+                   St when St =:= undefined; St =:= [] ->
+                       {Indices, _} = lists:unzip(Tests),
+                       Indices;
+                   St -> St
+               end,
+    tests_gen(TestGroup, Tests, Verbose, SelTests, []).
+
+tests_gen(_TestGroup, [], _Verbose, _SelTests, Acc) ->
+    %?debugFmt("[~s] Verbose ~p,~nSelTests ~p,~nAcc ~p"
+    %          , [_TestGroup, _Verbose, _SelTests, lists:reverse(Acc)]),
+    {inparallel, lists:reverse(Acc)};
+tests_gen(TestGroup, [{I,T}|Tests], Verbose, SelTests, Acc) ->
+    case lists:member(I, SelTests) of
+        true ->
+            tests_gen(TestGroup, Tests, Verbose, SelTests
+                      , [{TestGroup, I
+                          , fun() ->
+                                    ?MODULE:test_sql(TestGroup, T, Verbose)
+                            end}
+                         | Acc]);
+        _ -> Acc
+    end.
+
+-define(D(__Lvl,__Fmt,__Args),
+        if Verbose >= __Lvl -> ?debugFmt(__Fmt, __Args);
+           true -> ok
+        end).
+-define(D(__Lvl,__Msg),
+        if Verbose >= __Lvl -> ?debugMsg(__Msg);
+           true -> ok
+        end).
+
+-define(D_(__Msg),          ?D(0,__Msg)).
+-define(D_(__Fmt,__Args),   ?D(0,__Fmt,__Args)).
+
+-define(D1(__Msg),          ?D(1,__Msg)).
+-define(D1(__Fmt,__Args),   ?D(1,__Fmt,__Args)).
+-define(D2(__Msg),          ?D(2,__Msg)).
+-define(D2(__Fmt,__Args),   ?D(2,__Fmt,__Args)).
+-define(D3(__Msg),          ?D(3,__Msg)).
+-define(D3(__Fmt,__Args),   ?D(3,__Fmt,__Args)).
+-define(D4(__Msg),          ?D(4,__Msg)).
+-define(D4(__Fmt,__Args),   ?D(4,__Fmt,__Args)).
+-define(D5(__Msg),          ?D(5,__Msg)).
+-define(D5(__Fmt,__Args),   ?D(5,__Fmt,__Args)).
+
+test_sql(TestGroup, Test, Verbose) ->
+    ?D1("~n ~ts", [Test]),
+    case sqlparse:parsetree(Test) of
+        {ok, {[{ParseTree,_}|_], Tokens}} ->
+            ?D2("~n~p", [ParseTree]),
+            NSql = case sqlparse:pt_to_string(ParseTree) of
+                       {error, Error} -> throw({error, Error});
+                       NS -> NS
+                   end,
+            ?D3("~n > ~ts~n", [NSql]),
+            {ok, {[{NPTree,_}|_], NToks}} = sqlparse:parsetree(NSql),
+            try
+                ParseTree = NPTree
+            catch
+                _:_ ->
+                    ?D_("~n > ~p", [NPTree]),
+                    ?D_("~n > ~p", [Tokens]),
+                    ?D_("~n > ~p", [NToks])
+            end,
+            ?assertEqual(ParseTree, NPTree),
+            ?D4("~n ~p~n", [ParseTree]);
+        {lex_error, Error} ->
+            ?D1("Failed lexer ~p", [Error]),
+            ?assertEqual(ok, Error);
+        {parse_error, {Error, Tokens}} ->
+            ?D_("~nFailed: ~p~nTest: ~s~nTokens ~p", [Error,Test,Tokens]),
+            ?assertEqual(ok, Error)
+    end.

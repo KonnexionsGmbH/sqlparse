@@ -943,13 +943,6 @@ Erlang code.
 % parser and compiler interface
 -export([pt_to_string/1, foldtd/3, foldbu/3, parsetree/1, is_reserved/1]).
 
--ifdef(TEST).
-% eunit helper function
--export([test_parse/5]).
--endif.
-
--define(PARSETREE, 0).
-
 -define(Dbg(__Rule, __Production),
 begin
     io:format(user, "__ "??__Rule" (~p)~n", [__Production]),
@@ -2425,73 +2418,3 @@ foldi(_FType, Fun, Ctx, _Lvl, PTree) ->
     io:format(user, "Parse tree not supported ~p~n", [PTree]),
     throw({"Parse tree not supported",PTree}).
 
-%%-----------------------------------------------------------------------------
-
-
--ifdef(TEST).
--include_lib("eunit/include/eunit.hrl").
--include("sql_tests.hrl").
-
-%%-----------------------------------------------------------------------------
-%%                               EUnit test
-%%-----------------------------------------------------------------------------
-
--ifdef(PARSETREE).
-parse_test() ->
-    io:format(user, "===============================~n", []),
-    io:format(user, "|    S Q L   P A R S I N G    |~n", []),
-    io:format(user, "===============================~n", []),
-    sql_test:parse_groups(fun ?MODULE:test_parse/5, true).
--else.
-parse_test() ->
-    io:format(user, "===============================~n", []),
-    io:format(user, "|    S Q L   P A R S I N G    |~n", []),
-    io:format(user, "===============================~n", []),
-    sql_test:parse_groups(fun ?MODULE:test_parse/5, false).
--endif.
-
-test_parse(_, [], _, _, Private) -> Private;
-test_parse(ShowParseTree, [BinSql|Sqls], N, Limit, Private) ->
-    %FlatSql = re:replace(Sql, "([\n\r\t ]+)", " ", [{return, list}, global]),
-    %Sql = case BinSql of
-    %    BinSql when is_list(BinSql)   -> BinSql;
-    %    BinSql when is_binary(BinSql) -> binary_to_list(BinSql)
-    %end,
-    io:format(user, "[~p]~n~ts~n", [N,BinSql]),
-    case sqlparse:parsetree(BinSql) of
-        {ok, {[{ParseTree,_}|_], Tokens}} -> 
-            if ShowParseTree ->
-        	    io:format(user, "~p~n", [ParseTree]),
-                NSql = case pt_to_string(ParseTree) of
-                    {error, Error} -> throw({error, Error});
-                    NS -> NS
-                end,
-                io:format(user, "~n> ~ts~n", [NSql]),
-                {ok, {[{NPTree,_}|_], NToks}} = sqlparse:parsetree(NSql),
-                try
-                    ParseTree = NPTree
-                catch
-                    _:_ ->
-            	    io:format(user, "~n> ~p~n", [NPTree]),
-            	    io:format(user, "~n> ~p~n", [Tokens]),
-            	    io:format(user, "~n> ~p~n", [NToks])
-                end,
-                ?assertEqual(ParseTree, NPTree),
-                io:format("~p~n", [ParseTree]),
-        	    io:format(user, lists:flatten(lists:duplicate(79, "-")) ++ "~n", []);
-            true -> ok
-            end,
-            NewPrivate = sql_test:update_counters(ParseTree, Private),
-            if (Limit =:= 1) -> NewPrivate;
-                true -> test_parse(ShowParseTree, Sqls, N+1, Limit-1, NewPrivate)
-            end;
-        {lex_error, Error} ->
-            io:format(user, "Failed lexer ~p~n", [Error]),
-            ?assertEqual(ok, Error);
-        {parse_error, {Error, Tokens}} ->
-            io:format(user, "Failed ~p~nTokens~p~n", [Error, Tokens]),
-            ?assertEqual(ok, Error)
-    end.
-
-%%-----------------------------------------------------------------------------
--endif.

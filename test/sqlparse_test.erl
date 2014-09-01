@@ -19,8 +19,28 @@ group_gen(TestFiles) ->
                  [] -> [];
                  [TestFile|RestTestFiles] ->
                      {ok, [Opts|Tests]} = file:consult(TestFile),
-                     AugTests = lists:zip(lists:seq(1, length(Tests))
-                                          , Tests),
+                     {ok, TestFileBin} = file:read_file(TestFile),
+                     TestLines = [begin
+                          TRe = re:replace(T, "(.*)(\")(.*)", "\\1\\\\\"\\3"
+                                           , [{return, binary}, ungreedy, global,dotall]),
+                          case binary:match(TestFileBin, TRe) of
+                           {I1,_} ->
+                                  << Head:I1/binary, _/binary >> = TestFileBin,
+                                  {match, Matches} = re:run(Head, ".*[\r\n]", [global]),
+                                  length(Matches)+1;
+                           nomatch ->
+                               %io:format(user, "~n~nNOMATCH -------------------------~n"
+                               %                "File : ~s~n~n"
+                               %                "Target ---~n~n~s~n~n"
+                               %                "With ---~n~n~s~n~n"
+                               %                "File Content ---~n~n~s~n"
+                               %                "---------------------------------~n~n"
+                               %          , [TestFile, T, TRe, TestFileBin]),
+                               I
+                          end
+                      end
+                     || {I, T} <- lists:zip(lists:seq(1,length(Tests)), Tests)],
+                     AugTests = lists:zip(TestLines, Tests),
                      TestGroup = filename:rootname(
                                    filename:basename(TestFile)),
                      [tests_gen(TestGroup, AugTests, Opts)

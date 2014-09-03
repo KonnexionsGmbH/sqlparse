@@ -12,7 +12,15 @@ Nonterminals
  opt_schema_element_list
  schema_element_list
  schema_element
- base_table_def
+ create_table_def
+ create_user_def
+ create_index_def
+ create_index_opts
+ create_index_spec
+ create_index_spec_items
+ create_index_opt_norm
+ create_index_opt_filter
+ index_name
  alter_user_def
  drop_table_def
  drop_user_def
@@ -292,6 +300,12 @@ Terminals
  END
  CALL
  JSON
+ BITMAP
+ KEYLIST
+ HASHMAP
+ INDEX
+ NORM_WITH
+ FILTER_WITH
  'AND'
  'NOT'
  'OR'
@@ -304,6 +318,7 @@ Terminals
  ')'
  ','
  '||'
+ '|'
  '.'
  'div'
 .
@@ -345,12 +360,39 @@ opt_schema_element_list -> schema_element_list                                  
 schema_element_list -> schema_element                                                           : ['$1'].
 schema_element_list -> schema_element_list schema_element                                       : '$1' ++ ['$2'].
 
-schema_element -> base_table_def                                                                : '$1'.
+schema_element -> create_table_def                                                              : '$1'.
+schema_element -> create_index_def                                                              : '$1'.
+schema_element -> create_user_def                                                               : '$1'.
 schema_element -> view_def                                                                      : '$1'.
 
-base_table_def -> CREATE create_opts TABLE table '(' base_table_element_commalist ')'           : {'create table', '$4', '$6', '$2'}.
-base_table_def -> CREATE USER NAME identified opt_user_opts_list                                : {'create user', unwrap_bin('$3'), '$4', '$5'}.
+create_table_def -> CREATE create_opts TABLE table '(' base_table_element_commalist ')'         : {'create table', '$4', '$6', '$2'}.
+create_user_def -> CREATE USER NAME identified opt_user_opts_list                               : {'create user', unwrap_bin('$3'), '$4', '$5'}.
 drop_table_def -> DROP TABLE opt_exists table_list opt_restrict_cascade                         : list_to_tuple(['drop table', {'tables', '$4'}] ++ '$3' ++ '$5').
+
+create_index_def -> CREATE create_index_opts INDEX index_name ON table create_index_spec
+                    create_index_opt_norm create_index_opt_filter                               : {'create index', '$2', '$4', '$6', '$7', '$8', '$9'}.
+
+create_index_opts -> '$empty'                                                                   : {}.
+create_index_opts -> BITMAP                                                                     : bitmap.
+create_index_opts -> KEYLIST                                                                    : keylist.
+create_index_opts -> HASHMAP                                                                    : hashmap.
+create_index_opts -> UNIQUE                                                                     : unique.
+
+index_name -> NAME                                                                              : unwrap_bin('$1').
+index_name -> NAME '.' NAME                                                                     : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+
+create_index_spec -> '(' create_index_spec_items ')'                                            : '$2'.
+
+create_index_spec_items -> NAME                                                                 : [unwrap_bin('$1')].
+create_index_spec_items -> NAME '|' create_index_spec_items                                     : [unwrap_bin('$1') | '$3'].
+create_index_spec_items -> JSON                                                                 : [jpparse('$1')].
+create_index_spec_items -> JSON '|' create_index_spec_items                                     : [jpparse('$1') | '$3'].
+
+create_index_opt_norm -> '$empty'                                                               : {}.
+create_index_opt_norm -> NORM_WITH STRING                                                       : {'norm', unwrap_bin('$2')}.
+
+create_index_opt_filter -> '$empty'                                                             : {}.
+create_index_opt_filter -> FILTER_WITH STRING                                                   : {'filter', unwrap_bin('$2')}.
 
 create_opts -> tbl_scope tbl_type                                                               : '$1' ++ '$2'.
 
@@ -410,7 +452,8 @@ quota_list -> quota quota_list                                                  
 
 quota -> QUOTA UNLIMITED ON NAME                                                                : {'unlimited on', unwrap_bin('$4')}.
 quota -> QUOTA INTNUM ON NAME                                                                   : {'limited', unwrap_bin('$2'), unwrap_bin('$4')}.
-quota -> QUOTA INTNUM NAME ON NAME                                                              : {'limited', list_to_binary(unwrap('$2')++unwrap('$3')), unwrap_bin('$5')}.
+quota -> QUOTA INTNUM NAME ON NAME                                                              : {'limited', list_to_binary([unwrap('$2'),unwrap('$3')])
+                                                                                                   , unwrap_bin('$5')}.
 
 table_list -> table                                                                             : ['$1'].
 table_list -> table_list ',' table                                                              : '$1' ++ ['$3'].
@@ -543,7 +586,9 @@ manipulative_statement -> rollback_statement                                    
 manipulative_statement -> select_statement                                                      : '$1'.
 manipulative_statement -> update_statement_positioned                                           : '$1'.
 manipulative_statement -> update_statement_searched                                             : '$1'.
-manipulative_statement -> base_table_def                                                        : '$1'.
+manipulative_statement -> create_table_def                                                      : '$1'.
+manipulative_statement -> create_index_def                                                      : '$1'.
+manipulative_statement -> create_user_def                                                       : '$1'.
 manipulative_statement -> drop_table_def                                                        : '$1'.
 manipulative_statement -> alter_user_def                                                        : '$1'.
 manipulative_statement -> drop_user_def                                                         : '$1'.
@@ -843,8 +888,10 @@ parameter_ref -> parameter                                                      
 parameter_ref -> parameter parameter                                                            : {'$1', '$2'}.
 parameter_ref -> parameter INDICATOR parameter                                                  : {'indicator', '$1', '$3'}.
 
-function_ref -> NAME '.' NAME '.' NAME '(' fun_args ')'                                         : {'fun', list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]), make_list('$7')}.
-function_ref -> NAME '.' NAME '(' fun_args ')'                                                  : {'fun', list_to_binary([unwrap('$1'),".",unwrap('$3')]), make_list('$5')}.
+function_ref -> NAME '.' NAME '.' NAME '(' fun_args ')'                                         : {'fun', list_to_binary([unwrap('$1'),".",unwrap('$3'),"."
+                                                                                                                          ,unwrap('$5')]), make_list('$7')}.
+function_ref -> NAME '.' NAME '(' fun_args ')'                                                  : {'fun', list_to_binary([unwrap('$1'),".",unwrap('$3')])
+                                                                                                   ,make_list('$5')}.
 function_ref -> NAME  '(' fun_args ')'                                                          : {'fun', unwrap_bin('$1'), make_list('$3')}.
 function_ref -> FUNS                                                                            : {'fun', unwrap_bin('$1'), []}.
 function_ref -> FUNS  '(' fun_args ')'                                                          : {'fun', unwrap_bin('$1'), make_list('$3')}.
@@ -882,9 +929,11 @@ table -> NAME                                                                   
 table -> NAME AS NAME                                                                           : {as, unwrap_bin('$1'), unwrap_bin('$3')}.
 table -> NAME NAME                                                                              : {as, unwrap_bin('$1'), unwrap_bin('$2')}.
 table -> STRING                                                                                 : unwrap_bin('$1').
-table -> NAME '.' NAME                                                                          : list_to_binary(unwrap('$1') ++ "." ++ unwrap('$3')).
-table -> NAME '.' NAME AS NAME                                                                  : {as, list_to_binary(unwrap('$1') ++ "." ++ unwrap('$3')), unwrap_bin('$5')}.
-table -> NAME '.' NAME NAME                                                                     : {as, list_to_binary(unwrap('$1') ++ "." ++ unwrap('$3')), unwrap_bin('$4')}.
+table -> NAME '.' NAME                                                                          : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
+table -> NAME '.' NAME AS NAME                                                                  : {as, list_to_binary([unwrap('$1'),".",unwrap('$3')])
+                                                                                                   , unwrap_bin('$5')}.
+table -> NAME '.' NAME NAME                                                                     : {as, list_to_binary([unwrap('$1'),".",unwrap('$3')])
+                                                                                                   , unwrap_bin('$4')}.
 
 column_ref -> JSON                                                                              : jpparse('$1').
 column_ref -> NAME                                                                              : unwrap_bin('$1').
@@ -892,7 +941,8 @@ column_ref -> NAME '.' NAME                                                     
 column_ref -> NAME '.' NAME '.' NAME                                                            : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).
 column_ref -> NAME '(' '+' ')'                                                                  : list_to_binary([unwrap('$1'),"(+)"]).
 column_ref -> NAME '.' NAME '(' '+' ')'                                                         : list_to_binary([unwrap('$1'),".",unwrap('$3'),"(+)"]).
-column_ref -> NAME '.' NAME '.' NAME '(' '+' ')'                                                : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5'),"(+)"]).
+column_ref -> NAME '.' NAME '.' NAME '(' '+' ')'                                                : list_to_binary([unwrap('$1'),".",unwrap('$3'),"."
+                                                                                                                  ,unwrap('$5'),"(+)"]).
 column_ref -> NAME '.' '*'                                                                      : list_to_binary([unwrap('$1'),".*"]).
 column_ref -> NAME '.' NAME '.' '*'                                                             : list_to_binary([unwrap('$1'),".",unwrap('$3'),".*"]).
 

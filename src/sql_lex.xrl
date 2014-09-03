@@ -5,7 +5,7 @@ Rules.
 
 % erlang funcs
 (fun\([A-Za-z0-9,_]*\).*\->.*end\.)                 : match_fun(TokenLine, TokenChars).
-(fun\s.*\/[0-9]+)                                   : {token, {'STRING', TokenLine, TokenChars}}.
+(fun\s.*\/[0-9]+\.)                                 : {token, {'STRING', TokenLine, TokenChars}}.
 
 % strings
 (\'([^\']*(\'\')*)*\')                              : {token, {'STRING', TokenLine, TokenChars}}.

@@ -13,3 +13,5 @@
 "create index a on b (a:d|e:f)".
 "create index a on b (f) norm_with fun() -> norm end.".
 "create index a on b (a|d{}) norm_with fun() -> norm end. filter_with fun mod:modfun/5.".
+
+"drop index s.a from s.b".

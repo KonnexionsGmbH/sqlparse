@@ -23,6 +23,7 @@ Nonterminals
  index_name
  alter_user_def
  drop_table_def
+ drop_index_def
  drop_user_def
  base_table_element_commalist
  base_table_element
@@ -369,6 +370,8 @@ create_table_def -> CREATE create_opts TABLE table '(' base_table_element_commal
 create_user_def -> CREATE USER NAME identified opt_user_opts_list                               : {'create user', unwrap_bin('$3'), '$4', '$5'}.
 drop_table_def -> DROP TABLE opt_exists table_list opt_restrict_cascade                         : list_to_tuple(['drop table', {'tables', '$4'}] ++ '$3' ++ '$5').
 
+drop_index_def -> DROP INDEX index_name FROM table                                              : {'drop index', '$3', '$5'}.
+
 create_index_def -> CREATE create_index_opts INDEX index_name ON table create_index_spec
                     create_index_opt_norm create_index_opt_filter                               : {'create index', '$2', '$4', '$6', '$7', '$8', '$9'}.
 
@@ -590,6 +593,7 @@ manipulative_statement -> create_table_def                                      
 manipulative_statement -> create_index_def                                                      : '$1'.
 manipulative_statement -> create_user_def                                                       : '$1'.
 manipulative_statement -> drop_table_def                                                        : '$1'.
+manipulative_statement -> drop_index_def                                                        : '$1'.
 manipulative_statement -> alter_user_def                                                        : '$1'.
 manipulative_statement -> drop_user_def                                                         : '$1'.
 manipulative_statement -> view_def                                                              : '$1'.

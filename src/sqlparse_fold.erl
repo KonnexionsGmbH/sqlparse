@@ -179,35 +179,6 @@ fold(FType, Fun, Ctx, Lvl, {'create index', Opts, Idx, Table, Spec, Norm, Filter
      ++ if FilterStr =/= [] -> FilterStr; true -> "" end
     , NewCtx7};
 
-% Index options
-fold(FType, Fun, Ctx, _Lvl, ST) when is_atom(ST) ->
-    NewCtx = case FType of
-        top_down -> Fun(ST, Ctx);
-        bottom_up -> Ctx
-    end,
-    NewCtx1 = case FType of
-        top_down -> NewCtx;
-        bottom_up -> Fun(ST, NewCtx)
-    end,
-    {atom_to_list(ST), NewCtx1};
-
-% Index norm or filter
-fold(FType, Fun, Ctx, _Lvl, {FunType, FunBody} = ST)
-  when FunType =:= norm; FunType =:= filter ->
-    NewCtx = case FType of
-        top_down -> Fun(ST, Ctx);
-        bottom_up -> Ctx
-    end,
-    NewCtx1 = case FType of
-        top_down -> NewCtx;
-        bottom_up -> Fun(ST, NewCtx)
-    end,
-    FunHead = case FunType of
-                  norm -> " norm_with ";
-                  filter -> " filter_with "
-              end,
-    {FunHead ++ binary_to_list(FunBody) ++ " ", NewCtx1};
-
 %
 % ALTER USER
 %
@@ -348,6 +319,20 @@ fold(FType, Fun, Ctx, _Lvl, {'drop table', {tables, Ts}, {exists, E}, {opt, R}} 
      ++ string:join(Tables, ", ")
      ++ " " ++ atom_to_list(R)
     , NewCtx4};
+
+fold(FType, Fun, Ctx, _Lvl, {'drop index', Indx, Tbl} = ST) ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    NewCtx1 = case FType of
+        top_down -> NewCtx;
+        bottom_up -> Fun(ST, NewCtx)
+    end,
+    {"drop index "
+     ++ binary_to_list(Indx) ++ " from "
+     ++ binary_to_list(Tbl)
+    , NewCtx1};
 
 %
 % DELETE
@@ -1388,6 +1373,35 @@ fold(FType, Fun, Ctx, Lvl, {'call procedure', Function} = ST) ->
     {FunctionStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl+1, Function),
     {"call " ++FunctionStr
     , NewCtx1};
+
+% Index options
+fold(FType, Fun, Ctx, _Lvl, ST) when is_atom(ST) ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    NewCtx1 = case FType of
+        top_down -> NewCtx;
+        bottom_up -> Fun(ST, NewCtx)
+    end,
+    {atom_to_list(ST), NewCtx1};
+
+% Index norm or filter
+fold(FType, Fun, Ctx, _Lvl, {FunType, FunBody} = ST)
+  when FunType =:= norm; FunType =:= filter ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    NewCtx1 = case FType of
+        top_down -> NewCtx;
+        bottom_up -> Fun(ST, NewCtx)
+    end,
+    FunHead = case FunType of
+                  norm -> " norm_with ";
+                  filter -> " filter_with "
+              end,
+    {FunHead ++ binary_to_list(FunBody) ++ " ", NewCtx1};
 
 %
 % UNSUPPORTED

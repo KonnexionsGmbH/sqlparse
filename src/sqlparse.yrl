@@ -1019,7 +1019,7 @@ init([])            -> {ok, { {one_for_one, 5, 10}, []} }.
 
 jpparse({_,_,X}) -> jpparse(X);
 jpparse(X) ->
-    {ok, {Pt, _}} = jpparse:parsetree(X),
+    {ok, Pt} = jpparse:parsetree(X),
     Pt.
 
 unwrap({_,_,X}) -> X;

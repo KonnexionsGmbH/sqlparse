@@ -995,7 +995,10 @@ Erlang code.
 -export([init/1]).
 
 % parser and compiler interface
--export([pt_to_string/1, foldtd/3, foldbu/3, parsetree/1, is_reserved/1]).
+-export([pt_to_string/1, foldtd/3, foldbu/3
+         , parsetree/1
+         , parsetree_with_tokens/1
+         , is_reserved/1]).
 
 -import(sqlparse_fold, [fold/5]).
 
@@ -1077,10 +1080,17 @@ make_list(L) -> [L].
 %%-----------------------------------------------------------------------------
 %%                                  PARSER
 %%-----------------------------------------------------------------------------
--spec parsetree(binary()|list()) -> {parse_error, term()} | {lex_error, term()} | {ok, {[tuple()], list()}}.
-parsetree(Sql) when is_binary(Sql) -> parsetree(binary_to_list(Sql));
-parsetree([]) -> {parse_error, {not_a_valid_sql, []}};
-parsetree(Sql) when is_list(Sql) ->
+-spec parsetree(binary()|list()) -> {parse_error, term()} | {lex_error, term()} | {ok, [tuple()]}.
+parsetree(Sql) ->
+   case parsetree_with_tokens(Sql) of
+       {ok, {ParseTree, _Tokens}} -> {ok, ParseTree};
+       Error -> Error
+   end.
+
+-spec parsetree_with_tokens(binary()|list()) -> {parse_error, term()} | {lex_error, term()} | {ok, {[tuple()], list()}}.
+parsetree_with_tokens(Sql) when is_binary(Sql) -> parsetree_with_tokens(binary_to_list(Sql));
+parsetree_with_tokens([]) -> {parse_error, {not_a_valid_sql, []}};
+parsetree_with_tokens(Sql) when is_list(Sql) ->
     [C|_] = lists:reverse(string:strip(Sql)),
     NSql = if C =:= $; -> Sql; true -> string:strip(Sql) ++ ";" end,
     case sql_lex:string(NSql) of
@@ -1092,7 +1102,7 @@ parsetree(Sql) when is_list(Sql) ->
             end;
         {error,Error,_} -> {lex_error, Error}
     end;
-parsetree(SomethingElse) -> {parse_error, {not_a_valid_sql, SomethingElse}}.
+parsetree_with_tokens(SomethingElse) -> {parse_error, {not_a_valid_sql, SomethingElse}}.
 
 -spec is_reserved(binary() | atom() | list()) -> true | false.
 is_reserved(Word) when is_binary(Word)  -> is_reserved(erlang:binary_to_list(Word));

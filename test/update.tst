@@ -14,8 +14,8 @@
 "ALTER USER test_user_123 IDENTIFIED BY new_password".
 
 % Unsupported tests
-%"ALTER USER test_user_123 ACCOUNT LOCK".
-%"ALTER USER test_user_123 ACCOUNT UNLOCK".
-%"ALTER USER test_user_123 PASSWORD EXPIRE".
+"ALTER USER test_user_123 ACCOUNT LOCK".
+"ALTER USER test_user_123 ACCOUNT UNLOCK".
+"ALTER USER test_user_123 PASSWORD EXPIRE".
 "UPDATE abc set a='a', b='b\nb', c='c' || \"c\r\nc\" where a is NULL".
 "UPDATE abc set a='a', b='b\nb', c='c' || \"c\r\nc\" where a || b = 'c' || 'd'".

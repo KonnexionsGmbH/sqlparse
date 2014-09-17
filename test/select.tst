@@ -8,11 +8,12 @@
 %% TESTS
 %%
 
-<<"SELECT * from tab1 INNER JOIN tab2 tab3 tab4 on a = b">>. %% INVALID - negative test
+% Negative tests (no support from framework)
+%<<"SELECT * from tab1 INNER JOIN tab2 tab3 tab4 on a = b">>.
+%<<"select * from ALL_USERS where order by user_id asc">>.
 
-<<"select * from ALL_USERS where order by user_id asc">>. %% INVALID
-
-<<"select a < 0 from abc">>. %% SUPPORT IN PROGRESS
+% Boolean expression in select list not supported
+%<<"select a < 0 from abc">>.
 
 <<"select 'öüäéèà', 'شلاؤيثبلتهتنمةىخ','นี่คือการทดสอบ' from dual"/utf8>>.
 

@@ -296,8 +296,9 @@ fold(FType, Fun, Ctx, _Lvl, {'drop procedure', ProcedureName} = ST)
     end,
     {"drop procedure " ++ binary_to_list(ProcedureName)
     , NewCtx2};
-fold(FType, Fun, Ctx, _Lvl, {'drop table', {tables, Ts}, {exists, E}, {opt, R}} = ST)
-  when is_atom(R) ->
+fold(FType, Fun, Ctx, _Lvl, {'drop table', {tables, Ts}, E, RC} = ST)
+  when (is_atom(RC) orelse (RC =:= {})) andalso
+       (is_atom(E) orelse (E =:= {})) ->
     NewCtx = case FType of
         top_down -> Fun(ST, Ctx);
         bottom_up -> Ctx
@@ -309,16 +310,15 @@ fold(FType, Fun, Ctx, _Lvl, {'drop table', {tables, Ts}, {exists, E}, {opt, R}} 
         end,
         {[], NewCtx1},
         Ts),
-    NewCtx3 = Fun(R, NewCtx2),
-    NewCtx4 = case FType of
-        top_down -> NewCtx3;
-        bottom_up -> Fun(ST, NewCtx3)
+    NewCtx3 = case FType of
+        top_down -> NewCtx2;
+        bottom_up -> Fun(ST, NewCtx2)
     end,
     {"drop table "
-     ++ if E =:= true -> " if exists "; true -> "" end
+     ++ if E =:= exists -> " if exists "; true -> "" end
      ++ string:join(Tables, ", ")
-     ++ " " ++ atom_to_list(R)
-    , NewCtx4};
+     ++ if is_atom(RC) -> " " ++ atom_to_list(RC); true -> "" end
+    , NewCtx3};
 
 fold(FType, Fun, Ctx, _Lvl, {'drop index', Indx, Tbl} = ST) ->
     NewCtx = case FType of

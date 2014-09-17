@@ -368,7 +368,7 @@ schema_element -> view_def                                                      
 
 create_table_def -> CREATE create_opts TABLE table '(' base_table_element_commalist ')'         : {'create table', '$4', '$6', '$2'}.
 create_user_def -> CREATE USER NAME identified opt_user_opts_list                               : {'create user', unwrap_bin('$3'), '$4', '$5'}.
-drop_table_def -> DROP TABLE opt_exists table_list opt_restrict_cascade                         : list_to_tuple(['drop table', {'tables', '$4'}] ++ '$3' ++ '$5').
+drop_table_def -> DROP TABLE opt_exists table_list opt_restrict_cascade                         : {'drop table', {'tables', '$4'}, '$3', '$5'}.
 
 drop_index_def -> DROP INDEX index_name FROM table                                              : {'drop index', '$3', '$5'}.
 
@@ -461,12 +461,12 @@ quota -> QUOTA INTNUM NAME ON NAME                                              
 table_list -> table                                                                             : ['$1'].
 table_list -> table_list ',' table                                                              : '$1' ++ ['$3'].
 
-opt_exists -> '$empty'                                                                          : [{'exists', 'false'}].
-opt_exists -> IF EXISTS                                                                         : [{'exists', 'true'}].
+opt_exists -> '$empty'                                                                          : {}.
+opt_exists -> IF EXISTS                                                                         : 'exists'.
 
-opt_restrict_cascade -> '$empty'                                                                : [{'opt', 'restrict'}].
-opt_restrict_cascade -> RESTRICT                                                                : [{'opt', 'restrict'}].
-opt_restrict_cascade -> CASCADE                                                                 : [{'opt', 'cascade'}].
+opt_restrict_cascade -> '$empty'                                                                : {}.
+opt_restrict_cascade -> RESTRICT                                                                : 'restrict'.
+opt_restrict_cascade -> CASCADE                                                                 : 'cascade'.
 
 base_table_element_commalist -> base_table_element                                              : ['$1'].
 base_table_element_commalist -> base_table_element_commalist ',' base_table_element             : '$1' ++ ['$3'].

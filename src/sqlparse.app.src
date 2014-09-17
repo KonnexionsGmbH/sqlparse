@@ -1,11 +1,14 @@
+%% -*- mode: erlang -*-
+%% ex: ft=erlang
 {application, sqlparse,
  [
   {description, "An LALR SQL parser and compiler"},
-  {vsn, "1.0.1"},
+  {vsn, "1.1.0"},
   {registered, []},
   {applications, [
                   kernel,
-                  stdlib
+                  stdlib,
+                  jpparse
                  ]},
   {mod, { sqlparse, []}},
   {env, []}

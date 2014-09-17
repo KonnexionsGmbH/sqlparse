@@ -989,7 +989,7 @@ Erlang code.
 -behaviour(supervisor).
 
 % application callbacks
--export([start/2, stop/1]).
+-export([start/0, start/2, stop/1]).
 
 % Supervisor callbacks
 -export([init/1]).
@@ -1011,6 +1011,10 @@ end).
 %%-----------------------------------------------------------------------------
 %%                          dummy application interface
 %%-----------------------------------------------------------------------------
+
+start() ->
+    jpparse:start(),
+    application:start(?MODULE).
 
 start(_Type, _Args) -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 stop(_State)        -> ok.

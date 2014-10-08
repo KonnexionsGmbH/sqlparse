@@ -2,7 +2,7 @@
 %% ex: ft=erlang
 {application, sqlparse,
  [
-  {description, "An LALR SQL parser and compiler"},
+  {description, "A LALR SQL parser and compiler"},
   {vsn, "1.1.1"},
   {registered, []},
   {applications, [

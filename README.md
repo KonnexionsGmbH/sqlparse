@@ -1,7 +1,5 @@
-sqlparse
+sqlparse ![Travis-CI](https://magnum.travis-ci.com/k2informatics/sqlparse.svg?token=jAKQYF1CVGmsnuguN6iU)
 ========
-
-![Travis-CI](https://magnum.travis-ci.com/k2informatics/sqlparse.svg?token=jAKQYF1CVGmsnuguN6iU)
 
 LALR grammar based SQL Parser
 

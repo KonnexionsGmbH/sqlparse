@@ -12,6 +12,7 @@ Nonterminals
  opt_schema_element_list
  schema_element_list
  schema_element
+ create_role_def
  create_table_def
  create_user_def
  create_index_def
@@ -22,6 +23,7 @@ Nonterminals
  create_index_opt_filter
  index_name
  alter_user_def
+ drop_role_def
  drop_table_def
  drop_index_def
  drop_user_def
@@ -361,15 +363,18 @@ opt_schema_element_list -> schema_element_list                                  
 schema_element_list -> schema_element                                                           : ['$1'].
 schema_element_list -> schema_element_list schema_element                                       : '$1' ++ ['$2'].
 
+schema_element -> create_role_def                                                               : '$1'.
 schema_element -> create_table_def                                                              : '$1'.
 schema_element -> create_index_def                                                              : '$1'.
 schema_element -> create_user_def                                                               : '$1'.
 schema_element -> view_def                                                                      : '$1'.
 
+create_role_def -> CREATE ROLE NAME                                                             : {'create role', unwrap_bin('$3')}.
 create_table_def -> CREATE create_opts TABLE table '(' base_table_element_commalist ')'         : {'create table', '$4', '$6', '$2'}.
 create_user_def -> CREATE USER NAME identified opt_user_opts_list                               : {'create user', unwrap_bin('$3'), '$4', '$5'}.
 drop_table_def -> DROP TABLE opt_exists table_list opt_restrict_cascade                         : {'drop table', {'tables', '$4'}, '$3', '$5'}.
 
+drop_role_def -> DROP ROLE NAME                                                                 : {'drop role', unwrap_bin('$3')}.
 drop_index_def -> DROP INDEX index_name FROM table                                              : {'drop index', '$3', '$5'}.
 
 create_index_def -> CREATE create_index_opts INDEX index_name ON table create_index_spec
@@ -411,6 +416,17 @@ tbl_type -> BAG                                                                 
 
 alter_user_def -> ALTER USER user_list proxy_clause                                             : {'alter user', '$3', '$4'}.
 alter_user_def -> ALTER USER NAME spec_list                                                     : {'alter user', unwrap_bin('$3'), {'spec', '$4'}}.
+alter_user_def -> ALTER USER NAME NAME NAME                                                     :
+                  {'alter user', unwrap_bin('$3'),
+                   {'spec',
+                    [case {string:to_lower(unwrap('$4')), string:to_lower(unwrap('$5'))} of
+                         {"account", "lock"} -> {account, lock};
+                         {"account", "unlock"} -> {account, unlock};
+                         {"password", "expire"} -> {password, expire};
+                         Unknown -> exit({invalid_option, Unknown})
+                     end]
+                   }
+                  }.
 
 drop_user_def -> DROP USER NAME                                                                 : {'drop user', unwrap_bin('$3'), []}.
 drop_user_def -> DROP USER NAME CASCADE                                                         : {'drop user', unwrap_bin('$3'), ['cascade']}.
@@ -590,8 +606,10 @@ manipulative_statement -> select_statement                                      
 manipulative_statement -> update_statement_positioned                                           : '$1'.
 manipulative_statement -> update_statement_searched                                             : '$1'.
 manipulative_statement -> create_table_def                                                      : '$1'.
+manipulative_statement -> create_role_def                                                       : '$1'.
 manipulative_statement -> create_index_def                                                      : '$1'.
 manipulative_statement -> create_user_def                                                       : '$1'.
+manipulative_statement -> drop_role_def                                                         : '$1'.
 manipulative_statement -> drop_table_def                                                        : '$1'.
 manipulative_statement -> drop_index_def                                                        : '$1'.
 manipulative_statement -> alter_user_def                                                        : '$1'.

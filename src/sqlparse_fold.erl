@@ -180,6 +180,23 @@ fold(FType, Fun, Ctx, Lvl, {'create index', Opts, Idx, Table, Spec, Norm, Filter
     , NewCtx7};
 
 %
+% CREATE ROLE
+%
+fold(FType, Fun, Ctx, Lvl, {'create role', Role} = ST)
+  when is_binary(Role) ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {RoleStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl+1, Role),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
+    {"create role " ++ RoleStr
+    , NewCtx2};
+
+%
 % ALTER USER
 %
 fold(FType, Fun, Ctx, Lvl, {'alter user', Usr, {spec, Opts}} = ST)
@@ -319,7 +336,6 @@ fold(FType, Fun, Ctx, _Lvl, {'drop table', {tables, Ts}, E, RC} = ST)
      ++ string:join(Tables, ", ")
      ++ if is_atom(RC) -> " " ++ atom_to_list(RC); true -> "" end
     , NewCtx3};
-
 fold(FType, Fun, Ctx, _Lvl, {'drop index', Indx, Tbl} = ST) ->
     NewCtx = case FType of
         top_down -> Fun(ST, Ctx);
@@ -333,6 +349,19 @@ fold(FType, Fun, Ctx, _Lvl, {'drop index', Indx, Tbl} = ST) ->
      ++ binary_to_list(Indx) ++ " from "
      ++ binary_to_list(Tbl)
     , NewCtx1};
+fold(FType, Fun, Ctx, Lvl, {'drop role', Role} = ST)
+  when is_binary(Role) ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {RoleStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl+1, Role),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
+    {"drop role " ++ RoleStr
+    , NewCtx2};
 
 %
 % DELETE

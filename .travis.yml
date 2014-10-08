@@ -1,19 +1,16 @@
 language: erlang // This project is an Erlang project
 notifications:
-  // Notify this e-mail address on build failures
-  email: razorpeak@gmail.com
-// The Erlang/OTP versions to run your test against.
-otp_release:
-  - OTP 17.3
-  - OTP 17.1
-  - OTP 17.0
-  - OTP R16B03-1
+  email: razorpeak@gmail.com // Notify this e-mail address on build failures
+otp_release: // The Erlang/OTP versions to run your test against.
+  - 17.3
+  - 17.1
+  - 17.0
+  - R16B03-1
   - R16B03
   - R16B02
   - R16B01
   - R16B
   - R16A
-  - R15B03-1
   - R15B02
   - R15B01
   - R15B

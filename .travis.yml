@@ -1,4 +1,5 @@
 language: erlang // This project is an Erlang project
+script: "make compile && rm -rf .git && make test"
 notifications:
   email: razorpeak@gmail.com // Notify this e-mail address on build failures
 otp_release: // The Erlang/OTP versions to run your test against.

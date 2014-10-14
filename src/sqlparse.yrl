@@ -1007,7 +1007,7 @@ Erlang code.
 -behaviour(supervisor).
 
 % application callbacks
--export([start/0, start/2, stop/1]).
+-export([start/0, start/2, stop/1, stop/0]).
 
 % Supervisor callbacks
 -export([init/1]).
@@ -1033,9 +1033,13 @@ end).
 start() ->
     jpparse:start(),
     application:start(?MODULE).
+stop() ->
+    application:stop(?MODULE),
+    jpparse:stop().
 
 start(_Type, _Args) -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 stop(_State)        -> ok.
+
 init([])            -> {ok, { {one_for_one, 5, 10}, []} }.
 
 %%-----------------------------------------------------------------------------

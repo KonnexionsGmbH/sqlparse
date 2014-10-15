@@ -22,6 +22,7 @@ Nonterminals
  create_index_opt_norm
  create_index_opt_filter
  index_name
+ opt_index_name
  alter_user_def
  drop_role_def
  drop_table_def
@@ -375,7 +376,10 @@ create_user_def -> CREATE USER NAME identified opt_user_opts_list               
 drop_table_def -> DROP TABLE opt_exists table_list opt_restrict_cascade                         : {'drop table', {'tables', '$4'}, '$3', '$5'}.
 
 drop_role_def -> DROP ROLE NAME                                                                 : {'drop role', unwrap_bin('$3')}.
-drop_index_def -> DROP INDEX index_name FROM table                                              : {'drop index', '$3', '$5'}.
+drop_index_def -> DROP INDEX opt_index_name FROM table                                          : {'drop index', '$3', '$5'}.
+
+opt_index_name -> '$empty'                                                                      : {}.
+opt_index_name -> index_name                                                                    : '$1'.
 
 create_index_def -> CREATE create_index_opts INDEX index_name ON table create_index_spec
                     create_index_opt_norm create_index_opt_filter                               : {'create index', '$2', '$4', '$6', '$7', '$8', '$9'}.

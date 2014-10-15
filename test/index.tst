@@ -20,3 +20,4 @@
 
 
 "drop index s.a from s.b".
+"drop index from s.b".

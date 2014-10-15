@@ -346,7 +346,9 @@ fold(FType, Fun, Ctx, _Lvl, {'drop index', Indx, Tbl} = ST) ->
         bottom_up -> Fun(ST, NewCtx)
     end,
     {"drop index "
-     ++ binary_to_list(Indx) ++ " from "
+     ++ if Indx == {} -> "from ";
+           true -> binary_to_list(Indx) ++ " from "
+        end
      ++ binary_to_list(Tbl)
     , NewCtx1};
 fold(FType, Fun, Ctx, Lvl, {'drop role', Role} = ST)

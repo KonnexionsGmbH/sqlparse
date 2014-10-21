@@ -1382,17 +1382,24 @@ fold(FType, Fun, Ctx, Lvl, {'case', When, Then, Else} = ST) ->
     , NewCtx4};
 
 % procedure calls ('declare begin procedure' or 'begin procedure')
-fold(FType, Fun, Ctx, Lvl, {D, Function} = ST)
+fold(FType, Fun, Ctx, Lvl, {D, StmtList} = ST)
   when D =:= 'declare begin procedure'; D =:= 'begin procedure' ->
     NewCtx = case FType of
         top_down -> Fun(ST, Ctx);
         bottom_up -> Ctx
     end,
-    {FunctionStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl+1, Function),
+    {BodyStr, NewCtx1} =
+        lists:foldl(
+          fun(Stmt, {Body, ICtx}) ->
+                  {SBody, ICtx1} = fold(FType, Fun, ICtx, Lvl+1, Stmt),
+                  {Body++SBody++";", ICtx1}
+          end,
+          {"", NewCtx},
+          StmtList),
     {case D of
         'declare begin procedure' -> "declare begin ";
         'begin procedure' -> "begin "
-    end++FunctionStr++"; end"
+    end++BodyStr++" end"
     , NewCtx1};
 
 % procedure calls ('call ...')

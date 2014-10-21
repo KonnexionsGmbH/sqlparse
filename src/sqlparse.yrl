@@ -109,6 +109,7 @@ Nonterminals
  atom
  parameter_ref
  function_ref
+ function_ref_list
  %concat_list
  fun_args
  literal
@@ -349,9 +350,14 @@ extra -> '$empty'                                                               
 extra -> NAME  ';'                                                                              : {extra, unwrap_bin('$1')}.
 
 sql -> procedure_call                                                                           : '$1'.
-procedure_call -> DECLARE BEGIN function_ref ';' END                                            : {'declare begin procedure', '$3'}.
-procedure_call -> BEGIN function_ref ';' END                                                    : {'begin procedure', '$2'}.
+procedure_call -> DECLARE BEGIN function_ref_list END                                           : {'declare begin procedure', '$3'}.
+procedure_call -> DECLARE BEGIN sql_list END                                                    : {'declare begin procedure', '$3'}.
+procedure_call -> BEGIN function_ref_list END                                                   : {'begin procedure', '$2'}.
+procedure_call -> BEGIN sql_list END                                                            : {'begin procedure', '$2'}.
 procedure_call -> CALL function_ref                                                             : {'call procedure', '$2'}.
+
+function_ref_list -> function_ref ';'                                                           : ['$1'].
+function_ref_list -> function_ref ';' function_ref_list                                         : ['$1' | '$3'].
 
     %% schema definition language
 sql -> schema                                                                                   : '$1'.

@@ -14,3 +14,5 @@
 "call schm.proc(:p_first,:p_second,:p_result)".
 "begin schm.proc(:p_first,:p_second,:p_result); end".
 "begin proc(:p_first,:p_second,:p_result); end".
+"declare begin schm.proc(:p_first,:p_second,:p_result); dbms_output.put_line('Goodbye cruel World!'); end".
+"begin dbms_output.put_line('Hello World!'); dbms_output.put_line('Goodbye cruel World!'); end;".

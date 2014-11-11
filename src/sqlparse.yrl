@@ -594,7 +594,7 @@ opt_order_by_clause -> ORDER BY ordering_spec_commalist                         
 ordering_spec_commalist -> ordering_spec                                                        : ['$1'].
 ordering_spec_commalist -> ordering_spec_commalist ',' ordering_spec                            : '$1' ++ ['$3'].
 
-ordering_spec -> scalar_sub_exp opt_asc_desc                                                    : {'$1', '$2'}.
+ordering_spec -> scalar_exp opt_asc_desc                                                        : {'$1', '$2'}.
 
 opt_asc_desc -> '$empty'                                                                        : <<>>.
 opt_asc_desc -> ASC                                                                             : <<"asc">>.

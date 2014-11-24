@@ -1028,8 +1028,6 @@ Erlang code.
          , parsetree_with_tokens/1
          , is_reserved/1]).
 
--import(sqlparse_fold, [fold/5]).
-
 -define(Dbg(__Rule, __Production),
 begin
     io:format(user, "__ "??__Rule" (~p)~n", [__Production]),
@@ -1128,9 +1126,10 @@ parsetree(Sql) ->
     {parse_error, term()} | {lex_error, term()} | {ok, {[tuple()], list()}}.
 parsetree_with_tokens([]) -> {parse_error, invalid_string};
 parsetree_with_tokens(<<>>) -> {parse_error, invalid_string};
-parsetree_with_tokens(Sql) ->
-    [C|_] = lists:reverse(re:replace(Sql,"(^[ \r\n]+)|([ \r\n]+$)",
-                                     "", [global, {return, list}])),
+parsetree_with_tokens(Sql0) ->
+    Sql = re:replace(Sql0, "(^[ \r\n]+)|([ \r\n]+$)", "",
+                     [global, {return, list}]),
+    [C|_] = lists:reverse(Sql),
     NSql = if C =:= $; -> Sql; true -> string:strip(Sql) ++ ";" end,
     case sql_lex:string(NSql) of
         {ok, Toks, _} ->
@@ -1159,35 +1158,25 @@ is_reserved(Word) when is_list(Word) ->
 %%                                  COMPILER
 %%-----------------------------------------------------------------------------
 
--spec pt_to_string(tuple()) -> {error, term()} | binary().
-pt_to_string(PTree) when is_tuple(PTree) -> foldtd(fun(_,_) -> null_fun end, null_fun, PTree);
-pt_to_string(PTrees) when is_list(PTrees) ->
-    list_to_binary([string:join([
-        binary_to_list(case PTree of
-            {Pt, {extra, <<>>}} ->
-                foldtd(fun(_,_) -> null_fun end, null_fun, Pt);
-            {Pt, {extra, Extra}} ->
-                Sql = foldtd(fun(_,_) -> null_fun end, null_fun, Pt),
-                << Sql/binary, "; ", Extra/binary >>
-        end)
-    || PTree <- PTrees], "; "), ";"]).
+-spec pt_to_string(tuple()| list()) -> {error, term()} | binary().
+pt_to_string(PTree) -> foldtd(fun(_,_) -> null_fun end, null_fun, PTree).
 
--spec foldtd(fun(), term(), tuple()) -> {error, term()} | binary().
+-spec foldtd(fun(), term(), tuple() | list()) -> {error, term()} | binary().
 foldtd(Fun, Ctx, PTree) when is_function(Fun, 2) ->
-    try fold(top_down, Fun, Ctx, 0, PTree) of
+    try sqlparse_fold:fold(top_down, Fun, Ctx, 0, PTree) of
         {error,_} = Error -> Error;
         {Sql, null_fun = Ctx} -> list_to_binary(string:strip(Sql));
-        {_, NewCtx} -> NewCtx
+        {Output, NewCtx} -> {Output, NewCtx}
     catch
         _:Error -> {error, Error}
     end.
 
 -spec foldbu(fun(), term(), tuple()) -> {error, term()} | binary().
 foldbu(Fun, Ctx, PTree) when is_function(Fun, 2) ->
-    try fold(bottom_up, Fun, Ctx, 0, PTree) of
+    try sqlparse_fold:fold(bottom_up, Fun, Ctx, 0, PTree) of
         {error,_} = Error -> Error;
         {Sql, null_fun = Ctx} -> list_to_binary(string:strip(Sql));
-        {_, NewCtx} -> NewCtx
+        {Output, NewCtx} -> {Output, NewCtx}
     catch
         _:Error -> {error, Error}
     end.

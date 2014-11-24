@@ -2,6 +2,47 @@
 
 -export([fold/5]).
 
+% 
+% List of parsetrees
+%
+fold(FType, Fun, Ctx, Lvl, STs) when is_list(STs)->
+    NewCtx = case FType of
+        top_down -> Fun(STs, Ctx);
+        bottom_up -> Ctx
+    end,
+    {SqlStr, NewCtx1}
+    = lists:foldl(
+        fun(ST, {Sql, AccCtx}) ->
+                {NewSql, NewAccCtx} = fold(FType, Fun, AccCtx, Lvl, ST),
+                {Sql ++
+                 if length(Sql) > 0 -> "; " ++ NewSql; true -> NewSql end,
+                 NewAccCtx}
+        end, {"", NewCtx}, STs),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(STs, NewCtx1)
+    end,
+    {SqlStr, NewCtx2};
+
+% 
+% Handling of Extra part
+%
+fold(FType, Fun, Ctx, Lvl, {Pt, {extra, Bin}} = ST) ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {SqlStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl, Pt),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
+    {SqlStr ++ if Bin /= <<>> ->
+                  ";" ++ binary_to_list(Bin);
+                  true -> ""
+               end,
+     NewCtx2};
+
 %
 % SELECT
 %
@@ -82,7 +123,12 @@ fold(FType, Fun, Ctx, Lvl, {'create table', Tab, Fields, Opts} = ST)
         top_down -> Fun(ST, Ctx);
         bottom_up -> Ctx
     end,
-    {OptsStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl+1, Opts),
+    {OptsStr, NewCtx1}
+    = lists:foldl(
+        fun(Opt, {Str, AccCtx}) ->
+                {NewStr, NewAccCtx} = fold(FType, Fun, AccCtx, Lvl+1, Opt),
+                {Str++NewStr, NewAccCtx}
+        end, {"", NewCtx}, Opts),
     NewCtx2 = Fun(Tab, NewCtx1),
     {Clms, NewCtx3} = lists:foldl(fun(Clm, {Acc, CtxAcc}) ->
             case Clm of
@@ -91,7 +137,9 @@ fold(FType, Fun, Ctx, Lvl, {'create table', Tab, Fields, Opts} = ST)
                     CtxAcc2 = Fun(T, CtxAcc1),
                     CtxAcc3 = Fun(N, CtxAcc2),
                     {SubAcc, CtxAcc4} = fold(FType, Fun, CtxAcc3, Lvl+1, O),
-                    {Acc ++ [lists:flatten([binary_to_list(C), " ", atom_to_list(T), "(", N, ") ", SubAcc])]
+                    {Acc ++ [lists:flatten([binary_to_list(C), " ",
+                                            atom_to_list(T), "(", N, ") ",
+                                            SubAcc])]
                     , CtxAcc4};
                 {C, {T, N, N1}, O} when is_binary(C) ->
                     CtxAcc1 = Fun(C, CtxAcc),
@@ -99,19 +147,23 @@ fold(FType, Fun, Ctx, Lvl, {'create table', Tab, Fields, Opts} = ST)
                     CtxAcc3 = Fun(N, CtxAcc2),
                     CtxAcc4 = Fun(N1, CtxAcc3),
                     {SubAcc, CtxAcc5} = fold(FType, Fun, CtxAcc4, Lvl+1, O),
-                    {Acc ++ [lists:flatten([binary_to_list(C), " ", atom_to_list(T), "(",N,",",N1,") ", SubAcc])]
+                    {Acc ++ [lists:flatten([binary_to_list(C), " ",
+                                            atom_to_list(T), "(",N,",",N1,") ",
+                                            SubAcc])]
                     , CtxAcc5};
                 {C, T, O} when is_binary(C) and is_binary(T) ->
                     CtxAcc1 = Fun(C, CtxAcc),
                     CtxAcc2 = Fun(T, CtxAcc1),
                     {SubAcc, CtxAcc3} = fold(FType, Fun, CtxAcc2, Lvl+1, O),
-                    {Acc ++ [lists:flatten([binary_to_list(C), " ", binary_to_list(T), " ", SubAcc])]
+                    {Acc ++ [lists:flatten([binary_to_list(C), " ",
+                                            binary_to_list(T), " ", SubAcc])]
                     , CtxAcc3};
                 {C, T, O} when is_binary(C) ->
                     CtxAcc1 = Fun(C, CtxAcc),
                     CtxAcc2 = Fun(T, CtxAcc1),
                     {SubAcc, CtxAcc3} = fold(FType, Fun, CtxAcc2, Lvl+1, O),
-                    {Acc ++ [lists:flatten([binary_to_list(C), " ", atom_to_list(T), " ", SubAcc])]
+                    {Acc ++ [lists:flatten([binary_to_list(C), " ",
+                                            atom_to_list(T), " ", SubAcc])]
                     , CtxAcc3};
                 Clm ->
                     {SubAcc, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl+1, Clm),
@@ -139,7 +191,12 @@ fold(FType, Fun, Ctx, Lvl, {'create user', Usr, Id, Opts} = ST)
     end,
     NewCtx1 = Fun(Usr, NewCtx),
     {IdStr, NewCtx2} = fold(FType, Fun, NewCtx1, Lvl+1, Id),
-    {OptsStr, NewCtx3} = fold(FType, Fun, NewCtx2, Lvl+1, Opts),
+    {OptsStr, NewCtx3}
+    = lists:foldl(
+        fun(Opt, {Str, AccCtx}) ->
+                {NewStr, NewAccCtx} = fold(FType, Fun, AccCtx, Lvl+1, Opt),
+                {Str++NewStr, NewAccCtx}
+        end, {"", NewCtx2}, Opts),
     NewCtx4 = case FType of
         top_down -> NewCtx3;
         bottom_up -> Fun(ST, NewCtx3)
@@ -193,8 +250,8 @@ fold(FType, Fun, Ctx, Lvl, {'create role', Role} = ST)
         top_down -> NewCtx1;
         bottom_up -> Fun(ST, NewCtx1)
     end,
-    {"create role " ++ RoleStr
-    , NewCtx2};
+    {"create role " ++ RoleStr,
+     NewCtx2};
 
 %
 % ALTER USER
@@ -211,8 +268,8 @@ fold(FType, Fun, Ctx, Lvl, {'alter user', Usr, {spec, Opts}} = ST)
         top_down -> NewCtx2;
         bottom_up -> Fun(ST, NewCtx2)
     end,
-    {lists:flatten(["alter user ", binary_to_list(Usr), " ", OptsStr])
-    , NewCtx3};
+    {lists:flatten(["alter user ", binary_to_list(Usr), " ", OptsStr]),
+     NewCtx3};
 
 %
 % TRUNCATE TABLE
@@ -239,8 +296,8 @@ fold(FType, Fun, Ctx, _Lvl, {'truncate table', Tbl, Mvl, Storage} = ST)
     case Storage of
         {} -> "";
         {'storage', T} -> lists:flatten([atom_to_list(T), " storage"])
-    end
-    , NewCtx4};
+    end,
+    NewCtx4};
 
 %
 % UPDATE TABLE
@@ -266,8 +323,11 @@ fold(FType, Fun, Ctx, Lvl, {'update', Tbl, {set, Set}, Where, Return} = ST)
     end,
     {"update " ++ binary_to_list(Tbl)
     ++ " set " ++ string:join(Sets, ",")
-    ++ " " ++ WhereStr ++ ReturnStr
-    , NewCtx5};
+    ++ if length(WhereStr) > 0 orelse length(ReturnStr) > 0 ->
+              " " ++ WhereStr ++ ReturnStr;
+          true -> ""
+       end,
+    NewCtx5};
 
 %
 % DROPS
@@ -469,8 +529,8 @@ fold(FType, Fun, Ctx, Lvl, {'identified globally', E} = ST) ->
         top_down -> NewCtx1;
         bottom_up -> Fun(ST, NewCtx1)
     end,
-    {" identified globally " ++ IdStr
-    , NewCtx2};
+    {" identified globally " ++ IdStr,
+     NewCtx2};
 fold(FType, Fun, Ctx, Lvl, {'identified extern', E} = ST) ->
     NewCtx = case FType of
         top_down -> Fun(ST, Ctx);
@@ -481,8 +541,8 @@ fold(FType, Fun, Ctx, Lvl, {'identified extern', E} = ST) ->
         top_down -> NewCtx1;
         bottom_up -> Fun(ST, NewCtx1)
     end,
-    {" identified externally " ++ IdStr
-    , NewCtx2};
+    {" identified externally " ++ IdStr,
+     NewCtx2};
 fold(FType, Fun, Ctx, _Lvl, {'identified by', Pswd} = ST) ->
     NewCtx = case FType of
         top_down -> Fun(ST, Ctx);
@@ -493,35 +553,141 @@ fold(FType, Fun, Ctx, _Lvl, {'identified by', Pswd} = ST) ->
         top_down -> NewCtx1;
         bottom_up -> Fun(ST, NewCtx1)
     end,
-    {" identified by " ++ binary_to_list(Pswd)
-    , NewCtx2};
-fold(FType, Fun, Ctx, Lvl, [{'scope', S}|Opts] = ST) ->
+    {" identified by " ++ binary_to_list(Pswd),
+     NewCtx2};
+fold(FType, Fun, Ctx, _Lvl, {'account', LockUnlock} = ST)
+  when LockUnlock == 'lock'; LockUnlock == 'unlock' ->
     NewCtx = case FType of
         top_down -> Fun(ST, Ctx);
         bottom_up -> Ctx
     end,
-    NewCtx1 = Fun(S, NewCtx),
-    {OptsStr, NewCtx2} = fold(FType, Fun, NewCtx1, Lvl+1, Opts),
-    NewCtx3 = case FType of
-        top_down -> NewCtx2;
-        bottom_up -> Fun(ST, NewCtx2)
+    NewCtx1 = Fun(LockUnlock, NewCtx),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
     end,
-    {lists:flatten([" ", atom_to_list(S), " ", OptsStr])
-    , NewCtx3};
-fold(FType, Fun, Ctx, Lvl, [{'type', T}|Opts] = ST) ->
+    {" account " ++ atom_to_list(LockUnlock) ++ " ",
+     NewCtx2};
+fold(FType, Fun, Ctx, _Lvl, {'password', 'expire'} = ST) ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    NewCtx1 = case FType of
+        top_down -> NewCtx;
+        bottom_up -> Fun(ST, NewCtx)
+    end,
+    {" password expire ",
+     NewCtx1};
+fold(FType, Fun, Ctx, _Lvl, {'unlimited on', T} = ST)
+  when is_binary(T) ->
     NewCtx = case FType of
         top_down -> Fun(ST, Ctx);
         bottom_up -> Ctx
     end,
     NewCtx1 = Fun(T, NewCtx),
-    {OptsStr, NewCtx2} = fold(FType, Fun, NewCtx1, Lvl+1, Opts),
-    NewCtx3 = case FType of
-        top_down -> NewCtx2;
-        bottom_up -> Fun(ST, NewCtx2)
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
     end,
-    {lists:flatten([" ", atom_to_list(T), " ", OptsStr])
-    , NewCtx3};
-fold(FType, Fun, Ctx, Lvl, [{'limited', Q, T}|O] = ST)
+    {"quota unlimited on " ++ binary_to_list(T) ++ " ",
+     NewCtx2};
+fold(FType, Fun, Ctx, _Lvl, {'unlimited on', T} = ST)
+  when is_binary(T) ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    NewCtx1 = Fun(T, NewCtx),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
+    {"quota unlimited on " ++ binary_to_list(T) ++ " ",
+     NewCtx2};
+fold(FType, Fun, Ctx, _Lvl, {'scope', S} = ST)
+  when S == 'local'; S == 'cluster'; S == 'schema' ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    NewCtx1 = Fun(S, NewCtx),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
+    {lists:flatten([" ", atom_to_list(S), " "]),
+     NewCtx2};
+fold(FType, Fun, Ctx, _Lvl, {'type', T} = ST)
+  when T == 'set'; T == 'ordered_set'; T == 'bag' ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    NewCtx1 = Fun(T, NewCtx),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
+    {lists:flatten([" ", atom_to_list(T), " "]),
+     NewCtx2};
+fold(FType, Fun, Ctx, _Lvl, {TS, Tab} = ST)
+  when TS == 'default tablespace'; TS == 'temporary tablespace' ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    NewCtx1 = Fun(Tab, NewCtx),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
+    {lists:flatten([" ", atom_to_list(TS), " ", binary_to_list(Tab), " "]),
+     NewCtx2};
+fold(FType, Fun, Ctx, _Lvl, {'profile', Profile} = ST) ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    NewCtx1 = Fun(Profile, NewCtx),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
+    {lists:flatten([" profile ", binary_to_list(Profile), " "]),
+     NewCtx2};
+fold(FType, Fun, Ctx, Lvl, {'quotas', Quotas} = ST) ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {QuotaStr, NewCtx1}
+    = lists:foldl(
+        fun(Quota, {Str, AccCtx}) ->
+                {NewStr, NewAccCtx} = fold(FType, Fun, AccCtx, Lvl+1, Quota),
+                {Str++NewStr, NewAccCtx}
+        end, {"", NewCtx}, Quotas),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
+    {QuotaStr ++ " ",
+     NewCtx2};
+
+%fold(FType, Fun, Ctx, Lvl, [{'type', T}|Opts] = ST) ->
+%    NewCtx = case FType of
+%        top_down -> Fun(ST, Ctx);
+%        bottom_up -> Ctx
+%    end,
+%    NewCtx1 = Fun(T, NewCtx),
+%    {OptsStr, NewCtx2} = fold(FType, Fun, NewCtx1, Lvl+1, Opts),
+%    NewCtx3 = case FType of
+%        top_down -> NewCtx2;
+%        bottom_up -> Fun(ST, NewCtx2)
+%    end,
+%    {lists:flatten([" ", atom_to_list(T), " ", OptsStr]),
+%     NewCtx3};
+fold(FType, Fun, Ctx, Lvl, {'limited', Q, T} = ST)
   when is_binary(Q), is_binary(T) ->
     NewCtx = case FType of
         top_down -> Fun(ST, Ctx);
@@ -529,13 +695,13 @@ fold(FType, Fun, Ctx, Lvl, [{'limited', Q, T}|O] = ST)
     end,
     NewCtx1 = Fun(Q, NewCtx),
     NewCtx2 = Fun(T, NewCtx1),
-    {Os, NewCtx3} = fold(FType, Fun, NewCtx2, Lvl+1, O),
-    NewCtx4 = case FType of
-        top_down -> NewCtx3;
-        bottom_up -> Fun(ST, NewCtx3)
+    NewCtx3 = case FType of
+        top_down -> NewCtx2;
+        bottom_up -> Fun(ST, NewCtx2)
     end,
-    {lists:flatten(["quota ", binary_to_list(Q), " on ", binary_to_list(T), " ", Os])
-    , NewCtx4};
+    {lists:flatten(["quota ", binary_to_list(Q), " on ", binary_to_list(T),
+                    " "]),
+     NewCtx3};
 fold(FType, Fun, Ctx, Lvl, [cascade|Opts] = ST) ->
     NewCtx = case FType of
         top_down -> Fun(ST, Ctx);
@@ -548,36 +714,6 @@ fold(FType, Fun, Ctx, Lvl, [cascade|Opts] = ST) ->
     end,
     {lists:flatten([" cascade ", OptsStr])
     , NewCtx2};
-fold(FType, Fun, Ctx, Lvl, [{Tok, T}|Opts] = ST) ->
-    NewCtx = case FType of
-        top_down -> Fun(ST, Ctx);
-        bottom_up -> Ctx
-    end,
-    {Str, NewCtx4} = if is_binary(T) andalso (Tok =:= 'default tablespace'
-                             orelse Tok =:= 'temporary tablespace'
-                             orelse Tok =:= 'profile') ->
-            NewCtx1 = Fun(Tok, NewCtx),
-            NewCtx2 = Fun(T, NewCtx1),
-            {OptsStr, NewCtx3} = fold(FType, Fun, NewCtx2, Lvl+1, Opts),
-            {lists:flatten([atom_to_list(Tok), " ", binary_to_list(T), " ", OptsStr])
-            , NewCtx3};
-        true ->
-            case {Tok, T} of
-                {'password', 'expire'}  -> {"password expire ", Fun({Tok, T}, NewCtx)};
-                {'account', 'lock'}     -> {"account lock ", Fun({Tok, T}, NewCtx)};
-                {'account', 'unlock'}   -> {"account unlock ", Fun({Tok, T}, NewCtx)};
-                {'unlimited on', T} when is_binary(T)   ->
-                    {lists:flatten(["quota unlimited on ", binary_to_list(T)])
-                    , Fun({Tok, T}, NewCtx)};
-                {'quotas', Qs} -> fold(FType, Fun, NewCtx, Lvl+1, Qs);
-                _ -> fold(FType, Fun, NewCtx, Lvl+1, {Tok, T})
-            end
-    end,
-    NewCtx5 = case FType of
-        top_down -> NewCtx4;
-        bottom_up -> Fun(ST, NewCtx4)
-    end,
-    {Str, NewCtx5};
 fold(FType, Fun, Ctx, Lvl, {'default', Def} = ST) ->
     NewCtx = case FType of
         top_down -> Fun(ST, Ctx);
@@ -1237,10 +1373,11 @@ fold(FType, Fun, Ctx, Lvl, {'fun', N, Args} = ST)
             case A of
                 A when is_binary(A) -> {Acc++[binary_to_list(A)], Fun(A, CtxAcc)};
                 A when is_tuple(A) ->
-                    case lists:member(element(1, A), [ 'select', 'insert', 'create table'
-                                                     , 'create user', 'alter user'
-                                                     , 'truncate table', 'update', 'delete'
-                                                     , 'grant', 'revoke']) of
+                    case lists:member(element(1, A),
+                                      [ 'select', 'insert', 'create table',
+                                        'create user', 'alter user',
+                                        'truncate table', 'update', 'delete',
+                                        'grant', 'revoke']) of
                         true ->
                             {SubAcc, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl+1, A),
                             {Acc++["(" ++ string:strip(SubAcc) ++ ")"], CtxAcc1};
@@ -1388,19 +1525,12 @@ fold(FType, Fun, Ctx, Lvl, {D, StmtList} = ST)
         top_down -> Fun(ST, Ctx);
         bottom_up -> Ctx
     end,
-    {BodyStr, NewCtx1} =
-        lists:foldl(
-          fun(Stmt, {Body, ICtx}) ->
-                  {SBody, ICtx1} = fold(FType, Fun, ICtx, Lvl+1, Stmt),
-                  {Body++SBody++";", ICtx1}
-          end,
-          {"", NewCtx},
-          StmtList),
+    {BodyStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl+1, StmtList),
     {case D of
         'declare begin procedure' -> "declare begin ";
         'begin procedure' -> "begin "
-    end++BodyStr++" end"
-    , NewCtx1};
+     end ++ BodyStr ++ "; end",
+     NewCtx1};
 
 % procedure calls ('call ...')
 fold(FType, Fun, Ctx, Lvl, {'call procedure', Function} = ST) ->

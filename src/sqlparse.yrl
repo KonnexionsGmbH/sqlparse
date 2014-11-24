@@ -1166,7 +1166,7 @@ foldtd(Fun, Ctx, PTree) when is_function(Fun, 2) ->
     try sqlparse_fold:fold(top_down, Fun, Ctx, 0, PTree) of
         {error,_} = Error -> Error;
         {Sql, null_fun = Ctx} -> list_to_binary(string:strip(Sql));
-        {Output, NewCtx} -> {Output, NewCtx}
+        {_Output, NewCtx} -> NewCtx
     catch
         _:Error -> {error, Error}
     end.
@@ -1176,7 +1176,7 @@ foldbu(Fun, Ctx, PTree) when is_function(Fun, 2) ->
     try sqlparse_fold:fold(bottom_up, Fun, Ctx, 0, PTree) of
         {error,_} = Error -> Error;
         {Sql, null_fun = Ctx} -> list_to_binary(string:strip(Sql));
-        {Output, NewCtx} -> {Output, NewCtx}
+        {_Output, NewCtx} -> NewCtx
     catch
         _:Error -> {error, Error}
     end.

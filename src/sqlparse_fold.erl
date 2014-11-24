@@ -674,20 +674,7 @@ fold(FType, Fun, Ctx, Lvl, {'quotas', Quotas} = ST) ->
     {QuotaStr ++ " ",
      NewCtx2};
 
-%fold(FType, Fun, Ctx, Lvl, [{'type', T}|Opts] = ST) ->
-%    NewCtx = case FType of
-%        top_down -> Fun(ST, Ctx);
-%        bottom_up -> Ctx
-%    end,
-%    NewCtx1 = Fun(T, NewCtx),
-%    {OptsStr, NewCtx2} = fold(FType, Fun, NewCtx1, Lvl+1, Opts),
-%    NewCtx3 = case FType of
-%        top_down -> NewCtx2;
-%        bottom_up -> Fun(ST, NewCtx2)
-%    end,
-%    {lists:flatten([" ", atom_to_list(T), " ", OptsStr]),
-%     NewCtx3};
-fold(FType, Fun, Ctx, Lvl, {'limited', Q, T} = ST)
+fold(FType, Fun, Ctx, _Lvl, {'limited', Q, T} = ST)
   when is_binary(Q), is_binary(T) ->
     NewCtx = case FType of
         top_down -> Fun(ST, Ctx);

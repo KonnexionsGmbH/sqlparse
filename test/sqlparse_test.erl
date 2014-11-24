@@ -100,7 +100,7 @@ tests_gen(TestGroup, [{I,T}|Tests], Verbose, SelTests, Acc) ->
 -define(D5(__Msg),          ?D(5,__Msg)).
 -define(D5(__Fmt,__Args),   ?D(5,__Fmt,__Args)).
 
-test_sql(TestGroup, Test, Verbose) ->
+test_sql(_TestGroup, Test, Verbose) ->
     ?D1("~n ~ts", [Test]),
     case sqlparse:parsetree_with_tokens(Test) of
         {ok, {ParseTree, Tokens}} ->

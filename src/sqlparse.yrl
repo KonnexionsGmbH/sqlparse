@@ -1116,34 +1116,41 @@ make_list(L) -> [L].
 %%-----------------------------------------------------------------------------
 %%                                  PARSER
 %%-----------------------------------------------------------------------------
--spec parsetree(binary()|list()) -> {parse_error, term()} | {lex_error, term()} | {ok, [tuple()]}.
+-spec parsetree(binary()|list()) ->
+    {parse_error, term()} | {lex_error, term()} | {ok, [tuple()]}.
 parsetree(Sql) ->
    case parsetree_with_tokens(Sql) of
        {ok, {ParseTree, _Tokens}} -> {ok, ParseTree};
        Error -> Error
    end.
 
--spec parsetree_with_tokens(binary()|list()) -> {parse_error, term()} | {lex_error, term()} | {ok, {[tuple()], list()}}.
-parsetree_with_tokens(Sql) when is_binary(Sql) -> parsetree_with_tokens(binary_to_list(Sql));
-parsetree_with_tokens([]) -> {parse_error, {not_a_valid_sql, []}};
-parsetree_with_tokens(Sql) when is_list(Sql) ->
-    [C|_] = lists:reverse(string:strip(Sql)),
+-spec parsetree_with_tokens(binary()|list()) ->
+    {parse_error, term()} | {lex_error, term()} | {ok, {[tuple()], list()}}.
+parsetree_with_tokens([]) -> {parse_error, invalid_string};
+parsetree_with_tokens(<<>>) -> {parse_error, invalid_string};
+parsetree_with_tokens(Sql) ->
+    [C|_] = lists:reverse(re:replace(Sql,"(^[ \r\n]+)|([ \r\n]+$)",
+                                     "", [global, {return, list}])),
     NSql = if C =:= $; -> Sql; true -> string:strip(Sql) ++ ";" end,
     case sql_lex:string(NSql) of
         {ok, Toks, _} ->
             case sqlparse:parse(Toks) of
                 {ok, PTree} -> {ok, {PTree, Toks}};
-                {error,{N,?MODULE,ErrorTerms}} -> {parse_error, {lists:flatten([integer_to_list(N), ": ", ErrorTerms]), Toks}};
+                {error,{N,?MODULE,ErrorTerms}} ->
+                    {parse_error, {lists:flatten([integer_to_list(N), ": ", ErrorTerms]), Toks}};
                 {error,Error} -> {parse_error, {Error, Toks}}
             end;
         {error,Error,_} -> {lex_error, Error}
-    end;
-parsetree_with_tokens(SomethingElse) -> {parse_error, {not_a_valid_sql, SomethingElse}}.
+    end.
 
 -spec is_reserved(binary() | atom() | list()) -> true | false.
-is_reserved(Word) when is_binary(Word)  -> is_reserved(erlang:binary_to_list(Word));
-is_reserved(Word) when is_atom(Word)    -> is_reserved(erlang:atom_to_list(Word));
-is_reserved(Word) when is_list(Word)    -> lists:member(erlang:list_to_atom(string:to_upper(Word)), sql_lex:reserved_keywords()).
+is_reserved(Word) when is_binary(Word) ->
+    is_reserved(erlang:binary_to_list(Word));
+is_reserved(Word) when is_atom(Word) ->
+    is_reserved(erlang:atom_to_list(Word));
+is_reserved(Word) when is_list(Word) ->
+    lists:member(erlang:list_to_atom(string:to_upper(Word)),
+                 sql_lex:reserved_keywords()).
 
 %%-----------------------------------------------------------------------------
 

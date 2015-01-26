@@ -197,7 +197,6 @@ Terminals
  ESCAPE
  EXISTS
  DROP
- IF
  RESTRICT
  CASCADE
  FETCH
@@ -300,7 +299,9 @@ Terminals
  NOCYCLE
  CASE
  WHEN
+ IF
  THEN
+ ELSIF
  ELSE
  END
  CALL
@@ -968,6 +969,8 @@ table -> NAME '.' NAME NAME                                                     
                                                                                                    , unwrap_bin('$4')}.
 
 column_ref -> JSON                                                                              : jpparse('$1').
+column_ref -> NAME '.' JSON                                                                     : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3')])).
+column_ref -> NAME '.' NAME '.' JSON                                                            : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')])).
 column_ref -> NAME                                                                              : unwrap_bin('$1').
 column_ref -> NAME '.' NAME                                                                     : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
 column_ref -> NAME '.' NAME '.' NAME                                                            : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).

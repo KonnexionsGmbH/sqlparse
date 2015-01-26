@@ -15,7 +15,7 @@ Rules.
 ((\/\*)[^\*\/]*(\*\/))                              : {token, {'HINT', TokenLine, TokenChars}}.
 
 % JSON
-([A-Za-z0-9_]+[:#\[\{]+.*)                          : parse_json(TokenLine, TokenChars).
+([A-Za-z0-9_\.]+[:#\[\{]+.*)                        : parse_json(TokenLine, TokenChars).
 
 % punctuation
 (=|<>|<|>|<=|>=)                                    : {token, {'COMPARISON', TokenLine, list_to_atom(TokenChars)}}.
@@ -93,7 +93,6 @@ Erlang code.
     {"^(?i)(DISTINCT)$",        'DISTINCT'},
     {"^(?i)(DOUBLE)$",          'DOUBLE'},
     {"^(?i)(ESCAPE)$",          'ESCAPE'},
-    {"^(?i)(IF)$",              'IF'},
     {"^(?i)(EXISTS)$",          'EXISTS'},
     {"^(?i)(FETCH)$",           'FETCH'},
     {"^(?i)(FOR)$",             'FOR'},
@@ -170,7 +169,9 @@ Erlang code.
     {"^(?i)(CONNECT)$",         'CONNECT'},
     {"^(?i)(CASE)$",            'CASE'},
     {"^(?i)(WHEN)$",            'WHEN'},
+    {"^(?i)(IF)$",              'IF'},
     {"^(?i)(THEN)$",            'THEN'},
+    {"^(?i)(ELSIF)$",           'ELSIF'},
     {"^(?i)(ELSE)$",            'ELSE'},
     {"^(?i)(END)$",             'END'},
 
@@ -274,7 +275,8 @@ parse_json(TokenLine, [T|TokenChars], Json, PushBack, Open)
     parse_json(TokenLine, TokenChars, [T|Json], PushBack, Open);
 parse_json(TokenLine, [T|TokenChars], Json, PushBack, Open)
  when (Open =:= 0) andalso (
-        (T =:= $:) orelse (T =:= $#) orelse (T =:= $_)
+        (T =:= $:) orelse (T =:= $#)
+        orelse (T =:= $_) orelse (T =:= $.)
         orelse ((T >= $A) andalso (T =< $Z))
         orelse ((T >= $a) andalso (T =< $z))
         orelse ((T >= $0) andalso (T =< $9))

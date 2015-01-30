@@ -15,6 +15,8 @@
 % Boolean expression in select list not supported
 %<<"select a < 0 from abc">>.
 
+<<"select fun(a || b, c) from tab">>.
+
 <<"select 'öüäéèà', 'شلاؤيثبلتهتنمةىخ','นี่คือการทดสอบ' from dual"/utf8>>.
 
 <<"sElect

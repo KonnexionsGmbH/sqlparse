@@ -112,6 +112,7 @@ Nonterminals
  function_ref_list
  %concat_list
  fun_args
+ fun_arg
  literal
  table
  column_ref
@@ -933,23 +934,26 @@ function_ref -> AMMSC '(' DISTINCT column_ref ')'                               
 function_ref -> AMMSC '(' ALL scalar_exp ')'                                                    : {'fun', unwrap_bin('$1'), [{'all', '$4'}]}.
 function_ref -> AMMSC '(' scalar_exp ')'                                                        : {'fun', unwrap_bin('$1'), make_list('$3')}.
 
-fun_args -> '(' fun_args ')'                                                                    : '$2'.
-fun_args -> function_ref                                                                        : '$1'.
-fun_args -> column_ref                                                                          : '$1'.
-fun_args -> fun_args '+' fun_args                                                               : {'+','$1','$3'}.
-fun_args -> fun_args '-' fun_args                                                               : {'-','$1','$3'}.
-fun_args -> fun_args '*' fun_args                                                               : {'*','$1','$3'}.
-fun_args -> fun_args '/' fun_args                                                               : {'/','$1','$3'}.
-fun_args -> fun_args 'div' fun_args                                                             : {'div','$1','$3'}.
-fun_args -> fun_args '||' fun_args                                                              : {'||','$1','$3'}.
-fun_args -> '+' fun_args                                                                        : {'+','$2'}. %prec UMINU
-fun_args -> '-' fun_args                                                                        : {'-','$2'}. %prec UMINU
-fun_args -> '+' literal                                                                         : '$2'.
-fun_args -> '-' literal                                                                         : list_to_binary(["-",'$2']).
-fun_args -> NULLX                                                                               : <<"NULL">>.
-fun_args -> atom                                                                                : '$1'.
-fun_args -> subquery                                                                            : '$1'.
-fun_args -> fun_args ',' fun_args                                                               : lists:flatten(['$1'] ++ ['$3']).
+fun_args -> fun_arg                                                                             : ['$1']. 
+fun_args -> fun_arg ',' fun_args                                                                : ['$1' | '$3'].
+
+fun_arg -> '(' fun_arg ')'                                                                      : '$2'.
+fun_arg -> function_ref                                                                         : '$1'.
+fun_arg -> column_ref                                                                           : '$1'.
+fun_arg -> fun_arg '+' fun_arg                                                                  : {'+','$1','$3'}.
+fun_arg -> fun_arg '-' fun_arg                                                                  : {'-','$1','$3'}.
+fun_arg -> fun_arg '*' fun_arg                                                                  : {'*','$1','$3'}.
+fun_arg -> fun_arg '/' fun_arg                                                                  : {'/','$1','$3'}.
+fun_arg -> fun_arg 'div' fun_arg                                                                : {'div','$1','$3'}.
+fun_arg -> fun_arg '||' fun_arg                                                                 : {'||','$1','$3'}.
+fun_arg -> '+' fun_arg                                                                          : {'+','$2'}. %prec UMINU
+fun_arg -> '-' fun_arg                                                                          : {'-','$2'}. %prec UMINU
+fun_arg -> '+' literal                                                                          : '$2'.
+fun_arg -> '-' literal                                                                          : list_to_binary(["-",'$2']).
+fun_arg -> NULLX                                                                                : <<"NULL">>.
+fun_arg -> atom                                                                                 : '$1'.
+fun_arg -> subquery                                                                             : '$1'.
+%fun_args -> fun_args ',' fun_args                                                               : lists:flatten(['$1'] ++ ['$3']).
 
 literal -> STRING                                                                               : unwrap_bin('$1').
 literal -> INTNUM                                                                               : unwrap_bin('$1').

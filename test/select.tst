@@ -15,14 +15,13 @@
 % Boolean expression in select list not supported
 %<<"select a < 0 from abc">>.
 
-<<"select fun(a || b, c) from tab">>.
-
 <<"select 'öüäéèà', 'شلاؤيثبلتهتنمةىخ','นี่คือการทดสอบ' from dual"/utf8>>.
 
 <<"sElect
     /*+004*/
     distinct
     - a.b,
+    fun(a || b, c), fun2(e, a || b), fun2(d, a || b, c),
     a || fun(a,b) d,
     fun(a,b) || e as d,
     (CASE WHEN CNT < 10 and (c = d or e = f) THEN '1' ELSE 2 END),
@@ -70,4 +69,4 @@ MINUS
 	SELECT * FROM h
 UNION ALL
 	SELECT i FROM j
-">>.
+"/utf8>>.

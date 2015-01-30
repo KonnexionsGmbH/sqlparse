@@ -1563,6 +1563,4 @@ fold(FType, Fun, Ctx, _Lvl, {FunType, FunBody} = ST)
 %
 fold(_FType, Fun, Ctx, _Lvl, PTree) ->
     Fun(PTree, Ctx),
-    io:format(user, "Parse tree not supported ~p~n", [PTree]),
     throw({"Parse tree not supported",PTree}).
-

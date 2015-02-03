@@ -41,6 +41,10 @@ field_b list,
 
 "CREATE CLUSTER SET TABLE test (fld CHAR)".
 
+"CREATE CLUSTER annything_random TABLE test ()".
+
+"CREATE CLUSTER annything_random TABLE test (a int)".
+
 "CREATE SCHEMA ORDERED_SET TABLE test (fld CHAR)".
 
 "CREATE ORDERED_SET TABLE test (fld CHAR)".

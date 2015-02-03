@@ -302,7 +302,6 @@ Terminals
  WHEN
  IF
  THEN
- ELSIF
  ELSE
  END
  CALL
@@ -417,14 +416,15 @@ create_index_opt_filter -> FILTER_WITH STRING                                   
 create_opts -> tbl_scope tbl_type                                                               : '$1' ++ '$2'.
 
 tbl_scope -> '$empty'                                                                           : [].
-tbl_scope -> LOCAL                                                                              : [{'scope', 'local'}].
-tbl_scope -> CLUSTER                                                                            : [{'scope', 'cluster'}].
-tbl_scope -> SCHEMA                                                                             : [{'scope', 'schema'}].
+tbl_scope -> LOCAL                                                                              : [{'scope', <<"local">>}].
+tbl_scope -> CLUSTER                                                                            : [{'scope', <<"cluster">>}].
+tbl_scope -> SCHEMA                                                                             : [{'scope', <<"schema">>}].
 
 tbl_type -> '$empty'                                                                            : [].
-tbl_type -> SET                                                                                 : [{'type', 'set'}].
-tbl_type -> ORDERED_SET                                                                         : [{'type', 'ordered_set'}].
-tbl_type -> BAG                                                                                 : [{'type', 'bag'}].
+tbl_type -> SET                                                                                 : [{'type', <<"set">>}].
+tbl_type -> ORDERED_SET                                                                         : [{'type', <<"ordered_set">>}].
+tbl_type -> BAG                                                                                 : [{'type', <<"bag">>}].
+tbl_type -> NAME                                                                                : [{'type', unwrap_bin('$1')}].
 
 alter_user_def -> ALTER USER user_list proxy_clause                                             : {'alter user', '$3', '$4'}.
 alter_user_def -> ALTER USER NAME spec_list                                                     : {'alter user', unwrap_bin('$3'), {'spec', '$4'}}.
@@ -496,6 +496,7 @@ opt_restrict_cascade -> '$empty'                                                
 opt_restrict_cascade -> RESTRICT                                                                : 'restrict'.
 opt_restrict_cascade -> CASCADE                                                                 : 'cascade'.
 
+base_table_element_commalist -> '$empty'                                                        : [].
 base_table_element_commalist -> base_table_element                                              : ['$1'].
 base_table_element_commalist -> base_table_element_commalist ',' base_table_element             : '$1' ++ ['$3'].
 

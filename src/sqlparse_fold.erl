@@ -606,7 +606,7 @@ fold(FType, Fun, Ctx, _Lvl, {'unlimited on', T} = ST)
     {"quota unlimited on " ++ binary_to_list(T) ++ " ",
      NewCtx2};
 fold(FType, Fun, Ctx, _Lvl, {'scope', S} = ST)
-  when S == 'local'; S == 'cluster'; S == 'schema' ->
+  when S == <<"local">>; S == <<"cluster">>; S == <<"schema">> ->
     NewCtx = case FType of
         top_down -> Fun(ST, Ctx);
         bottom_up -> Ctx
@@ -616,10 +616,10 @@ fold(FType, Fun, Ctx, _Lvl, {'scope', S} = ST)
         top_down -> NewCtx1;
         bottom_up -> Fun(ST, NewCtx1)
     end,
-    {lists:flatten([" ", atom_to_list(S), " "]),
+    {lists:flatten([" ", binary_to_list(S), " "]),
      NewCtx2};
 fold(FType, Fun, Ctx, _Lvl, {'type', T} = ST)
-  when T == 'set'; T == 'ordered_set'; T == 'bag' ->
+  when T == 'set'; T == 'ordered_set'; T == 'bag'; is_binary(T) ->
     NewCtx = case FType of
         top_down -> Fun(ST, Ctx);
         bottom_up -> Ctx
@@ -629,7 +629,9 @@ fold(FType, Fun, Ctx, _Lvl, {'type', T} = ST)
         top_down -> NewCtx1;
         bottom_up -> Fun(ST, NewCtx1)
     end,
-    {lists:flatten([" ", atom_to_list(T), " "]),
+    {lists:flatten([" ", if is_binary(T) -> binary_to_list(T);
+                           true -> atom_to_list(T)
+                         end, " "]),
      NewCtx2};
 fold(FType, Fun, Ctx, _Lvl, {TS, Tab} = ST)
   when TS == 'default tablespace'; TS == 'temporary tablespace' ->

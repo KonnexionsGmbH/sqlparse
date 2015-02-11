@@ -159,6 +159,7 @@ Nonterminals
  outer_join_type
  query_partition_clause
  case_when_exp
+ case_when_opt_as_exp
  case_when_then_list
  case_when_then
  opt_else
@@ -735,13 +736,18 @@ opt_into -> INTO target_commalist IN NAME                                       
 
 selection -> select_field_commalist                                                             : '$1'.
 
-select_field_commalist -> case_when_exp                                                         : ['$1'].
+select_field_commalist -> case_when_opt_as_exp                                                         : ['$1'].
 select_field_commalist -> scalar_opt_as_exp                                                     : ['$1'].
 %select_field_commalist -> search_condition                                                      : ['$1'].
 select_field_commalist -> '*'                                                                   : [<<"*">>].
 select_field_commalist -> select_field_commalist ',' select_field_commalist                     : '$1' ++ '$3'.
 
+case_when_opt_as_exp -> case_when_exp                                                           : '$1'.
+case_when_opt_as_exp -> case_when_exp NAME                                                      : {as, '$1', unwrap_bin('$2')}.
+case_when_opt_as_exp -> case_when_exp AS NAME                                                   : {as, '$1', unwrap_bin('$3')}. 
+
 case_when_exp -> '(' case_when_exp ')'                                                          : '$2'.
+case_when_exp -> CASE case_when_then_list opt_else END                                          : {'case', <<>>, '$2', '$3'}.
 case_when_exp -> CASE scalar_opt_as_exp case_when_then_list opt_else END                        : {'case', '$2', '$3', '$4'}.
 
 case_when_then_list -> case_when_then                                                           : ['$1'].

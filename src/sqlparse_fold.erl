@@ -1487,25 +1487,30 @@ fold(FType, Fun, Ctx, _Lvl, {'param', P} = ST) ->
         P -> {P, NewCtx2}
     end;
 
-fold(FType, Fun, Ctx, Lvl, {'case', When, Then, Else} = ST) ->
+fold(FType, Fun, Ctx, Lvl, {'case', Expr, WhenThenList, Else} = ST) ->
     NewCtx = case FType of
         top_down -> Fun(ST, Ctx);
         bottom_up -> Ctx
     end,
-    {WhenStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl+1, When),
-    {ThenStr, NewCtx2} = fold(FType, Fun, NewCtx1, Lvl+1, Then),
-    {ElseStr, NewCtx3} = case Else of
-        {} -> {"", NewCtx2};
+    {WhenThenStr, NewCtx1}
+    = lists:foldl(
+        fun({When, Then}, {Sql, AccCtx}) ->
+                {WhenStr, AccCtx1} = fold(FType, Fun, AccCtx, Lvl+1, When),
+                {ThenStr, AccCtx2} = fold(FType, Fun, AccCtx1, Lvl+1, Then),
+                {Sql++" when "++WhenStr++" then "++ThenStr, AccCtx2}
+        end, {"", NewCtx}, WhenThenList),
+    {ElseStr, NewCtx2} = case Else of
+        {} -> {"", NewCtx1};
         Else ->
-            {EStr, NewCtx21} = fold(FType, Fun, NewCtx2, Lvl+1, Else),
+            {EStr, NewCtx21} = fold(FType, Fun, NewCtx1, Lvl+1, Else),
             {" else " ++ EStr, NewCtx21}
     end,
-    NewCtx4 = case FType of
-        top_down -> NewCtx3;
-        bottom_up -> Fun(ST, NewCtx3)
+    NewCtx3 = case FType of
+        top_down -> NewCtx2;
+        bottom_up -> Fun(ST, NewCtx2)
     end,
-    {"case when " ++WhenStr++" then "++ThenStr++ElseStr++" end"
-    , NewCtx4};
+    {"case "++binary_to_list(Expr)++WhenThenStr++ElseStr++" end"
+    , NewCtx3};
 
 % procedure calls ('declare begin procedure' or 'begin procedure')
 fold(FType, Fun, Ctx, Lvl, {D, StmtList} = ST)

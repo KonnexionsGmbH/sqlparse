@@ -868,8 +868,8 @@ like_predicate -> scalar_exp LIKE scalar_exp opt_escape                         
 opt_escape -> '$empty'                                                                          : <<>>.
 opt_escape -> ESCAPE atom                                                                       : '$2'.
 
-test_for_null -> column_ref IS NOT NULLX                                                        : {'not', {'is', '$1', <<"null">>}}.
-test_for_null -> column_ref IS NULLX                                                            : {'is', '$1', <<"null">>}.
+test_for_null -> scalar_exp IS NOT NULLX                                                        : {'not', {'is', '$1', <<"null">>}}.
+test_for_null -> scalar_exp IS NULLX                                                            : {'is', '$1', <<"null">>}.
 
 in_predicate -> scalar_exp NOT IN '(' subquery ')'                                              : {'not', {'in', '$1', '$5'}}.
 in_predicate -> scalar_exp IN '(' subquery ')'                                                  : {'in', '$1', '$4'}.

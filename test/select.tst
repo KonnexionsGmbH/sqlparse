@@ -47,6 +47,7 @@
         tab2 alias INNER JOIN a alias1 ON b.c = c.d
    WHERE field1 IN (to_timestamp('2001-05-23 00:56:00.000000'))
          and employee_id = :EMPNO
+         and :abc is null
          or a = \"üèéöäà\"
          and f2 Like fun(arg1) || '%'
          and column(+) = 1

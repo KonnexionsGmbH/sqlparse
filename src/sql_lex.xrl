@@ -15,7 +15,7 @@ Rules.
 ((\/\*)[^\*\/]*(\*\/))                              : {token, {'HINT', TokenLine, TokenChars}}.
 
 % JSON
-([A-Za-z0-9_\.]+[:#\[\{]+[A-Za-z0-9_\.\:\(\)\[\]\{\}\#\,\|\-\+\*\/\\%\s\t\n\r]*)
+([A-Za-z0-9_\.]+[:#\[\{\s\t\n\r]+[A-Za-z0-9_\.\:\(\)\[\]\{\}\#\,\|\-\+\*\/\\%\s\t\n\r]*)
                                                     : parse_json(TokenLine, TokenChars).
 
 % punctuation
@@ -233,7 +233,7 @@ Erlang code.
     {"^(?i)(FILTER_WITH)$",     'FILTER_WITH'}
 ]).
 
-%-define(DEBUG, 0). 
+-define(DEBUG, true).
 -ifdef(DEBUG).
 -define(Dbg(F,A), io:format(user, "[~p] "++F++"~n", [?LINE|A])).
 -else.

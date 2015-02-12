@@ -15,7 +15,8 @@ Rules.
 ((\/\*)[^\*\/]*(\*\/))                              : {token, {'HINT', TokenLine, TokenChars}}.
 
 % JSON
-([A-Za-z0-9_\.]+[:#\[\{]+.*)                        : parse_json(TokenLine, TokenChars).
+([A-Za-z0-9_\.]+[:#\[\{]+[A-Za-z0-9_\.\:\(\)\[\]\{\}\#\,\|\-\+\*\/\\%\s\t\n\r]*)
+                                                    : parse_json(TokenLine, TokenChars).
 
 % punctuation
 (=|<>|<|>|<=|>=)                                    : {token, {'COMPARISON', TokenLine, list_to_atom(TokenChars)}}.
@@ -232,6 +233,13 @@ Erlang code.
     {"^(?i)(FILTER_WITH)$",     'FILTER_WITH'}
 ]).
 
+%-define(DEBUG, 0). 
+-ifdef(DEBUG).
+-define(Dbg(F,A), io:format(user, "[~p] "++F++"~n", [?LINE|A])).
+-else.
+-define(Dbg(F,A), ok).
+-endif.
+
 reserved_keywords() -> [T || {_, T} <- ?TokenPatters].
 
 match_any(TokenChars, TokenLen, _TokenLine, []) ->
@@ -252,7 +260,9 @@ match_fun(TokenLine, TokenChars) ->
     {token, {'STRING', TokenLine, MatchedFunStr}, string:sub_string(TokenChars, length(MatchedFunStr)+1)}.
 
 parse_json(TokenLine, TokenChars) ->
+    ?Dbg("TokenChars=~p", [TokenChars]),
     parse_json(TokenLine, TokenChars, "", "", 0).
+
 parse_json(TokenLine, [], Json, PushBack, 0) ->
     {token, {'JSON', TokenLine, lists:reverse(Json)}, PushBack};
 parse_json(_TokenLine, [], Json, _PushBack, Open) ->
@@ -262,6 +272,7 @@ parse_json(_TokenLine, [], Json, _PushBack, Open) ->
                              , [lists:reverse(Json), Open]))};
 parse_json(TokenLine, [T|TokenChars], Json, PushBack, Open)
  when T =:= $]; T =:= $}; T =:= $) ->
+    ?Dbg("T=~p TChrs=~p Json=~p PB=~p Open=~p", [[T], TokenChars, Json, PushBack, Open]),
     if Open > 0 ->
             parse_json(TokenLine, TokenChars, [T|Json], PushBack, Open-1);
         true ->
@@ -269,9 +280,11 @@ parse_json(TokenLine, [T|TokenChars], Json, PushBack, Open)
     end;
 parse_json(TokenLine, [T|TokenChars], Json, PushBack, Open)
  when T =:= $[; T =:= ${; T =:= $( ->
+    ?Dbg("T=~p TChrs=~p Json=~p PB=~p Open=~p", [[T], TokenChars, Json, PushBack, Open]),
     parse_json(TokenLine, TokenChars, [T|Json], PushBack, Open+1);
 parse_json(TokenLine, [T|TokenChars], Json, PushBack, Open)
  when Open > 0 ->
+    ?Dbg("T=~p TChrs=~p Json=~p PB=~p Open=~p", [[T], TokenChars, Json, PushBack, Open]),
     parse_json(TokenLine, TokenChars, [T|Json], PushBack, Open);
 parse_json(TokenLine, [T|TokenChars], Json, PushBack, Open)
  when (Open =:= 0) andalso (
@@ -281,7 +294,21 @@ parse_json(TokenLine, [T|TokenChars], Json, PushBack, Open)
         orelse ((T >= $a) andalso (T =< $z))
         orelse ((T >= $0) andalso (T =< $9))
       ) ->
+    ?Dbg("T=~p TChrs=~p Json=~p PB=~p Open=~p", [[T], TokenChars, Json, PushBack, Open]),
     parse_json(TokenLine, TokenChars, [T|Json], PushBack, Open);
-parse_json(TokenLine, [T|TokenChars], Json, _PushBack, Open)
+parse_json(TokenLine, [T|TokenChars], Json, PushBack, Open)
  when (Open =:= 0) ->
-    parse_json(TokenLine, [], Json, [T|TokenChars], Open).
+    ?Dbg("T=~p TChrs=~p Json=~p PB=~p Open=~p", [[T], TokenChars, Json, PushBack, Open]),
+    {NewTokenChars, NewJson, NewPushBack} =
+    case T of
+        T when [T]=:=" ";T=:=$\n;T=:=$\t;T=:=$\r -> % white space characters
+        case re:run(TokenChars, "^([[:space:]]*)(.*)", [{capture, [1,2], list}, dotall]) of
+            {match,[WhiteSpace,[F|_] = Rest]} when F=:=$[;F=:=${;F=:=$( ->
+                {Rest, lists:reverse(WhiteSpace)++[T|Json], PushBack};
+            _ ->
+                {[], Json, [T|TokenChars]}
+        end;
+        _ -> {[], Json, [T|TokenChars]}
+    end,
+    ?Dbg("NewTokenChars=~p NewJson=~p NewPushBack=~p", [NewTokenChars, NewJson, NewPushBack]),
+    parse_json(TokenLine, NewTokenChars, NewJson, NewPushBack, Open).

@@ -867,7 +867,6 @@ predicate -> all_or_any_predicate                                               
 predicate -> existence_test                                                                     : '$1'.
 
 comparison_predicate -> scalar_opt_as_exp                                                       : '$1'.
-%comparison_predicate -> scalar_exp COMPARISON scalar_exp                                        : {unwrap('$2'), '$1', '$3'}.
 comparison_predicate -> PRIOR scalar_exp COMPARISON scalar_exp                                  : {unwrap('$3'), {prior, '$2'}, '$4'}.
 comparison_predicate -> scalar_exp COMPARISON PRIOR scalar_exp                                  : {unwrap('$2'), '$1', {prior, '$4'}}.
 comparison_predicate -> scalar_exp COMPARISON subquery                                          : {unwrap('$2'), '$1', '$3'}.
@@ -969,6 +968,7 @@ fun_arg -> NULLX                                                                
 fun_arg -> atom                                                                                 : '$1'.
 fun_arg -> subquery                                                                             : '$1'.
 fun_arg -> fun_arg AS NAME                                                                      : {as, '$1', unwrap_bin('$3')}.
+fun_arg -> fun_arg COMPARISON fun_arg                                                           : {unwrap('$2'), '$1', '$3'}.
 %fun_args -> fun_args ',' fun_args                                                               : lists:flatten(['$1'] ++ ['$3']).
 
 literal -> STRING                                                                               : unwrap_bin('$1').

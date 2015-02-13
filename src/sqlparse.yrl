@@ -736,7 +736,7 @@ opt_into -> INTO target_commalist IN NAME                                       
 
 selection -> select_field_commalist                                                             : '$1'.
 
-select_field_commalist -> case_when_opt_as_exp                                                         : ['$1'].
+select_field_commalist -> case_when_opt_as_exp                                                  : ['$1'].
 select_field_commalist -> scalar_opt_as_exp                                                     : ['$1'].
 %select_field_commalist -> search_condition                                                      : ['$1'].
 select_field_commalist -> '*'                                                                   : [<<"*">>].
@@ -867,7 +867,7 @@ predicate -> all_or_any_predicate                                               
 predicate -> existence_test                                                                     : '$1'.
 
 comparison_predicate -> scalar_opt_as_exp                                                       : '$1'.
-comparison_predicate -> scalar_exp COMPARISON scalar_exp                                        : {unwrap('$2'), '$1', '$3'}.
+%comparison_predicate -> scalar_exp COMPARISON scalar_exp                                        : {unwrap('$2'), '$1', '$3'}.
 comparison_predicate -> PRIOR scalar_exp COMPARISON scalar_exp                                  : {unwrap('$3'), {prior, '$2'}, '$4'}.
 comparison_predicate -> scalar_exp COMPARISON PRIOR scalar_exp                                  : {unwrap('$2'), '$1', {prior, '$4'}}.
 comparison_predicate -> scalar_exp COMPARISON subquery                                          : {unwrap('$2'), '$1', '$3'}.
@@ -904,6 +904,7 @@ subquery -> query_exp                                                           
     %% scalar expressions
 
 scalar_opt_as_exp -> scalar_exp                                                                 : '$1'.
+scalar_opt_as_exp -> scalar_exp COMPARISON scalar_exp                                           : {unwrap('$2'), '$1', '$3'}.
 scalar_opt_as_exp -> scalar_exp NAME                                                            : {as, '$1', unwrap_bin('$2')}.
 scalar_opt_as_exp -> scalar_exp AS NAME                                                         : {as, '$1', unwrap_bin('$3')}. 
 scalar_exp -> scalar_sub_exp '||' scalar_exp                                                    : {'||','$1','$3'}.
@@ -967,6 +968,7 @@ fun_arg -> '-' literal                                                          
 fun_arg -> NULLX                                                                                : <<"NULL">>.
 fun_arg -> atom                                                                                 : '$1'.
 fun_arg -> subquery                                                                             : '$1'.
+fun_arg -> fun_arg AS NAME                                                                      : {as, '$1', unwrap_bin('$3')}.
 %fun_args -> fun_args ',' fun_args                                                               : lists:flatten(['$1'] ++ ['$3']).
 
 literal -> STRING                                                                               : unwrap_bin('$1').

@@ -1068,7 +1068,7 @@ fold(FType, Fun, Ctx, Lvl, {'||', Args} = ST) ->
     , NewCtx2};
 
 % All aliases
-fold(FType, Fun, Ctx, _Lvl, {as, A, B} = ST)
+fold(FType, Fun, Ctx, _Lvl, {'as', A, B} = ST)
   when is_binary(A), is_binary(B) ->
     NewCtx = case FType of
         top_down -> Fun(ST, Ctx);
@@ -1080,9 +1080,9 @@ fold(FType, Fun, Ctx, _Lvl, {as, A, B} = ST)
         top_down -> NewCtx2;
         bottom_up -> Fun(ST, NewCtx2)
     end,
-    {lists:flatten([binary_to_list(A), " ", binary_to_list(B)])
+    {lists:flatten([binary_to_list(A), " as ", binary_to_list(B)])
     , NewCtx3};
-fold(FType, Fun, Ctx, Lvl, {as, A, B} = ST)
+fold(FType, Fun, Ctx, Lvl, {'as', A, B} = ST)
     when is_binary(B) ->
     NewCtx = case FType of
         top_down -> Fun(ST, Ctx);
@@ -1094,9 +1094,9 @@ fold(FType, Fun, Ctx, Lvl, {as, A, B} = ST)
         top_down -> NewCtx2;
         bottom_up -> Fun(ST, NewCtx2)
     end,
-    {lists:flatten([AStr, " ", binary_to_list(B)])
+    {lists:flatten([AStr, " as ", binary_to_list(B)])
     , NewCtx3};
-fold(FType, Fun, Ctx, _Lvl, {as, A} = ST)
+fold(FType, Fun, Ctx, _Lvl, {'as', A} = ST)
   when is_binary(A) ->
     NewCtx = case FType of
         top_down -> Fun(ST, Ctx);

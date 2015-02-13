@@ -12,8 +12,7 @@
 %<<"SELECT * from tab1 INNER JOIN tab2 tab3 tab4 on a = b">>.
 %<<"select * from ALL_USERS where order by user_id asc">>.
 
-% Boolean expression in select list not supported
-%<<"select a < 0 from abc">>.
+<<"select a < 0, f(a+2 as d) from abc">>.
 
 <<"select 'öüäéèà', 'شلاؤيثبلتهتنمةىخ','นี่คือการทดสอบ' from dual"/utf8>>.
 

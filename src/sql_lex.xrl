@@ -82,7 +82,7 @@ Erlang code.
     {"^(?i)(COMMIT)$",          'COMMIT'},
     {"^(?i)(CONTINUE)$",        'CONTINUE'},
     {"^(?i)(CREATE)$",          'CREATE'},
-    {"^(?i)(REPLACE)$",         'REPLACE'},
+    %{"^(?i)(REPLACE)$",         'REPLACE'},
     {"^(?i)(CURRENT)$",         'CURRENT'},
     {"^(?i)(CURSOR)$",          'CURSOR'},
     {"^(?i)(DECLARE)$",         'DECLARE'},

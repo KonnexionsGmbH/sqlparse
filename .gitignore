@@ -3,6 +3,7 @@
 *.beam
 *.plt
 *.swp
+*.swo
 *.dot
 erl_crash.dump
 ebin/

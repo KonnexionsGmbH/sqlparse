@@ -22,7 +22,7 @@
     - a.b,
     fun(a || b, c), fun2(e, a || b), fun2(d, a || b, c),
     a || fun(a,b) d,
-    fun(a,b) || e as d,
+    REPLACE(REPLACE(MAX(a),'s',''),'q','') || e as d,
     (CASE WHEN CNT < 10 THEN '1' WHEN c = d or e = f THEN '2' ELSE 2 END) as t1,
     CASE a WHEN CNT < 10 and (c = d or e = f) THEN '1' WHEN 100 THEN '2' ELSE 2 END as t2,
     m.\"'$_'\" + 1 d,

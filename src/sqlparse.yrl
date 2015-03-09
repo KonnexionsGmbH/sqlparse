@@ -1008,8 +1008,8 @@ data_type -> NAME                                                               
 data_type -> NAME '(' opt_sgn_num ')'                                                           : {unwrap_bin('$1'), '$3'}.
 data_type -> NAME '(' opt_sgn_num ',' opt_sgn_num ')'                                           : {unwrap_bin('$1'), '$3', '$5'}.
 
-opt_sgn_num -> INTNUM                                                                           : unwrap('$1').
-opt_sgn_num -> '-' INTNUM                                                                       : "-"++unwrap('$2').
+opt_sgn_num -> INTNUM                                                                           : unwrap_bin('$1').
+opt_sgn_num -> '-' INTNUM                                                                       : list_to_binary(["-",unwrap_bin('$2')]).
 
     %% the various things you can name
 

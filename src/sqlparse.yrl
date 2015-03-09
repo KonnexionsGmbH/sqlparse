@@ -1003,10 +1003,10 @@ column_ref -> NAME '.' NAME '.' '*'                                             
 
 %% data types
 
-data_type -> STRING                                                                             : datatype('$1').
-data_type -> NAME                                                                               : datatype('$1').
-data_type -> NAME '(' opt_sgn_num ')'                                                           : {datatype('$1'), '$3'}.
-data_type -> NAME '(' opt_sgn_num ',' opt_sgn_num ')'                                           : {datatype('$1'), '$3', '$5'}.
+data_type -> STRING                                                                             : unwrap_bin('$1').
+data_type -> NAME                                                                               : unwrap_bin('$1').
+data_type -> NAME '(' opt_sgn_num ')'                                                           : {unwrap_bin('$1'), '$3'}.
+data_type -> NAME '(' opt_sgn_num ',' opt_sgn_num ')'                                           : {unwrap_bin('$1'), '$3', '$5'}.
 
 opt_sgn_num -> INTNUM                                                                           : unwrap('$1').
 opt_sgn_num -> '-' INTNUM                                                                       : "-"++unwrap('$2').
@@ -1090,43 +1090,6 @@ unwrap_bin({_,_,X}) when is_atom(X) -> atom_to_binary(X, unicode).
 
 strl2atom([]) -> '';
 strl2atom(Strs) -> list_to_atom(lists:flatten(string:join([string:to_lower(unwrap(S)) || S <- Strs], " "))).
-
-datatype({_,_,X}) ->
-    case string:to_lower(X) of
-    "atom"              -> 'atom';
-    "float"             -> 'float';
-    "fun"               -> 'fun';
-    "term"              -> 'term';
-    "timestamp"         -> 'timestamp';
-    "tuple"             -> 'tuple';
-    "ipaddr"            -> 'ipaddr';
-    "list"              -> 'list';
-    "pid"               -> 'pid';
-    "ref"               -> 'ref';
-    "binary"            -> 'binary';
-    "raw"               -> 'raw';
-    "blob"              -> 'blob';
-    "rowid"             -> 'rowid';
-    "binstr"            -> 'binstr';
-    "clob"              -> 'clob';
-    "nclob"             -> 'nclob';
-    "bool"              -> 'bool';
-    "boolean"           -> 'boolean';
-    "datetime"          -> 'datetime';
-    "date"              -> 'date';
-    "decimal"           -> 'decimal';
-    "number"            -> 'number';
-    "userid"            -> 'userid';
-    "integer"           -> 'integer';
-    "int"               -> 'int';
-    "string"            -> 'string';
-    "varchar2"          -> 'varchar2';
-    "nvarchar2"         -> 'nvarchar2';
-    "char"              -> 'char';
-    "nchar"             -> 'nchar';
-    S when is_list(S)   -> list_to_binary(S);
-    Other               -> throw("unknown datatype " ++ Other)
-    end.
 
 make_list(L) when is_list(L) -> L;
 make_list(L) -> [L].

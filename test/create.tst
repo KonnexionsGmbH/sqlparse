@@ -17,7 +17,8 @@ LastName varchar2,
 LastName varchar2(255),
 FirstName varchar2(255),
 Address varchar2(255),
-City varchar2(255)
+City varchar2(255),
+testfield varchar(10)
 )".
 
 "create table table_1 (

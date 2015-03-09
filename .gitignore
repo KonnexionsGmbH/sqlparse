@@ -6,6 +6,7 @@
 *.swo
 *.dot
 erl_crash.dump
+.rebar/
 ebin/
 deps/
 src/sql_lex.erl

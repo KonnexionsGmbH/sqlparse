@@ -219,10 +219,11 @@ fold(FType, Fun, Ctx, Lvl, {'create index', Opts, Idx, Table, Spec, Norm, Filter
         top_down -> NewCtx6;
         bottom_up -> Fun(ST, NewCtx6)
     end,
-    {"create " ++ OptsStr
-     ++ " index " ++ IdxStr
-     ++ " on " ++ TableStr 
-     ++ " (" ++ string:join(Specs, "|") ++ ") "
+    {"create " ++ if length(OptsStr) > 0 -> OptsStr ++ " "; true -> "" end
+     ++ "index " ++ if length(IdxStr) > 0 -> IdxStr ++ " "; true -> "" end
+     ++ "on " ++ TableStr
+     ++ if length(Specs) > 0 -> " (" ++ string:join(Specs, "|") ++ ") ";
+           true -> "" end
      ++ if NormStr =/= [] -> NormStr; true -> "" end
      ++ if FilterStr =/= [] -> FilterStr; true -> "" end
     , NewCtx7};

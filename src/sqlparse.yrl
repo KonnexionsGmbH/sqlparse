@@ -391,7 +391,7 @@ drop_index_def -> DROP INDEX opt_index_name FROM table                          
 opt_index_name -> '$empty'                                                                      : {}.
 opt_index_name -> index_name                                                                    : '$1'.
 
-create_index_def -> CREATE create_index_opts INDEX index_name ON table create_index_spec
+create_index_def -> CREATE create_index_opts INDEX opt_index_name ON table create_index_spec
                     create_index_opt_norm create_index_opt_filter                               : {'create index', '$2', '$4', '$6', '$7', '$8', '$9'}.
 
 create_index_opts -> '$empty'                                                                   : {}.
@@ -403,6 +403,7 @@ create_index_opts -> UNIQUE                                                     
 index_name -> NAME                                                                              : unwrap_bin('$1').
 index_name -> NAME '.' NAME                                                                     : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
 
+create_index_spec -> '$empty'                                                                   : [].
 create_index_spec -> '(' create_index_spec_items ')'                                            : '$2'.
 
 create_index_spec_items -> NAME                                                                 : [unwrap_bin('$1')].

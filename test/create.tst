@@ -25,7 +25,7 @@ testfield varchar(10)
 owner userid,
 private term,
 field_e date default fun()-> calendar:localtime() end.,
-field_t decimal,
+field_t decimal default fun mod:fun/1.,
 field_t1 bool,
 field_t1 boolean,
 field_e date1 default fun(C,D)-> C+D end.,

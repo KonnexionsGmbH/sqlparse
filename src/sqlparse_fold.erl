@@ -795,8 +795,8 @@ fold(FType, Fun, Ctx, Lvl, {from, Forms} = ST) ->
                         F when is_binary(F) -> {Acc++[binary_to_list(F)], Fun(F,CtxAcc)};
                         {'select', _} = F   ->
                             {FoldFStr, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl+1, F),
-                            {lists:flatten(["(", FoldFStr, ")"])
-                            , CtxAcc1};
+                            {Acc++[lists:flatten(["(", string:strip(FoldFStr), ")"])],
+                             CtxAcc1};
                         Other               ->
                             {SubAcc, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl+1, Other),
                             {Acc++[SubAcc], CtxAcc1}

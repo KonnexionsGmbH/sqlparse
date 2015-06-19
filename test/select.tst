@@ -71,3 +71,5 @@ MINUS
 UNION ALL
 	SELECT i FROM j
 "/utf8>>.
+
+<<"select * from (select * from tab)">>.

@@ -790,20 +790,24 @@ fold(FType, Fun, Ctx, Lvl, {from, Forms} = ST) ->
     end,
     {FormStr, NewCtx1} = case Forms of
         Forms when is_list(Forms) ->
-            {FrmStr, NewCtx2} = lists:foldl(fun(F, {Acc, CtxAcc}) ->
-                    case F of
-                        F when is_binary(F) -> {Acc++[binary_to_list(F)], Fun(F,CtxAcc)};
-                        {'select', _} = F   ->
-                            {FoldFStr, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl+1, F),
-                            {Acc++[lists:flatten(["(", string:strip(FoldFStr), ")"])],
-                             CtxAcc1};
-                        Other               ->
-                            {SubAcc, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl+1, Other),
-                            {Acc++[SubAcc], CtxAcc1}
-                    end
-                end,
-                {[], NewCtx},
-                Forms),
+            {FrmStr, NewCtx2}
+            = lists:foldl(
+                fun(F, {Acc, CtxAcc}) ->
+                        case F of
+                            F when is_binary(F) -> {Acc++[binary_to_list(F)], Fun(F,CtxAcc)};
+                            {'select', _} = F ->
+                                {FoldFStr, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl+1, F),
+                                {Acc++[lists:flatten(["(", string:strip(FoldFStr), ")"])],
+                                 CtxAcc1};
+                            Other ->
+                                {SubAcc, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl+1, Other),
+                                {Acc++[SubAcc], CtxAcc1}
+                        end
+                end, {[], NewCtx},
+                [case Frm of
+                     {'as',A,B} -> {'$from_as',A,B};
+                     _ -> Frm
+                 end || Frm <- Forms]),
             {string:join(FrmStr, ", ")
             , NewCtx2};
         Forms ->
@@ -1059,6 +1063,28 @@ fold(FType, Fun, Ctx, Lvl, {'||', Args} = ST) ->
     {string:join(ArgsStr, " || ")
     , NewCtx2};
 
+% Alias for from list
+fold(FType, Fun, Ctx, Lvl, {'$from_as', A, B} = ST)
+    when is_binary(B) ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {AStr, NewCtx1}
+    = if is_binary(A) ->
+             {string:strip(binary_to_list(A)), Fun(A, NewCtx)};
+         true ->
+             {A0, NCtx} = fold(FType, Fun, NewCtx, Lvl+1, A),
+             {lists:flatten(["(",string:strip(A0),")"]), NCtx}
+      end,
+    NewCtx2 = Fun(B, NewCtx1),
+    NewCtx3 = case FType of
+        top_down -> NewCtx2;
+        bottom_up -> Fun(ST, NewCtx2)
+    end,
+    {lists:flatten([AStr, " ", binary_to_list(B)]),
+     NewCtx3};
+
 % All aliases
 fold(FType, Fun, Ctx, _Lvl, {'as', A, B} = ST)
   when is_binary(A), is_binary(B) ->
@@ -1086,8 +1112,8 @@ fold(FType, Fun, Ctx, Lvl, {'as', A, B} = ST)
         top_down -> NewCtx2;
         bottom_up -> Fun(ST, NewCtx2)
     end,
-    {lists:flatten([AStr, " as ", binary_to_list(B)])
-    , NewCtx3};
+    {lists:flatten([string:strip(AStr), " as ", binary_to_list(B)]),
+     NewCtx3};
 fold(FType, Fun, Ctx, _Lvl, {'as', A} = ST)
   when is_binary(A) ->
     NewCtx = case FType of

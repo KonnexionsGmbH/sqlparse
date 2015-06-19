@@ -72,4 +72,4 @@ UNION ALL
 	SELECT i FROM j
 "/utf8>>.
 
-<<"select * from (select * from tab)">>.
+<<"select * from tab t, (select * from tab) sql">>.

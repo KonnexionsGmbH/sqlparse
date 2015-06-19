@@ -101,7 +101,7 @@ tests_gen(TestGroup, [{I,T}|Tests], Verbose, SelTests, Acc) ->
 -define(D5(__Fmt,__Args),   ?D(5,__Fmt,__Args)).
 
 test_sql(_TestGroup, Test, Verbose) ->
-    ?D1("~n ~ts", [Test]),
+    ?D1("~n ~s", [Test]),
     case sqlparse:parsetree_with_tokens(Test) of
         {ok, {ParseTree, Tokens}} ->
             ?D2("~n~p", [ParseTree]),
@@ -110,7 +110,12 @@ test_sql(_TestGroup, Test, Verbose) ->
                        NS -> NS
                    end,
             ?D3("~n > ~ts~n", [NSql]),
-            {ok, {NPTree, NToks}} = sqlparse:parsetree_with_tokens(NSql),
+            {ok, {NPTree, NToks}}
+            = try
+                  {ok, {NPT, NT}} = sqlparse:parsetree_with_tokens(NSql),
+                  {ok, {NPT, NT}}
+              catch _:_ -> ?D_("Error : sqlparse:parsetree_with_tokens(~s)", [NSql])
+              end,
             try
                 ParseTree = NPTree
             catch

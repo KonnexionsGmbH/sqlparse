@@ -1,4 +1,4 @@
-sqlparse <a href="https://magnum.travis-ci.com/k2informatics/sqlparse"><img src="https://magnum.travis-ci.com/k2informatics/sqlparse.svg?token=jAKQYF1CVGmsnuguN6iU&branch=master" alt="Travis-CI"></a>
+sqlparse <a href="https://magnum.travis-ci.com/k2informatics/sqlparse"><img src="https://travis-ci.org/K2InformaticsGmbH/sqlparse.svg" alt="Travis-CI"></a>
 ========
 
 LALR grammar based SQL Parser

@@ -32,3 +32,15 @@ Compiling
 4> sqlparse:fold(ParseTree).
 "select * from table_1"
 ````
+
+Test Cases
+---
+* [ALTER](https://github.com/K2InformaticsGmbH/sqlparse/blob/master/test/alter.tst)
+* [CREATE](https://github.com/K2InformaticsGmbH/sqlparse/blob/master/test/create.tst)
+* [DELETE](https://github.com/K2InformaticsGmbH/sqlparse/blob/master/test/delete.tst)
+* [GRANTS](https://github.com/K2InformaticsGmbH/sqlparse/blob/master/test/grants.tst)
+* [INDEX](https://github.com/K2InformaticsGmbH/sqlparse/blob/master/test/index.tst)
+* [INSERT](https://github.com/K2InformaticsGmbH/sqlparse/blob/master/test/insert.tst)
+* [JSON Path](https://github.com/K2InformaticsGmbH/sqlparse/blob/master/test/jsonpath.tst)
+
+These test cases are also documentation of current support

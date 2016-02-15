@@ -78,7 +78,7 @@ Nonterminals
  selection
  table_exp
  from_clause
- form_commalist
+ from_commalist
  table_ref
  join_ref
  opt_where_clause
@@ -766,12 +766,12 @@ table_exp ->
                  opt_having_clause
                  opt_order_by_clause                                                            : ['$1', '$2', '$3', '$4', '$5', '$6'].
 
-from_clause -> FROM form_commalist                                                              : {from, '$2'}.
+from_clause -> FROM from_commalist                                                              : {from, '$2'}.
 
-form_commalist -> table_ref                                                                     : ['$1'].
-form_commalist -> '(' join_clause ')'                                                           : ['$2'].
-form_commalist -> join_clause                                                                   : ['$1'].
-form_commalist -> form_commalist ',' form_commalist                                             : '$1'++'$3'.
+from_commalist -> table_ref                                                                     : ['$1'].
+from_commalist -> '(' join_clause ')'                                                           : ['$2'].
+from_commalist -> join_clause                                                                   : ['$1'].
+from_commalist -> from_commalist ',' from_commalist                                             : '$1'++'$3'.
 
 join_clause -> table_ref join_list                                                              : {'$1', '$2'}.
 

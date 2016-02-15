@@ -43,7 +43,7 @@ Nonterminals
  opt_on_obj_clause
  opt_with_grant_option
  opt_with_revoke_option
- system_priviledge_list
+ system_privilege_list
  grantee_commalist
  grantee
  cursor_def
@@ -147,7 +147,7 @@ Nonterminals
  table_name 
  opt_materialized
  opt_storage
- system_priviledge
+ system_privilege
  extra
  returning
  join_clause
@@ -544,10 +544,10 @@ opt_column_commalist -> '$empty'                                                
 opt_column_commalist -> '(' column_commalist ')'                                                : '$2'.
 
 grant_def ->
- GRANT system_priviledge_list opt_on_obj_clause TO grantee_commalist opt_with_grant_option      : {'grant', '$2', '$3', {'to', '$5'}, '$6'}.
+ GRANT system_privilege_list opt_on_obj_clause TO grantee_commalist opt_with_grant_option       : {'grant', '$2', '$3', {'to', '$5'}, '$6'}.
 
 revoke_def ->
- REVOKE system_priviledge_list opt_on_obj_clause FROM grantee_commalist opt_with_revoke_option  : {'revoke', '$2', '$3', {'from', '$5'}, '$6'}.
+ REVOKE system_privilege_list opt_on_obj_clause FROM grantee_commalist opt_with_revoke_option   : {'revoke', '$2', '$3', {'from', '$5'}, '$6'}.
 
 opt_on_obj_clause -> '$empty'                                                                   : {'on', <<"">>}.
 opt_on_obj_clause -> ON table                                                                   : {'on', '$2'}.
@@ -555,22 +555,22 @@ opt_on_obj_clause -> ON DIRECTORY NAME                                          
 opt_on_obj_clause -> ON JAVA SOURCE table                                                       : {'on java source', unwrap_bin('$4')}.
 opt_on_obj_clause -> ON JAVA RESOURCE table                                                     : {'on java resource', unwrap_bin('$4')}.
 
-system_priviledge_list -> '$empty'                                                              : [].
-system_priviledge_list -> system_priviledge                                                     : ['$1'].
-system_priviledge_list -> system_priviledge ',' system_priviledge_list                          : ['$1'|'$3'].
-system_priviledge_list -> ALL                                                                   : ['all'].
-system_priviledge_list -> ALL PRIVILEGES                                                        : ['all privileges'].
+system_privilege_list -> '$empty'                                                               : [].
+system_privilege_list -> system_privilege                                                       : ['$1'].
+system_privilege_list -> system_privilege ',' system_privilege_list                             : ['$1'|'$3'].
+system_privilege_list -> ALL                                                                    : ['all'].
+system_privilege_list -> ALL PRIVILEGES                                                         : ['all privileges'].
 
-system_priviledge -> SELECT                                                                     : 'select'.
-system_priviledge -> UPDATE                                                                     : 'update'.
-system_priviledge -> DELETE                                                                     : 'delete'.
-system_priviledge -> INSERT                                                                     : 'insert'.
-system_priviledge -> DROP                                                                       : 'drop'.
-system_priviledge -> NAME                                                                       : strl2atom(['$1']).
-system_priviledge -> NAME NAME                                                                  : strl2atom(['$1', '$2']).
-system_priviledge -> NAME NAME NAME                                                             : strl2atom(['$1', '$2', '$3']).
-system_priviledge -> NAME NAME NAME NAME                                                        : strl2atom(['$1', '$2', '$3', '$4']).
-system_priviledge -> NAME NAME NAME NAME NAME                                                   : strl2atom(['$1', '$2', '$3', '$4', '$5']).
+system_privilege -> SELECT                                                                      : 'select'.
+system_privilege -> UPDATE                                                                      : 'update'.
+system_privilege -> DELETE                                                                      : 'delete'.
+system_privilege -> INSERT                                                                      : 'insert'.
+system_privilege -> DROP                                                                        : 'drop'.
+system_privilege -> NAME                                                                        : strl2atom(['$1']).
+system_privilege -> NAME NAME                                                                   : strl2atom(['$1', '$2']).
+system_privilege -> NAME NAME NAME                                                              : strl2atom(['$1', '$2', '$3']).
+system_privilege -> NAME NAME NAME NAME                                                         : strl2atom(['$1', '$2', '$3', '$4']).
+system_privilege -> NAME NAME NAME NAME NAME                                                    : strl2atom(['$1', '$2', '$3', '$4', '$5']).
 
 opt_with_grant_option -> '$empty'                                                               : ''.
 opt_with_grant_option -> WITH GRANT OPTION                                                      : 'with grant option'.

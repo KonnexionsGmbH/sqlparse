@@ -1,0 +1,1081 @@
+/* =============================================================================
+/* Level 0: Top level.
+/* -----------------------------------------------------------------------------
+
+sql_list -> sql ';' extra
+sql_list -> sql_list sql ';' extra
+
+extra -> '$empty'
+extra -> NAME  ';'
+
+sql -> procedure_call
+sql -> schema
+sql -> cursor_def
+sql -> manipulative_statement
+sql -> WHENEVER NOT FOUND when_action
+sql -> WHENEVER SQLERROR when_action
+
+when_action -> GOTO NAME
+when_action -> CONTINUE
+============================================================================= */
+
+sql_list ::= (
+                (
+                    cursor_def
+                  | manipulative_statement
+                  | procedure_call
+                  | schema
+                  | ('WHENEVER' ('NOT' 'FOUND' | 'SQLERROR') ('GOTO' name_label | 'CONTINUE'))
+                )
+                ';'
+                (name_label ';')?
+             )+
+
+/* ========================================================================== */
+
+/* =============================================================================
+/* Level 1: Cursor definition.
+/* -----------------------------------------------------------------------------
+
+cursor_def -> DECLARE cursor CURSOR FOR query_exp opt_order_by_clause
+
+cursor -> NAME
+
+opt_order_by_clause -> '$empty'
+opt_order_by_clause -> ORDER BY ordering_spec_commalist
+
+ordering_spec_commalist -> ordering_spec
+ordering_spec_commalist -> ordering_spec_commalist ',' ordering_spec
+----------------------------------------------------------------------------- */
+
+cursor_def ::= 'DECLARE' 'NAME_OF_CURSOR'
+               'CURSOR' 'FOR' query_exp (order_by_clause)?
+
+order_by_clause ::= 'ORDER' 'BY' ordering_spec (',' ordering_spec)*
+
+/* =============================================================================
+ordering_spec -> scalar_exp opt_asc_desc
+
+opt_asc_desc -> '$empty'
+opt_asc_desc -> ASC
+opt_asc_desc -> DESC
+
+query_exp -> query_term
+query_exp -> query_exp UNION query_term
+query_exp -> query_exp UNION ALL query_term
+query_exp -> query_exp INTERSECT query_term
+query_exp -> query_exp MINUS query_term
+----------------------------------------------------------------------------- */
+
+ordering_spec ::= scalar_exp ('ASC' | 'DESC')? (',' scalar_exp ('ASC' | 'DESC')?)*
+
+query_exp ::= query_term ((('ALL'? 'UNION') | 'INTERSECT' | 'MINUS') query_term)*
+
+/* =============================================================================
+query_term -> query_spec
+query_term -> '(' query_exp ')'
+
+scalar_exp -> scalar_sub_exp '||' scalar_exp
+scalar_exp -> scalar_sub_exp
+----------------------------------------------------------------------------- */
+
+query_term ::= query_spec | '(' query_exp ')'
+
+scalar_exp ::= scalar_sub_exp ('||' scalar_exp)
+
+/* ============================================================================= 
+query_spec -> SELECT opt_hint opt_all_distinct selection opt_into table_exp
+
+opt_hint -> '$empty'
+opt_hint -> HINT
+
+opt_all_distinct -> '$empty'
+opt_all_distinct -> ALL
+opt_all_distinct -> DISTINCT
+
+selection -> select_field_commalist
+
+opt_into -> '$empty'
+opt_into -> INTO target_commalist
+opt_into -> INTO target_commalist IN NAME
+
+target_commalist -> target
+target_commalist -> target_commalist ',' target
+
+target -> NAME
+target -> parameter_ref
+
+parameter_ref -> parameter
+parameter_ref -> parameter parameter
+parameter_ref -> parameter INDICATOR parameter
+
+parameter -> PARAMETER
+
+scalar_sub_exp -> scalar_sub_exp '+' scalar_sub_exp
+scalar_sub_exp -> scalar_sub_exp '-' scalar_sub_exp
+scalar_sub_exp -> scalar_sub_exp '*' scalar_sub_exp
+scalar_sub_exp -> scalar_sub_exp '/' scalar_sub_exp
+scalar_sub_exp -> scalar_sub_exp 'div' scalar_sub_exp
+scalar_sub_exp -> '+' scalar_sub_exp
+scalar_sub_exp -> '-' scalar_sub_exp
+scalar_sub_exp -> '+' literal
+scalar_sub_exp -> '-' literal
+scalar_sub_exp -> NULLX
+scalar_sub_exp -> atom
+scalar_sub_exp -> subquery
+scalar_sub_exp -> column_ref
+scalar_sub_exp -> function_ref
+scalar_sub_exp -> '(' scalar_sub_exp ')'
+
+literal -> STRING
+literal -> INTNUM
+literal -> APPROXNUM
+
+atom -> parameter_ref
+atom -> literal
+atom -> USER
+
+subquery -> query_exp
+
+column_ref -> JSON
+column_ref -> NAME '.' JSON
+column_ref -> NAME '.' NAME '.' JSON
+column_ref -> NAME
+column_ref -> NAME '.' NAME
+column_ref -> NAME '.' NAME '.' NAME
+column_ref -> NAME '(' '+' ')'
+column_ref -> NAME '.' NAME '(' '+' ')'
+column_ref -> NAME '.' NAME '.' NAME '(' '+' ')'
+column_ref -> NAME '.' '*'
+column_ref -> NAME '.' NAME '.' '*'
+
+function_ref -> NAME '.' NAME '.' NAME '(' fun_args ')'
+function_ref -> NAME '.' NAME '(' fun_args ')'
+function_ref -> NAME  '(' fun_args ')'
+function_ref -> FUNS
+function_ref -> FUNS  '(' fun_args ')'
+function_ref -> AMMSC '(' '*' ')'
+function_ref -> AMMSC '(' DISTINCT column_ref ')'
+function_ref -> AMMSC '(' ALL scalar_exp ')'
+function_ref -> AMMSC '(' scalar_exp ')'
+
+fun_args -> fun_arg
+fun_args -> fun_arg ',' fun_args
+----------------------------------------------------------------------------- */
+
+query_spec ::= 'SELECT' 'HINT'?
+                        ('ALL' | 'DISTINCT')?
+                        select_field_commalist
+                        ('INTO' target_commalist ('IN' 'NAME')?)?
+                        table_exp
+
+target_commalist ::= (('NAME' | ('PARAMETER' ('INDICATOR'? 'PARAMETER')?)) (','
+                      ('NAME' | ('PARAMETER' ('INDICATOR'? 'PARAMETER')?)))*)
+
+scalar_sub_exp ::= atom
+                 | column_ref
+                 | function_ref
+                 | ('+' | '-') (literal | scalar_sub_exp)
+                 | 'NULLX'
+                 | query_exp
+                 | '(' scalar_sub_exp ')'
+                 | scalar_sub_exp ('+' | '-' | '*' | '/' | 'div') scalar_sub_exp
+
+literal ::= '%STRING%' | '%INTNUMN%' | '%APPROXNUM%'
+
+atom ::= ('PARAMETER' ('INDICATOR'? 'PARAMETER')?) | literal | 'USER'
+
+column_ref ::= '%JSON%' | 'NAME'
+               (('(' '+' ')' | ('.' ('*' | '%JSON%' | 'NAME'
+                   (('(' '+' ')' | ('.' ('*' | '%JSON%' | 'NAME'))))?
+               ))))?
+
+function_ref ::= ('AMMSC' '(' ('*' | 'DISTINCT' column_ref | 'ALL'? scalar_exp) ')')
+               | ('FUNS' ('(' fun_arg (',' fun_arg)* ')')?)
+	           | ('NAME' ('.' 'NAME' ('.' 'NAME' )?)? '(' fun_arg (',' fun_arg)* ')')
+
+/* =============================================================================
+select_field_commalist -> case_when_opt_as_exp
+select_field_commalist -> scalar_opt_as_exp
+select_field_commalist -> '*'
+select_field_commalist -> select_field_commalist ',' select_field_commalist
+
+case_when_opt_as_exp -> case_when_exp
+case_when_opt_as_exp -> case_when_exp NAME
+case_when_opt_as_exp -> case_when_exp AS NAME
+
+case_when_exp -> '(' case_when_exp ')'
+case_when_exp -> CASE case_when_then_list opt_else END
+case_when_exp -> CASE scalar_opt_as_exp case_when_then_list opt_else END
+
+case_when_then_list -> case_when_then
+case_when_then_list -> case_when_then case_when_then_list
+
+case_when_then -> WHEN search_condition THEN scalar_opt_as_exp
+
+opt_else -> '$empty'
+opt_else -> ELSE scalar_opt_as_exp
+
+scalar_opt_as_exp -> scalar_exp
+scalar_opt_as_exp -> scalar_exp COMPARISON scalar_exp
+scalar_opt_as_exp -> scalar_exp NAME
+scalar_opt_as_exp -> scalar_exp AS NAME
+
+table_exp ->
+     from_clause opt_where_clause
+                 opt_hierarchical_query_clause
+                 opt_group_by_clause
+                 opt_having_clause
+                 opt_order_by_clause
+
+from_clause -> FROM from_commalist
+
+from_commalist -> table_ref
+from_commalist -> '(' join_clause ')'
+from_commalist -> join_clause
+from_commalist -> from_commalist ',' from_commalist
+
+opt_where_clause -> '$empty'
+opt_where_clause -> where_clause
+
+where_clause -> WHERE search_condition
+
+opt_hierarchical_query_clause -> '$empty'
+opt_hierarchical_query_clause -> hierarchical_query_clause
+
+hierarchical_query_clause -> START WITH search_condition CONNECT BY opt_nocycle search_condition
+hierarchical_query_clause -> CONNECT BY opt_nocycle search_condition START WITH search_condition
+
+opt_nocycle -> '$empty'
+opt_nocycle -> NOCYCLE
+
+opt_group_by_clause -> '$empty'
+opt_group_by_clause -> GROUP BY column_ref_commalist
+
+column_ref_commalist -> function_ref
+column_ref_commalist -> column_ref
+column_ref_commalist -> column_ref_commalist ',' column_ref
+column_ref_commalist -> column_ref_commalist ',' function_ref
+
+opt_having_clause -> '$empty'
+opt_having_clause -> HAVING search_condition
+
+search_condition -> search_condition OR search_condition
+search_condition -> search_condition AND search_condition
+search_condition -> NOT search_condition
+search_condition -> '(' search_condition ')'
+search_condition -> predicate
+
+fun_arg -> '(' fun_arg ')'
+fun_arg -> function_ref
+fun_arg -> column_ref
+fun_arg -> fun_arg '+' fun_arg
+fun_arg -> fun_arg '-' fun_arg
+fun_arg -> fun_arg '*' fun_arg
+fun_arg -> fun_arg '/' fun_arg
+fun_arg -> fun_arg 'div' fun_arg
+fun_arg -> fun_arg '||' fun_arg
+fun_arg -> '+' fun_arg
+fun_arg -> '-' fun_arg
+fun_arg -> '+' literal
+fun_arg -> '-' literal
+fun_arg -> NULLX
+fun_arg -> atom
+fun_arg -> subquery
+fun_arg -> fun_arg AS NAME
+fun_arg -> fun_arg COMPARISON fun_arg
+----------------------------------------------------------------------------- */
+
+select_field_commalist ::= ('*' | case_when_exp ('AS'? name_alias)?
+                                | scalar_opt_as_exp
+                                | search_condition)
+                           (',' ('*' | case_when_exp ('AS'? name_alias)? | scalar_opt_as_exp | search_condition))*
+
+case_when_exp ::= '(' case_when_exp ')'
+                | 'CASE' (scalar_opt_as_exp)?
+                         ('WHEN' search_condition 'THEN' scalar_opt_as_exp)+
+                         ('ELSE' scalar_opt_as_exp)? 'END'
+
+scalar_opt_as_exp ::= scalar_exp ('AS'? name_alias)? ('%COMPARISON%' scalar_exp ('AS'? name_alias)?)?
+
+table_exp ::= 'FROM' (table_ref | join_clause | '(' join_clause ')') (',' (table_ref | join_clause | '(' join_clause ')'))* 
+              ('WHERE' search_condition)?
+              (hierarchical_query_clause)?
+              ('GROUP' 'BY' column_ref_commalist)?
+              ('HAVING' search_condition)?
+              (order_by_clause)?
+
+from_commalist ::= (table_ref | join_clause | '(' join_clause ')') 
+                   (',' (table_ref | join_clause | '(' join_clause ')'))*
+
+hierarchical_query_clause ::= ('START' 'WITH' search_condition 'CONNECT' 'BY' 'NOCYCLE'? search_condition)
+                            | ('CONNECT' 'BY' 'NOCYCLE'? search_condition 'START' 'WITH' search_condition)
+
+search_condition ::= (search_condition ('OR' | 'AND') search_condition)
+                   | ('NOT' search_condition)
+                   | '(' search_condition ')'
+                   | predicate
+
+column_ref_commalist ::= (column_ref | function_ref) (',' (column_ref | function_ref))*
+
+fun_arg ::= '(' fun_arg ')' 
+          | function_ref 
+	      | column_ref
+	      | fun_arg ('+' | '-' | '*' | '/' | 'div' | '||' | 'COMPARISON') fun_arg
+	      | ('+' | '-') (fun_arg | literal)
+   	      | 'NULLX'
+	      | atom
+	      | query_exp
+	      | fun_arg 'AS' name_alias
+
+/* =============================================================================
+table_ref -> table
+table_ref -> '(' query_exp ')'
+table_ref -> '(' query_exp ')' AS NAME
+table_ref -> '(' query_exp ')' NAME
+table_ref -> table range_variable
+
+table -> NAME
+table -> NAME AS NAME
+table -> NAME NAME
+table -> STRING
+table -> NAME '.' NAME
+table -> NAME '.' NAME AS NAME
+table -> NAME '.' NAME NAME
+
+range_variable -> NAME
+
+
+join_clause ::= ((table range_variable?) | ('(' query_exp ')' ((AS)? NAME)?))
+                (inner_cross_join | outer_join) *
+
+inner_cross_join -> INNER JOIN join_ref join_on_or_using_clause
+inner_cross_join -> JOIN join_ref join_on_or_using_clause
+
+join_ref -> table
+join_ref -> '(' query_exp ')'
+join_ref -> '(' query_exp ')' AS NAME
+join_ref -> '(' query_exp ')' NAME
+
+join_on_or_using_clause -> ON search_condition
+join_on_or_using_clause -> USING '(' select_field_commalist ')'
+
+outer_join -> NATURAL outer_join_type JOIN join_ref opt_join_on_or_using_clause
+outer_join -> NATURAL outer_join_type JOIN join_ref query_partition_clause
+              opt_join_on_or_using_clause
+outer_join -> query_partition_clause outer_join_type JOIN join_ref opt_join_on_or_using_clause
+outer_join -> query_partition_clause outer_join_type JOIN join_ref
+              query_partition_clause opt_join_on_or_using_clause
+outer_join -> outer_join_type JOIN join_ref opt_join_on_or_using_clause
+outer_join -> outer_join_type JOIN join_ref query_partition_clause
+              opt_join_on_or_using_clause
+outer_join -> query_partition_clause NATURAL outer_join_type JOIN join_ref
+              opt_join_on_or_using_clause
+outer_join -> query_partition_clause NATURAL outer_join_type JOIN
+              join_ref query_partition_clause opt_join_on_or_using_clause
+
+outer_join_type -> FULL
+outer_join_type -> LEFT
+outer_join_type -> RIGHT
+outer_join_type -> FULL OUTER
+outer_join_type -> LEFT OUTER
+outer_join_type -> RIGHT OUTER
+
+opt_join_on_or_using_clause -> '$empty'
+opt_join_on_or_using_clause -> join_on_or_using_clause
+
+query_partition_clause -> PARTITION BY '(' scalar_exp_commalist ')'
+query_partition_clause -> PARTITION BY scalar_exp_commalist
+
+predicate -> comparison_predicate
+predicate -> between_predicate                                                                  
+predicate -> like_predicate                                                                     
+predicate -> test_for_null                                                                      
+predicate -> in_predicate                                                                       
+predicate -> all_or_anyin_predicate                                                               
+predicate -> existence_test                                                                     
+
+comparison_predicate -> scalar_opt_as_exp                                                       
+comparison_predicate -> PRIOR scalar_exp COMPARISON scalar_exp
+comparison_predicate -> scalar_exp COMPARISON PRIOR scalar_exp
+comparison_predicate -> scalar_exp COMPARISON subquery
+
+between_predicate -> scalar_exp NOT BETWEEN scalar_exp AND scalar_exp
+between_predicate -> scalar_exp BETWEEN scalar_exp AND scalar_exp
+
+like_predicate -> scalar_exp NOT LIKE scalar_exp opt_escape
+like_predicate -> scalar_exp LIKE scalar_exp opt_escape
+
+opt_escape -> '$empty'
+opt_escape -> ESCAPE atom
+
+test_for_null -> scalar_exp IS NOT NULLX
+test_for_null -> scalar_exp IS NULLX
+
+in_predicate -> scalar_exp NOT IN '(' subquery ')'
+in_predicate -> scalar_exp IN '(' subquery ')'
+in_predicate -> scalar_exp NOT IN '(' scalar_exp_commalist ')'
+in_predicate -> scalar_exp IN '(' scalar_exp_commalist ')'
+in_predicate -> scalar_exp NOT IN scalar_exp_commalist
+in_predicate -> scalar_exp IN scalar_exp_commalist
+
+scalar_exp_commalist -> scalar_opt_as_exp
+scalar_exp_commalist -> scalar_exp_commalist ',' scalar_opt_as_exp
+
+all_or_anyin_predicate -> scalar_exp COMPARISON any_all_some subquery
+
+any_all_some -> ANY
+any_all_some -> ALL
+any_all_some -> SOME
+
+existence_test -> EXISTS subquery
+----------------------------------------------------------------------------- */
+
+table_ref ::= table 
+            | '(' query_exp ')' ('AS'? name_alias)?
+	        | table 'NAME'
+
+table ::= (name_schema '.')? name_table ('AS'? name_alias)?
+        | 'STRING'
+
+join_clause ::= ((table range_variable?) | ('(' query_exp ')' ('AS'? name_alias)?))
+                (inner_cross_join | outer_join)*
+
+inner_cross_join ::= 'INNER'? 'JOIN' (table | '(' query_exp ')' ('AS'? name_alias)?)
+                      ('ON' search_condition | 'USING' '(' select_field_commalist ')')
+
+outer_join ::= ('NATURAL' | (query_partition_clause 'NATURAL'?))?
+               (('FULL' | 'LEFT' | 'RIGHT') 'OUTER'?)
+               'JOIN' (table | '(' query_exp ')' ('AS'? name_alias)?)
+               (query_partition_clause)?
+               ('ON' search_condition | 'USING' '(' select_field_commalist ')')?
+
+query_partition_clause ::= 'PARTITION' 'BY' (scalar_exp_commalist | '(' scalar_exp_commalist ')')
+
+predicate ::= comparison_predicate
+            | between_predicate                                                                  
+            | like_predicate                                                                     
+            | test_for_null                                                                      
+            | in_predicate                                                                       
+            | all_or_anyin_predicate                                                               
+            | existence_test                                                                     
+
+comparison_predicate ::= scalar_opt_as_exp                                                       
+                       | 'PRIOR' scalar_exp 'COMPARISON' scalar_exp
+                       | scalar_exp 'COMPARISON' 'PRIOR' scalar_exp
+                       | scalar_exp 'COMPARISON' query_exp
+
+between_predicate ::= scalar_exp 'NOT'? 'BETWEEN' scalar_exp 'AND' scalar_exp
+
+like_predicate ::= scalar_exp 'NOT'? 'LIKE' scalar_exp ('ESCAPE' atom)?
+
+test_for_null ::= scalar_exp 'IS' 'NOT'? 'NULLX'
+
+in_predicate ::= scalar_exp 'NOT'? 'IN' '(' (query_exp | scalar_exp_commalist) ')'
+               | scalar_exp 'IN' scalar_exp_commalist
+
+scalar_exp_commalist ::= scalar_opt_as_exp (',' scalar_opt_as_exp)*
+
+all_or_anyin_predicate ::= scalar_exp 'COMPARISON' ('ANY' | 'ALL' | 'SOME') query_exp
+
+existence_test ::= 'EXISTS' query_exp
+
+/* ========================================================================== */
+
+/* =============================================================================
+/* Level 1: Manipulative statements.
+/* -----------------------------------------------------------------------------
+
+manipulative_statement -> close_statement                                                       
+manipulative_statement -> commit_statement                                                      
+manipulative_statement -> delete_statement_positioned                                           
+manipulative_statement -> delete_statement_searched                                             
+manipulative_statement -> fetch_statement                                                       
+manipulative_statement -> insert_statement                                                      
+manipulative_statement -> open_statement                                                        
+manipulative_statement -> rollback_statement                                                    
+manipulative_statement -> select_statement                                                      
+manipulative_statement -> update_statement_positioned                                           
+manipulative_statement -> update_statement_searched                                             
+manipulative_statement -> create_table_def                                                      
+manipulative_statement -> create_role_def                                                       
+manipulative_statement -> create_index_def                                                      
+manipulative_statement -> create_user_def                                                       
+manipulative_statement -> drop_role_def                                                         
+manipulative_statement -> drop_table_def                                                        
+manipulative_statement -> drop_index_def                                                        
+manipulative_statement -> alter_user_def                                                        
+manipulative_statement -> drop_user_def                                                         
+manipulative_statement -> view_def                                                              
+manipulative_statement -> truncate_table                                                        
+manipulative_statement -> grant_def                                                             
+manipulative_statement -> revoke_def                                                            
+----------------------------------------------------------------------------- */
+
+manipulative_statement ::= close_statement
+                         | commit_statement                                                      
+                         | delete_statement_positioned                                           
+                         | delete_statement_searched                                             
+                         | fetch_statement                                                       
+                         | insert_statement                                                      
+                         | open_statement                                                        
+                         | rollback_statement                                                    
+                         | select_statement                                                      
+                         | update_statement_positioned                                           
+                         | update_statement_searched                                             
+                         | create_table_def                                                      
+                         | create_role_def                                                       
+                         | create_index_def                                                      
+                         | create_user_def                                                       
+                         | drop_role_def                                                         
+                         | drop_table_def                                                        
+                         | drop_index_def                                                        
+                         | alter_user_def                                                        
+                         | drop_user_def                                                         
+                         | view_def                                                              
+                         | truncate_table                                                        
+                         | grant_def                                                             
+                         | revoke_def                                                            
+
+/* =============================================================================
+close_statement -> CLOSE cursor
+
+cursor -> NAME
+----------------------------------------------------------------------------- */
+
+close_statement ::= CLOSE name_cursor
+
+/* =============================================================================
+commit_statement -> COMMIT
+commit_statement -> COMMIT WORK
+----------------------------------------------------------------------------- */
+
+commit_statement ::= 'COMMIT' 'WORK'?
+
+/* =============================================================================
+delete_statement_positioned -> DELETE FROM table WHERE CURRENT OF cursor returning
+
+returning -> '$empty'
+returning -> RETURNING selection INTO selection
+returning -> RETURN selection INTO selection
+
+selection -> select_field_commalist
+
+delete_statement_searched -> DELETE FROM table opt_where_clause returning
+
+opt_where_clause -> '$empty'
+opt_where_clause -> where_clause
+
+where_clause -> WHERE search_condition
+----------------------------------------------------------------------------- */
+
+delete_statement_positioned ::= 'DELETE' 'FROM' table
+                                (('WHERE' 'CURRENT' 'OF' name_cursor) | ('WHERE' search_condition)?)
+                                (('RETURNING' | 'RETURN') select_field_commalist 'INTO' select_field_commalist)?
+
+/* =============================================================================
+fetch_statement -> FETCH cursor INTO target_commalist
+
+target_commalist -> target
+target_commalist -> target_commalist ',' target
+----------------------------------------------------------------------------- */
+
+fetch_statement ::= 'FETCH' name_cursor 'INTO' target_commalist
+
+/* =============================================================================
+insert_statement -> INSERT INTO table
+insert_statement -> INSERT INTO table opt_column_commalist values_or_query_spec returning
+
+opt_column_commalist -> '$empty'
+opt_column_commalist -> '(' column_commalist ')'
+
+column_commalist -> column
+column_commalist -> column_commalist ',' column
+
+column -> NAME
+column -> STRING
+
+values_or_query_spec -> VALUES '(' insert_atom_commalist ')'
+values_or_query_spec -> query_spec
+
+insert_atom_commalist -> insert_atom
+insert_atom_commalist -> insert_atom_commalist ',' insert_atom
+
+insert_atom -> scalar_opt_as_exp
+----------------------------------------------------------------------------- */
+
+insert_statement ::= 'INSERT' 'INTO' table
+                     ('(' (name_column | 'STRING') (',' (name_column | 'STRING'))* ')')?
+                      (('VALUES' '(' scalar_opt_as_exp (',' scalar_opt_as_exp)* ')')
+                     | query_spec)
+                      (('RETURNING' | 'RETURN') select_field_commalist 'INTO' select_field_commalist)?
+
+/* =============================================================================
+open_statement -> OPEN cursor
+----------------------------------------------------------------------------- */
+
+open_statement ::= OPEN name_cursor
+
+/* =============================================================================
+rollback_statement -> ROLLBACK
+rollback_statement -> ROLLBACK WORK
+----------------------------------------------------------------------------- */
+
+rollback_statement ::= 'ROLLBACK' 'WORK'?
+
+/* =============================================================================
+select_statement -> SELECT opt_hint opt_all_distinct selection INTO target_commalist table_exp
+select_statement -> query_exp
+
+opt_hint -> '$empty'
+opt_hint -> HINT
+
+opt_all_distinct -> '$empty'
+opt_all_distinct -> ALL
+opt_all_distinct -> DISTINCT
+
+selection -> select_field_commalist
+
+table_exp ->
+     from_clause opt_where_clause
+                 opt_hierarchical_query_clause
+                 opt_group_by_clause
+                 opt_having_clause
+                 opt_order_by_clause
+----------------------------------------------------------------------------- */
+
+select_statement ::= query_exp
+                   | ('SELECT' 'HINT'? ('ALL' | 'DISTINCT')? select_field_commalist
+                      'INTO' target_commalist table_exp)
+
+/* =============================================================================
+update_statement_positioned -> UPDATE table SET assignment_commalist
+                                                           WHERE CURRENT OF cursor returning
+
+update_statement_searched -> UPDATE table SET assignment_commalist opt_where_clause returning
+
+assignment_commalist -> assignment
+assignment_commalist -> assignment_commalist ',' assignment
+
+assignment -> column COMPARISON scalar_opt_as_exp
+----------------------------------------------------------------------------- */
+
+update_statement_positioned ::= 'UPDATE' table
+                                'SET' ((name_column | 'STRING') 'COMPARISON' scalar_opt_as_exp)
+                                      (',' ((name_column | 'STRING') 'COMPARISON' scalar_opt_as_exp))*
+                                (('WHERE' 'CURRENT' 'OF' name_cursor) | ('WHERE' search_condition)?)
+                                (('RETURNING' | 'RETURN') select_field_commalist 'INTO' select_field_commalist)?
+
+/* =============================================================================
+create_table_def -> CREATE create_opts TABLE table '(' base_table_element_commalist ')'
+
+create_role_def -> CREATE ROLE NAME
+
+create_index_def -> CREATE create_index_opts INDEX opt_index_name ON table create_index_spec
+                    create_index_opt_norm create_index_opt_filter
+
+create_user_def -> CREATE USER NAME identified opt_user_opts_list
+
+drop_role_def -> DROP ROLE NAME
+
+drop_table_def -> DROP TABLE opt_exists table_list opt_restrict_cascade
+
+table_list -> table
+table_list -> table_list ',' table
+
+opt_exists -> '$empty'
+opt_exists -> IF EXISTS
+
+opt_restrict_cascade -> '$empty'
+opt_restrict_cascade -> RESTRICT
+opt_restrict_cascade -> CASCADE
+
+drop_index_def -> DROP INDEX opt_index_name FROM table
+
+opt_index_name -> '$empty'
+opt_index_name -> index_name
+
+index_name -> NAME
+index_name -> NAME '.' NAME
+
+alter_user_def -> ALTER USER user_list proxy_clause
+alter_user_def -> ALTER USER NAME spec_list
+alter_user_def -> ALTER USER NAME NAME NAME
+
+user_list -> NAME
+user_list -> NAME user_list
+
+proxy_clause -> GRANT CONNECT THROUGH ENTERPRISE USERS
+proxy_clause -> GRANT REVOKE THROUGH ENTERPRISE USERS
+proxy_clause -> GRANT REVOKE THROUGH NAME
+
+spec_list -> identified
+spec_list -> user_opt
+spec_list -> user_role
+spec_list -> spec_list spec_list
+
+identified -> IDENTIFIED BY NAME
+identified -> IDENTIFIED EXTERNALLY opt_as
+identified -> IDENTIFIED GLOBALLY opt_as
+
+opt_as -> '$empty'
+opt_as -> AS NAME
+
+user_opt -> DEFAULT TABLESPACE NAME
+user_opt -> TEMPORARY TABLESPACE NAME
+user_opt -> quota_list
+user_opt -> PROFILE NAME
+
+quota_list -> quota
+quota_list -> quota quota_list
+
+quota -> QUOTA UNLIMITED ON NAME
+quota -> QUOTA INTNUM ON NAME
+quota -> QUOTA INTNUM NAME ON NAME
+
+user_role -> DEFAULT ROLE ALL
+user_role -> DEFAULT ROLE ALL EXCEPT role_list
+user_role -> DEFAULT ROLE NONE
+user_role -> DEFAULT ROLE role_list
+
+role_list -> NAME
+role_list -> NAME role_list
+
+drop_user_def -> DROP USER NAME
+drop_user_def -> DROP USER NAME CASCADE
+
+view_def -> CREATE VIEW table opt_column_commalist
+view_def -> AS query_spec opt_with_check_option
+
+truncate_table -> TRUNCATE TABLE table_name opt_materialized opt_storage
+
+table_name -> NAME
+table_name -> NAME '.' NAME
+table_name -> NAME '.' NAME '.' NAME
+
+opt_materialized -> '$empty'
+opt_materialized -> PRESERVE MATERIALIZED VIEW LOG
+opt_materialized -> PURGE MATERIALIZED VIEW LOG
+
+opt_storage ->  '$empty'
+opt_storage ->  DROP STORAGE
+opt_storage ->  REUSE STORAGE
+
+grant_def ->
+ GRANT system_privilege_list opt_on_obj_clause TO grantee_commalist opt_with_grant_option
+
+system_privilege_list -> '$empty'
+system_privilege_list -> system_privilege
+system_privilege_list -> system_privilege ',' system_privilege_list
+system_privilege_list -> ALL
+system_privilege_list -> ALL PRIVILEGES
+
+system_privilege -> SELECT
+system_privilege -> UPDATE
+system_privilege -> DELETE
+system_privilege -> INSERT
+system_privilege -> DROP
+system_privilege -> NAME
+system_privilege -> NAME NAME
+system_privilege -> NAME NAME NAME
+system_privilege -> NAME NAME NAME NAME
+system_privilege -> NAME NAME NAME NAME NAME
+
+opt_on_obj_clause -> '$empty'
+opt_on_obj_clause -> ON table
+opt_on_obj_clause -> ON DIRECTORY NAME
+opt_on_obj_clause -> ON JAVA SOURCE table
+opt_on_obj_clause -> ON JAVA RESOURCE table
+
+grantee_commalist -> grantee
+grantee_commalist -> grantee_commalist ',' grantee
+
+grantee -> PUBLIC
+grantee -> NAME
+grantee -> NAME IDENTIFIED BY NAME
+
+opt_with_grant_option -> '$empty'
+opt_with_grant_option -> WITH GRANT OPTION
+opt_with_grant_option -> WITH NAME OPTION
+opt_with_grant_option -> WITH HIERARCHY OPTION
+
+revoke_def ->
+ REVOKE system_privilege_list opt_on_obj_clause FROM grantee_commalist opt_with_revoke_option
+
+opt_with_revoke_option -> '$empty'
+opt_with_revoke_option -> CASCADE CONSTRAINS
+opt_with_revoke_option -> FORCE
+----------------------------------------------------------------------------- */
+
+create_role_def ::= 'CREATE' 'ROLE' name_role
+
+drop_role_def ::= 'DROP' 'ROLE' name_role
+
+drop_table_def ::= 'DROP' 'TABLE' ('IF' 'EXISTS')? table (',' table)* ('RESTRICT' | 'CASCADE')
+
+drop_index_def ::= 'DROP' 'INDEX' ((name_schema '.')? name_index)? 'FROM' table
+
+alter_user_def ::= 'ALTER' 'USER'
+                   (
+                     (name_user+ (
+                                   ('GRANT' ('CONNECT' | 'REVOKE') 'THROUGH' 'ENTERPRISE' 'USERS')
+                                 | ('REVOKE' 'THROUGH' name_user)
+                                 )
+                     )
+                   | (name_user (
+                                  ('IDENTIFIED' (('BY' password) | (('EXTERNALLY' | 'GLOBALLY') ('AS' name_external)?)))
+                                | (('DEFAULT' | 'TEMPORARY') 'TABLESPACE' name_tablespace)
+                                | ('QUOTA' ('UNLIMITED' | ('INTNUM' name_unit?)) 'ON' name_tablespace)
+                                | ('PROFILE' name_profile)
+                                | ('DEFAULT' 'ROLE' (('ALL' ('EXCEPT' name_role+)?) | 'NONE' | name_role+))
+                                )+
+                     )
+                   | (name_user (
+                                  ('ACCOUNT' ('LOCK' | 'UNLOCK'))
+                                | ('PASSWORD' 'EXPIRE')))
+                   )
+
+drop_user_def ::= 'DROP' 'USER' name_user 'CASCADE'?
+
+truncate_table ::= 'TRUNCATE' 'TABLE' (('NAME' '.')? name_schema '.')? table
+                   (('PRESERVE' | 'PURGE') 'MATERIALIZED' 'VIEW' 'LOG')?
+                   (('DROP' | 'REUSE') 'STORAGE')?
+
+grant_def ::= 'GRANT' system_privilege_list? ('ON' obj_clause)? 'TO' grantee_commalist
+              ('WITH' ('GRANT' | 'HIERARCHY' | 'NAME') 'OPTION')?
+
+system_privilege_list ::= (
+                            ('ALL' 'PRIVILEGES'?)
+                          | (('DELETE' | 'DROP' | 'INSERT' | 'SELECT' | 'UPDATE' | ('NAME' ('NAME' ('NAME' ('NAME' 'NAME'?)?)?)?))
+                            (',' ('DELETE' | 'DROP' | 'INSERT' | 'SELECT' | 'UPDATE' | ('NAME' ('NAME' ('NAME' ('NAME' 'NAME'?)?)?)?)))*)
+                          )
+
+obj_clause ::= table | ('DIRECTORY' name_directory) | ('JAVA' ('SOURCE' | 'RESOURCE') table)
+
+grantee_commalist ::= ('PUBLIC' | ((name_user | name_role) ('IDENTIFIED' 'BY' name_password)?))+
+
+revoke_def ::= 'REVOKE' system_privilege_list? ('ON' obj_clause)? 'FROM' grantee_commalist
+               (('CASCADE' 'CONSTRAINS') | 'FORCE')?
+
+/* ========================================================================== */
+
+/* =============================================================================
+/* Level 1: Procedure call.
+/* -----------------------------------------------------------------------------
+
+procedure_call -> DECLARE BEGIN function_ref_list END
+procedure_call -> DECLARE BEGIN sql_list END
+procedure_call -> BEGIN function_ref_list END
+procedure_call -> BEGIN sql_list END
+procedure_call -> CALL function_ref
+
+function_ref_list -> function_ref ';'
+function_ref_list -> function_ref ';' function_ref_list
+
+sql_list -> sql ';' extra
+sql_list -> sql_list sql ';' extra
+
+extra -> '$empty'
+extra -> NAME  ';'
+
+sql -> procedure_call
+----------------------------------------------------------------------------- */
+
+procedure_call ::= ('DECLARE'? 'BEGIN' ((function_ref (';' function_ref)*) | (procedure_call ';' (name_label ';')?)+) 'END')
+                 | ('CALL' function_ref)
+
+/* ========================================================================== */
+
+/* =============================================================================
+/* Level 1: Schema definition.
+/*
+
+schema -> CREATE SCHEMA AUTHORIZATION user opt_schema_element_list
+
+user -> NAME
+
+opt_schema_element_list -> '$empty'
+opt_schema_element_list -> schema_element_list
+
+schema_element_list -> schema_element
+schema_element_list -> schema_element_list schema_element
+
+schema_element -> create_role_def
+schema_element -> create_table_def
+schema_element -> create_index_def
+schema_element -> create_user_def
+schema_element -> view_def
+
+create_role_def -> CREATE ROLE NAME
+----------------------------------------------------------------------------- */
+
+schema ::= 'CREATE' 'SCHEMA' 'AUTHORIZATION' name_user
+           ((('CREATE' 'ROLE' name_role) | create_table_def | create_index_def | create_user_def | view_def)+)?
+
+/* =============================================================================
+create_table_def -> CREATE create_opts TABLE table '(' base_table_element_commalist ')'
+
+create_opts -> tbl_scope tbl_type
+
+tbl_scope -> '$empty'
+tbl_scope -> LOCAL
+tbl_scope -> CLUSTER
+tbl_scope -> SCHEMA
+
+tbl_type -> '$empty'
+tbl_type -> SET
+tbl_type -> ORDERED_SET
+tbl_type -> BAG
+tbl_type -> NAME
+
+table -> NAME
+table -> NAME AS NAME
+table -> NAME NAME
+table -> STRING
+table -> NAME '.' NAME
+table -> NAME '.' NAME AS NAME
+table -> NAME '.' NAME NAME
+
+base_table_element_commalist -> '$empty'
+base_table_element_commalist -> base_table_element
+base_table_element_commalist -> base_table_element_commalist ',' base_table_element
+
+create_index_def -> CREATE create_index_opts INDEX opt_index_name ON table create_index_spec
+                    create_index_opt_norm create_index_opt_filter
+
+create_index_opts -> '$empty'
+create_index_opts -> BITMAP
+create_index_opts -> KEYLIST
+create_index_opts -> HASHMAP
+create_index_opts -> UNIQUE
+
+opt_index_name -> '$empty'
+opt_index_name -> index_name
+
+index_name -> NAME
+index_name -> NAME '.' NAME
+
+create_index_spec -> '$empty'
+create_index_spec -> '(' create_index_spec_items ')'
+
+create_index_spec_items -> NAME
+create_index_spec_items -> NAME '|' create_index_spec_items
+create_index_spec_items -> JSON
+create_index_spec_items -> JSON '|' create_index_spec_items
+
+create_index_opt_norm -> '$empty'
+create_index_opt_norm -> NORM_WITH STRING
+
+create_index_opt_filter -> '$empty'
+create_index_opt_filter -> FILTER_WITH STRING
+
+create_user_def -> CREATE USER NAME identified opt_user_opts_list
+
+identified -> IDENTIFIED BY NAME
+identified -> IDENTIFIED EXTERNALLY opt_as
+identified -> IDENTIFIED GLOBALLY opt_as
+
+opt_as -> '$empty'
+opt_as -> AS NAME
+
+opt_user_opts_list -> '$empty'
+opt_user_opts_list -> user_opt opt_user_opts_list
+
+user_opt -> DEFAULT TABLESPACE NAME
+user_opt -> TEMPORARY TABLESPACE NAME
+user_opt -> quota_list
+user_opt -> PROFILE NAME
+
+quota_list -> quota
+quota_list -> quota quota_list
+
+quota -> QUOTA UNLIMITED ON NAME
+quota -> QUOTA INTNUM ON NAME
+quota -> QUOTA INTNUM NAME ON NAME
+
+view_def -> CREATE VIEW table opt_column_commalist
+view_def -> AS query_spec opt_with_check_option
+
+opt_column_commalist -> '$empty'
+opt_column_commalist -> '(' column_commalist ')'
+
+column_commalist -> column
+column_commalist -> column_commalist ',' column
+
+column -> NAME
+column -> STRING
+
+query_spec -> SELECT opt_hint opt_all_distinct selection opt_into table_exp
+
+opt_with_check_option -> '$empty'
+opt_with_check_option -> WITH CHECK OPTION
+----------------------------------------------------------------------------- */
+
+create_table_def ::= 'CREATE' ('LOCAL' | 'CLUSTER' | 'SCHEMA')? ('SET' | 'ORDERED_SET' | 'BAG' | 'NAME')?
+                     'TABLE' table '(' (base_table_element (',' base_table_element)*)? ')'
+
+create_index_def ::= 'CREATE' ('BITMAP' | 'KEYLIST' | 'HASHMAP' | 'UNIQUE')?
+                     'INDEX' ((name_schema '.')? name_index)?
+                     'ON' table ('(' ('NAME' | 'JSON') ('|' ('NAME' | 'JSON'))* ')')?
+                     ('NORM_WITH' 'STRING')? ('FILTER_WITH' 'STRING')?
+
+create_user_def ::= 'CREATE' 'USER' name_user
+                    'IDENTIFIED' (('BY' password) | (('EXTERNALLY' | 'GLOBALLY') ('AS' name_user)?))
+                    ((((('DEFAULT' | 'TEMPORARY') 'TABLESPACE' name_tablespace)
+                      | ('QUOTA' ('UNLIMITED' | ('INTNUM' name_unit?)) 'ON' table)
+                      | ('PROFILE' name_profile)))*)?
+
+view_def ::= ('CREATE' 'VIEW' table (('NAME' | 'STRING') (',' ('NAME' | 'STRING'))*)?)
+           | ('AS' query_spec ('WITH' 'CHECK' 'OPTION')?)
+
+/* =============================================================================
+base_table_element -> column_def
+base_table_element -> table_constraint_def
+
+column_def -> column data_type column_def_opt_list
+
+data_type -> STRING
+data_type -> NAME
+data_type -> NAME '(' opt_sgn_num ')'
+data_type -> NAME '(' opt_sgn_num ',' opt_sgn_num ')'
+
+opt_sgn_num -> INTNUM
+opt_sgn_num -> '-' INTNUM
+
+column_def_opt_list -> '$empty'
+column_def_opt_list -> column_def_opt_list column_def_opt
+
+column_def_opt -> NOT NULLX
+column_def_opt -> NOT NULLX UNIQUE
+column_def_opt -> NOT NULLX PRIMARY KEY
+column_def_opt -> DEFAULT function_ref
+column_def_opt -> DEFAULT literal
+column_def_opt -> DEFAULT NAME
+column_def_opt -> DEFAULT NULLX
+column_def_opt -> DEFAULT USER
+column_def_opt -> CHECK '(' search_condition ')'
+column_def_opt -> REFERENCES table
+column_def_opt -> REFERENCES table '(' column_commalist ')'
+
+table_constraint_def -> UNIQUE '(' column_commalist ')'
+table_constraint_def -> PRIMARY KEY '(' column_commalist ')'
+table_constraint_def -> FOREIGN KEY '(' column_commalist ')' REFERENCES table
+table_constraint_def ->
+            FOREIGN KEY '(' column_commalist ')' REFERENCES table '(' column_commalist ')'
+table_constraint_def -> CHECK '(' search_condition ')'
+----------------------------------------------------------------------------- */
+
+base_table_element ::= column_def | table_constraint_def
+
+column_def ::= ('NAME' | 'STRING')
+               ('STRING' | ('NAME' ('(' '-'? 'INTNUM' (',' '-'? 'INTNUM')? ')')?))
+               (('NOT' 'NULLX' ('UNIQUE' | ('PRIMARY' 'KEY'))?)
+              | ('DEFAULT' (function_ref | literal | 'NAME' | 'NULLX' | 'USER'))
+              | ('CHECK' '(' search_condition ')')
+              | ('REFERENCES' table ('(' ('NAME' | 'STRING') (',' ('NAME' | 'STRING'))* ')')?))*
+
+table_constraint_def ::= (('UNIQUE' | ('PRIMARY' 'KEY')) '('  ('NAME' | 'STRING') (',' ('NAME' | 'STRING'))* ')')
+                       | ('FOREIGN' 'KEY' '(' ('NAME' | 'STRING') (',' ('NAME' | 'STRING'))* ')' 'REFERENCES' table ('(' ('NAME' | 'STRING') (',' ('NAME' | 'STRING'))*')')?)
+                       | ('CHECK' '(' search_condition')')
+
+/* ========================================================================== */

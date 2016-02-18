@@ -11,5 +11,3 @@ ebin/
 deps/
 src/sql_lex.erl
 src/sqlparse.erl
-/.idea
-/sqlparse.iml

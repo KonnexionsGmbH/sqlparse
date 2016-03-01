@@ -691,7 +691,7 @@ opt_all_distinct -> ALL                                                         
 opt_all_distinct -> DISTINCT                                                                    : {opt, <<"distinct">>}.
 
 update_statement_positioned -> UPDATE table SET assignment_commalist
-                                                           WHERE CURRENT OF cursor returning    : {'update', '$2', {'set', '$4'}, {'where_cur_of', '$8'}, '$9'}.
+                                                           WHERE CURRENT OF cursor returning    : {'update', '$2', {'set', '$4'}, {'where_current_of', '$8'}, '$9'}.
 
 assignment_commalist -> assignment                                                              : ['$1'].
 assignment_commalist -> assignment_commalist ',' assignment                                     : '$1' ++ ['$3'].

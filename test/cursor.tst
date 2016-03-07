@@ -15,4 +15,3 @@
 "DELETE FROM table_name WHERE CURRENT OF name_cursor".
 "UPDATE name_table SET name_column_1 = :value_1 WHERE CURRENT OF name_cursor".
 "UPDATE name_table SET name_column_1 = :value_1, name_column_2 = :value_2 WHERE CURRENT OF name_cursor".
->>>>>>> origin/master

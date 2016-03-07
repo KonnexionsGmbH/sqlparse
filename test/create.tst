@@ -5,7 +5,7 @@
 [{verbose, 0}, {tests, []}].
 
 %% 
-%% TESTS
+%% TESTS CREATE TABLE
 %%
 
 "create table key_test (col1 '{atom,integer}', col2 '{string,binstr}')".
@@ -83,6 +83,10 @@ fld TUPLE(0) default fun(_D) -> {} end.
 , fld INTEGER(10,-3)
 )".
 
+%%
+%% TESTS CREATE USER
+%%
+
 "CREATE USER test_user_1 IDENTIFIED BY a_password".
 
 "CREATE USER test_user_3 IDENTIFIED EXTERNALLY".
@@ -118,3 +122,9 @@ fld TUPLE(0) default fun(_D) -> {} end.
 
 "CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA 10 ON table_3 QUOTA 10M ON table_4 QUOTA UNLIMITED
  ON table_1".
+
+%%
+%% TESTS CREATE VIEW
+%%
+
+% ? "CREATE VIEW name_table_1".

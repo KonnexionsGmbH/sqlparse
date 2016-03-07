@@ -9,6 +9,9 @@
 %%
 
 "create index on tab".
+
+"CREATE BITMAP INDEX ON tab".
+
 "create unique index s.a on s.d (f)".
 "create bitmap index s.a on s.d (f)".
 "create keylist index s.a on s.d (f)".

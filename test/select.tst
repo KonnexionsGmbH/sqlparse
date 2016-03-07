@@ -73,3 +73,206 @@ UNION ALL
 "/utf8>>.
 
 <<"select * from tab t, (select * from tab) sql">>.
+
+% minimum ----------------------------------------------------------------------
+
+"SELECT * FROM name_table".
+"SELECT name_column_1 FROM name_table".
+"SELECT name_column_1, name_column_2 FROM name_table".
+
+% hint, all, distinct ----------------------------------------------------------
+
+"SELECT /*hint*/ * FROM name_table".
+"SELECT /*hint*/ name_column_1 FROM name_table".
+"SELECT /*hint*/ name_column_1, name_column_2 FROM name_table".
+
+"SELECT /*hint*/ ALL * FROM name_table".
+"SELECT /*hint*/ ALL name_column_1 FROM name_table".
+"SELECT /*hint*/ ALL name_column_1, name_column_2 FROM name_table".
+
+"SELECT /*hint*/ DISTINCT * FROM name_table".
+"SELECT /*hint*/ DISTINCT name_column_1 FROM name_table".
+"SELECT /*hint*/ DISTINCT name_column_1, name_column_2 FROM name_table".
+
+"SELECT ALL * FROM name_table".
+"SELECT ALL name_column_1 FROM name_table".
+"SELECT ALL name_column_1, name_column_2 FROM name_table".
+
+"SELECT DISTINCT * FROM name_table".
+"SELECT DISTINCT name_column_1 FROM name_table".
+"SELECT DISTINCT name_column_1, name_column_2 FROM name_table".
+
+% into -------------------------------------------------------------------------
+
+% ? "SELECT * INTO name_variable_1 FROM name_table".
+% ? "SELECT name_column_1 INTO name_variable_1 FROM name_table".
+% ? "SELECT name_column_1, name_column_2 INTO name_variable_1, name_variable_2 FROM name_table".
+
+% join -------------------------------------------------------------------------
+
+"SELECT DISTINCT * FROM name_table_1, name_table_2".
+
+% inner join -------------------------------------------------------------------
+
+"SELECT DISTINCT * FROM name_table_1 JOIN name_table_2 ON name_column_1 = name_column_2".
+"SELECT DISTINCT * FROM name_table_1 JOIN name_table_2 ON name_column_1 = name_column_2 AND name_column_3 = name_column_4".
+"SELECT DISTINCT * FROM name_table_1 JOIN name_table_2 USING (name_column_1)".
+"SELECT DISTINCT * FROM name_table_1 JOIN name_table_2 USING (name_column_1, name_column_2)".
+
+% ? "SELECT DISTINCT * FROM name_table_1 JOIN (SELECT " FROM name_table_2") ON name_column_1 = name_column_2".
+% ? "SELECT DISTINCT * FROM name_table_1 JOIN (SELECT " FROM name_table_2") ON name_column_1 = name_column_2 AND name_column_3 = name_column_4".
+% ? "SELECT DISTINCT * FROM name_table_1 JOIN (SELECT " FROM name_table_2") USING (name_column_1)".
+% ? "SELECT DISTINCT * FROM name_table_1 JOIN (SELECT " FROM name_table_2") USING (name_column_1, name_column_2)".
+
+
+"SELECT DISTINCT * FROM name_table_1 JOIN name_table_2 name_alias ON name_column_1 = name_column_2".
+"SELECT DISTINCT * FROM name_table_1 JOIN name_table_2 name_alias USING (name_column_1)".
+"SELECT DISTINCT * FROM name_table_1 JOIN name_table_2 AS name_alias ON name_column_1 = name_column_2".
+"SELECT DISTINCT * FROM name_table_1 JOIN name_table_2 AS name_alias USING (name_column_1)".
+
+"SELECT DISTINCT * FROM name_table_1 INNER JOIN name_table_2 ON name_column_1 = name_column_2".
+"SELECT DISTINCT * FROM name_table_1 INNER JOIN name_table_2 ON name_column_1 = name_column_2 AND name_column_3 = name_column_4".
+"SELECT DISTINCT * FROM name_table_1 INNER JOIN name_table_2 USING (name_column_1)".
+"SELECT DISTINCT * FROM name_table_1 INNER JOIN name_table_2 USING (name_column_1, name_column_2)".
+
+% outer join -------------------------------------------------------------------
+
+"SELECT DISTINCT * FROM name_table_1 FULL JOIN name_table_2".
+"SELECT DISTINCT * FROM name_table_1 FULL OUTER JOIN name_table_2".
+"SELECT DISTINCT * FROM name_table_1 LEFT JOIN name_table_2".
+"SELECT DISTINCT * FROM name_table_1 LEFT OUTER JOIN name_table_2".
+"SELECT DISTINCT * FROM name_table_1 RIGHT JOIN name_table_2".
+"SELECT DISTINCT * FROM name_table_1 RIGHT OUTER JOIN name_table_2".
+
+% ? "SELECT DISTINCT * FROM name_table_1 FULL JOIN (SELECT * FROM name_table_2)".
+% ? "SELECT DISTINCT * FROM name_table_1 FULL OUTER JOIN (SELECT * FROM name_table_2)".
+% ? "SELECT DISTINCT * FROM name_table_1 LEFT JOIN (SELECT * FROM name_table_2)".
+% ? "SELECT DISTINCT * FROM name_table_1 LEFT OUTER JOIN (SELECT * FROM name_table_2)".
+% ? "SELECT DISTINCT * FROM name_table_1 RIGHT JOIN (SELECT * FROM name_table_2)".
+% ? "SELECT DISTINCT * FROM name_table_1 RIGHT OUTER JOIN (SELECT * FROM name_table_2)".
+
+"SELECT DISTINCT * FROM name_table_1 NATURAL FULL JOIN name_table_2".
+"SELECT DISTINCT * FROM name_table_1 NATURAL FULL OUTER JOIN name_table_2".
+"SELECT DISTINCT * FROM name_table_1 NATURAL LEFT JOIN name_table_2".
+"SELECT DISTINCT * FROM name_table_1 NATURAL LEFT OUTER JOIN name_table_2".
+"SELECT DISTINCT * FROM name_table_1 NATURAL RIGHT JOIN name_table_2".
+"SELECT DISTINCT * FROM name_table_1 NATURAL RIGHT OUTER JOIN name_table_2".
+
+"SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2".
+"SELECT DISTINCT * FROM name_table_1 PARTITION BY 1, 2 NATURAL FULL JOIN name_table_2".
+"SELECT DISTINCT * FROM name_table_1 PARTITION BY (1) NATURAL FULL JOIN name_table_2".
+"SELECT DISTINCT * FROM name_table_1 PARTITION BY (1, 2) NATURAL FULL JOIN name_table_2".
+"SELECT DISTINCT * FROM name_table_1 PARTITION BY (1), 2 NATURAL FULL JOIN name_table_2".
+"SELECT DISTINCT * FROM name_table_1 PARTITION BY 1, (2) NATURAL FULL JOIN name_table_2".
+
+"SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2 AS name_alias".
+
+"SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2 ON name_column_1 = name_column_2".
+"SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2 name_alias ON name_column_1 = name_column_2".
+"SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2 AS name_alias ON name_column_1 = name_column_2".
+"SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2 ON name_column_1 = name_column_2 AND name_column_3 = name_column_4".
+"SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2 name_alias ON name_column_1 = name_column_2 AND name_column_3 = name_column_4".
+"SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2 AS name_alias ON name_column_1 = name_column_2 AND name_column_3 = name_column_4".
+
+"SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2 USING (name_column_1)".
+"SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2 USING (name_column_1, name_column_2)".
+"SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2 name_alias USING (name_column_1, name_column_2)".
+"SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2 AS name_alias USING (name_column_1, name_column_2)".
+
+% where ------------------------------------------------------------------------
+
+"SELECT * FROM name_table WHERE name_column_1 = name_column_2".
+"SELECT * FROM name_table WHERE name_column_1 = name_column_2 AND name_column_3 = name_column_4".
+"SELECT * FROM name_table WHERE name_column_1 = name_column_2 OR name_column_3 = name_column_4".
+"SELECT * FROM name_table WHERE NOT name_column_1 = name_column_2".
+
+"SELECT * FROM name_table WHERE (name_column_1 = name_column_2)".
+"SELECT * FROM name_table WHERE ((name_column_1 = name_column_2) AND (name_column_3 = name_column_4))".
+"SELECT * FROM name_table WHERE ((name_column_1 = name_column_2) OR (name_column_3 = name_column_4))".
+"SELECT * FROM name_table WHERE (NOT (name_column_1 = name_column_2))".
+
+% predicate comparison ---------------------------------------------------------
+
+"SELECT * FROM name_table WHERE name_column_1 = 50".
+"SELECT * FROM name_table WHERE PRIOR name_column_1 = 50".
+"SELECT * FROM name_table WHERE name_column_1 = PRIOR 50".
+
+% predicate between ------------------------------------------------------------
+
+"SELECT * FROM name_table WHERE name_column_1 BETWEEN 50 AND 100".
+"SELECT * FROM name_table WHERE name_column_1 BETWEEN name_column_2 AND name_column_3".
+"SELECT * FROM name_table WHERE name_column_1 NOT BETWEEN 50 AND 100".
+"SELECT * FROM name_table WHERE name_column_1 NOT BETWEEN name_column_2 AND name_column_3".
+
+% predicate like ---------------------------------------------------------------
+
+"SELECT * FROM name_table WHERE name_column_1 LIKE 50".
+"SELECT * FROM name_table WHERE name_column_1 LIKE name_column_2".
+"SELECT * FROM name_table WHERE name_column_1 NOT LIKE 50".
+"SELECT * FROM name_table WHERE name_column_1 NOT LIKE name_column_2".
+
+% ? "SELECT * FROM name_table WHERE name_column_1 LIKE 50 ESCAPE name_atom".
+% ? "SELECT * FROM name_table WHERE name_column_1 LIKE name_column_2 ESCAPE name_atom".
+% ? "SELECT * FROM name_table WHERE name_column_1 NOT LIKE 50 ESCAPE Name_atom".
+% ? "SELECT * FROM name_table WHERE name_column_1 NOT LIKE name_column_2 ESCAPE name_atom".
+
+% predicate null ---------------------------------------------------------------
+
+"SELECT * FROM name_table WHERE name_column_1 IS NULL".
+"SELECT * FROM name_table WHERE name_column_1 IS NOT NULL".
+
+% predicate in -----------------------------------------------------------------
+
+"SELECT * FROM name_table WHERE name_column_1 IN name_expr_1".
+"SELECT * FROM name_table WHERE name_column_1 IN name_expr_1, name_expr_1".
+
+"SELECT * FROM name_table WHERE name_column_1 IN (name_expr_1)".
+"SELECT * FROM name_table WHERE name_column_1 IN (name_expr_1, name_expr_1)".
+
+"SELECT * FROM name_table WHERE name_column_1 NOT IN name_expr_1".
+% ? "SELECT * FROM name_table WHERE name_column_1 NOT IN name_expr_1, name_expr_1".
+
+"SELECT * FROM name_table WHERE name_column_1 NOT IN (name_expr_1)".
+"SELECT * FROM name_table WHERE name_column_1 NOT IN (name_expr_1, name_expr_1)".
+
+"SELECT * FROM name_table_1 WHERE name_column_1 IN (SELECT * FROM name_table_2)".
+
+% predicate all / any / some ---------------------------------------------------
+
+% ? "SELECT * FROM name_table_1 WHERE name_column_1 > ALL (SELECT * FROM name_table_2)".
+% ? "SELECT * FROM name_table_1 WHERE name_column_1 > ANY (SELECT * FROM name_table_2)".
+% ? "SELECT * FROM name_table_1 WHERE name_column_1 > SOME (SELECT * FROM name_table_2)".
+
+% predicate exists -------------------------------------------------------------
+
+% ? "SELECT * FROM name_table_1 WHERE EXISTS (SELECT * FROM name_table_2)".
+
+% hierarchical query clause ----------------------------------------------------
+
+"SELECT * FROM name_table_1 START WITH name_column_1 IS NULL CONNECT BY name_column_2 = name_column_3".
+% ? "SELECT * FROM name_table_1 START WITH name_column_1 IS NULL CONNECT BY NOCYCLE name_column_2 = name_column_3".
+"SELECT * FROM name_table_1 CONNECT BY name_column_2 = name_column_3 START WITH name_column_1 IS NULL".
+% ? "SELECT * FROM name_table_1 CONNECT BY NOCYCLE name_column_2 = name_column_3 START WITH name_column_1 IS NULL".
+
+% group by ---------------------------------------------------------------------
+
+"SELECT * FROM name_table_1 WHERE name_column_1 = name_column_2 GROUP BY name_column_4".
+"SELECT * FROM name_table_1 WHERE name_column_1 = name_column_2 GROUP BY name_column_4, name_column_5".
+
+% having -----------------------------------------------------------------------
+
+"SELECT * FROM name_table_1 WHERE name_column_1 = name_column_2 HAVING name_column_5 = name_column_6".
+"SELECT * FROM name_table_1 WHERE name_column_1 = name_column_2 GROUP BY name_column_4 HAVING name_column_5 = name_column_6".
+"SELECT * FROM name_table_1 WHERE name_column_1 = name_column_2 HAVING name_column_5 = name_column_6".
+"SELECT * FROM name_table_1 WHERE name_column_1 = name_column_2 GROUP BY name_column_4, name_column_5 HAVING name_column_5 = name_column_6".
+
+% order by ---------------------------------------------------------------------
+
+"SELECT * FROM name_table_1 WHERE name_column_1 = name_column_2 ORDER BY name_column_4".
+"SELECT * FROM name_table_1 WHERE name_column_1 = name_column_2 ORDER BY name_column_4 ASC".
+"SELECT * FROM name_table_1 WHERE name_column_1 = name_column_2 ORDER BY name_column_4 DESC".
+"SELECT * FROM name_table_1 WHERE name_column_1 = name_column_2 ORDER BY name_column_4, name_column_5".
+"SELECT * FROM name_table_1 WHERE name_column_1 = name_column_2 ORDER BY name_column_4 ASC, name_column_5".
+"SELECT * FROM name_table_1 WHERE name_column_1 = name_column_2 ORDER BY name_column_4 ASC, name_column_5 DESC".
+"SELECT * FROM name_table_1 WHERE name_column_1 = name_column_2 ORDER BY name_column_4 DESC, name_column_5 ASC".
+

@@ -8,10 +8,12 @@
 %% TESTS
 %%
 
+"DELETE FROM table_name".
+
 "DELETE FROM table_name WHERE some_column=some_value".
+
+"DELETE FROM table_name WHERE some_column=some_value RETURN c,d INTO :c, :d".
+"DELETE FROM table_name WHERE some_column=some_value RETURN lob_column INTO :out_locator".
+
 "DELETE FROM table_name WHERE some_column=some_value RETURNING c,d INTO :c, :d".
 "DELETE FROM table_name WHERE some_column=some_value RETURNING lob_column INTO :out_locator".
-"DROP USER test_user_123".
-"DROP USER test_user_123 CASCADE".
-"DROP TABLE table_name".
-"DROP TABLE IF EXISTS table_name RESTRICT".

@@ -1266,7 +1266,7 @@ fold(_FType, _Fun, Ctx, _Lvl, {Op, _, _} = ST)
 % Boolean and arithmetic binary operators handled with precedence
 % *,/ > +,- > and > or
 fold(FType, Fun, Ctx, Lvl, {Op, L, R} = ST)
-  when is_atom(Op), is_tuple(L), is_tuple(R) ->
+  when is_atom(Op), is_tuple(L), is_tuple(R), Op /= fetch ->
     NewCtx = case FType of
         top_down -> Fun(ST, Ctx);
         bottom_up -> Ctx
@@ -1582,6 +1582,65 @@ fold(FType, Fun, Ctx, _Lvl, {FunType, FunBody} = ST)
                   filter -> " filter_with "
               end,
     {FunHead ++ binary_to_list(FunBody) ++ " ", NewCtx1};
+
+% Cursor statements
+fold(FType, Fun, Ctx, Lvl, {fetch, {cur, CurName}, IntoST} = ST) ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {IntoStr, NewCtx1} = fold(FType, Fun, Ctx, Lvl+1, IntoST),
+    NewCtx2 = case FType of
+        top_down -> NewCtx;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
+    {string:strip("fetch "++CurName++" into "++IntoStr), NewCtx2};
+fold(FType, Fun, Ctx, Lvl, {declare, {cur, CurName}, {cur_for, Stmt},
+                            OrderByST} = ST) ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {StmtStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl+1, Stmt),
+    {OptOrderByStr, NewCtx2} = fold(FType, Fun, NewCtx1, Lvl+1, OrderByST),
+    NewCtx3 = case FType of
+        top_down -> NewCtx;
+        bottom_up -> Fun(ST, NewCtx2)
+    end,
+    {"declare "++CurName++" cursor for "++StmtStr++OptOrderByStr,
+     NewCtx3};
+fold(FType, Fun, Ctx, _Lvl, {close, {cur, CurName}} = ST) ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    NewCtx1 = case FType of
+        top_down -> NewCtx;
+        bottom_up -> Fun(ST, NewCtx)
+    end,
+    {"close " ++ CurName, NewCtx1};
+
+fold(FType, Fun, Ctx, _Lvl, {open, {cur, CurName}} = ST) ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    NewCtx1 = case FType of
+        top_down -> NewCtx;
+        bottom_up -> Fun(ST, NewCtx)
+    end,
+    {"open " ++ CurName, NewCtx1};
+
+fold(FType, Fun, Ctx, _Lvl, {where_current_of, {cur, CurName}} = ST) ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    NewCtx1 = case FType of
+        top_down -> NewCtx;
+        bottom_up -> Fun(ST, NewCtx)
+    end,
+    {" where current of "++CurName, NewCtx1};
 
 %
 % UNSUPPORTED

@@ -1,0 +1,1916 @@
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      <meta name="generator" content="Railroad Diagram Generator 1.42.1156"><style type="text/css" xml:space="preserve">
+    ::-moz-selection
+    {
+      color: #FFFCF0;
+      background: #0F0C00;
+    }
+    ::selection
+    {
+      color: #FFFCF0;
+      background: #0F0C00;
+    }      
+    .ebnf a
+    {
+      text-decoration: none;
+    }
+    .ebnf a:hover
+    {
+      color: #050400;
+      text-decoration: underline;
+    }    
+    .signature
+    {
+      color: #806600;
+      font-size: 11px;
+      text-align: right;
+    }
+    body
+    {
+      font: normal 12px Verdana, sans-serif;
+      color: #0F0C00;
+      background: #FFFCF0;
+    }
+    a:link, a:visited
+    {
+      color: #0F0C00;
+    }
+    a:link.signature, a:visited.signature
+    {
+      color: #806600;
+    }
+    a.button, #tabs li a
+    {
+      padding: 0.25em 0.5em;
+      border: 1px solid #806600;
+      background: #F1E8C6;
+      color: #806600;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    a.button:hover, #tabs li a:hover
+    {
+      color: #050400;
+      background: #FFF6D1;
+      border-color: #050400;       
+    }     
+    #tabs
+    {
+      padding: 3px 10px;
+      margin-left: 0;
+      margin-top: 58px;
+      border-bottom: 1px solid #0F0C00;
+    }  
+    #tabs li
+    {
+      list-style: none;
+      margin-left: 5px;
+      display: inline;
+    }
+    #tabs li a
+    {     
+      border-bottom: 1px solid #0F0C00;
+    }
+    #tabs li a.active
+    {
+      color: #0F0C00;
+      background: #FFFCF0;
+      border-color: #0F0C00;
+      border-bottom: 1px solid #FFFCF0;
+      outline: none;
+    }
+    #divs div
+    {
+      display: none;
+      overflow:auto;
+    }
+    #divs div.active
+    {
+      display: block;
+    }
+    #text
+    {
+      border-color: #806600;
+      background: #FFFEFA;
+      color: #050400;
+    }
+    .small
+    {
+      vertical-align: top;
+      text-align: right;
+      font-size: 9px;
+      font-weight: normal;
+      line-height: 120%;
+    }
+    td.small
+    {
+      padding-top: 0px;
+    }
+    .hidden
+    {
+      visibility: hidden;
+    }
+    td:hover .hidden 
+    {
+      visibility: visible;
+    }
+    div.download
+    {
+      display: none;
+      background: #FFFCF0;
+      position: absolute;
+      right: 34px;
+      top: 94px;
+      padding: 10px;
+      border: 1px dotted #0F0C00;
+    }
+    #divs div.ebnf, div.ebnf
+    {
+      display: block;
+      padding-left: 16px;
+      padding-top: 2px; 
+      padding-bottom: 2px; 
+      background: #FFF6D1;
+    }
+    table.palette
+    {
+      border-top: 1px solid #050400;
+      border-right: 1px solid #050400;
+      margin-bottom: 4px
+    }
+    td.palette
+    {
+      border-bottom: 1px solid #050400;
+      border-left: 1px solid #050400;
+    }
+    a.palette
+    {
+      padding: 2px 3px 2px 10px;
+      text-decoration: none;
+    }
+    .palette
+    {
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -o-user-select: none;
+      -ms-user-select: none;
+    }
+  </style></head>
+   <body>
+      
+      <p style="font-size: 14px; font-weight:bold"><a name="sql_list">sql_list:</a></p>
+      <img border="0" src="diagram/sql_list.png" height="272" width="902" usemap="#sql_list.map"><map name="sql_list.map">
+         <area shape="rect" coords="69,17,155,49" href="#cursor_def" title="cursor_def">
+         <area shape="rect" coords="69,61,241,93" href="#manipulative_statement" title="manipulative_statement">
+         <area shape="rect" coords="69,105,181,137" href="#procedure_call" title="procedure_call">
+         <area shape="rect" coords="69,149,137,181" href="#schema" title="schema">
+         <area shape="rect" coords="481,193,573,225" href="#name_label" title="name_label">
+         <area shape="rect" coords="697,49,789,81" href="#name_label" title="name_label"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#sql_list" title="sql_list" shape="rect">sql_list</a> ::= ( ( <a href="#cursor_def" title="cursor_def" shape="rect">cursor_def</a> | <a href="#manipulative_statement" title="manipulative_statement" shape="rect">manipulative_statement</a> | <a href="#procedure_call" title="procedure_call" shape="rect">procedure_call</a> | <a href="#schema" title="schema" shape="rect">schema</a> | 'WHENEVER' ( 'NOT' 'FOUND' | 'SQLERROR' ) ( 'GOTO' <a href="#name_label" title="name_label" shape="rect">name_label</a> | 'CONTINUE' ) ) ';' ( <a href="#name_label" title="name_label" shape="rect">name_label</a> ';' )? )+</pre></div>
+         
+      </p>
+      
+      <p>no references</p><br><p style="font-size: 14px; font-weight:bold"><a name="cursor_def">cursor_def:</a></p>
+      <img border="0" src="diagram/cursor_def.png" height="68" width="764" usemap="#cursor_def.map"><map name="cursor_def.map">
+         <area shape="rect" coords="465,1,551,33" href="#query_exp" title="query_exp">
+         <area shape="rect" coords="591,33,715,65" href="#order_by_clause" title="order_by_clause"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#cursor_def" title="cursor_def" shape="rect">cursor_def</a>
+         ::= 'DECLARE' 'NAME_OF_CURSOR' 'CURSOR' 'FOR' <a href="#query_exp" title="query_exp" shape="rect">query_exp</a> <a href="#order_by_clause" title="order_by_clause" shape="rect">order_by_clause</a>?</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#sql_list" title="sql_list">sql_list</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="order_by_clause">order_by_clause:</a></p>
+      <img border="0" src="diagram/order_by_clause.png" height="80" width="352" usemap="#order_by_clause.map"><map name="order_by_clause.map">
+         <area shape="rect" coords="193,45,303,77" href="#ordering_spec" title="ordering_spec"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#order_by_clause" title="order_by_clause" shape="rect">order_by_clause</a>
+         ::= 'ORDER' 'BY' <a href="#ordering_spec" title="ordering_spec" shape="rect">ordering_spec</a> ( ',' <a href="#ordering_spec" title="ordering_spec" shape="rect">ordering_spec</a> )*</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#cursor_def" title="cursor_def">cursor_def</a></li>
+            
+            <li><a href="#table_exp" title="table_exp">table_exp</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="ordering_spec">ordering_spec:</a></p>
+      <img border="0" src="diagram/ordering_spec.png" height="156" width="302" usemap="#ordering_spec.map"><map name="ordering_spec.map">
+         <area shape="rect" coords="49,45,137,77" href="#scalar_exp" title="scalar_exp"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#ordering_spec" title="ordering_spec" shape="rect">ordering_spec</a>
+         ::= <a href="#scalar_exp" title="scalar_exp" shape="rect">scalar_exp</a> ( 'ASC' | 'DESC' )? ( ',' <a href="#scalar_exp" title="scalar_exp" shape="rect">scalar_exp</a> ( 'ASC' | 'DESC' )? )*</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#order_by_clause" title="order_by_clause">order_by_clause</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="query_exp">query_exp:</a></p>
+      <img border="0" src="diagram/query_exp.png" height="200" width="268" usemap="#query_exp.map"><map name="query_exp.map">
+         <area shape="rect" coords="49,165,141,197" href="#query_term" title="query_term"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#query_exp" title="query_exp" shape="rect">query_exp</a>
+         ::= <a href="#query_term" title="query_term" shape="rect">query_term</a> ( ( 'ALL'? 'UNION' | 'INTERSECT' | 'MINUS' ) <a href="#query_term" title="query_term" shape="rect">query_term</a> )*</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#all_or_anyin_predicate" title="all_or_anyin_predicate">all_or_anyin_predicate</a></li>
+            
+            <li><a href="#comparison_predicate" title="comparison_predicate">comparison_predicate</a></li>
+            
+            <li><a href="#cursor_def" title="cursor_def">cursor_def</a></li>
+            
+            <li><a href="#existence_test" title="existence_test">existence_test</a></li>
+            
+            <li><a href="#fun_arg" title="fun_arg">fun_arg</a></li>
+            
+            <li><a href="#in_predicate" title="in_predicate">in_predicate</a></li>
+            
+            <li><a href="#inner_cross_join" title="inner_cross_join">inner_cross_join</a></li>
+            
+            <li><a href="#join_clause" title="join_clause">join_clause</a></li>
+            
+            <li><a href="#outer_join" title="outer_join">outer_join</a></li>
+            
+            <li><a href="#query_term" title="query_term">query_term</a></li>
+            
+            <li><a href="#scalar_sub_exp" title="scalar_sub_exp">scalar_sub_exp</a></li>
+            
+            <li><a href="#select_statement" title="select_statement">select_statement</a></li>
+            
+            <li><a href="#table_ref" title="table_ref">table_ref</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="query_term">query_term:</a></p>
+      <img border="0" src="diagram/query_term.png" height="80" width="276" usemap="#query_term.map"><map name="query_term.map">
+         <area shape="rect" coords="49,1,141,33" href="#query_spec" title="query_spec">
+         <area shape="rect" coords="95,45,181,77" href="#query_exp" title="query_exp"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#query_term" title="query_term" shape="rect">query_term</a>
+         ::= <a href="#query_spec" title="query_spec" shape="rect">query_spec</a>
+           | '(' <a href="#query_exp" title="query_exp" shape="rect">query_exp</a> ')'</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#query_exp" title="query_exp">query_exp</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="scalar_exp">scalar_exp:</a></p>
+      <img border="0" src="diagram/scalar_exp.png" height="36" width="336" usemap="#scalar_exp.map"><map name="scalar_exp.map">
+         <area shape="rect" coords="29,1,147,33" href="#scalar_sub_exp" title="scalar_sub_exp">
+         <area shape="rect" coords="219,1,307,33" href="#scalar_exp" title="scalar_exp"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#scalar_exp" title="scalar_exp" shape="rect">scalar_exp</a>
+         ::= <a href="#scalar_sub_exp" title="scalar_sub_exp" shape="rect">scalar_sub_exp</a> '||' <a href="#scalar_exp" title="scalar_exp" shape="rect">scalar_exp</a></pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#all_or_anyin_predicate" title="all_or_anyin_predicate">all_or_anyin_predicate</a></li>
+            
+            <li><a href="#between_predicate" title="between_predicate">between_predicate</a></li>
+            
+            <li><a href="#comparison_predicate" title="comparison_predicate">comparison_predicate</a></li>
+            
+            <li><a href="#function_ref" title="function_ref">function_ref</a></li>
+            
+            <li><a href="#in_predicate" title="in_predicate">in_predicate</a></li>
+            
+            <li><a href="#like_predicate" title="like_predicate">like_predicate</a></li>
+            
+            <li><a href="#ordering_spec" title="ordering_spec">ordering_spec</a></li>
+            
+            <li><a href="#scalar_exp" title="scalar_exp">scalar_exp</a></li>
+            
+            <li><a href="#scalar_opt_as_exp" title="scalar_opt_as_exp">scalar_opt_as_exp</a></li>
+            
+            <li><a href="#test_for_null" title="test_for_null">test_for_null</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="query_spec">query_spec:</a></p>
+      <img border="0" src="diagram/query_spec.png" height="242" width="570" usemap="#query_spec.map"><map name="query_spec.map">
+         <area shape="rect" coords="381,1,541,33" href="#select_field_commalist" title="select_field_commalist">
+         <area shape="rect" coords="117,175,245,207" href="#target_commalist" title="target_commalist">
+         <area shape="rect" coords="459,143,541,175" href="#table_exp" title="table_exp"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#query_spec" title="query_spec" shape="rect">query_spec</a>
+         ::= 'SELECT' 'HINT'? ( 'ALL' | 'DISTINCT' )? <a href="#select_field_commalist" title="select_field_commalist" shape="rect">select_field_commalist</a> ( 'INTO' <a href="#target_commalist" title="target_commalist" shape="rect">target_commalist</a> ( 'IN' 'NAME' )? )? <a href="#table_exp" title="table_exp" shape="rect">table_exp</a></pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#insert_statement" title="insert_statement">insert_statement</a></li>
+            
+            <li><a href="#query_term" title="query_term">query_term</a></li>
+            
+            <li><a href="#view_def" title="view_def">view_def</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="target_commalist">target_commalist:</a></p>
+      <img border="0" src="diagram/target_commalist.png" height="188" width="556">
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#target_commalist" title="target_commalist" shape="rect">target_commalist</a>
+         ::= ( 'NAME' | 'PARAMETER' ( 'INDICATOR'? 'PARAMETER' )? ) ( ',' ( 'NAME' | 'PARAMETER' ( 'INDICATOR'? 'PARAMETER' )? ) )*</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#fetch_statement" title="fetch_statement">fetch_statement</a></li>
+            
+            <li><a href="#query_spec" title="query_spec">query_spec</a></li>
+            
+            <li><a href="#select_statement" title="select_statement">select_statement</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="scalar_sub_exp">scalar_sub_exp:</a></p>
+      <img border="0" src="diagram/scalar_sub_exp.png" height="564" width="454" usemap="#scalar_sub_exp.map"><map name="scalar_sub_exp.map">
+         <area shape="rect" coords="49,1,101,33" href="#atom" title="atom">
+         <area shape="rect" coords="49,45,137,77" href="#column_ref" title="column_ref">
+         <area shape="rect" coords="49,89,143,121" href="#function_ref" title="function_ref">
+         <area shape="rect" coords="159,133,213,165" href="#literal" title="literal">
+         <area shape="rect" coords="159,177,277,209" href="#scalar_sub_exp" title="scalar_sub_exp">
+         <area shape="rect" coords="49,265,135,297" href="#query_exp" title="query_exp">
+         <area shape="rect" coords="95,309,213,341" href="#scalar_sub_exp" title="scalar_sub_exp">
+         <area shape="rect" coords="49,353,167,385" href="#scalar_sub_exp" title="scalar_sub_exp">
+         <area shape="rect" coords="287,353,405,385" href="#scalar_sub_exp" title="scalar_sub_exp"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#scalar_sub_exp" title="scalar_sub_exp" shape="rect">scalar_sub_exp</a>
+         ::= <a href="#atom" title="atom" shape="rect">atom</a>
+           | <a href="#column_ref" title="column_ref" shape="rect">column_ref</a>
+           | <a href="#function_ref" title="function_ref" shape="rect">function_ref</a>
+           | ( '+' | '-' ) ( <a href="#literal" title="literal" shape="rect">literal</a> | <a href="#scalar_sub_exp" title="scalar_sub_exp" shape="rect">scalar_sub_exp</a> )
+           | 'NULLX'
+           | <a href="#query_exp" title="query_exp" shape="rect">query_exp</a>
+           | '(' <a href="#scalar_sub_exp" title="scalar_sub_exp" shape="rect">scalar_sub_exp</a> ')'
+           | <a href="#scalar_sub_exp" title="scalar_sub_exp" shape="rect">scalar_sub_exp</a> ( '+' | '-' | '*' | '/' | 'div' ) <a href="#scalar_sub_exp" title="scalar_sub_exp" shape="rect">scalar_sub_exp</a></pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#scalar_exp" title="scalar_exp">scalar_exp</a></li>
+            
+            <li><a href="#scalar_sub_exp" title="scalar_sub_exp">scalar_sub_exp</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="literal">literal:</a></p>
+      <img border="0" src="diagram/literal.png" height="124" width="234">
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#literal" title="literal" shape="rect">literal</a>  ::= '%STRING%'
+           | '%INTNUMN%'
+           | '%APPROXNUM%'</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#atom" title="atom">atom</a></li>
+            
+            <li><a href="#column_def" title="column_def">column_def</a></li>
+            
+            <li><a href="#fun_arg" title="fun_arg">fun_arg</a></li>
+            
+            <li><a href="#scalar_sub_exp" title="scalar_sub_exp">scalar_sub_exp</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="atom">atom:</a></p>
+      <img border="0" src="diagram/atom.png" height="188" width="516" usemap="#atom.map"><map name="atom.map">
+         <area shape="rect" coords="49,109,103,141" href="#literal" title="literal"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#atom" title="atom" shape="rect">atom</a>     ::= 'PARAMETER' ( 'INDICATOR'? 'PARAMETER' )?
+           | <a href="#literal" title="literal" shape="rect">literal</a>
+           | 'USER'</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#fun_arg" title="fun_arg">fun_arg</a></li>
+            
+            <li><a href="#like_predicate" title="like_predicate">like_predicate</a></li>
+            
+            <li><a href="#scalar_sub_exp" title="scalar_sub_exp">scalar_sub_exp</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="column_ref">column_ref:</a></p>
+      <img border="0" src="diagram/column_ref.png" height="408" width="588">
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#column_ref" title="column_ref" shape="rect">column_ref</a>
+         ::= '%JSON%'
+           | 'NAME' ( '(' '+' ')' | '.' ( '*' | '%JSON%' | 'NAME' ( '(' '+' ')' | '.' ( '*' | '%JSON%' | 'NAME' ) )? ) )?</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#column_ref_commalist" title="column_ref_commalist">column_ref_commalist</a></li>
+            
+            <li><a href="#fun_arg" title="fun_arg">fun_arg</a></li>
+            
+            <li><a href="#function_ref" title="function_ref">function_ref</a></li>
+            
+            <li><a href="#scalar_sub_exp" title="scalar_sub_exp">scalar_sub_exp</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="function_ref">function_ref:</a></p>
+      <img border="0" src="diagram/function_ref.png" height="418" width="700" usemap="#function_ref.map"><map name="function_ref.map">
+         <area shape="rect" coords="309,45,397,77" href="#column_ref" title="column_ref">
+         <area shape="rect" coords="307,89,395,121" href="#scalar_exp" title="scalar_exp">
+         <area shape="rect" coords="211,209,279,241" href="#fun_arg" title="fun_arg">
+         <area shape="rect" coords="517,319,585,351" href="#fun_arg" title="fun_arg"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#function_ref" title="function_ref" shape="rect">function_ref</a>
+         ::= 'AMMSC' '(' ( '*' | 'DISTINCT' <a href="#column_ref" title="column_ref" shape="rect">column_ref</a> | 'ALL'? <a href="#scalar_exp" title="scalar_exp" shape="rect">scalar_exp</a> ) ')'
+           | 'FUNS' ( '(' <a href="#fun_arg" title="fun_arg" shape="rect">fun_arg</a> ( ',' <a href="#fun_arg" title="fun_arg" shape="rect">fun_arg</a> )* ')' )?
+           | 'NAME' ( '.' 'NAME' ( '.' 'NAME' )? )? '(' <a href="#fun_arg" title="fun_arg" shape="rect">fun_arg</a> ( ',' <a href="#fun_arg" title="fun_arg" shape="rect">fun_arg</a> )* ')'</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#column_def" title="column_def">column_def</a></li>
+            
+            <li><a href="#column_ref_commalist" title="column_ref_commalist">column_ref_commalist</a></li>
+            
+            <li><a href="#fun_arg" title="fun_arg">fun_arg</a></li>
+            
+            <li><a href="#procedure_call" title="procedure_call">procedure_call</a></li>
+            
+            <li><a href="#scalar_sub_exp" title="scalar_sub_exp">scalar_sub_exp</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="select_field_commalist">select_field_commalist:</a></p>
+      <img border="0" src="diagram/select_field_commalist.png" height="276" width="510" usemap="#select_field_commalist.map"><map name="select_field_commalist.map">
+         <area shape="rect" coords="69,89,191,121" href="#case_when_exp" title="case_when_exp">
+         <area shape="rect" coords="329,121,421,153" href="#name_alias" title="name_alias">
+         <area shape="rect" coords="69,197,209,229" href="#scalar_opt_as_exp" title="scalar_opt_as_exp">
+         <area shape="rect" coords="69,241,195,273" href="#search_condition" title="search_condition"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#select_field_commalist" title="select_field_commalist" shape="rect">select_field_commalist</a>
+         ::= ( '*' | <a href="#case_when_exp" title="case_when_exp" shape="rect">case_when_exp</a> ( 'AS'? <a href="#name_alias" title="name_alias" shape="rect">name_alias</a> )? | <a href="#scalar_opt_as_exp" title="scalar_opt_as_exp" shape="rect">scalar_opt_as_exp</a> | <a href="#search_condition" title="search_condition" shape="rect">search_condition</a> ) ( ',' ( '*' | <a href="#case_when_exp" title="case_when_exp" shape="rect">case_when_exp</a> ( 'AS'? <a href="#name_alias" title="name_alias" shape="rect">name_alias</a> )? | <a href="#scalar_opt_as_exp" title="scalar_opt_as_exp" shape="rect">scalar_opt_as_exp</a> | <a href="#search_condition" title="search_condition" shape="rect">search_condition</a> ) )*</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#delete_statement_positioned" title="delete_statement_positioned">delete_statement_positioned</a></li>
+            
+            <li><a href="#inner_cross_join" title="inner_cross_join">inner_cross_join</a></li>
+            
+            <li><a href="#insert_statement" title="insert_statement">insert_statement</a></li>
+            
+            <li><a href="#outer_join" title="outer_join">outer_join</a></li>
+            
+            <li><a href="#query_spec" title="query_spec">query_spec</a></li>
+            
+            <li><a href="#select_statement" title="select_statement">select_statement</a></li>
+            
+            <li><a href="#update_statement_positioned" title="update_statement_positioned">update_statement_positioned</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="case_when_exp">case_when_exp:</a></p>
+      <img border="0" src="diagram/case_when_exp.png" height="134" width="1196" usemap="#case_when_exp.map"><map name="case_when_exp.map">
+         <area shape="rect" coords="95,1,217,33" href="#case_when_exp" title="case_when_exp">
+         <area shape="rect" coords="143,99,283,131" href="#scalar_opt_as_exp" title="scalar_opt_as_exp">
+         <area shape="rect" coords="425,67,551,99" href="#search_condition" title="search_condition">
+         <area shape="rect" coords="647,67,787,99" href="#scalar_opt_as_exp" title="scalar_opt_as_exp">
+         <area shape="rect" coords="919,99,1059,131" href="#scalar_opt_as_exp" title="scalar_opt_as_exp"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#case_when_exp" title="case_when_exp" shape="rect">case_when_exp</a>
+         ::= '(' <a href="#case_when_exp" title="case_when_exp" shape="rect">case_when_exp</a> ')'
+           | 'CASE' <a href="#scalar_opt_as_exp" title="scalar_opt_as_exp" shape="rect">scalar_opt_as_exp</a>? ( 'WHEN' <a href="#search_condition" title="search_condition" shape="rect">search_condition</a> 'THEN' <a href="#scalar_opt_as_exp" title="scalar_opt_as_exp" shape="rect">scalar_opt_as_exp</a> )+ ( 'ELSE' <a href="#scalar_opt_as_exp" title="scalar_opt_as_exp" shape="rect">scalar_opt_as_exp</a> )? 'END'</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#case_when_exp" title="case_when_exp">case_when_exp</a></li>
+            
+            <li><a href="#select_field_commalist" title="select_field_commalist">select_field_commalist</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="scalar_opt_as_exp">scalar_opt_as_exp:</a></p>
+      <img border="0" src="diagram/scalar_opt_as_exp.png" height="132" width="958" usemap="#scalar_opt_as_exp.map"><map name="scalar_opt_as_exp.map">
+         <area shape="rect" coords="29,1,117,33" href="#scalar_exp" title="scalar_exp">
+         <area shape="rect" coords="255,33,347,65" href="#name_alias" title="name_alias">
+         <area shape="rect" coords="571,33,659,65" href="#scalar_exp" title="scalar_exp">
+         <area shape="rect" coords="797,65,889,97" href="#name_alias" title="name_alias"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#scalar_opt_as_exp" title="scalar_opt_as_exp" shape="rect">scalar_opt_as_exp</a>
+         ::= <a href="#scalar_exp" title="scalar_exp" shape="rect">scalar_exp</a> ( 'AS'? <a href="#name_alias" title="name_alias" shape="rect">name_alias</a> )? ( '%COMPARISON%' <a href="#scalar_exp" title="scalar_exp" shape="rect">scalar_exp</a> ( 'AS'? <a href="#name_alias" title="name_alias" shape="rect">name_alias</a> )? )?</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#case_when_exp" title="case_when_exp">case_when_exp</a></li>
+            
+            <li><a href="#comparison_predicate" title="comparison_predicate">comparison_predicate</a></li>
+            
+            <li><a href="#insert_statement" title="insert_statement">insert_statement</a></li>
+            
+            <li><a href="#scalar_exp_commalist" title="scalar_exp_commalist">scalar_exp_commalist</a></li>
+            
+            <li><a href="#select_field_commalist" title="select_field_commalist">select_field_commalist</a></li>
+            
+            <li><a href="#update_statement_positioned" title="update_statement_positioned">update_statement_positioned</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="table_exp">table_exp:</a></p>
+      <img border="0" src="diagram/table_exp.png" height="254" width="908" usemap="#table_exp.map"><map name="table_exp.map">
+         <area shape="rect" coords="147,45,223,77" href="#table_ref" title="table_ref">
+         <area shape="rect" coords="147,89,237,121" href="#join_clause" title="join_clause">
+         <area shape="rect" coords="193,133,283,165" href="#join_clause" title="join_clause">
+         <area shape="rect" coords="497,77,623,109" href="#search_condition" title="search_condition">
+         <area shape="rect" coords="683,77,865,109" href="#hierarchical_query_clause" title="hierarchical_query_clause">
+         <area shape="rect" coords="237,219,395,251" href="#column_ref_commalist" title="column_ref_commalist">
+         <area shape="rect" coords="549,219,675,251" href="#search_condition" title="search_condition">
+         <area shape="rect" coords="735,219,859,251" href="#order_by_clause" title="order_by_clause"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#table_exp" title="table_exp" shape="rect">table_exp</a>
+         ::= 'FROM' ( <a href="#table_ref" title="table_ref" shape="rect">table_ref</a> | <a href="#join_clause" title="join_clause" shape="rect">join_clause</a> | '(' <a href="#join_clause" title="join_clause" shape="rect">join_clause</a> ')' ) ( ',' ( <a href="#table_ref" title="table_ref" shape="rect">table_ref</a> | <a href="#join_clause" title="join_clause" shape="rect">join_clause</a> | '(' <a href="#join_clause" title="join_clause" shape="rect">join_clause</a> ')' ) )* ( 'WHERE' <a href="#search_condition" title="search_condition" shape="rect">search_condition</a> )? <a href="#hierarchical_query_clause" title="hierarchical_query_clause" shape="rect">hierarchical_query_clause</a>? ( 'GROUP' 'BY' <a href="#column_ref_commalist" title="column_ref_commalist" shape="rect">column_ref_commalist</a> )? ( 'HAVING' <a href="#search_condition" title="search_condition" shape="rect">search_condition</a> )? <a href="#order_by_clause" title="order_by_clause" shape="rect">order_by_clause</a>?</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#query_spec" title="query_spec">query_spec</a></li>
+            
+            <li><a href="#select_statement" title="select_statement">select_statement</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="from_commalist">from_commalist:</a></p>
+      <img border="0" src="diagram/from_commalist.png" height="168" width="320" usemap="#from_commalist.map"><map name="from_commalist.map">
+         <area shape="rect" coords="69,45,145,77" href="#table_ref" title="table_ref">
+         <area shape="rect" coords="69,89,159,121" href="#join_clause" title="join_clause">
+         <area shape="rect" coords="115,133,205,165" href="#join_clause" title="join_clause"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#from_commalist" title="from_commalist" shape="rect">from_commalist</a>
+         ::= ( <a href="#table_ref" title="table_ref" shape="rect">table_ref</a> | <a href="#join_clause" title="join_clause" shape="rect">join_clause</a> | '(' <a href="#join_clause" title="join_clause" shape="rect">join_clause</a> ')' ) ( ',' ( <a href="#table_ref" title="table_ref" shape="rect">table_ref</a> | <a href="#join_clause" title="join_clause" shape="rect">join_clause</a> | '(' <a href="#join_clause" title="join_clause" shape="rect">join_clause</a> ')' ) )*</pre></div>
+         
+      </p>
+      
+      <p>no references</p><br><p style="font-size: 14px; font-weight:bold"><a name="hierarchical_query_clause">hierarchical_query_clause:</a></p>
+      <img border="0" src="diagram/hierarchical_query_clause.png" height="144" width="836" usemap="#hierarchical_query_clause.map"><map name="hierarchical_query_clause.map">
+         <area shape="rect" coords="209,1,335,33" href="#search_condition" title="search_condition">
+         <area shape="rect" coords="661,1,787,33" href="#search_condition" title="search_condition">
+         <area shape="rect" coords="355,77,481,109" href="#search_condition" title="search_condition">
+         <area shape="rect" coords="661,77,787,109" href="#search_condition" title="search_condition"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#hierarchical_query_clause" title="hierarchical_query_clause" shape="rect">hierarchical_query_clause</a>
+         ::= 'START' 'WITH' <a href="#search_condition" title="search_condition" shape="rect">search_condition</a> 'CONNECT' 'BY' 'NOCYCLE'? <a href="#search_condition" title="search_condition" shape="rect">search_condition</a>
+           | 'CONNECT' 'BY' 'NOCYCLE'? <a href="#search_condition" title="search_condition" shape="rect">search_condition</a> 'START' 'WITH' <a href="#search_condition" title="search_condition" shape="rect">search_condition</a></pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#table_exp" title="table_exp">table_exp</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="search_condition">search_condition:</a></p>
+      <img border="0" src="diagram/search_condition.png" height="212" width="478" usemap="#search_condition.map"><map name="search_condition.map">
+         <area shape="rect" coords="49,1,175,33" href="#search_condition" title="search_condition">
+         <area shape="rect" coords="303,1,429,33" href="#search_condition" title="search_condition">
+         <area shape="rect" coords="117,89,243,121" href="#search_condition" title="search_condition">
+         <area shape="rect" coords="95,133,221,165" href="#search_condition" title="search_condition">
+         <area shape="rect" coords="49,177,127,209" href="#predicate" title="predicate"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#search_condition" title="search_condition" shape="rect">search_condition</a>
+         ::= <a href="#search_condition" title="search_condition" shape="rect">search_condition</a> ( 'OR' | 'AND' ) <a href="#search_condition" title="search_condition" shape="rect">search_condition</a>
+           | 'NOT' <a href="#search_condition" title="search_condition" shape="rect">search_condition</a>
+           | '(' <a href="#search_condition" title="search_condition" shape="rect">search_condition</a> ')'
+           | <a href="#predicate" title="predicate" shape="rect">predicate</a></pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#case_when_exp" title="case_when_exp">case_when_exp</a></li>
+            
+            <li><a href="#column_def" title="column_def">column_def</a></li>
+            
+            <li><a href="#delete_statement_positioned" title="delete_statement_positioned">delete_statement_positioned</a></li>
+            
+            <li><a href="#hierarchical_query_clause" title="hierarchical_query_clause">hierarchical_query_clause</a></li>
+            
+            <li><a href="#inner_cross_join" title="inner_cross_join">inner_cross_join</a></li>
+            
+            <li><a href="#outer_join" title="outer_join">outer_join</a></li>
+            
+            <li><a href="#search_condition" title="search_condition">search_condition</a></li>
+            
+            <li><a href="#select_field_commalist" title="select_field_commalist">select_field_commalist</a></li>
+            
+            <li><a href="#table_constraint_def" title="table_constraint_def">table_constraint_def</a></li>
+            
+            <li><a href="#table_exp" title="table_exp">table_exp</a></li>
+            
+            <li><a href="#update_statement_positioned" title="update_statement_positioned">update_statement_positioned</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="column_ref_commalist">column_ref_commalist:</a></p>
+      <img border="0" src="diagram/column_ref_commalist.png" height="124" width="232" usemap="#column_ref_commalist.map"><map name="column_ref_commalist.map">
+         <area shape="rect" coords="69,45,157,77" href="#column_ref" title="column_ref">
+         <area shape="rect" coords="69,89,163,121" href="#function_ref" title="function_ref"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#column_ref_commalist" title="column_ref_commalist" shape="rect">column_ref_commalist</a>
+         ::= ( <a href="#column_ref" title="column_ref" shape="rect">column_ref</a> | <a href="#function_ref" title="function_ref" shape="rect">function_ref</a> ) ( ',' ( <a href="#column_ref" title="column_ref" shape="rect">column_ref</a> | <a href="#function_ref" title="function_ref" shape="rect">function_ref</a> ) )*</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#table_exp" title="table_exp">table_exp</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="fun_arg">fun_arg:</a></p>
+      <img border="0" src="diagram/fun_arg.png" height="696" width="428" usemap="#fun_arg.map"><map name="fun_arg.map">
+         <area shape="rect" coords="95,1,163,33" href="#fun_arg" title="fun_arg">
+         <area shape="rect" coords="49,45,143,77" href="#function_ref" title="function_ref">
+         <area shape="rect" coords="49,89,137,121" href="#column_ref" title="column_ref">
+         <area shape="rect" coords="49,133,117,165" href="#fun_arg" title="fun_arg">
+         <area shape="rect" coords="311,133,379,165" href="#fun_arg" title="fun_arg">
+         <area shape="rect" coords="159,441,227,473" href="#fun_arg" title="fun_arg">
+         <area shape="rect" coords="159,485,213,517" href="#literal" title="literal">
+         <area shape="rect" coords="49,573,101,605" href="#atom" title="atom">
+         <area shape="rect" coords="49,617,135,649" href="#query_exp" title="query_exp">
+         <area shape="rect" coords="49,661,117,693" href="#fun_arg" title="fun_arg">
+         <area shape="rect" coords="195,661,287,693" href="#name_alias" title="name_alias"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#fun_arg" title="fun_arg" shape="rect">fun_arg</a>  ::= '(' <a href="#fun_arg" title="fun_arg" shape="rect">fun_arg</a> ')'
+           | <a href="#function_ref" title="function_ref" shape="rect">function_ref</a>
+           | <a href="#column_ref" title="column_ref" shape="rect">column_ref</a>
+           | <a href="#fun_arg" title="fun_arg" shape="rect">fun_arg</a> ( '+' | '-' | '*' | '/' | 'div' | '||' | 'COMPARISON' ) <a href="#fun_arg" title="fun_arg" shape="rect">fun_arg</a>
+           | ( '+' | '-' ) ( <a href="#fun_arg" title="fun_arg" shape="rect">fun_arg</a> | <a href="#literal" title="literal" shape="rect">literal</a> )
+           | 'NULLX'
+           | <a href="#atom" title="atom" shape="rect">atom</a>
+           | <a href="#query_exp" title="query_exp" shape="rect">query_exp</a>
+           | <a href="#fun_arg" title="fun_arg" shape="rect">fun_arg</a> 'AS' <a href="#name_alias" title="name_alias" shape="rect">name_alias</a></pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#fun_arg" title="fun_arg">fun_arg</a></li>
+            
+            <li><a href="#function_ref" title="function_ref">function_ref</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="table_ref">table_ref:</a></p>
+      <img border="0" src="diagram/table_ref.png" height="188" width="526" usemap="#table_ref.map"><map name="table_ref.map">
+         <area shape="rect" coords="49,1,101,33" href="#table" title="table">
+         <area shape="rect" coords="95,45,181,77" href="#query_exp" title="query_exp">
+         <area shape="rect" coords="365,77,457,109" href="#name_alias" title="name_alias">
+         <area shape="rect" coords="49,153,101,185" href="#table" title="table"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#table_ref" title="table_ref" shape="rect">table_ref</a>
+         ::= <a href="#table" title="table" shape="rect">table</a>
+           | '(' <a href="#query_exp" title="query_exp" shape="rect">query_exp</a> ')' ( 'AS'? <a href="#name_alias" title="name_alias" shape="rect">name_alias</a> )?
+           | <a href="#table" title="table" shape="rect">table</a> 'NAME'</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#from_commalist" title="from_commalist">from_commalist</a></li>
+            
+            <li><a href="#table_exp" title="table_exp">table_exp</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="table">table:</a></p>
+      <img border="0" src="diagram/table.png" height="144" width="656" usemap="#table.map"><map name="table.map">
+         <area shape="rect" coords="69,33,179,65" href="#name_schema" title="name_schema">
+         <area shape="rect" coords="263,1,357,33" href="#name_table" title="name_table">
+         <area shape="rect" coords="495,33,587,65" href="#name_alias" title="name_alias"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#table" title="table" shape="rect">table</a>    ::= ( <a href="#name_schema" title="name_schema" shape="rect">name_schema</a> '.' )? <a href="#name_table" title="name_table" shape="rect">name_table</a> ( 'AS'? <a href="#name_alias" title="name_alias" shape="rect">name_alias</a> )?
+           | 'STRING'</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#column_def" title="column_def">column_def</a></li>
+            
+            <li><a href="#create_index_def" title="create_index_def">create_index_def</a></li>
+            
+            <li><a href="#create_table_def" title="create_table_def">create_table_def</a></li>
+            
+            <li><a href="#create_user_def" title="create_user_def">create_user_def</a></li>
+            
+            <li><a href="#delete_statement_positioned" title="delete_statement_positioned">delete_statement_positioned</a></li>
+            
+            <li><a href="#drop_index_def" title="drop_index_def">drop_index_def</a></li>
+            
+            <li><a href="#drop_table_def" title="drop_table_def">drop_table_def</a></li>
+            
+            <li><a href="#inner_cross_join" title="inner_cross_join">inner_cross_join</a></li>
+            
+            <li><a href="#insert_statement" title="insert_statement">insert_statement</a></li>
+            
+            <li><a href="#join_clause" title="join_clause">join_clause</a></li>
+            
+            <li><a href="#obj_clause" title="obj_clause">obj_clause</a></li>
+            
+            <li><a href="#outer_join" title="outer_join">outer_join</a></li>
+            
+            <li><a href="#table_constraint_def" title="table_constraint_def">table_constraint_def</a></li>
+            
+            <li><a href="#table_ref" title="table_ref">table_ref</a></li>
+            
+            <li><a href="#truncate_table" title="truncate_table">truncate_table</a></li>
+            
+            <li><a href="#update_statement_positioned" title="update_statement_positioned">update_statement_positioned</a></li>
+            
+            <li><a href="#view_def" title="view_def">view_def</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="join_clause">join_clause:</a></p>
+      <img border="0" src="diagram/join_clause.png" height="254" width="710" usemap="#join_clause.map"><map name="join_clause.map">
+         <area shape="rect" coords="49,79,101,111" href="#table" title="table">
+         <area shape="rect" coords="141,111,255,143" href="#range_variable" title="range_variable">
+         <area shape="rect" coords="95,155,181,187" href="#query_exp" title="query_exp">
+         <area shape="rect" coords="365,187,457,219" href="#name_alias" title="name_alias">
+         <area shape="rect" coords="537,45,661,77" href="#inner_cross_join" title="inner_cross_join">
+         <area shape="rect" coords="537,1,621,33" href="#outer_join" title="outer_join"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#join_clause" title="join_clause" shape="rect">join_clause</a>
+         ::= ( <a href="#table" title="table" shape="rect">table</a> <a href="#range_variable" title="range_variable" shape="rect">range_variable</a>? | '(' <a href="#query_exp" title="query_exp" shape="rect">query_exp</a> ')' ( 'AS'? <a href="#name_alias" title="name_alias" shape="rect">name_alias</a> )? ) ( <a href="#inner_cross_join" title="inner_cross_join" shape="rect">inner_cross_join</a> | <a href="#outer_join" title="outer_join" shape="rect">outer_join</a> )*</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#from_commalist" title="from_commalist">from_commalist</a></li>
+            
+            <li><a href="#table_exp" title="table_exp">table_exp</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="inner_cross_join">inner_cross_join:</a></p>
+      <img border="0" src="diagram/inner_cross_join.png" height="254" width="716" usemap="#inner_cross_join.map"><map name="inner_cross_join.map">
+         <area shape="rect" coords="245,1,297,33" href="#table" title="table">
+         <area shape="rect" coords="291,45,377,77" href="#query_exp" title="query_exp">
+         <area shape="rect" coords="561,77,653,109" href="#name_alias" title="name_alias">
+         <area shape="rect" coords="391,175,517,207" href="#search_condition" title="search_condition">
+         <area shape="rect" coords="461,219,621,251" href="#select_field_commalist" title="select_field_commalist"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#inner_cross_join" title="inner_cross_join" shape="rect">inner_cross_join</a>
+         ::= 'INNER'? 'JOIN' ( <a href="#table" title="table" shape="rect">table</a> | '(' <a href="#query_exp" title="query_exp" shape="rect">query_exp</a> ')' ( 'AS'? <a href="#name_alias" title="name_alias" shape="rect">name_alias</a> )? ) ( 'ON' <a href="#search_condition" title="search_condition" shape="rect">search_condition</a> | 'USING' '(' <a href="#select_field_commalist" title="select_field_commalist" shape="rect">select_field_commalist</a> ')' )</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#join_clause" title="join_clause">join_clause</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="outer_join">outer_join:</a></p>
+      <img border="0" src="diagram/outer_join.png" height="448" width="738" usemap="#outer_join.map"><map name="outer_join.map">
+         <area shape="rect" coords="49,77,213,109" href="#query_partition_clause" title="query_partition_clause">
+         <area shape="rect" coords="43,175,95,207" href="#table" title="table">
+         <area shape="rect" coords="89,219,175,251" href="#query_exp" title="query_exp">
+         <area shape="rect" coords="359,251,451,283" href="#name_alias" title="name_alias">
+         <area shape="rect" coords="531,207,695,239" href="#query_partition_clause" title="query_partition_clause">
+         <area shape="rect" coords="413,369,539,401" href="#search_condition" title="search_condition">
+         <area shape="rect" coords="483,413,643,445" href="#select_field_commalist" title="select_field_commalist"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#outer_join" title="outer_join" shape="rect">outer_join</a>
+         ::= ( 'NATURAL' | <a href="#query_partition_clause" title="query_partition_clause" shape="rect">query_partition_clause</a> 'NATURAL'? )? ( 'FULL' | 'LEFT' | 'RIGHT' ) 'OUTER'? 'JOIN' ( <a href="#table" title="table" shape="rect">table</a> | '(' <a href="#query_exp" title="query_exp" shape="rect">query_exp</a> ')' ( 'AS'? <a href="#name_alias" title="name_alias" shape="rect">name_alias</a> )? ) <a href="#query_partition_clause" title="query_partition_clause" shape="rect">query_partition_clause</a>? ( 'ON' <a href="#search_condition" title="search_condition" shape="rect">search_condition</a> | 'USING' '(' <a href="#select_field_commalist" title="select_field_commalist" shape="rect">select_field_commalist</a> ')' )?</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#join_clause" title="join_clause">join_clause</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="query_partition_clause">query_partition_clause:</a></p>
+      <img border="0" src="diagram/query_partition_clause.png" height="80" width="522" usemap="#query_partition_clause.map"><map name="query_partition_clause.map">
+         <area shape="rect" coords="223,1,381,33" href="#scalar_exp_commalist" title="scalar_exp_commalist">
+         <area shape="rect" coords="269,45,427,77" href="#scalar_exp_commalist" title="scalar_exp_commalist"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#query_partition_clause" title="query_partition_clause" shape="rect">query_partition_clause</a>
+         ::= 'PARTITION' 'BY' ( <a href="#scalar_exp_commalist" title="scalar_exp_commalist" shape="rect">scalar_exp_commalist</a> | '(' <a href="#scalar_exp_commalist" title="scalar_exp_commalist" shape="rect">scalar_exp_commalist</a> ')' )</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#outer_join" title="outer_join">outer_join</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="predicate">predicate:</a></p>
+      <img border="0" src="diagram/predicate.png" height="300" width="262" usemap="#predicate.map"><map name="predicate.map">
+         <area shape="rect" coords="49,1,207,33" href="#comparison_predicate" title="comparison_predicate">
+         <area shape="rect" coords="49,45,191,77" href="#between_predicate" title="between_predicate">
+         <area shape="rect" coords="49,89,157,121" href="#like_predicate" title="like_predicate">
+         <area shape="rect" coords="49,133,149,165" href="#test_for_null" title="test_for_null">
+         <area shape="rect" coords="49,177,147,209" href="#in_predicate" title="in_predicate">
+         <area shape="rect" coords="49,221,213,253" href="#all_or_anyin_predicate" title="all_or_anyin_predicate">
+         <area shape="rect" coords="49,265,161,297" href="#existence_test" title="existence_test"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#predicate" title="predicate" shape="rect">predicate</a>
+         ::= <a href="#comparison_predicate" title="comparison_predicate" shape="rect">comparison_predicate</a>
+           | <a href="#between_predicate" title="between_predicate" shape="rect">between_predicate</a>
+           | <a href="#like_predicate" title="like_predicate" shape="rect">like_predicate</a>
+           | <a href="#test_for_null" title="test_for_null" shape="rect">test_for_null</a>
+           | <a href="#in_predicate" title="in_predicate" shape="rect">in_predicate</a>
+           | <a href="#all_or_anyin_predicate" title="all_or_anyin_predicate" shape="rect">all_or_anyin_predicate</a>
+           | <a href="#existence_test" title="existence_test" shape="rect">existence_test</a></pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#search_condition" title="search_condition">search_condition</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="comparison_predicate">comparison_predicate:</a></p>
+      <img border="0" src="diagram/comparison_predicate.png" height="168" width="512" usemap="#comparison_predicate.map"><map name="comparison_predicate.map">
+         <area shape="rect" coords="49,1,189,33" href="#scalar_opt_as_exp" title="scalar_opt_as_exp">
+         <area shape="rect" coords="133,45,221,77" href="#scalar_exp" title="scalar_exp">
+         <area shape="rect" coords="375,45,463,77" href="#scalar_exp" title="scalar_exp">
+         <area shape="rect" coords="49,89,137,121" href="#scalar_exp" title="scalar_exp">
+         <area shape="rect" coords="375,89,463,121" href="#scalar_exp" title="scalar_exp">
+         <area shape="rect" coords="49,133,137,165" href="#scalar_exp" title="scalar_exp">
+         <area shape="rect" coords="291,133,377,165" href="#query_exp" title="query_exp"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#comparison_predicate" title="comparison_predicate" shape="rect">comparison_predicate</a>
+         ::= <a href="#scalar_opt_as_exp" title="scalar_opt_as_exp" shape="rect">scalar_opt_as_exp</a>
+           | 'PRIOR' <a href="#scalar_exp" title="scalar_exp" shape="rect">scalar_exp</a> 'COMPARISON' <a href="#scalar_exp" title="scalar_exp" shape="rect">scalar_exp</a>
+           | <a href="#scalar_exp" title="scalar_exp" shape="rect">scalar_exp</a> 'COMPARISON' 'PRIOR' <a href="#scalar_exp" title="scalar_exp" shape="rect">scalar_exp</a>
+           | <a href="#scalar_exp" title="scalar_exp" shape="rect">scalar_exp</a> 'COMPARISON' <a href="#query_exp" title="query_exp" shape="rect">query_exp</a></pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#predicate" title="predicate">predicate</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="between_predicate">between_predicate:</a></p>
+      <img border="0" src="diagram/between_predicate.png" height="68" width="642" usemap="#between_predicate.map"><map name="between_predicate.map">
+         <area shape="rect" coords="29,1,117,33" href="#scalar_exp" title="scalar_exp">
+         <area shape="rect" coords="349,1,437,33" href="#scalar_exp" title="scalar_exp">
+         <area shape="rect" coords="525,1,613,33" href="#scalar_exp" title="scalar_exp"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#between_predicate" title="between_predicate" shape="rect">between_predicate</a>
+         ::= <a href="#scalar_exp" title="scalar_exp" shape="rect">scalar_exp</a> 'NOT'? 'BETWEEN' <a href="#scalar_exp" title="scalar_exp" shape="rect">scalar_exp</a> 'AND' <a href="#scalar_exp" title="scalar_exp" shape="rect">scalar_exp</a></pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#predicate" title="predicate">predicate</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="like_predicate">like_predicate:</a></p>
+      <img border="0" src="diagram/like_predicate.png" height="68" width="636" usemap="#like_predicate.map"><map name="like_predicate.map">
+         <area shape="rect" coords="29,1,117,33" href="#scalar_exp" title="scalar_exp">
+         <area shape="rect" coords="315,1,403,33" href="#scalar_exp" title="scalar_exp">
+         <area shape="rect" coords="535,33,587,65" href="#atom" title="atom"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#like_predicate" title="like_predicate" shape="rect">like_predicate</a>
+         ::= <a href="#scalar_exp" title="scalar_exp" shape="rect">scalar_exp</a> 'NOT'? 'LIKE' <a href="#scalar_exp" title="scalar_exp" shape="rect">scalar_exp</a> ( 'ESCAPE' <a href="#atom" title="atom" shape="rect">atom</a> )?</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#predicate" title="predicate">predicate</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="test_for_null">test_for_null:</a></p>
+      <img border="0" src="diagram/test_for_null.png" height="68" width="392" usemap="#test_for_null.map"><map name="test_for_null.map">
+         <area shape="rect" coords="29,1,117,33" href="#scalar_exp" title="scalar_exp"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#test_for_null" title="test_for_null" shape="rect">test_for_null</a>
+         ::= <a href="#scalar_exp" title="scalar_exp" shape="rect">scalar_exp</a> 'IS' 'NOT'? 'NULLX'</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#predicate" title="predicate">predicate</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="in_predicate">in_predicate:</a></p>
+      <img border="0" src="diagram/in_predicate.png" height="124" width="660" usemap="#in_predicate.map"><map name="in_predicate.map">
+         <area shape="rect" coords="49,1,137,33" href="#scalar_exp" title="scalar_exp">
+         <area shape="rect" coords="387,1,473,33" href="#query_exp" title="query_exp">
+         <area shape="rect" coords="387,45,545,77" href="#scalar_exp_commalist" title="scalar_exp_commalist">
+         <area shape="rect" coords="49,89,137,121" href="#scalar_exp" title="scalar_exp">
+         <area shape="rect" coords="213,89,371,121" href="#scalar_exp_commalist" title="scalar_exp_commalist"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#in_predicate" title="in_predicate" shape="rect">in_predicate</a>
+         ::= <a href="#scalar_exp" title="scalar_exp" shape="rect">scalar_exp</a> 'NOT'? 'IN' '(' ( <a href="#query_exp" title="query_exp" shape="rect">query_exp</a> | <a href="#scalar_exp_commalist" title="scalar_exp_commalist" shape="rect">scalar_exp_commalist</a> ) ')'
+           | <a href="#scalar_exp" title="scalar_exp" shape="rect">scalar_exp</a> 'IN' <a href="#scalar_exp_commalist" title="scalar_exp_commalist" shape="rect">scalar_exp_commalist</a></pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#predicate" title="predicate">predicate</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="scalar_exp_commalist">scalar_exp_commalist:</a></p>
+      <img border="0" src="diagram/scalar_exp_commalist.png" height="80" width="238" usemap="#scalar_exp_commalist.map"><map name="scalar_exp_commalist.map">
+         <area shape="rect" coords="49,45,189,77" href="#scalar_opt_as_exp" title="scalar_opt_as_exp"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#scalar_exp_commalist" title="scalar_exp_commalist" shape="rect">scalar_exp_commalist</a>
+         ::= <a href="#scalar_opt_as_exp" title="scalar_opt_as_exp" shape="rect">scalar_opt_as_exp</a> ( ',' <a href="#scalar_opt_as_exp" title="scalar_opt_as_exp" shape="rect">scalar_opt_as_exp</a> )*</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#in_predicate" title="in_predicate">in_predicate</a></li>
+            
+            <li><a href="#query_partition_clause" title="query_partition_clause">query_partition_clause</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="all_or_anyin_predicate">all_or_anyin_predicate:</a></p>
+      <img border="0" src="diagram/all_or_anyin_predicate.png" height="124" width="504" usemap="#all_or_anyin_predicate.map"><map name="all_or_anyin_predicate.map">
+         <area shape="rect" coords="29,1,117,33" href="#scalar_exp" title="scalar_exp">
+         <area shape="rect" coords="389,1,475,33" href="#query_exp" title="query_exp"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#all_or_anyin_predicate" title="all_or_anyin_predicate" shape="rect">all_or_anyin_predicate</a>
+         ::= <a href="#scalar_exp" title="scalar_exp" shape="rect">scalar_exp</a> 'COMPARISON' ( 'ANY' | 'ALL' | 'SOME' ) <a href="#query_exp" title="query_exp" shape="rect">query_exp</a></pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#predicate" title="predicate">predicate</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="existence_test">existence_test:</a></p>
+      <img border="0" src="diagram/existence_test.png" height="36" width="232" usemap="#existence_test.map"><map name="existence_test.map">
+         <area shape="rect" coords="117,1,203,33" href="#query_exp" title="query_exp"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#existence_test" title="existence_test" shape="rect">existence_test</a>
+         ::= 'EXISTS' <a href="#query_exp" title="query_exp" shape="rect">query_exp</a></pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#predicate" title="predicate">predicate</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="manipulative_statement">manipulative_statement:</a></p>
+      <img border="0" src="diagram/manipulative_statement.png" height="1048" width="310" usemap="#manipulative_statement.map"><map name="manipulative_statement.map">
+         <area shape="rect" coords="49,1,173,33" href="#close_statement" title="close_statement">
+         <area shape="rect" coords="49,45,185,77" href="#commit_statement" title="commit_statement">
+         <area shape="rect" coords="49,89,255,121" href="#delete_statement_positioned" title="delete_statement_positioned">
+         <area shape="rect" coords="49,133,247,165" href="#delete_statement_searched" title="delete_statement_searched">
+         <area shape="rect" coords="49,177,173,209" href="#fetch_statement" title="fetch_statement">
+         <area shape="rect" coords="49,221,177,253" href="#insert_statement" title="insert_statement">
+         <area shape="rect" coords="49,265,173,297" href="#open_statement" title="open_statement">
+         <area shape="rect" coords="49,309,189,341" href="#rollback_statement" title="rollback_statement">
+         <area shape="rect" coords="49,353,179,385" href="#select_statement" title="select_statement">
+         <area shape="rect" coords="49,397,261,429" href="#update_statement_positioned" title="update_statement_positioned">
+         <area shape="rect" coords="49,441,253,473" href="#update_statement_searched" title="update_statement_searched">
+         <area shape="rect" coords="49,485,177,517" href="#create_table_def" title="create_table_def">
+         <area shape="rect" coords="49,529,169,561" href="#create_role_def" title="create_role_def">
+         <area shape="rect" coords="49,573,179,605" href="#create_index_def" title="create_index_def">
+         <area shape="rect" coords="49,617,173,649" href="#create_user_def" title="create_user_def">
+         <area shape="rect" coords="49,661,157,693" href="#drop_role_def" title="drop_role_def">
+         <area shape="rect" coords="49,705,165,737" href="#drop_table_def" title="drop_table_def">
+         <area shape="rect" coords="49,749,167,781" href="#drop_index_def" title="drop_index_def">
+         <area shape="rect" coords="49,793,161,825" href="#alter_user_def" title="alter_user_def">
+         <area shape="rect" coords="49,837,161,869" href="#drop_user_def" title="drop_user_def">
+         <area shape="rect" coords="49,881,125,913" href="#view_def" title="view_def">
+         <area shape="rect" coords="49,925,161,957" href="#truncate_table" title="truncate_table">
+         <area shape="rect" coords="49,969,131,1001" href="#grant_def" title="grant_def">
+         <area shape="rect" coords="49,1013,139,1045" href="#revoke_def" title="revoke_def"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#manipulative_statement" title="manipulative_statement" shape="rect">manipulative_statement</a>
+         ::= <a href="#close_statement" title="close_statement" shape="rect">close_statement</a>
+           | <a href="#commit_statement" title="commit_statement" shape="rect">commit_statement</a>
+           | <a href="#delete_statement_positioned" title="delete_statement_positioned" shape="rect">delete_statement_positioned</a>
+           | <a href="#delete_statement_searched" title="delete_statement_searched" shape="rect">delete_statement_searched</a>
+           | <a href="#fetch_statement" title="fetch_statement" shape="rect">fetch_statement</a>
+           | <a href="#insert_statement" title="insert_statement" shape="rect">insert_statement</a>
+           | <a href="#open_statement" title="open_statement" shape="rect">open_statement</a>
+           | <a href="#rollback_statement" title="rollback_statement" shape="rect">rollback_statement</a>
+           | <a href="#select_statement" title="select_statement" shape="rect">select_statement</a>
+           | <a href="#update_statement_positioned" title="update_statement_positioned" shape="rect">update_statement_positioned</a>
+           | <a href="#update_statement_searched" title="update_statement_searched" shape="rect">update_statement_searched</a>
+           | <a href="#create_table_def" title="create_table_def" shape="rect">create_table_def</a>
+           | <a href="#create_role_def" title="create_role_def" shape="rect">create_role_def</a>
+           | <a href="#create_index_def" title="create_index_def" shape="rect">create_index_def</a>
+           | <a href="#create_user_def" title="create_user_def" shape="rect">create_user_def</a>
+           | <a href="#drop_role_def" title="drop_role_def" shape="rect">drop_role_def</a>
+           | <a href="#drop_table_def" title="drop_table_def" shape="rect">drop_table_def</a>
+           | <a href="#drop_index_def" title="drop_index_def" shape="rect">drop_index_def</a>
+           | <a href="#alter_user_def" title="alter_user_def" shape="rect">alter_user_def</a>
+           | <a href="#drop_user_def" title="drop_user_def" shape="rect">drop_user_def</a>
+           | <a href="#view_def" title="view_def" shape="rect">view_def</a>
+           | <a href="#truncate_table" title="truncate_table" shape="rect">truncate_table</a>
+           | <a href="#grant_def" title="grant_def" shape="rect">grant_def</a>
+           | <a href="#revoke_def" title="revoke_def" shape="rect">revoke_def</a></pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#sql_list" title="sql_list">sql_list</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="close_statement">close_statement:</a></p>
+      <img border="0" src="diagram/close_statement.png" height="36" width="242" usemap="#close_statement.map"><map name="close_statement.map">
+         <area shape="rect" coords="29,1,91,33" href="#CLOSE" title="CLOSE">
+         <area shape="rect" coords="111,1,213,33" href="#name_cursor" title="name_cursor"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#close_statement" title="close_statement" shape="rect">close_statement</a>
+         ::= <a href="#CLOSE" title="CLOSE" shape="rect">CLOSE</a> <a href="#name_cursor" title="name_cursor" shape="rect">name_cursor</a></pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#manipulative_statement" title="manipulative_statement">manipulative_statement</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="commit_statement">commit_statement:</a></p>
+      <img border="0" src="diagram/commit_statement.png" height="68" width="256">
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#commit_statement" title="commit_statement" shape="rect">commit_statement</a>
+         ::= 'COMMIT' 'WORK'?</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#manipulative_statement" title="manipulative_statement">manipulative_statement</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="delete_statement_positioned">delete_statement_positioned:</a></p>
+      <img border="0" src="diagram/delete_statement_positioned.png" height="242" width="682" usemap="#delete_statement_positioned.map"><map name="delete_statement_positioned.map">
+         <area shape="rect" coords="197,1,249,33" href="#table" title="table">
+         <area shape="rect" coords="537,33,639,65" href="#name_cursor" title="name_cursor">
+         <area shape="rect" coords="377,77,503,109" href="#search_condition" title="search_condition">
+         <area shape="rect" coords="219,163,379,195" href="#select_field_commalist" title="select_field_commalist">
+         <area shape="rect" coords="473,163,633,195" href="#select_field_commalist" title="select_field_commalist"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#delete_statement_positioned" title="delete_statement_positioned" shape="rect">delete_statement_positioned</a>
+         ::= 'DELETE' 'FROM' <a href="#table" title="table" shape="rect">table</a> ( 'WHERE' 'CURRENT' 'OF' <a href="#name_cursor" title="name_cursor" shape="rect">name_cursor</a> | ( 'WHERE' <a href="#search_condition" title="search_condition" shape="rect">search_condition</a> )? ) ( ( 'RETURNING' | 'RETURN' ) <a href="#select_field_commalist" title="select_field_commalist" shape="rect">select_field_commalist</a> 'INTO' <a href="#select_field_commalist" title="select_field_commalist" shape="rect">select_field_commalist</a> )?</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#manipulative_statement" title="manipulative_statement">manipulative_statement</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="fetch_statement">fetch_statement:</a></p>
+      <img border="0" src="diagram/fetch_statement.png" height="36" width="464" usemap="#fetch_statement.map"><map name="fetch_statement.map">
+         <area shape="rect" coords="111,1,213,33" href="#name_cursor" title="name_cursor">
+         <area shape="rect" coords="307,1,435,33" href="#target_commalist" title="target_commalist"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#fetch_statement" title="fetch_statement" shape="rect">fetch_statement</a>
+         ::= 'FETCH' <a href="#name_cursor" title="name_cursor" shape="rect">name_cursor</a> 'INTO' <a href="#target_commalist" title="target_commalist" shape="rect">target_commalist</a></pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#manipulative_statement" title="manipulative_statement">manipulative_statement</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="insert_statement">insert_statement:</a></p>
+      <img border="0" src="diagram/insert_statement.png" height="424" width="666" usemap="#insert_statement.map"><map name="insert_statement.map">
+         <area shape="rect" coords="195,45,247,77" href="#table" title="table">
+         <area shape="rect" coords="373,45,479,77" href="#name_column" title="name_column">
+         <area shape="rect" coords="310,215,450,247" href="#scalar_opt_as_exp" title="scalar_opt_as_exp">
+         <area shape="rect" coords="152,259,244,291" href="#query_spec" title="query_spec">
+         <area shape="rect" coords="203,345,363,377" href="#select_field_commalist" title="select_field_commalist">
+         <area shape="rect" coords="457,345,617,377" href="#select_field_commalist" title="select_field_commalist"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#insert_statement" title="insert_statement" shape="rect">insert_statement</a>
+         ::= 'INSERT' 'INTO' <a href="#table" title="table" shape="rect">table</a> ( '(' ( <a href="#name_column" title="name_column" shape="rect">name_column</a> | 'STRING' ) ( ',' ( <a href="#name_column" title="name_column" shape="rect">name_column</a> | 'STRING' ) )* ')' )? ( 'VALUES' '(' <a href="#scalar_opt_as_exp" title="scalar_opt_as_exp" shape="rect">scalar_opt_as_exp</a> ( ',' <a href="#scalar_opt_as_exp" title="scalar_opt_as_exp" shape="rect">scalar_opt_as_exp</a> )* ')' | <a href="#query_spec" title="query_spec" shape="rect">query_spec</a> ) ( ( 'RETURNING' | 'RETURN' ) <a href="#select_field_commalist" title="select_field_commalist" shape="rect">select_field_commalist</a> 'INTO' <a href="#select_field_commalist" title="select_field_commalist" shape="rect">select_field_commalist</a> )?</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#manipulative_statement" title="manipulative_statement">manipulative_statement</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="open_statement">open_statement:</a></p>
+      <img border="0" src="diagram/open_statement.png" height="36" width="234" usemap="#open_statement.map"><map name="open_statement.map">
+         <area shape="rect" coords="29,1,83,33" href="#OPEN" title="OPEN">
+         <area shape="rect" coords="103,1,205,33" href="#name_cursor" title="name_cursor"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#open_statement" title="open_statement" shape="rect">open_statement</a>
+         ::= <a href="#OPEN" title="OPEN" shape="rect">OPEN</a> <a href="#name_cursor" title="name_cursor" shape="rect">name_cursor</a></pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#manipulative_statement" title="manipulative_statement">manipulative_statement</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="rollback_statement">rollback_statement:</a></p>
+      <img border="0" src="diagram/rollback_statement.png" height="68" width="272">
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#rollback_statement" title="rollback_statement" shape="rect">rollback_statement</a>
+         ::= 'ROLLBACK' 'WORK'?</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#manipulative_statement" title="manipulative_statement">manipulative_statement</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="select_statement">select_statement:</a></p>
+      <img border="0" src="diagram/select_statement.png" height="156" width="932" usemap="#select_statement.map"><map name="select_statement.map">
+         <area shape="rect" coords="49,1,135,33" href="#query_exp" title="query_exp">
+         <area shape="rect" coords="399,45,559,77" href="#select_field_commalist" title="select_field_commalist">
+         <area shape="rect" coords="653,45,781,77" href="#target_commalist" title="target_commalist">
+         <area shape="rect" coords="801,45,883,77" href="#table_exp" title="table_exp"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#select_statement" title="select_statement" shape="rect">select_statement</a>
+         ::= <a href="#query_exp" title="query_exp" shape="rect">query_exp</a>
+           | 'SELECT' 'HINT'? ( 'ALL' | 'DISTINCT' )? <a href="#select_field_commalist" title="select_field_commalist" shape="rect">select_field_commalist</a> 'INTO' <a href="#target_commalist" title="target_commalist" shape="rect">target_commalist</a> <a href="#table_exp" title="table_exp" shape="rect">table_exp</a></pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#manipulative_statement" title="manipulative_statement">manipulative_statement</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="update_statement_positioned">update_statement_positioned:</a></p>
+      <img border="0" src="diagram/update_statement_positioned.png" height="380" width="762" usemap="#update_statement_positioned.map"><map name="update_statement_positioned.map">
+         <area shape="rect" coords="123,45,175,77" href="#table" title="table">
+         <area shape="rect" coords="299,45,405,77" href="#name_column" title="name_column">
+         <area shape="rect" coords="579,45,719,77" href="#scalar_opt_as_exp" title="scalar_opt_as_exp">
+         <area shape="rect" coords="454,171,556,203" href="#name_cursor" title="name_cursor">
+         <area shape="rect" coords="294,215,420,247" href="#search_condition" title="search_condition">
+         <area shape="rect" coords="299,301,459,333" href="#select_field_commalist" title="select_field_commalist">
+         <area shape="rect" coords="553,301,713,333" href="#select_field_commalist" title="select_field_commalist"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#update_statement_positioned" title="update_statement_positioned" shape="rect">update_statement_positioned</a>
+         ::= 'UPDATE' <a href="#table" title="table" shape="rect">table</a> 'SET' ( <a href="#name_column" title="name_column" shape="rect">name_column</a> | 'STRING' ) 'COMPARISON' <a href="#scalar_opt_as_exp" title="scalar_opt_as_exp" shape="rect">scalar_opt_as_exp</a> ( ',' ( <a href="#name_column" title="name_column" shape="rect">name_column</a> | 'STRING' ) 'COMPARISON' <a href="#scalar_opt_as_exp" title="scalar_opt_as_exp" shape="rect">scalar_opt_as_exp</a> )* ( 'WHERE' 'CURRENT' 'OF' <a href="#name_cursor" title="name_cursor" shape="rect">name_cursor</a> | ( 'WHERE' <a href="#search_condition" title="search_condition" shape="rect">search_condition</a> )? ) ( ( 'RETURNING' | 'RETURN' ) <a href="#select_field_commalist" title="select_field_commalist" shape="rect">select_field_commalist</a> 'INTO' <a href="#select_field_commalist" title="select_field_commalist" shape="rect">select_field_commalist</a> )?</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#manipulative_statement" title="manipulative_statement">manipulative_statement</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="create_role_def">create_role_def:</a></p>
+      <img border="0" src="diagram/create_role_def.png" height="36" width="310" usemap="#create_role_def.map"><map name="create_role_def.map">
+         <area shape="rect" coords="195,1,281,33" href="#name_role" title="name_role"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#create_role_def" title="create_role_def" shape="rect">create_role_def</a>
+         ::= 'CREATE' 'ROLE' <a href="#name_role" title="name_role" shape="rect">name_role</a></pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#manipulative_statement" title="manipulative_statement">manipulative_statement</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="drop_role_def">drop_role_def:</a></p>
+      <img border="0" src="diagram/drop_role_def.png" height="36" width="298" usemap="#drop_role_def.map"><map name="drop_role_def.map">
+         <area shape="rect" coords="183,1,269,33" href="#name_role" title="name_role"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#drop_role_def" title="drop_role_def" shape="rect">drop_role_def</a>
+         ::= 'DROP' 'ROLE' <a href="#name_role" title="name_role" shape="rect">name_role</a></pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#manipulative_statement" title="manipulative_statement">manipulative_statement</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="drop_table_def">drop_table_def:</a></p>
+      <img border="0" src="diagram/drop_table_def.png" height="124" width="638" usemap="#drop_table_def.map"><map name="drop_table_def.map">
+         <area shape="rect" coords="391,45,443,77" href="#table" title="table"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#drop_table_def" title="drop_table_def" shape="rect">drop_table_def</a>
+         ::= 'DROP' 'TABLE' ( 'IF' 'EXISTS' )? <a href="#table" title="table" shape="rect">table</a> ( ',' <a href="#table" title="table" shape="rect">table</a> )* ( 'RESTRICT' | 'CASCADE' )</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#manipulative_statement" title="manipulative_statement">manipulative_statement</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="drop_index_def">drop_index_def:</a></p>
+      <img border="0" src="diagram/drop_index_def.png" height="100" width="718" usemap="#drop_index_def.map"><map name="drop_index_def.map">
+         <area shape="rect" coords="229,65,339,97" href="#name_schema" title="name_schema">
+         <area shape="rect" coords="423,33,519,65" href="#name_index" title="name_index">
+         <area shape="rect" coords="637,1,689,33" href="#table" title="table"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#drop_index_def" title="drop_index_def" shape="rect">drop_index_def</a>
+         ::= 'DROP' 'INDEX' ( ( <a href="#name_schema" title="name_schema" shape="rect">name_schema</a> '.' )? <a href="#name_index" title="name_index" shape="rect">name_index</a> )? 'FROM' <a href="#table" title="table" shape="rect">table</a></pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#manipulative_statement" title="manipulative_statement">manipulative_statement</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="alter_user_def">alter_user_def:</a></p>
+      <img border="0" src="diagram/alter_user_def.png" height="942" width="842" usemap="#alter_user_def.map"><map name="alter_user_def.map">
+         <area shape="rect" coords="63,83,153,115" href="#name_user" title="name_user">
+         <area shape="rect" coords="415,171,505,203" href="#name_user" title="name_user">
+         <area shape="rect" coords="43,237,133,269" href="#name_user" title="name_user">
+         <area shape="rect" coords="391,237,473,269" href="#password" title="password">
+         <area shape="rect" coords="577,313,691,345" href="#name_external" title="name_external">
+         <area shape="rect" coords="483,369,615,401" href="#name_tablespace" title="name_tablespace">
+         <area shape="rect" coords="415,533,501,565" href="#name_unit" title="name_unit">
+         <area shape="rect" coords="621,457,753,489" href="#name_tablespace" title="name_tablespace">
+         <area shape="rect" coords="291,577,393,609" href="#name_profile" title="name_profile">
+         <area shape="rect" coords="583,643,669,675" href="#name_role" title="name_role">
+         <area shape="rect" coords="409,775,495,807" href="#name_role" title="name_role">
+         <area shape="rect" coords="43,819,133,851" href="#name_user" title="name_user"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#alter_user_def" title="alter_user_def" shape="rect">alter_user_def</a>
+         ::= 'ALTER' 'USER' ( <a href="#name_user" title="name_user" shape="rect">name_user</a>+ ( 'GRANT' ( 'CONNECT' | 'REVOKE' ) 'THROUGH' 'ENTERPRISE' 'USERS' | 'REVOKE' 'THROUGH' <a href="#name_user" title="name_user" shape="rect">name_user</a> ) | <a href="#name_user" title="name_user" shape="rect">name_user</a> ( 'IDENTIFIED' ( 'BY' <a href="#password" title="password" shape="rect">password</a> | ( 'EXTERNALLY' | 'GLOBALLY' ) ( 'AS' <a href="#name_external" title="name_external" shape="rect">name_external</a> )? ) | ( 'DEFAULT' | 'TEMPORARY' ) 'TABLESPACE' <a href="#name_tablespace" title="name_tablespace" shape="rect">name_tablespace</a> | 'QUOTA' ( 'UNLIMITED' | 'INTNUM' <a href="#name_unit" title="name_unit" shape="rect">name_unit</a>? ) 'ON' <a href="#name_tablespace" title="name_tablespace" shape="rect">name_tablespace</a> | 'PROFILE' <a href="#name_profile" title="name_profile" shape="rect">name_profile</a> | 'DEFAULT' 'ROLE' ( 'ALL' ( 'EXCEPT' <a href="#name_role" title="name_role" shape="rect">name_role</a>+ )? | 'NONE' | <a href="#name_role" title="name_role" shape="rect">name_role</a>+ ) )+ | <a href="#name_user" title="name_user" shape="rect">name_user</a> ( 'ACCOUNT' ( 'LOCK' | 'UNLOCK' ) | 'PASSWORD' 'EXPIRE' ) )</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#manipulative_statement" title="manipulative_statement">manipulative_statement</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="drop_user_def">drop_user_def:</a></p>
+      <img border="0" src="diagram/drop_user_def.png" height="68" width="444" usemap="#drop_user_def.map"><map name="drop_user_def.map">
+         <area shape="rect" coords="183,1,273,33" href="#name_user" title="name_user"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#drop_user_def" title="drop_user_def" shape="rect">drop_user_def</a>
+         ::= 'DROP' 'USER' <a href="#name_user" title="name_user" shape="rect">name_user</a> 'CASCADE'?</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#manipulative_statement" title="manipulative_statement">manipulative_statement</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="truncate_table">truncate_table:</a></p>
+      <img border="0" src="diagram/truncate_table.png" height="230" width="772" usemap="#truncate_table.map"><map name="truncate_table.map">
+         <area shape="rect" coords="405,33,515,65" href="#name_schema" title="name_schema">
+         <area shape="rect" coords="599,1,651,33" href="#table" title="table"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#truncate_table" title="truncate_table" shape="rect">truncate_table</a>
+         ::= 'TRUNCATE' 'TABLE' ( ( 'NAME' '.' )? <a href="#name_schema" title="name_schema" shape="rect">name_schema</a> '.' )? <a href="#table" title="table" shape="rect">table</a> ( ( 'PRESERVE' | 'PURGE' ) 'MATERIALIZED' 'VIEW' 'LOG' )? ( ( 'DROP' | 'REUSE' ) 'STORAGE' )?</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#manipulative_statement" title="manipulative_statement">manipulative_statement</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="grant_def">grant_def:</a></p>
+      <img border="0" src="diagram/grant_def.png" height="242" width="756" usemap="#grant_def.map"><map name="grant_def.map">
+         <area shape="rect" coords="135,33,287,65" href="#system_privilege_list" title="system_privilege_list">
+         <area shape="rect" coords="407,33,495,65" href="#obj_clause" title="obj_clause">
+         <area shape="rect" coords="593,1,733,33" href="#grantee_commalist" title="grantee_commalist"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#grant_def" title="grant_def" shape="rect">grant_def</a>
+         ::= 'GRANT' <a href="#system_privilege_list" title="system_privilege_list" shape="rect">system_privilege_list</a>? ( 'ON' <a href="#obj_clause" title="obj_clause" shape="rect">obj_clause</a> )? 'TO' <a href="#grantee_commalist" title="grantee_commalist" shape="rect">grantee_commalist</a> ( 'WITH' ( 'GRANT' | 'HIERARCHY' | 'NAME' ) 'OPTION' )?</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#manipulative_statement" title="manipulative_statement">manipulative_statement</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="system_privilege_list">system_privilege_list:</a></p>
+      <img border="0" src="diagram/system_privilege_list.png" height="504" width="708">
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#system_privilege_list" title="system_privilege_list" shape="rect">system_privilege_list</a>
+         ::= 'ALL' 'PRIVILEGES'?
+           | ( 'DELETE' | 'DROP' | 'INSERT' | 'SELECT' | 'UPDATE' | 'NAME' ( 'NAME' ( 'NAME' ( 'NAME' 'NAME'? )? )? )? ) ( ',' ( 'DELETE' | 'DROP' | 'INSERT' | 'SELECT' | 'UPDATE' | 'NAME' ( 'NAME' ( 'NAME' ( 'NAME' 'NAME'? )? )? )? ) )*</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#grant_def" title="grant_def">grant_def</a></li>
+            
+            <li><a href="#revoke_def" title="revoke_def">revoke_def</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="obj_clause">obj_clause:</a></p>
+      <img border="0" src="diagram/obj_clause.png" height="168" width="376" usemap="#obj_clause.map"><map name="obj_clause.map">
+         <area shape="rect" coords="49,1,101,33" href="#table" title="table">
+         <area shape="rect" coords="169,45,287,77" href="#name_directory" title="name_directory">
+         <area shape="rect" coords="275,89,327,121" href="#table" title="table"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#obj_clause" title="obj_clause" shape="rect">obj_clause</a>
+         ::= <a href="#table" title="table" shape="rect">table</a>
+           | 'DIRECTORY' <a href="#name_directory" title="name_directory" shape="rect">name_directory</a>
+           | 'JAVA' ( 'SOURCE' | 'RESOURCE' ) <a href="#table" title="table" shape="rect">table</a></pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#grant_def" title="grant_def">grant_def</a></li>
+            
+            <li><a href="#revoke_def" title="revoke_def">revoke_def</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="grantee_commalist">grantee_commalist:</a></p>
+      <img border="0" src="diagram/grantee_commalist.png" height="140" width="630" usemap="#grantee_commalist.map"><map name="grantee_commalist.map">
+         <area shape="rect" coords="89,61,179,93" href="#name_user" title="name_user">
+         <area shape="rect" coords="89,105,175,137" href="#name_role" title="name_role">
+         <area shape="rect" coords="417,93,541,125" href="#name_password" title="name_password"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#grantee_commalist" title="grantee_commalist" shape="rect">grantee_commalist</a>
+         ::= ( 'PUBLIC' | ( <a href="#name_user" title="name_user" shape="rect">name_user</a> | <a href="#name_role" title="name_role" shape="rect">name_role</a> ) ( 'IDENTIFIED' 'BY' <a href="#name_password" title="name_password" shape="rect">name_password</a> )? )+</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#grant_def" title="grant_def">grant_def</a></li>
+            
+            <li><a href="#revoke_def" title="revoke_def">revoke_def</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="revoke_def">revoke_def:</a></p>
+      <img border="0" src="diagram/revoke_def.png" height="198" width="784" usemap="#revoke_def.map"><map name="revoke_def.map">
+         <area shape="rect" coords="143,33,295,65" href="#system_privilege_list" title="system_privilege_list">
+         <area shape="rect" coords="415,33,503,65" href="#obj_clause" title="obj_clause">
+         <area shape="rect" coords="621,1,761,33" href="#grantee_commalist" title="grantee_commalist"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#revoke_def" title="revoke_def" shape="rect">revoke_def</a>
+         ::= 'REVOKE' <a href="#system_privilege_list" title="system_privilege_list" shape="rect">system_privilege_list</a>? ( 'ON' <a href="#obj_clause" title="obj_clause" shape="rect">obj_clause</a> )? 'FROM' <a href="#grantee_commalist" title="grantee_commalist" shape="rect">grantee_commalist</a> ( 'CASCADE' 'CONSTRAINS' | 'FORCE' )?</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#manipulative_statement" title="manipulative_statement">manipulative_statement</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="procedure_call">procedure_call:</a></p>
+      <img border="0" src="diagram/procedure_call.png" height="222" width="820" usemap="#procedure_call.map"><map name="procedure_call.map">
+         <area shape="rect" coords="311,45,405,77" href="#function_ref" title="function_ref">
+         <area shape="rect" coords="311,111,423,143" href="#procedure_call" title="procedure_call">
+         <area shape="rect" coords="507,143,599,175" href="#name_label" title="name_label">
+         <area shape="rect" coords="123,187,217,219" href="#function_ref" title="function_ref"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#procedure_call" title="procedure_call" shape="rect">procedure_call</a>
+         ::= 'DECLARE'? 'BEGIN' ( <a href="#function_ref" title="function_ref" shape="rect">function_ref</a> ( ';' <a href="#function_ref" title="function_ref" shape="rect">function_ref</a> )* | ( <a href="#procedure_call" title="procedure_call" shape="rect">procedure_call</a> ';' ( <a href="#name_label" title="name_label" shape="rect">name_label</a> ';' )? )+ ) 'END'
+           | 'CALL' <a href="#function_ref" title="function_ref" shape="rect">function_ref</a></pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#procedure_call" title="procedure_call">procedure_call</a></li>
+            
+            <li><a href="#sql_list" title="sql_list">sql_list</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="schema">schema:</a></p>
+      <img border="0" src="diagram/schema.png" height="244" width="880" usemap="#schema.map"><map name="schema.map">
+         <area shape="rect" coords="369,17,459,49" href="#name_user" title="name_user">
+         <area shape="rect" coords="705,17,791,49" href="#name_role" title="name_role">
+         <area shape="rect" coords="539,61,667,93" href="#create_table_def" title="create_table_def">
+         <area shape="rect" coords="539,105,669,137" href="#create_index_def" title="create_index_def">
+         <area shape="rect" coords="539,149,663,181" href="#create_user_def" title="create_user_def">
+         <area shape="rect" coords="539,193,615,225" href="#view_def" title="view_def"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#schema" title="schema" shape="rect">schema</a>   ::= 'CREATE' 'SCHEMA' 'AUTHORIZATION' <a href="#name_user" title="name_user" shape="rect">name_user</a> ( 'CREATE' 'ROLE' <a href="#name_role" title="name_role" shape="rect">name_role</a> | <a href="#create_table_def" title="create_table_def" shape="rect">create_table_def</a> | <a href="#create_index_def" title="create_index_def" shape="rect">create_index_def</a> | <a href="#create_user_def" title="create_user_def" shape="rect">create_user_def</a> | <a href="#view_def" title="view_def" shape="rect">view_def</a> )+?</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#sql_list" title="sql_list">sql_list</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="create_table_def">create_table_def:</a></p>
+      <img border="0" src="diagram/create_table_def.png" height="244" width="942" usemap="#create_table_def.map"><map name="create_table_def.map">
+         <area shape="rect" coords="519,45,571,77" href="#table" title="table">
+         <area shape="rect" coords="677,45,827,77" href="#base_table_element" title="base_table_element"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#create_table_def" title="create_table_def" shape="rect">create_table_def</a>
+         ::= 'CREATE' ( 'LOCAL' | 'CLUSTER' | 'SCHEMA' )? ( 'SET' | 'ORDERED_SET' | 'BAG' | 'NAME' )? 'TABLE' <a href="#table" title="table" shape="rect">table</a> '(' ( <a href="#base_table_element" title="base_table_element" shape="rect">base_table_element</a> ( ',' <a href="#base_table_element" title="base_table_element" shape="rect">base_table_element</a> )* )? ')'</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#manipulative_statement" title="manipulative_statement">manipulative_statement</a></li>
+            
+            <li><a href="#schema" title="schema">schema</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="create_index_def">create_index_def:</a></p>
+      <img border="0" src="diagram/create_index_def.png" height="370" width="852" usemap="#create_index_def.map"><map name="create_index_def.map">
+         <area shape="rect" coords="387,65,497,97" href="#name_schema" title="name_schema">
+         <area shape="rect" coords="581,33,677,65" href="#name_index" title="name_index">
+         <area shape="rect" coords="777,1,829,33" href="#table" title="table"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#create_index_def" title="create_index_def" shape="rect">create_index_def</a>
+         ::= 'CREATE' ( 'BITMAP' | 'KEYLIST' | 'HASHMAP' | 'UNIQUE' )? 'INDEX' ( ( <a href="#name_schema" title="name_schema" shape="rect">name_schema</a> '.' )? <a href="#name_index" title="name_index" shape="rect">name_index</a> )? 'ON' <a href="#table" title="table" shape="rect">table</a> ( '(' ( 'NAME' | 'JSON' ) ( '|' ( 'NAME' | 'JSON' ) )* ')' )? ( 'NORM_WITH' 'STRING' )? ( 'FILTER_WITH' 'STRING' )?</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#manipulative_statement" title="manipulative_statement">manipulative_statement</a></li>
+            
+            <li><a href="#schema" title="schema">schema</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="create_user_def">create_user_def:</a></p>
+      <img border="0" src="diagram/create_user_def.png" height="430" width="842" usemap="#create_user_def.map"><map name="create_user_def.map">
+         <area shape="rect" coords="195,1,285,33" href="#name_user" title="name_user">
+         <area shape="rect" coords="503,1,585,33" href="#password" title="password">
+         <area shape="rect" coords="689,77,779,109" href="#name_user" title="name_user">
+         <area shape="rect" coords="563,171,695,203" href="#name_tablespace" title="name_tablespace">
+         <area shape="rect" coords="495,335,581,367" href="#name_unit" title="name_unit">
+         <area shape="rect" coords="701,259,753,291" href="#table" title="table">
+         <area shape="rect" coords="371,379,473,411" href="#name_profile" title="name_profile"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#create_user_def" title="create_user_def" shape="rect">create_user_def</a>
+         ::= 'CREATE' 'USER' <a href="#name_user" title="name_user" shape="rect">name_user</a> 'IDENTIFIED' ( 'BY' <a href="#password" title="password" shape="rect">password</a> | ( 'EXTERNALLY' | 'GLOBALLY' ) ( 'AS' <a href="#name_user" title="name_user" shape="rect">name_user</a> )? ) ( ( 'DEFAULT' | 'TEMPORARY' ) 'TABLESPACE' <a href="#name_tablespace" title="name_tablespace" shape="rect">name_tablespace</a> | 'QUOTA' ( 'UNLIMITED' | 'INTNUM' <a href="#name_unit" title="name_unit" shape="rect">name_unit</a>? ) 'ON' <a href="#table" title="table" shape="rect">table</a> | 'PROFILE' <a href="#name_profile" title="name_profile" shape="rect">name_profile</a> )*?</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#manipulative_statement" title="manipulative_statement">manipulative_statement</a></li>
+            
+            <li><a href="#schema" title="schema">schema</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="view_def">view_def:</a></p>
+      <img border="0" src="diagram/view_def.png" height="222" width="544" usemap="#view_def.map"><map name="view_def.map">
+         <area shape="rect" coords="215,45,267,77" href="#table" title="table">
+         <area shape="rect" coords="107,155,199,187" href="#query_spec" title="query_spec"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#view_def" title="view_def" shape="rect">view_def</a> ::= 'CREATE' 'VIEW' <a href="#table" title="table" shape="rect">table</a> ( ( 'NAME' | 'STRING' ) ( ',' ( 'NAME' | 'STRING' ) )* )?
+           | 'AS' <a href="#query_spec" title="query_spec" shape="rect">query_spec</a> ( 'WITH' 'CHECK' 'OPTION' )?</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#manipulative_statement" title="manipulative_statement">manipulative_statement</a></li>
+            
+            <li><a href="#schema" title="schema">schema</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="base_table_element">base_table_element:</a></p>
+      <img border="0" src="diagram/base_table_element.png" height="80" width="248" usemap="#base_table_element.map"><map name="base_table_element.map">
+         <area shape="rect" coords="49,1,141,33" href="#column_def" title="column_def">
+         <area shape="rect" coords="49,45,199,77" href="#table_constraint_def" title="table_constraint_def"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#base_table_element" title="base_table_element" shape="rect">base_table_element</a>
+         ::= <a href="#column_def" title="column_def" shape="rect">column_def</a>
+           | <a href="#table_constraint_def" title="table_constraint_def" shape="rect">table_constraint_def</a></pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#create_table_def" title="create_table_def">create_table_def</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="column_def">column_def:</a></p>
+      <img border="0" src="diagram/column_def.png" height="762" width="858" usemap="#column_def.map"><map name="column_def.map">
+         <area shape="rect" coords="407,343,501,375" href="#function_ref" title="function_ref">
+         <area shape="rect" coords="407,387,461,419" href="#literal" title="literal">
+         <area shape="rect" coords="417,563,543,595" href="#search_condition" title="search_condition">
+         <area shape="rect" coords="413,651,465,683" href="#table" title="table"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#column_def" title="column_def" shape="rect">column_def</a>
+         ::= ( 'NAME' | 'STRING' ) ( 'STRING' | 'NAME' ( '(' '-'? 'INTNUM' ( ',' '-'? 'INTNUM' )? ')' )? ) ( 'NOT' 'NULLX' ( 'UNIQUE' | 'PRIMARY' 'KEY' )? | 'DEFAULT' ( <a href="#function_ref" title="function_ref" shape="rect">function_ref</a> | <a href="#literal" title="literal" shape="rect">literal</a> | 'NAME' | 'NULLX' | 'USER' ) | 'CHECK' '(' <a href="#search_condition" title="search_condition" shape="rect">search_condition</a> ')' | 'REFERENCES' <a href="#table" title="table" shape="rect">table</a> ( '(' ( 'NAME' | 'STRING' ) ( ',' ( 'NAME' | 'STRING' ) )* ')' )? )*</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#base_table_element" title="base_table_element">base_table_element</a></li>
+            
+         </ul>
+         
+      </p><br><p style="font-size: 14px; font-weight:bold"><a name="table_constraint_def">table_constraint_def:</a></p>
+      <img border="0" src="diagram/table_constraint_def.png" height="322" width="1012" usemap="#table_constraint_def.map"><map name="table_constraint_def.map">
+         <area shape="rect" coords="607,177,659,209" href="#table" title="table">
+         <area shape="rect" coords="179,287,305,319" href="#search_condition" title="search_condition"></map>
+      
+      <p>
+         
+         <div class="ebnf"><pre><a href="#table_constraint_def" title="table_constraint_def" shape="rect">table_constraint_def</a>
+         ::= ( 'UNIQUE' | 'PRIMARY' 'KEY' ) '(' ( 'NAME' | 'STRING' ) ( ',' ( 'NAME' | 'STRING' ) )* ')'
+           | 'FOREIGN' 'KEY' '(' ( 'NAME' | 'STRING' ) ( ',' ( 'NAME' | 'STRING' ) )* ')' 'REFERENCES' <a href="#table" title="table" shape="rect">table</a> ( '(' ( 'NAME' | 'STRING' ) ( ',' ( 'NAME' | 'STRING' ) )* ')' )?
+           | 'CHECK' '(' <a href="#search_condition" title="search_condition" shape="rect">search_condition</a> ')'</pre></div>
+         
+      </p>
+      
+      <p>referenced by:
+         
+         <ul>
+            
+            <li><a href="#base_table_element" title="base_table_element">base_table_element</a></li>
+            
+         </ul>
+         
+      </p><br><hr>
+      
+      <p>
+         
+         <table border="0" class="signature">
+            
+            <tr>
+               
+               <td style="width: 100%">&nbsp;</td>
+               
+               <td valign="top">
+                  
+                  <nobr class="signature">... generated by <a name="Railroad-Diagram-Generator" class="signature" title="http://www.bottlecaps.de/rr/ui" href="http://www.bottlecaps.de/rr/ui" target="_blank">Railroad Diagram Generator</a></nobr>
+                  
+               </td>
+               
+               <td><a name="Railroad-Diagram-Generator" title="http://www.bottlecaps.de/rr/ui" href="http://www.bottlecaps.de/rr/ui" target="_blank">
+                     <img border="0" src="diagram/rr-1.42.1156.png" height="16" width="16"></a></td>
+               
+            </tr>
+            
+         </table>
+         
+      </p>
+      
+   </body>
+</html>

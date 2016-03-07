@@ -651,6 +651,7 @@ opt_storage ->  REUSE STORAGE                                                   
 
 close_statement -> CLOSE cursor                                                                 : {'close', '$2'}.
 
+commit_statement -> COMMIT                                                                      : 'commit'.
 commit_statement -> COMMIT WORK                                                                 : 'commit work'.
 
 delete_statement_positioned -> DELETE FROM table WHERE CURRENT OF cursor returning              : {'delete', '$3',{'where_current_of', '$7'}, '$8'}.
@@ -672,6 +673,7 @@ insert_atom -> scalar_opt_as_exp                                                
 
 open_statement -> OPEN cursor                                                                   : {'open', '$2'}.
 
+rollback_statement -> ROLLBACK                                                                  : 'rollback'.
 rollback_statement -> ROLLBACK WORK                                                             : 'rollback work'.
 
 select_statement -> SELECT opt_hint opt_all_distinct selection INTO target_commalist table_exp
@@ -689,7 +691,7 @@ opt_all_distinct -> ALL                                                         
 opt_all_distinct -> DISTINCT                                                                    : {opt, <<"distinct">>}.
 
 update_statement_positioned -> UPDATE table SET assignment_commalist
-                                                           WHERE CURRENT OF cursor returning    : {'update', '$2', {'set', '$4'}, {'where_cur_of', '$8'}, '$9'}.
+                                                           WHERE CURRENT OF cursor returning    : {'update', '$2', {'set', '$4'}, {'where_current_of', '$8'}, '$9'}.
 
 assignment_commalist -> assignment                                                              : ['$1'].
 assignment_commalist -> assignment_commalist ',' assignment                                     : '$1' ++ ['$3'].

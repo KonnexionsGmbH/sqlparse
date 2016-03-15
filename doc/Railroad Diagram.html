@@ -179,15 +179,14 @@
       </p>
       
       <p>no references</p><br><p style="font-size: 14px; font-weight:bold"><a name="cursor_def">cursor_def:</a></p>
-      <img border="0" src="diagram/cursor_def.png" height="68" width="714" usemap="#cursor_def.map"><map name="cursor_def.map">
-         <area shape="rect" coords="129,1,231,33" href="#name_cursor" title="name_cursor">
-         <area shape="rect" coords="415,1,501,33" href="#query_exp" title="query_exp">
-         <area shape="rect" coords="541,33,665,65" href="#order_by_clause" title="order_by_clause"></map>
+      <img border="0" src="diagram/cursor_def.png" height="68" width="764" usemap="#cursor_def.map"><map name="cursor_def.map">
+         <area shape="rect" coords="465,1,551,33" href="#query_exp" title="query_exp">
+         <area shape="rect" coords="591,33,715,65" href="#order_by_clause" title="order_by_clause"></map>
       
       <p>
          
          <div class="ebnf"><pre><a href="#cursor_def" title="cursor_def" shape="rect">cursor_def</a>
-         ::= 'DECLARE' <a href="#name_cursor" title="name_cursor" shape="rect">name_cursor</a> 'CURSOR' 'FOR' <a href="#query_exp" title="query_exp" shape="rect">query_exp</a> <a href="#order_by_clause" title="order_by_clause" shape="rect">order_by_clause</a>?</pre></div>
+         ::= 'DECLARE' 'NAME_OF_CURSOR' 'CURSOR' 'FOR' <a href="#query_exp" title="query_exp" shape="rect">query_exp</a> <a href="#order_by_clause" title="order_by_clause" shape="rect">order_by_clause</a>?</pre></div>
          
       </p>
       
@@ -367,12 +366,14 @@
          </ul>
          
       </p><br><p style="font-size: 14px; font-weight:bold"><a name="target_commalist">target_commalist:</a></p>
-      <img border="0" src="diagram/target_commalist.png" height="188" width="556">
+      <img border="0" src="diagram/target_commalist.png" height="188" width="678" usemap="#target_commalist.map"><map name="target_commalist.map">
+         <area shape="rect" coords="69,89,217,121" href="#name_host_variable" title="name_host_variable">
+         <area shape="rect" coords="415,121,589,153" href="#name_indicator_variable" title="name_indicator_variable"></map>
       
       <p>
          
          <div class="ebnf"><pre><a href="#target_commalist" title="target_commalist" shape="rect">target_commalist</a>
-         ::= ( 'NAME' | 'PARAMETER' ( 'INDICATOR'? 'PARAMETER' )? ) ( ',' ( 'NAME' | 'PARAMETER' ( 'INDICATOR'? 'PARAMETER' )? ) )*</pre></div>
+         ::= ( 'NAME' | <a href="#name_host_variable" title="name_host_variable" shape="rect">name_host_variable</a> ( 'INDICATOR'? <a href="#name_indicator_variable" title="name_indicator_variable" shape="rect">name_indicator_variable</a> )? ) ( ',' ( 'NAME' | <a href="#name_host_variable" title="name_host_variable" shape="rect">name_host_variable</a> ( 'INDICATOR'? <a href="#name_indicator_variable" title="name_indicator_variable" shape="rect">name_indicator_variable</a> )? ) )*</pre></div>
          
       </p>
       
@@ -450,12 +451,14 @@
          </ul>
          
       </p><br><p style="font-size: 14px; font-weight:bold"><a name="atom">atom:</a></p>
-      <img border="0" src="diagram/atom.png" height="188" width="516" usemap="#atom.map"><map name="atom.map">
+      <img border="0" src="diagram/atom.png" height="188" width="638" usemap="#atom.map"><map name="atom.map">
+         <area shape="rect" coords="49,1,197,33" href="#name_host_variable" title="name_host_variable">
+         <area shape="rect" coords="395,33,569,65" href="#name_indicator_variable" title="name_indicator_variable">
          <area shape="rect" coords="49,109,103,141" href="#literal" title="literal"></map>
       
       <p>
          
-         <div class="ebnf"><pre><a href="#atom" title="atom" shape="rect">atom</a>     ::= 'PARAMETER' ( 'INDICATOR'? 'PARAMETER' )?
+         <div class="ebnf"><pre><a href="#atom" title="atom" shape="rect">atom</a>     ::= <a href="#name_host_variable" title="name_host_variable" shape="rect">name_host_variable</a> ( 'INDICATOR'? <a href="#name_indicator_variable" title="name_indicator_variable" shape="rect">name_indicator_variable</a> )?
            | <a href="#literal" title="literal" shape="rect">literal</a>
            | 'USER'</pre></div>
          
@@ -1233,13 +1236,14 @@
          </ul>
          
       </p><br><p style="font-size: 14px; font-weight:bold"><a name="close_statement">close_statement:</a></p>
-      <img border="0" src="diagram/close_statement.png" height="36" width="244" usemap="#close_statement.map"><map name="close_statement.map">
-         <area shape="rect" coords="113,1,215,33" href="#name_cursor" title="name_cursor"></map>
+      <img border="0" src="diagram/close_statement.png" height="36" width="242" usemap="#close_statement.map"><map name="close_statement.map">
+         <area shape="rect" coords="29,1,91,33" href="#CLOSE" title="CLOSE">
+         <area shape="rect" coords="111,1,213,33" href="#name_cursor" title="name_cursor"></map>
       
       <p>
          
          <div class="ebnf"><pre><a href="#close_statement" title="close_statement" shape="rect">close_statement</a>
-         ::= 'CLOSE' <a href="#name_cursor" title="name_cursor" shape="rect">name_cursor</a></pre></div>
+         ::= <a href="#CLOSE" title="CLOSE" shape="rect">CLOSE</a> <a href="#name_cursor" title="name_cursor" shape="rect">name_cursor</a></pre></div>
          
       </p>
       
@@ -1337,13 +1341,14 @@
          </ul>
          
       </p><br><p style="font-size: 14px; font-weight:bold"><a name="open_statement">open_statement:</a></p>
-      <img border="0" src="diagram/open_statement.png" height="36" width="238" usemap="#open_statement.map"><map name="open_statement.map">
-         <area shape="rect" coords="107,1,209,33" href="#name_cursor" title="name_cursor"></map>
+      <img border="0" src="diagram/open_statement.png" height="36" width="234" usemap="#open_statement.map"><map name="open_statement.map">
+         <area shape="rect" coords="29,1,83,33" href="#OPEN" title="OPEN">
+         <area shape="rect" coords="103,1,205,33" href="#name_cursor" title="name_cursor"></map>
       
       <p>
          
          <div class="ebnf"><pre><a href="#open_statement" title="open_statement" shape="rect">open_statement</a>
-         ::= 'OPEN' <a href="#name_cursor" title="name_cursor" shape="rect">name_cursor</a></pre></div>
+         ::= <a href="#OPEN" title="OPEN" shape="rect">OPEN</a> <a href="#name_cursor" title="name_cursor" shape="rect">name_cursor</a></pre></div>
          
       </p>
       
@@ -1502,7 +1507,7 @@
       </p><br><p style="font-size: 14px; font-weight:bold"><a name="alter_user_def">alter_user_def:</a></p>
       <img border="0" src="diagram/alter_user_def.png" height="942" width="842" usemap="#alter_user_def.map"><map name="alter_user_def.map">
          <area shape="rect" coords="63,83,153,115" href="#name_user" title="name_user">
-         <area shape="rect" coords="501,171,591,203" href="#name_user" title="name_user">
+         <area shape="rect" coords="415,171,505,203" href="#name_user" title="name_user">
          <area shape="rect" coords="43,237,133,269" href="#name_user" title="name_user">
          <area shape="rect" coords="391,237,473,269" href="#password" title="password">
          <area shape="rect" coords="577,313,691,345" href="#name_external" title="name_external">
@@ -1517,7 +1522,7 @@
       <p>
          
          <div class="ebnf"><pre><a href="#alter_user_def" title="alter_user_def" shape="rect">alter_user_def</a>
-         ::= 'ALTER' 'USER' ( <a href="#name_user" title="name_user" shape="rect">name_user</a>+ ( 'GRANT' ( 'CONNECT' | 'REVOKE' ) 'THROUGH' 'ENTERPRISE' 'USERS' | 'GRANT' 'REVOKE' 'THROUGH' <a href="#name_user" title="name_user" shape="rect">name_user</a> ) | <a href="#name_user" title="name_user" shape="rect">name_user</a> ( 'IDENTIFIED' ( 'BY' <a href="#password" title="password" shape="rect">password</a> | ( 'EXTERNALLY' | 'GLOBALLY' ) ( 'AS' <a href="#name_external" title="name_external" shape="rect">name_external</a> )? ) | ( 'DEFAULT' | 'TEMPORARY' ) 'TABLESPACE' <a href="#name_tablespace" title="name_tablespace" shape="rect">name_tablespace</a> | 'QUOTA' ( 'UNLIMITED' | 'INTNUM' <a href="#name_unit" title="name_unit" shape="rect">name_unit</a>? ) 'ON' <a href="#name_tablespace" title="name_tablespace" shape="rect">name_tablespace</a> | 'PROFILE' <a href="#name_profile" title="name_profile" shape="rect">name_profile</a> | 'DEFAULT' 'ROLE' ( 'ALL' ( 'EXCEPT' <a href="#name_role" title="name_role" shape="rect">name_role</a>+ )? | 'NONE' | <a href="#name_role" title="name_role" shape="rect">name_role</a>+ ) )+ | <a href="#name_user" title="name_user" shape="rect">name_user</a> ( 'ACCOUNT' ( 'LOCK' | 'UNLOCK' ) | 'PASSWORD' 'EXPIRE' ) )</pre></div>
+         ::= 'ALTER' 'USER' ( <a href="#name_user" title="name_user" shape="rect">name_user</a>+ ( 'GRANT' ( 'CONNECT' | 'REVOKE' ) 'THROUGH' 'ENTERPRISE' 'USERS' | 'REVOKE' 'THROUGH' <a href="#name_user" title="name_user" shape="rect">name_user</a> ) | <a href="#name_user" title="name_user" shape="rect">name_user</a> ( 'IDENTIFIED' ( 'BY' <a href="#password" title="password" shape="rect">password</a> | ( 'EXTERNALLY' | 'GLOBALLY' ) ( 'AS' <a href="#name_external" title="name_external" shape="rect">name_external</a> )? ) | ( 'DEFAULT' | 'TEMPORARY' ) 'TABLESPACE' <a href="#name_tablespace" title="name_tablespace" shape="rect">name_tablespace</a> | 'QUOTA' ( 'UNLIMITED' | 'INTNUM' <a href="#name_unit" title="name_unit" shape="rect">name_unit</a>? ) 'ON' <a href="#name_tablespace" title="name_tablespace" shape="rect">name_tablespace</a> | 'PROFILE' <a href="#name_profile" title="name_profile" shape="rect">name_profile</a> | 'DEFAULT' 'ROLE' ( 'ALL' ( 'EXCEPT' <a href="#name_role" title="name_role" shape="rect">name_role</a>+ )? | 'NONE' | <a href="#name_role" title="name_role" shape="rect">name_role</a>+ ) )+ | <a href="#name_user" title="name_user" shape="rect">name_user</a> ( 'ACCOUNT' ( 'LOCK' | 'UNLOCK' ) | 'PASSWORD' 'EXPIRE' ) )</pre></div>
          
       </p>
       
@@ -1636,15 +1641,15 @@
          </ul>
          
       </p><br><p style="font-size: 14px; font-weight:bold"><a name="grantee_commalist">grantee_commalist:</a></p>
-      <img border="0" src="diagram/grantee_commalist.png" height="140" width="588" usemap="#grantee_commalist.map"><map name="grantee_commalist.map">
+      <img border="0" src="diagram/grantee_commalist.png" height="140" width="630" usemap="#grantee_commalist.map"><map name="grantee_commalist.map">
          <area shape="rect" coords="89,61,179,93" href="#name_user" title="name_user">
          <area shape="rect" coords="89,105,175,137" href="#name_role" title="name_role">
-         <area shape="rect" coords="417,93,499,125" href="#password" title="password"></map>
+         <area shape="rect" coords="417,93,541,125" href="#name_password" title="name_password"></map>
       
       <p>
          
          <div class="ebnf"><pre><a href="#grantee_commalist" title="grantee_commalist" shape="rect">grantee_commalist</a>
-         ::= ( 'PUBLIC' | ( <a href="#name_user" title="name_user" shape="rect">name_user</a> | <a href="#name_role" title="name_role" shape="rect">name_role</a> ) ( 'IDENTIFIED' 'BY' <a href="#password" title="password" shape="rect">password</a> )? )+</pre></div>
+         ::= ( 'PUBLIC' | ( <a href="#name_user" title="name_user" shape="rect">name_user</a> | <a href="#name_role" title="name_role" shape="rect">name_role</a> ) ( 'IDENTIFIED' 'BY' <a href="#name_password" title="name_password" shape="rect">name_password</a> )? )+</pre></div>
          
       </p>
       
@@ -1705,17 +1710,17 @@
          </ul>
          
       </p><br><p style="font-size: 14px; font-weight:bold"><a name="schema">schema:</a></p>
-      <img border="0" src="diagram/schema.png" height="244" width="900" usemap="#schema.map"><map name="schema.map">
-         <area shape="rect" coords="369,17,479,49" href="#name_schema" title="name_schema">
-         <area shape="rect" coords="725,17,811,49" href="#name_role" title="name_role">
-         <area shape="rect" coords="559,61,687,93" href="#create_table_def" title="create_table_def">
-         <area shape="rect" coords="559,105,689,137" href="#create_index_def" title="create_index_def">
-         <area shape="rect" coords="559,149,683,181" href="#create_user_def" title="create_user_def">
-         <area shape="rect" coords="559,193,635,225" href="#view_def" title="view_def"></map>
+      <img border="0" src="diagram/schema.png" height="244" width="880" usemap="#schema.map"><map name="schema.map">
+         <area shape="rect" coords="369,17,459,49" href="#name_user" title="name_user">
+         <area shape="rect" coords="705,17,791,49" href="#name_role" title="name_role">
+         <area shape="rect" coords="539,61,667,93" href="#create_table_def" title="create_table_def">
+         <area shape="rect" coords="539,105,669,137" href="#create_index_def" title="create_index_def">
+         <area shape="rect" coords="539,149,663,181" href="#create_user_def" title="create_user_def">
+         <area shape="rect" coords="539,193,615,225" href="#view_def" title="view_def"></map>
       
       <p>
          
-         <div class="ebnf"><pre><a href="#schema" title="schema" shape="rect">schema</a>   ::= 'CREATE' 'SCHEMA' 'AUTHORIZATION' <a href="#name_schema" title="name_schema" shape="rect">name_schema</a> ( 'CREATE' 'ROLE' <a href="#name_role" title="name_role" shape="rect">name_role</a> | <a href="#create_table_def" title="create_table_def" shape="rect">create_table_def</a> | <a href="#create_index_def" title="create_index_def" shape="rect">create_index_def</a> | <a href="#create_user_def" title="create_user_def" shape="rect">create_user_def</a> | <a href="#view_def" title="view_def" shape="rect">view_def</a> )+?</pre></div>
+         <div class="ebnf"><pre><a href="#schema" title="schema" shape="rect">schema</a>   ::= 'CREATE' 'SCHEMA' 'AUTHORIZATION' <a href="#name_user" title="name_user" shape="rect">name_user</a> ( 'CREATE' 'ROLE' <a href="#name_role" title="name_role" shape="rect">name_role</a> | <a href="#create_table_def" title="create_table_def" shape="rect">create_table_def</a> | <a href="#create_index_def" title="create_index_def" shape="rect">create_index_def</a> | <a href="#create_user_def" title="create_user_def" shape="rect">create_user_def</a> | <a href="#view_def" title="view_def" shape="rect">view_def</a> )+?</pre></div>
          
       </p>
       
@@ -1800,13 +1805,13 @@
          </ul>
          
       </p><br><p style="font-size: 14px; font-weight:bold"><a name="view_def">view_def:</a></p>
-      <img border="0" src="diagram/view_def.png" height="222" width="620" usemap="#view_def.map"><map name="view_def.map">
-         <area shape="rect" coords="235,45,287,77" href="#table" title="table">
+      <img border="0" src="diagram/view_def.png" height="222" width="544" usemap="#view_def.map"><map name="view_def.map">
+         <area shape="rect" coords="215,45,267,77" href="#table" title="table">
          <area shape="rect" coords="107,155,199,187" href="#query_spec" title="query_spec"></map>
       
       <p>
          
-         <div class="ebnf"><pre><a href="#view_def" title="view_def" shape="rect">view_def</a> ::= ( 'CREATE' 'VIEW' <a href="#table" title="table" shape="rect">table</a> '(' ( 'NAME' | 'STRING' ) ( ',' ( 'NAME' | 'STRING' ) )* )? ')'
+         <div class="ebnf"><pre><a href="#view_def" title="view_def" shape="rect">view_def</a> ::= 'CREATE' 'VIEW' <a href="#table" title="table" shape="rect">table</a> ( ( 'NAME' | 'STRING' ) ( ',' ( 'NAME' | 'STRING' ) )* )?
            | 'AS' <a href="#query_spec" title="query_spec" shape="rect">query_spec</a> ( 'WITH' 'CHECK' 'OPTION' )?</pre></div>
          
       </p>

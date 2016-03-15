@@ -703,16 +703,38 @@ alter_user_def -> ALTER USER NAME spec_list
 alter_user_def -> ALTER USER NAME NAME NAME
 
 user_list -> NAME
-user_list -> NAME user_list
+user_list -> NAME ',' user_list
 
-proxy_clause -> GRANT CONNECT THROUGH ENTERPRISE USERS
-proxy_clause -> GRANT REVOKE THROUGH ENTERPRISE USERS
-proxy_clause -> GRANT REVOKE THROUGH NAME
+proxy_clause -> GRANT CONNECT THROUGH ENTERPRISE USERS                                          : {'grant connect', 'enterprise users'}.
+proxy_clause -> GRANT CONNECT THROUGH db_user_proxy
+proxy_clause -> REVOKE CONNECT THROUGH ENTERPRISE USERS
+proxy_clause -> REVOKE CONNECT THROUGH db_user_proxy
 
-spec_list -> identified
-spec_list -> user_opt
-spec_list -> user_role
-spec_list -> spec_list spec_list
+db_user_proxy -> '$empty'
+db_user_proxy -> proxy_with
+db_user_proxy -> proxy_auth_req
+db_user_proxy -> proxy_with proxy_auth_req
+
+proxy_with -> WITH NO ROLES
+proxy_with -> WITH ROLE role_list
+proxy_with -> WITH ROLE ALL EXCEPT role_list
+
+proxy_auth_req -> AUTHENTICATION REQUIRED
+
+spec_list -> spec_item
+spec_list -> spec_item spec_list
+
+spec_item -> identified
+spec_item -> user_opt
+spec_item -> user_role
+
+user_role -> DEFAULT ROLE ALL
+user_role -> DEFAULT ROLE ALL EXCEPT role_list
+user_role -> DEFAULT ROLE NONE
+user_role -> DEFAULT ROLE role_list
+
+role_list -> NAME
+role_list -> NAME ',' role_list
 
 identified -> IDENTIFIED BY NAME
 identified -> IDENTIFIED EXTERNALLY opt_as
@@ -817,22 +839,36 @@ drop_index_def ::= 'DROP' 'INDEX' ((name_schema '.')? name_index)? 'FROM' table
 
 alter_user_def ::= 'ALTER' 'USER'
                    (
-                     (name_user+ (
-                                   ('GRANT' ('CONNECT' | 'REVOKE') 'THROUGH' 'ENTERPRISE' 'USERS')
-                                 | ('REVOKE' 'THROUGH' name_user)
-                                 )
+                     (name_user (',' name_user)*
+                                ('GRANT' | 'REVOKE') 'CONNECT' 'THROUGH'
+                                (
+                                  ('ENTERPRISE' 'USERS')
+                                | ('WITH' (
+                                            ('NO' 'ROLES')
+                                          | ('ROLE' ('ALL' 'EXCEPT')? name_role (',' name_role)*))
+                                          )?
+                                )
                      )
                    | (name_user (
-                                  ('IDENTIFIED' (('BY' password) | (('EXTERNALLY' | 'GLOBALLY') ('AS' name_external)?)))
-                                | (('DEFAULT' | 'TEMPORARY') 'TABLESPACE' name_tablespace)
-                                | ('QUOTA' ('UNLIMITED' | ('INTNUM' name_unit?)) 'ON' name_tablespace)
-                                | ('PROFILE' name_profile)
-                                | ('DEFAULT' 'ROLE' (('ALL' ('EXCEPT' name_role+)?) | 'NONE' | name_role+))
-                                )+
+                                  (
+                                    ('IDENTIFIED' (('BY' password) | (('EXTERNALLY' | 'GLOBALLY') ('AS' name_external)?)))
+                                  | (('DEFAULT' | 'TEMPORARY') 'TABLESPACE' name_tablespace)
+                                  | ('QUOTA' ('UNLIMITED' | ('INTNUM' name_unit?)) 'ON' name_tablespace)
+                                  | ('PROFILE' name_profile)
+                                  | ('DEFAULT' 'ROLE' (
+                                                        ('ALL' ('EXCEPT' name_role (',' name_role)*)?)
+                                                      | 'NONE'
+                                                      | name_role (',' name_role)*
+                                                      )
+                                    )
+                                  )+
+                                |
+                                  (
+                                    ('ACCOUNT' ('LOCK' | 'UNLOCK'))
+                                  | ('PASSWORD' 'EXPIRE')
+                                  )
+                                )
                      )
-                   | (name_user (
-                                  ('ACCOUNT' ('LOCK' | 'UNLOCK'))
-                                | ('PASSWORD' 'EXPIRE')))
                    )
 
 drop_user_def ::= 'DROP' 'USER' name_user 'CASCADE'?

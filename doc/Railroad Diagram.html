@@ -1505,24 +1505,23 @@
          </ul>
          
       </p><br><p style="font-size: 14px; font-weight:bold"><a name="alter_user_def">alter_user_def:</a></p>
-      <img border="0" src="diagram/alter_user_def.png" height="942" width="842" usemap="#alter_user_def.map"><map name="alter_user_def.map">
-         <area shape="rect" coords="63,83,153,115" href="#name_user" title="name_user">
-         <area shape="rect" coords="415,171,505,203" href="#name_user" title="name_user">
-         <area shape="rect" coords="43,237,133,269" href="#name_user" title="name_user">
-         <area shape="rect" coords="391,237,473,269" href="#password" title="password">
-         <area shape="rect" coords="577,313,691,345" href="#name_external" title="name_external">
-         <area shape="rect" coords="483,369,615,401" href="#name_tablespace" title="name_tablespace">
-         <area shape="rect" coords="415,533,501,565" href="#name_unit" title="name_unit">
-         <area shape="rect" coords="621,457,753,489" href="#name_tablespace" title="name_tablespace">
-         <area shape="rect" coords="291,577,393,609" href="#name_profile" title="name_profile">
-         <area shape="rect" coords="583,643,669,675" href="#name_role" title="name_role">
-         <area shape="rect" coords="409,775,495,807" href="#name_role" title="name_role">
-         <area shape="rect" coords="43,819,133,851" href="#name_user" title="name_user"></map>
+      <img border="0" src="diagram/alter_user_def.png" height="1106" width="1142" usemap="#alter_user_def.map"><map name="alter_user_def.map">
+         <area shape="rect" coords="63,111,153,143" href="#name_user" title="name_user">
+         <area shape="rect" coords="947,243,1033,275" href="#name_role" title="name_role">
+         <area shape="rect" coords="43,357,133,389" href="#name_user" title="name_user">
+         <area shape="rect" coords="411,357,493,389" href="#password" title="password">
+         <area shape="rect" coords="597,433,711,465" href="#name_external" title="name_external">
+         <area shape="rect" coords="503,489,635,521" href="#name_tablespace" title="name_tablespace">
+         <area shape="rect" coords="435,653,521,685" href="#name_unit" title="name_unit">
+         <area shape="rect" coords="641,577,773,609" href="#name_tablespace" title="name_tablespace">
+         <area shape="rect" coords="311,697,413,729" href="#name_profile" title="name_profile">
+         <area shape="rect" coords="603,785,689,817" href="#name_role" title="name_role">
+         <area shape="rect" coords="429,939,515,971" href="#name_role" title="name_role"></map>
       
       <p>
          
          <div class="ebnf"><pre><a href="#alter_user_def" title="alter_user_def" shape="rect">alter_user_def</a>
-         ::= 'ALTER' 'USER' ( <a href="#name_user" title="name_user" shape="rect">name_user</a>+ ( 'GRANT' ( 'CONNECT' | 'REVOKE' ) 'THROUGH' 'ENTERPRISE' 'USERS' | 'REVOKE' 'THROUGH' <a href="#name_user" title="name_user" shape="rect">name_user</a> ) | <a href="#name_user" title="name_user" shape="rect">name_user</a> ( 'IDENTIFIED' ( 'BY' <a href="#password" title="password" shape="rect">password</a> | ( 'EXTERNALLY' | 'GLOBALLY' ) ( 'AS' <a href="#name_external" title="name_external" shape="rect">name_external</a> )? ) | ( 'DEFAULT' | 'TEMPORARY' ) 'TABLESPACE' <a href="#name_tablespace" title="name_tablespace" shape="rect">name_tablespace</a> | 'QUOTA' ( 'UNLIMITED' | 'INTNUM' <a href="#name_unit" title="name_unit" shape="rect">name_unit</a>? ) 'ON' <a href="#name_tablespace" title="name_tablespace" shape="rect">name_tablespace</a> | 'PROFILE' <a href="#name_profile" title="name_profile" shape="rect">name_profile</a> | 'DEFAULT' 'ROLE' ( 'ALL' ( 'EXCEPT' <a href="#name_role" title="name_role" shape="rect">name_role</a>+ )? | 'NONE' | <a href="#name_role" title="name_role" shape="rect">name_role</a>+ ) )+ | <a href="#name_user" title="name_user" shape="rect">name_user</a> ( 'ACCOUNT' ( 'LOCK' | 'UNLOCK' ) | 'PASSWORD' 'EXPIRE' ) )</pre></div>
+         ::= 'ALTER' 'USER' ( <a href="#name_user" title="name_user" shape="rect">name_user</a> ( ',' <a href="#name_user" title="name_user" shape="rect">name_user</a> )* ( 'GRANT' | 'REVOKE' ) 'CONNECT' 'THROUGH' ( 'ENTERPRISE' 'USERS' | ( 'WITH' ( 'NO' 'ROLES' | 'ROLE' ( 'ALL' 'EXCEPT' )? <a href="#name_role" title="name_role" shape="rect">name_role</a> ( ',' <a href="#name_role" title="name_role" shape="rect">name_role</a> )* ) )? ) | <a href="#name_user" title="name_user" shape="rect">name_user</a> ( ( 'IDENTIFIED' ( 'BY' <a href="#password" title="password" shape="rect">password</a> | ( 'EXTERNALLY' | 'GLOBALLY' ) ( 'AS' <a href="#name_external" title="name_external" shape="rect">name_external</a> )? ) | ( 'DEFAULT' | 'TEMPORARY' ) 'TABLESPACE' <a href="#name_tablespace" title="name_tablespace" shape="rect">name_tablespace</a> | 'QUOTA' ( 'UNLIMITED' | 'INTNUM' <a href="#name_unit" title="name_unit" shape="rect">name_unit</a>? ) 'ON' <a href="#name_tablespace" title="name_tablespace" shape="rect">name_tablespace</a> | 'PROFILE' <a href="#name_profile" title="name_profile" shape="rect">name_profile</a> | 'DEFAULT' 'ROLE' ( 'ALL' ( 'EXCEPT' <a href="#name_role" title="name_role" shape="rect">name_role</a> ( ',' <a href="#name_role" title="name_role" shape="rect">name_role</a> )* )? | 'NONE' | <a href="#name_role" title="name_role" shape="rect">name_role</a> ( ',' <a href="#name_role" title="name_role" shape="rect">name_role</a> )* ) )+ | ( 'ACCOUNT' ( 'LOCK' | 'UNLOCK' ) | 'PASSWORD' 'EXPIRE' ) ) )</pre></div>
          
       </p>
       

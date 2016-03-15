@@ -44,3 +44,5 @@ Test Cases
 * [JSON Path](https://github.com/K2InformaticsGmbH/sqlparse/blob/master/test/jsonpath.tst)
 
 These test cases are also documentation of current support
+
+`SQL=<test> rebar eunit skip_deps=true` to run one specific <test>.tst file  from `test/` folder

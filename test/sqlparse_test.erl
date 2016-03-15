@@ -5,11 +5,15 @@
 -export([test_sql/3]).
 
 sql_test_() ->
+    WCard = case os:getenv("SQL") of
+                undefined -> "*";
+                Sql -> Sql
+            end ++ ".tst",
     {ok, Cwd} = file:get_cwd(),
     [_|RootPath] = lists:reverse(filename:split(Cwd)),
     TestDir = filename:join(lists:reverse(["test" | RootPath])),
     TestFiles = lists:sort([filename:join(TestDir, T)
-                            || T <- filelib:wildcard("*.tst", TestDir)]),
+                            || T <- filelib:wildcard(WCard, TestDir)]),
     group_gen(TestFiles).
 
 group_gen(TestFiles) ->

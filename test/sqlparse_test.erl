@@ -6,8 +6,8 @@
 
 sql_test_() ->
     WCard = case os:getenv("SQL") of
-                undefined -> "*";
-                Sql -> Sql
+                Sql when is_list(Sql) -> Sql;
+                _ -> "*"
             end ++ ".tst",
     {ok, Cwd} = file:get_cwd(),
     [_|RootPath] = lists:reverse(filename:split(Cwd)),

@@ -248,20 +248,69 @@ fold(FType, Fun, Ctx, Lvl, {'create role', Role} = ST)
 %
 % ALTER USER
 %
-fold(FType, Fun, Ctx, Lvl, {'alter user', Usr, {spec, Opts}} = ST)
+fold(FType, Fun, Ctx, Lvl, {'alter user',Usr,{spec, Opts}} = ST)
   when is_binary(Usr) ->
     NewCtx = case FType of
         top_down -> Fun(ST, Ctx);
         bottom_up -> Ctx
     end,
-    NewCtx1 = Fun(Usr, NewCtx),
-    {OptsStr, NewCtx2} = fold(FType, Fun, NewCtx1, Lvl+1, Opts),
-    NewCtx3 = case FType of
-        top_down -> NewCtx2;
-        bottom_up -> Fun(ST, NewCtx2)
+    {OptsStr, NewCtx1} =
+    lists:foldl(
+      fun(Opt, {OptsS, INewCtx}) ->
+              {OS, INewCtx1} = fold(FType, Fun, INewCtx, Lvl+1, Opt),
+              {OptsS++" "++OS, INewCtx1}
+      end, {"", NewCtx}, Opts),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
     end,
     {lists:flatten(["alter user ", binary_to_list(Usr), " ", OptsStr]),
-     NewCtx3};
+     NewCtx2};
+
+fold(FType, Fun, Ctx, _Lvl, {'alter user',[Usr|_]=Users,{Grant,GrantArg}} = ST)
+  when is_binary(Usr) andalso
+       (Grant == 'grant connect' orelse Grant == 'revoke connect') ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    GrantStr = [atom_to_list(Grant), " ", "through", " ", 
+                if is_atom(GrantArg) -> atom_to_list(GrantArg);
+                   true ->
+                      case GrantArg of
+                          {W,A} when is_atom(W), is_atom(A) ->
+                              [" ", atom_to_list(W), " ", atom_to_list(A)];
+                          {W,Roles} when is_atom(W) ->
+                              [" ", atom_to_list(W), " ",
+                               string:join([binary_to_list(R) || R <- Roles],
+                                           ",")];
+                          {{W,Roles},Authrec} when is_atom(W) ->
+                              [" ", atom_to_list(W), " ",
+                               string:join([binary_to_list(R) || R <- Roles],
+                                           ","), " ", atom_to_list(Authrec)]
+                      end
+                end],
+    NewCtx1 = case FType of
+        top_down -> NewCtx;
+        bottom_up -> Fun(ST, NewCtx)
+    end,
+    {lists:flatten(
+       ["alter user ", string:join([binary_to_list(U) || U <- Users], ","),
+        " ", GrantStr]), NewCtx1};
+
+fold(FType, Fun, Ctx, _Lvl, {Role, Roles} = ST)
+  when Role == 'default role'; Role == 'default role all except' ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    NewCtx1 = case FType of
+        top_down -> NewCtx;
+        bottom_up -> Fun(ST, NewCtx)
+    end,
+    {lists:flatten([atom_to_list(Role), " ",
+                    string:join([binary_to_list(R) || R <- Roles], ",")]),
+     NewCtx1};
 
 %
 % TRUNCATE TABLE

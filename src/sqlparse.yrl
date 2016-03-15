@@ -137,6 +137,7 @@ Nonterminals
  proxy_clause
  user_list
  spec_list
+ spec_item
  role_list
  user_role
  opt_sgn_num
@@ -164,6 +165,9 @@ Nonterminals
  case_when_then
  opt_else
  procedure_call
+ db_user_proxy
+ proxy_with
+ proxy_auth_req
 .
 
     %% symbolic tokens
@@ -266,7 +270,9 @@ Terminals
  THROUGH
  USERS
  ROLE
+ ROLES
  EXCEPT
+ NO
  NONE
  CONNECT
  LOCAL
@@ -315,6 +321,8 @@ Terminals
  INDEX
  NORM_WITH
  FILTER_WITH
+ REQUIRED
+ AUTHENTICATION
  'AND'
  'NOT'
  'OR'
@@ -448,24 +456,37 @@ drop_user_def -> DROP USER NAME                                                 
 drop_user_def -> DROP USER NAME CASCADE                                                         : {'drop user', unwrap_bin('$3'), ['cascade']}.
 
 user_list -> NAME                                                                               : [unwrap_bin('$1')].
-user_list -> NAME user_list                                                                     : [unwrap_bin('$1')] ++ '$2'.
+user_list -> NAME ',' user_list                                                                 : [unwrap_bin('$1') | '$3'].
 
 proxy_clause -> GRANT CONNECT THROUGH ENTERPRISE USERS                                          : {'grant connect', 'enterprise users'}.
-proxy_clause -> GRANT REVOKE THROUGH ENTERPRISE USERS                                           : {'grant revoke', 'enterprise users'}.
-proxy_clause -> GRANT REVOKE THROUGH NAME                                                       : {'grant revoke', unwrap_bin('$4')}.
+proxy_clause -> GRANT CONNECT THROUGH db_user_proxy                                             : {'grant connect', '$4'}.
+proxy_clause -> REVOKE CONNECT THROUGH ENTERPRISE USERS                                         : {'revoke connect', 'enterprise users'}.
+proxy_clause -> REVOKE CONNECT THROUGH db_user_proxy                                            : {'revoke connect', '$4'}.
 
-spec_list -> identified                                                                         : ['$1'].
-spec_list -> user_opt                                                                           : '$1'.
-spec_list -> user_role                                                                          : ['$1'].
-spec_list -> spec_list spec_list                                                                : ['$1'] ++ ['$2'].
+db_user_proxy -> '$empty'                                                                       : {}.
+db_user_proxy -> proxy_with                                                                     : '$1'.
+db_user_proxy -> proxy_auth_req                                                                 : '$1'.
+db_user_proxy -> proxy_with proxy_auth_req                                                      : {'$1', '$2'}.
 
-user_role -> DEFAULT ROLE ALL                                                                   : 'role all'.
-user_role -> DEFAULT ROLE ALL EXCEPT role_list                                                  : {'role except', '$5'}.
-user_role -> DEFAULT ROLE NONE                                                                  : 'role none'.
-user_role -> DEFAULT ROLE role_list                                                             : {'role', '$3'}.
+proxy_with -> WITH NO ROLES                                                                     : 'with no roles'.
+proxy_with -> WITH ROLE role_list                                                               : {'with role', '$3'}.
+proxy_with -> WITH ROLE ALL EXCEPT role_list                                                    : {'with role all except', '$5'}.
+proxy_auth_req -> AUTHENTICATION REQUIRED                                                       : 'authentication required'.
+
+spec_list -> spec_item                                                                          : ['$1'].
+spec_list -> spec_item spec_list                                                                : ['$1'|'$2'].
+
+spec_item -> identified                                                                         : '$1'.
+spec_item -> user_opt                                                                           : '$1'.
+spec_item -> user_role                                                                          : '$1'.
+
+user_role -> DEFAULT ROLE ALL                                                                   : 'default role all'.
+user_role -> DEFAULT ROLE ALL EXCEPT role_list                                                  : {'default role all except', '$5'}.
+user_role -> DEFAULT ROLE NONE                                                                  : 'default role none'.
+user_role -> DEFAULT ROLE role_list                                                             : {'default role', '$3'}.
 
 role_list -> NAME                                                                               : [unwrap_bin('$1')].
-role_list -> NAME role_list                                                                     : [unwrap_bin('$1')] ++ '$2'.
+role_list -> NAME ',' role_list                                                                 : [unwrap_bin('$1') | '$3'].
 
 identified -> IDENTIFIED BY NAME                                                                : {'identified by', unwrap_bin('$3')}.
 identified -> IDENTIFIED EXTERNALLY opt_as                                                      : {'identified extern', '$3'}.

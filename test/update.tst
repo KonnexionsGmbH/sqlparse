@@ -8,6 +8,11 @@
 %% TESTS
 %%
 
+"UPDATE name_table SET name_column_1 = :value_1".
+"UPDATE name_table SET name_column_1 = :value_1, name_column_2 = :value_2".
+
+"UPDATE name_table SET name_column_1 = :value_1, name_column_2 = :value_2 WHERE employee_id = :id".
+
 "UPDATE employees set salary = :sal where employee_id = :id".
 "UPDATE employees set salary = :sal where employee_id = :id RETURNING c,d INTO :c, :d".
 "UPDATE employees set salary = :sal where employee_id = :id RETURNING lob_column INTO :out_locator".

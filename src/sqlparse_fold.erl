@@ -53,7 +53,7 @@ fold(FType, Fun, Ctx, Lvl, {select, Opts} = ST) ->
     end,
     {NewOs, NewCtx1} = lists:foldl(fun(O, {Acc, CtxAcc}) ->
             {SubAcc, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl+1, O),
-            {Acc++[SubAcc], CtxAcc1}
+            {Acc++[" ", SubAcc], CtxAcc1}
         end,
         {[], NewCtx},
         Opts),
@@ -830,8 +830,7 @@ fold(FType, Fun, Ctx, _Lvl, {into, Into} = ST) ->
         top_down -> NewCtx1;
         bottom_up -> Fun(ST, NewCtx1)
     end,
-    {string:join(IntoStr, ", ") ++ " "
-    , NewCtx2};
+    {"into " ++ string:join(IntoStr, ",") ++ " ", NewCtx2};
 fold(FType, Fun, Ctx, Lvl, {from, Forms} = ST) ->
     NewCtx = case FType of
         top_down -> Fun(ST, Ctx);

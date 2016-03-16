@@ -697,17 +697,12 @@ open_statement -> OPEN cursor                                                   
 rollback_statement -> ROLLBACK                                                                  : 'rollback'.
 rollback_statement -> ROLLBACK WORK                                                             : 'rollback work'.
 
-select_statement -> SELECT opt_hint opt_all_distinct selection INTO target_commalist table_exp
-                 : case '$2' of
-                     {hint, ""} -> list_to_tuple([select, ['$3', '$4', '$6'] ++ '$7']);
-                     _          -> list_to_tuple([select, ['$2', '$3', '$4', '$6'] ++ '$7'])
-                   end.
 select_statement -> query_exp                                                                   : '$1'.
 
-opt_hint -> '$empty'                                                                            : {hints, <<>>}.
+opt_hint -> '$empty'                                                                            : {}.
 opt_hint -> HINT                                                                                : {hints, unwrap_bin('$1')}.
 
-opt_all_distinct -> '$empty'                                                                    : {opt, <<>>}.
+opt_all_distinct -> '$empty'                                                                    : {}.
 opt_all_distinct -> ALL                                                                         : {opt, <<"all">>}.
 opt_all_distinct -> DISTINCT                                                                    : {opt, <<"distinct">>}.
 
@@ -749,13 +744,15 @@ query_term -> query_spec                                                        
 query_term -> '(' query_exp ')'                                                                 : '$2'.
 
 query_spec -> SELECT opt_hint opt_all_distinct selection opt_into table_exp
-           : case '$2' of
-               {hint, ""} -> list_to_tuple([select, ['$3', {fields, '$4'}, {into, '$5'}] ++ '$6']);
-               _          -> list_to_tuple([select, ['$2', '$3', {fields, '$4'}, {into, '$5'}] ++ '$6'])
-             end.
+           : {select,
+              if '$2' == {} -> []; true -> ['$2'] end ++
+              if '$3' == {} -> []; true -> ['$3'] end ++
+              [{fields, '$4'}] ++
+              if '$5' == {} -> []; true -> [{into, '$5'}] end ++
+              '$6'}.
 
-opt_into -> '$empty'                                                                            : [].
-opt_into -> INTO target_commalist                                                               : {'$2', {}}.
+opt_into -> '$empty'                                                                            : {}.
+opt_into -> INTO target_commalist                                                               : '$2'.
 opt_into -> INTO target_commalist IN NAME                                                       : {'$2', {'in', unwrap_bin('$4')}}.
 
 selection -> select_field_commalist                                                             : '$1'.

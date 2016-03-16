@@ -104,9 +104,9 @@ UNION ALL
 
 % into -------------------------------------------------------------------------
 
-% ? "SELECT * INTO name_variable_1 FROM name_table".
-% ? "SELECT name_column_1 INTO name_variable_1 FROM name_table".
-% ? "SELECT name_column_1, name_column_2 INTO name_variable_1, name_variable_2 FROM name_table".
+"SELECT * INTO name_variable_1 FROM name_table".
+"SELECT name_column_1 INTO name_variable_1 FROM name_table".
+"SELECT name_column_1, name_column_2 INTO name_variable_1, name_variable_2 FROM name_table".
 
 % join -------------------------------------------------------------------------
 

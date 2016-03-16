@@ -83,7 +83,7 @@ query_term ::= query_spec | '(' query_exp ')'
 
 scalar_exp ::= scalar_sub_exp ('||' scalar_exp)
 
-/* ============================================================================= 
+/* =============================================================================
 query_spec -> SELECT opt_hint opt_all_distinct selection opt_into table_exp
 
 opt_hint -> '$empty'
@@ -169,8 +169,8 @@ query_spec ::= 'SELECT' 'HINT'?
                         ('INTO' target_commalist ('IN' 'NAME')?)?
                         table_exp
 
-target_commalist ::= (('NAME' | ('PARAMETER' ('INDICATOR'? 'PARAMETER')?)) (','
-                      ('NAME' | ('PARAMETER' ('INDICATOR'? 'PARAMETER')?)))*)
+target_commalist ::= (('NAME' | (name_host_variable ('INDICATOR'? name_indicator_variable)?)) (','
+                      ('NAME' | (name_host_variable ('INDICATOR'? name_indicator_variable)?)))*)
 
 scalar_sub_exp ::= atom
                  | column_ref
@@ -183,7 +183,7 @@ scalar_sub_exp ::= atom
 
 literal ::= '%STRING%' | '%INTNUMN%' | '%APPROXNUM%'
 
-atom ::= ('PARAMETER' ('INDICATOR'? 'PARAMETER')?) | literal | 'USER'
+atom ::= (name_host_variable ('INDICATOR'? name_indicator_variable)?) | literal | 'USER'
 
 column_ref ::= '%JSON%' | 'NAME'
                (('(' '+' ')' | ('.' ('*' | '%JSON%' | 'NAME'
@@ -298,14 +298,14 @@ case_when_exp ::= '(' case_when_exp ')'
 
 scalar_opt_as_exp ::= scalar_exp ('AS'? name_alias)? ('%COMPARISON%' scalar_exp ('AS'? name_alias)?)?
 
-table_exp ::= 'FROM' (table_ref | join_clause | '(' join_clause ')') (',' (table_ref | join_clause | '(' join_clause ')'))* 
+table_exp ::= 'FROM' (table_ref | join_clause | '(' join_clause ')') (',' (table_ref | join_clause | '(' join_clause ')'))*
               ('WHERE' search_condition)?
               (hierarchical_query_clause)?
               ('GROUP' 'BY' column_ref_commalist)?
               ('HAVING' search_condition)?
               (order_by_clause)?
 
-from_commalist ::= (table_ref | join_clause | '(' join_clause ')') 
+from_commalist ::= (table_ref | join_clause | '(' join_clause ')')
                    (',' (table_ref | join_clause | '(' join_clause ')'))*
 
 hierarchical_query_clause ::= ('START' 'WITH' search_condition 'CONNECT' 'BY' 'NOCYCLE'? search_condition)
@@ -318,8 +318,8 @@ search_condition ::= (search_condition ('OR' | 'AND') search_condition)
 
 column_ref_commalist ::= (column_ref | function_ref) (',' (column_ref | function_ref))*
 
-fun_arg ::= '(' fun_arg ')' 
-          | function_ref 
+fun_arg ::= '(' fun_arg ')'
+          | function_ref
 	      | column_ref
 	      | fun_arg ('+' | '-' | '*' | '/' | 'div' | '||' | 'COMPARISON') fun_arg
 	      | ('+' | '-') (fun_arg | literal)
@@ -388,14 +388,14 @@ query_partition_clause -> PARTITION BY '(' scalar_exp_commalist ')'
 query_partition_clause -> PARTITION BY scalar_exp_commalist
 
 predicate -> comparison_predicate
-predicate -> between_predicate                                                                  
-predicate -> like_predicate                                                                     
-predicate -> test_for_null                                                                      
-predicate -> in_predicate                                                                       
-predicate -> all_or_anyin_predicate                                                               
-predicate -> existence_test                                                                     
+predicate -> between_predicate
+predicate -> like_predicate
+predicate -> test_for_null
+predicate -> in_predicate
+predicate -> all_or_anyin_predicate
+predicate -> existence_test
 
-comparison_predicate -> scalar_opt_as_exp                                                       
+comparison_predicate -> scalar_opt_as_exp
 comparison_predicate -> PRIOR scalar_exp COMPARISON scalar_exp
 comparison_predicate -> scalar_exp COMPARISON PRIOR scalar_exp
 comparison_predicate -> scalar_exp COMPARISON subquery
@@ -431,7 +431,7 @@ any_all_some -> SOME
 existence_test -> EXISTS subquery
 ----------------------------------------------------------------------------- */
 
-table_ref ::= table 
+table_ref ::= table
             | '(' query_exp ')' ('AS'? name_alias)?
 	        | table 'NAME'
 
@@ -453,14 +453,14 @@ outer_join ::= ('NATURAL' | (query_partition_clause 'NATURAL'?))?
 query_partition_clause ::= 'PARTITION' 'BY' (scalar_exp_commalist | '(' scalar_exp_commalist ')')
 
 predicate ::= comparison_predicate
-            | between_predicate                                                                  
-            | like_predicate                                                                     
-            | test_for_null                                                                      
-            | in_predicate                                                                       
-            | all_or_anyin_predicate                                                               
-            | existence_test                                                                     
+            | between_predicate
+            | like_predicate
+            | test_for_null
+            | in_predicate
+            | all_or_anyin_predicate
+            | existence_test
 
-comparison_predicate ::= scalar_opt_as_exp                                                       
+comparison_predicate ::= scalar_opt_as_exp
                        | 'PRIOR' scalar_exp 'COMPARISON' scalar_exp
                        | scalar_exp 'COMPARISON' 'PRIOR' scalar_exp
                        | scalar_exp 'COMPARISON' query_exp
@@ -486,56 +486,56 @@ existence_test ::= 'EXISTS' query_exp
 /* Level 1: Manipulative statements.
 /* -----------------------------------------------------------------------------
 
-manipulative_statement -> close_statement                                                       
-manipulative_statement -> commit_statement                                                      
-manipulative_statement -> delete_statement_positioned                                           
-manipulative_statement -> delete_statement_searched                                             
-manipulative_statement -> fetch_statement                                                       
-manipulative_statement -> insert_statement                                                      
-manipulative_statement -> open_statement                                                        
-manipulative_statement -> rollback_statement                                                    
-manipulative_statement -> select_statement                                                      
-manipulative_statement -> update_statement_positioned                                           
-manipulative_statement -> update_statement_searched                                             
-manipulative_statement -> create_table_def                                                      
-manipulative_statement -> create_role_def                                                       
-manipulative_statement -> create_index_def                                                      
-manipulative_statement -> create_user_def                                                       
-manipulative_statement -> drop_role_def                                                         
-manipulative_statement -> drop_table_def                                                        
-manipulative_statement -> drop_index_def                                                        
-manipulative_statement -> alter_user_def                                                        
-manipulative_statement -> drop_user_def                                                         
-manipulative_statement -> view_def                                                              
-manipulative_statement -> truncate_table                                                        
-manipulative_statement -> grant_def                                                             
-manipulative_statement -> revoke_def                                                            
+manipulative_statement -> close_statement
+manipulative_statement -> commit_statement
+manipulative_statement -> delete_statement_positioned
+manipulative_statement -> delete_statement_searched
+manipulative_statement -> fetch_statement
+manipulative_statement -> insert_statement
+manipulative_statement -> open_statement
+manipulative_statement -> rollback_statement
+manipulative_statement -> select_statement
+manipulative_statement -> update_statement_positioned
+manipulative_statement -> update_statement_searched
+manipulative_statement -> create_table_def
+manipulative_statement -> create_role_def
+manipulative_statement -> create_index_def
+manipulative_statement -> create_user_def
+manipulative_statement -> drop_role_def
+manipulative_statement -> drop_table_def
+manipulative_statement -> drop_index_def
+manipulative_statement -> alter_user_def
+manipulative_statement -> drop_user_def
+manipulative_statement -> view_def
+manipulative_statement -> truncate_table
+manipulative_statement -> grant_def
+manipulative_statement -> revoke_def
 ----------------------------------------------------------------------------- */
 
 manipulative_statement ::= close_statement
-                         | commit_statement                                                      
-                         | delete_statement_positioned                                           
-                         | delete_statement_searched                                             
-                         | fetch_statement                                                       
-                         | insert_statement                                                      
-                         | open_statement                                                        
-                         | rollback_statement                                                    
-                         | select_statement                                                      
-                         | update_statement_positioned                                           
-                         | update_statement_searched                                             
-                         | create_table_def                                                      
-                         | create_role_def                                                       
-                         | create_index_def                                                      
-                         | create_user_def                                                       
-                         | drop_role_def                                                         
-                         | drop_table_def                                                        
-                         | drop_index_def                                                        
-                         | alter_user_def                                                        
-                         | drop_user_def                                                         
-                         | view_def                                                              
-                         | truncate_table                                                        
-                         | grant_def                                                             
-                         | revoke_def                                                            
+                         | commit_statement
+                         | delete_statement_positioned
+                         | delete_statement_searched
+                         | fetch_statement
+                         | insert_statement
+                         | open_statement
+                         | rollback_statement
+                         | select_statement
+                         | update_statement_positioned
+                         | update_statement_searched
+                         | create_table_def
+                         | create_role_def
+                         | create_index_def
+                         | create_user_def
+                         | drop_role_def
+                         | drop_table_def
+                         | drop_index_def
+                         | alter_user_def
+                         | drop_user_def
+                         | view_def
+                         | truncate_table
+                         | grant_def
+                         | revoke_def
 
 /* =============================================================================
 close_statement -> CLOSE cursor
@@ -703,16 +703,38 @@ alter_user_def -> ALTER USER NAME spec_list
 alter_user_def -> ALTER USER NAME NAME NAME
 
 user_list -> NAME
-user_list -> NAME user_list
+user_list -> NAME ',' user_list
 
-proxy_clause -> GRANT CONNECT THROUGH ENTERPRISE USERS
-proxy_clause -> GRANT REVOKE THROUGH ENTERPRISE USERS
-proxy_clause -> GRANT REVOKE THROUGH NAME
+proxy_clause -> GRANT CONNECT THROUGH ENTERPRISE USERS                                          : {'grant connect', 'enterprise users'}.
+proxy_clause -> GRANT CONNECT THROUGH db_user_proxy
+proxy_clause -> REVOKE CONNECT THROUGH ENTERPRISE USERS
+proxy_clause -> REVOKE CONNECT THROUGH db_user_proxy
 
-spec_list -> identified
-spec_list -> user_opt
-spec_list -> user_role
-spec_list -> spec_list spec_list
+db_user_proxy -> '$empty'
+db_user_proxy -> proxy_with
+db_user_proxy -> proxy_auth_req
+db_user_proxy -> proxy_with proxy_auth_req
+
+proxy_with -> WITH NO ROLES
+proxy_with -> WITH ROLE role_list
+proxy_with -> WITH ROLE ALL EXCEPT role_list
+
+proxy_auth_req -> AUTHENTICATION REQUIRED
+
+spec_list -> spec_item
+spec_list -> spec_item spec_list
+
+spec_item -> identified
+spec_item -> user_opt
+spec_item -> user_role
+
+user_role -> DEFAULT ROLE ALL
+user_role -> DEFAULT ROLE ALL EXCEPT role_list
+user_role -> DEFAULT ROLE NONE
+user_role -> DEFAULT ROLE role_list
+
+role_list -> NAME
+role_list -> NAME ',' role_list
 
 identified -> IDENTIFIED BY NAME
 identified -> IDENTIFIED EXTERNALLY opt_as
@@ -817,22 +839,36 @@ drop_index_def ::= 'DROP' 'INDEX' ((name_schema '.')? name_index)? 'FROM' table
 
 alter_user_def ::= 'ALTER' 'USER'
                    (
-                     (name_user+ (
-                                   ('GRANT' ('CONNECT' | 'REVOKE') 'THROUGH' 'ENTERPRISE' 'USERS')
-                                 | ('REVOKE' 'THROUGH' name_user)
-                                 )
+                     (name_user (',' name_user)*
+                                ('GRANT' | 'REVOKE') 'CONNECT' 'THROUGH'
+                                (
+                                  ('ENTERPRISE' 'USERS')
+                                | ('WITH' (
+                                            ('NO' 'ROLES')
+                                          | ('ROLE' ('ALL' 'EXCEPT')? name_role (',' name_role)*))
+                                          )?
+                                )
                      )
                    | (name_user (
-                                  ('IDENTIFIED' (('BY' password) | (('EXTERNALLY' | 'GLOBALLY') ('AS' name_external)?)))
-                                | (('DEFAULT' | 'TEMPORARY') 'TABLESPACE' name_tablespace)
-                                | ('QUOTA' ('UNLIMITED' | ('INTNUM' name_unit?)) 'ON' name_tablespace)
-                                | ('PROFILE' name_profile)
-                                | ('DEFAULT' 'ROLE' (('ALL' ('EXCEPT' name_role+)?) | 'NONE' | name_role+))
-                                )+
+                                  (
+                                    ('IDENTIFIED' (('BY' password) | (('EXTERNALLY' | 'GLOBALLY') ('AS' name_external)?)))
+                                  | (('DEFAULT' | 'TEMPORARY') 'TABLESPACE' name_tablespace)
+                                  | ('QUOTA' ('UNLIMITED' | ('INTNUM' name_unit?)) 'ON' name_tablespace)
+                                  | ('PROFILE' name_profile)
+                                  | ('DEFAULT' 'ROLE' (
+                                                        ('ALL' ('EXCEPT' name_role (',' name_role)*)?)
+                                                      | 'NONE'
+                                                      | name_role (',' name_role)*
+                                                      )
+                                    )
+                                  )+
+                                |
+                                  (
+                                    ('ACCOUNT' ('LOCK' | 'UNLOCK'))
+                                  | ('PASSWORD' 'EXPIRE')
+                                  )
+                                )
                      )
-                   | (name_user (
-                                  ('ACCOUNT' ('LOCK' | 'UNLOCK'))
-                                | ('PASSWORD' 'EXPIRE')))
                    )
 
 drop_user_def ::= 'DROP' 'USER' name_user 'CASCADE'?

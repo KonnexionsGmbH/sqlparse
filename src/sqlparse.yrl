@@ -911,7 +911,7 @@ in_predicate -> scalar_exp IN '(' scalar_exp_commalist ')'                      
 in_predicate -> scalar_exp NOT IN scalar_exp_commalist                                          : {'not', {'in', '$1', {'list', '$4'}}}.
 in_predicate -> scalar_exp IN scalar_exp_commalist                                              : {'in', '$1', {'list', '$3'}}.
 
-all_or_any_predicate -> scalar_exp COMPARISON any_all_some subquery                             : {unwrap('$2'), '$1', {'$3', '$4'}}.
+all_or_any_predicate -> scalar_exp COMPARISON any_all_some subquery                             : {unwrap('$2'), '$1', {'$3', ['$4']}}.
            
 any_all_some -> ANY                                                                             : 'ANY'.
 any_all_some -> ALL                                                                             : 'ALL'.
@@ -961,7 +961,7 @@ function_ref -> NAME '.' NAME '.' NAME '(' fun_args ')'                         
                                                                                                                           ,unwrap('$5')]), make_list('$7')}.
 function_ref -> NAME '.' NAME '(' fun_args ')'                                                  : {'fun', list_to_binary([unwrap('$1'),".",unwrap('$3')])
                                                                                                    ,make_list('$5')}.
-function_ref -> NAME  '(' fun_args ')'                                                          : {'fun', unwrap_bin('$1'), make_list('$3')}.
+function_ref -> NAME '(' fun_args ')'                                                           : {'fun', unwrap_bin('$1'), make_list('$3')}.
 function_ref -> FUNS                                                                            : {'fun', unwrap_bin('$1'), []}.
 function_ref -> FUNS  '(' fun_args ')'                                                          : {'fun', unwrap_bin('$1'), make_list('$3')}.
 function_ref -> AMMSC '(' '*' ')'                                                               : {'fun', unwrap_bin('$1'), [<<"*">>]}.

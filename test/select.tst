@@ -119,10 +119,10 @@ UNION ALL
 "SELECT DISTINCT * FROM name_table_1 JOIN name_table_2 USING (name_column_1)".
 "SELECT DISTINCT * FROM name_table_1 JOIN name_table_2 USING (name_column_1, name_column_2)".
 
-% ? "SELECT DISTINCT * FROM name_table_1 JOIN (SELECT " FROM name_table_2") ON name_column_1 = name_column_2".
-% ? "SELECT DISTINCT * FROM name_table_1 JOIN (SELECT " FROM name_table_2") ON name_column_1 = name_column_2 AND name_column_3 = name_column_4".
-% ? "SELECT DISTINCT * FROM name_table_1 JOIN (SELECT " FROM name_table_2") USING (name_column_1)".
-% ? "SELECT DISTINCT * FROM name_table_1 JOIN (SELECT " FROM name_table_2") USING (name_column_1, name_column_2)".
+"SELECT DISTINCT * FROM name_table_1 JOIN (SELECT * FROM name_table_2) ON name_column_1 = name_column_2".
+"SELECT DISTINCT * FROM name_table_1 JOIN (SELECT * FROM name_table_2) ON name_column_1 = name_column_2 AND name_column_3 = name_column_4".
+"SELECT DISTINCT * FROM name_table_1 JOIN (SELECT * FROM name_table_2) USING (name_column_1)".
+"SELECT DISTINCT * FROM name_table_1 JOIN (SELECT * FROM name_table_2) USING (name_column_1, name_column_2)".
 
 
 "SELECT DISTINCT * FROM name_table_1 JOIN name_table_2 name_alias ON name_column_1 = name_column_2".
@@ -144,12 +144,12 @@ UNION ALL
 "SELECT DISTINCT * FROM name_table_1 RIGHT JOIN name_table_2".
 "SELECT DISTINCT * FROM name_table_1 RIGHT OUTER JOIN name_table_2".
 
-% ? "SELECT DISTINCT * FROM name_table_1 FULL JOIN (SELECT * FROM name_table_2)".
-% ? "SELECT DISTINCT * FROM name_table_1 FULL OUTER JOIN (SELECT * FROM name_table_2)".
-% ? "SELECT DISTINCT * FROM name_table_1 LEFT JOIN (SELECT * FROM name_table_2)".
-% ? "SELECT DISTINCT * FROM name_table_1 LEFT OUTER JOIN (SELECT * FROM name_table_2)".
-% ? "SELECT DISTINCT * FROM name_table_1 RIGHT JOIN (SELECT * FROM name_table_2)".
-% ? "SELECT DISTINCT * FROM name_table_1 RIGHT OUTER JOIN (SELECT * FROM name_table_2)".
+"SELECT DISTINCT * FROM name_table_1 FULL JOIN (SELECT * FROM name_table_2)".
+"SELECT DISTINCT * FROM name_table_1 FULL OUTER JOIN (SELECT * FROM name_table_2)".
+"SELECT DISTINCT * FROM name_table_1 LEFT JOIN (SELECT * FROM name_table_2)".
+"SELECT DISTINCT * FROM name_table_1 LEFT OUTER JOIN (SELECT * FROM name_table_2)".
+"SELECT DISTINCT * FROM name_table_1 RIGHT JOIN (SELECT * FROM name_table_2)".
+"SELECT DISTINCT * FROM name_table_1 RIGHT OUTER JOIN (SELECT * FROM name_table_2)".
 
 "SELECT DISTINCT * FROM name_table_1 NATURAL FULL JOIN name_table_2".
 "SELECT DISTINCT * FROM name_table_1 NATURAL FULL OUTER JOIN name_table_2".
@@ -211,10 +211,10 @@ UNION ALL
 "SELECT * FROM name_table WHERE name_column_1 NOT LIKE 50".
 "SELECT * FROM name_table WHERE name_column_1 NOT LIKE name_column_2".
 
-% ? "SELECT * FROM name_table WHERE name_column_1 LIKE 50 ESCAPE name_atom".
-% ? "SELECT * FROM name_table WHERE name_column_1 LIKE name_column_2 ESCAPE name_atom".
-% ? "SELECT * FROM name_table WHERE name_column_1 NOT LIKE 50 ESCAPE Name_atom".
-% ? "SELECT * FROM name_table WHERE name_column_1 NOT LIKE name_column_2 ESCAPE name_atom".
+"SELECT * FROM name_table WHERE name_column_1 LIKE 50 ESCAPE 'name_atom'".
+"SELECT * FROM name_table WHERE name_column_1 LIKE name_column_2 ESCAPE 'name_atom'".
+"SELECT * FROM name_table WHERE name_column_1 NOT LIKE 50 ESCAPE 'Name_atom'".
+"SELECT * FROM name_table WHERE name_column_1 NOT LIKE name_column_2 ESCAPE 'name_atom'".
 
 % predicate null ---------------------------------------------------------------
 
@@ -239,9 +239,9 @@ UNION ALL
 
 % predicate all / any / some ---------------------------------------------------
 
-% ? "SELECT * FROM name_table_1 WHERE name_column_1 > ALL (SELECT * FROM name_table_2)".
-% ? "SELECT * FROM name_table_1 WHERE name_column_1 > ANY (SELECT * FROM name_table_2)".
-% ? "SELECT * FROM name_table_1 WHERE name_column_1 > SOME (SELECT * FROM name_table_2)".
+"SELECT * FROM name_table_1 WHERE name_column_1 > ALL (SELECT * FROM name_table_2)".
+"SELECT * FROM name_table_1 WHERE name_column_1 > ANY (SELECT * FROM name_table_2)".
+"SELECT * FROM name_table_1 WHERE name_column_1 > SOME (SELECT * FROM name_table_2)".
 
 % predicate exists -------------------------------------------------------------
 

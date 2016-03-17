@@ -970,7 +970,11 @@ fold(FType, Fun, Ctx, Lvl, {{JoinType,OptPartition,OptNatural},Tab,OptPartition1
     {OptPartitionStr, NewCtx1}  = fold(FType, Fun,   NewCtx, Lvl+1, OptPartition),
     {OptNaturalStr,   NewCtx2} = fold(FType, Fun,     NewCtx1, Lvl+1, OptNatural),
                       NewCtx3  = Fun(JoinType,              NewCtx2),
-    {TabStr,          NewCtx4} = fold(FType, Fun,            NewCtx3, Lvl+1, Tab),
+    {TabStr0,         NewCtx4} = fold(FType, Fun,            NewCtx3, Lvl+1, Tab),
+    TabStr = case Tab of
+                 {select, _} -> "("++ string:strip(TabStr0) ++ ")";
+                 _ -> string:strip(TabStr0)
+             end,
     {OptPartition1Str,NewCtx5} = fold(FType, Fun,  NewCtx4, Lvl+1, OptPartition1),
     {OnOrUsingStr,    NewCtx6} = fold(FType, Fun,      NewCtx5, Lvl+1, OnOrUsing),
 
@@ -995,7 +999,11 @@ fold(FType, Fun, Ctx, Lvl, {JoinType, Tab, OnOrUsing} = ST)
         bottom_up -> Ctx
     end,
     NewCtx1 = Fun(JoinType, NewCtx),
-    {TabStr, NewCtx2} = fold(FType, Fun, NewCtx1, Lvl+1, Tab),
+    {TabStr0, NewCtx2} = fold(FType, Fun, NewCtx1, Lvl+1, Tab),
+    TabStr = case Tab of
+                 {select, _} -> "("++ string:strip(TabStr0) ++ ")";
+                 _ -> string:strip(TabStr0)
+             end,
     {OnOrUsingStr, NewCtx3} = fold(FType, Fun, NewCtx2, Lvl+1, OnOrUsing),
     NewCtx4 = case FType of
         top_down -> NewCtx3;
@@ -1455,6 +1463,43 @@ fold(FType, Fun, Ctx, Lvl, {'fun', N, Args} = ST)
     string:join(ArgsStr, ", ")
     ++ ")"
     , NewCtx3};
+
+% ANY ALL SOME
+fold(FType, Fun, Ctx, Lvl, {N, Args} = ST)
+  when N == 'ANY'; N == 'ALL'; N == 'SOME' ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    NewCtx1 = Fun(N, NewCtx),
+    {ArgsStr, NewCtx2} = lists:foldl(fun(A, {Acc, CtxAcc}) ->
+            case A of
+                A when is_binary(A) -> {Acc++[binary_to_list(A)], Fun(A, CtxAcc)};
+                A when is_tuple(A) ->
+                    case lists:member(element(1, A),
+                                      [ 'select', 'insert', 'create table',
+                                        'create user', 'alter user',
+                                        'truncate table', 'update', 'delete',
+                                        'grant', 'revoke']) of
+                        true ->
+                            {SubAcc, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl+1, A),
+                            {Acc++["(" ++ string:strip(SubAcc) ++ ")"], CtxAcc1};
+                        _ ->
+                            {SubAcc, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl+1, A),
+                            {Acc++[SubAcc], CtxAcc1}
+                    end;
+                A ->
+                    {SubAcc, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl+1, A),
+                    {Acc++[SubAcc], CtxAcc1}
+            end
+        end,
+        {[], NewCtx1},
+        Args),
+    NewCtx3 = case FType of
+        top_down -> NewCtx2;
+        bottom_up -> Fun(ST, NewCtx2)
+    end,
+    {atom_to_list(N) ++ "(" ++ string:join(ArgsStr, ", ") ++ ")", NewCtx3};
 
 % hierarchical query
 fold(_FType, Fun, Ctx, _Lvl, {'hierarchical query', {}} = ST) ->

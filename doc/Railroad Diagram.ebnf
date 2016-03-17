@@ -624,7 +624,6 @@ rollback_statement -> ROLLBACK WORK
 rollback_statement ::= 'ROLLBACK' 'WORK'?
 
 /* =============================================================================
-select_statement -> SELECT opt_hint opt_all_distinct selection INTO target_commalist table_exp
 select_statement -> query_exp
 
 opt_hint -> '$empty'
@@ -645,8 +644,6 @@ table_exp ->
 ----------------------------------------------------------------------------- */
 
 select_statement ::= query_exp
-                   | ('SELECT' 'HINT'? ('ALL' | 'DISTINCT')? select_field_commalist
-                      'INTO' target_commalist table_exp)
 
 /* =============================================================================
 update_statement_positioned -> UPDATE table SET assignment_commalist

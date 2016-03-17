@@ -1271,6 +1271,19 @@ fold(FType, Fun, Ctx, Lvl, {'in', L, R} = ST)
     {lists:flatten([binary_to_list(L), " in (", RStr, ")"])
     , NewCtx3};
 
+% exists
+fold(FType, Fun, Ctx, Lvl, {'exists', Sql} = ST) ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {SqlStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl+1, Sql),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
+    {lists:flatten([" exists (", SqlStr, ")"]), NewCtx2};
+
 % Optional Returning phrase
 fold(FType, Fun, Ctx, Lvl, {R, Sel, Var} = ST)
   when R =:= return; R =:= returning ->
@@ -1322,7 +1335,7 @@ fold(_FType, _Fun, Ctx, _Lvl, {Op, _, _} = ST)
 % Boolean and arithmetic binary operators handled with precedence
 % *,/ > +,- > and > or
 fold(FType, Fun, Ctx, Lvl, {Op, L, R} = ST)
-  when is_atom(Op), is_tuple(L), is_tuple(R), Op /= fetch ->
+  when is_atom(Op), is_tuple(L), is_tuple(R), Op /= fetch, Op /= 'connect by' ->
     NewCtx = case FType of
         top_down -> Fun(ST, Ctx);
         bottom_up -> Ctx
@@ -1347,7 +1360,7 @@ fold(FType, Fun, Ctx, Lvl, {Op, L, R} = ST)
     {lists:flatten([Fl, " ", atom_to_list(Op), " ", Fr])
     , NewCtx4};
 fold(FType, Fun, Ctx, Lvl, {Op, L, R} = ST)
-  when is_atom(Op), is_binary(L), is_tuple(R) ->
+  when is_atom(Op), is_binary(L), is_tuple(R), Op /= 'connect by' ->
     NewCtx = case FType of
         top_down -> Fun(ST, Ctx);
         bottom_up -> Ctx
@@ -1366,7 +1379,7 @@ fold(FType, Fun, Ctx, Lvl, {Op, L, R} = ST)
     {lists:flatten([binary_to_list(L), " ", atom_to_list(Op), " ", Fr])
     , NewCtx4};
 fold(FType, Fun, Ctx, Lvl, {Op, L, R} = ST)
-  when is_atom(Op), is_tuple(L), is_binary(R) ->
+  when is_atom(Op), is_tuple(L), is_binary(R), Op /= 'connect by' ->
     NewCtx = case FType of
         top_down -> Fun(ST, Ctx);
         bottom_up -> Ctx

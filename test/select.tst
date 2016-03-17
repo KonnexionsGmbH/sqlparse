@@ -245,14 +245,14 @@ UNION ALL
 
 % predicate exists -------------------------------------------------------------
 
-% ? "SELECT * FROM name_table_1 WHERE EXISTS (SELECT * FROM name_table_2)".
+"SELECT * FROM name_table_1 WHERE EXISTS (SELECT * FROM name_table_2)".
 
 % hierarchical query clause ----------------------------------------------------
 
 "SELECT * FROM name_table_1 START WITH name_column_1 IS NULL CONNECT BY name_column_2 = name_column_3".
-% ? "SELECT * FROM name_table_1 START WITH name_column_1 IS NULL CONNECT BY NOCYCLE name_column_2 = name_column_3".
+"SELECT * FROM name_table_1 START WITH name_column_1 IS NULL CONNECT BY NOCYCLE name_column_2 = name_column_3".
 "SELECT * FROM name_table_1 CONNECT BY name_column_2 = name_column_3 START WITH name_column_1 IS NULL".
-% ? "SELECT * FROM name_table_1 CONNECT BY NOCYCLE name_column_2 = name_column_3 START WITH name_column_1 IS NULL".
+"SELECT * FROM name_table_1 CONNECT BY NOCYCLE name_column_2 = name_column_3 START WITH name_column_1 IS NULL".
 
 % group by ---------------------------------------------------------------------
 

@@ -1687,7 +1687,7 @@ fold(FType, Fun, Ctx, Lvl, {fetch, {cur, CurName}, IntoST} = ST) ->
         top_down -> NewCtx;
         bottom_up -> Fun(ST, NewCtx1)
     end,
-    {string:strip("fetch "++CurName++" into "++IntoStr), NewCtx2};
+    {string:strip("fetch "++CurName++" "++IntoStr), NewCtx2};
 fold(FType, Fun, Ctx, Lvl, {declare, {cur, CurName}, {cur_for, Stmt},
                             OrderByST} = ST) ->
     NewCtx = case FType of

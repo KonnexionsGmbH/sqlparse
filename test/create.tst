@@ -123,6 +123,8 @@ fld TUPLE(0) default fun(_D) -> {} end.
 "CREATE USER test_user_3 IDENTIFIED EXTERNALLY QUOTA 10 ON table_3 QUOTA 10M ON table_4 QUOTA UNLIMITED
  ON table_1".
 
+"CREATE imem_dal_skvh TABLE test()".
+
 %%
 %% TESTS CREATE VIEW
 %%

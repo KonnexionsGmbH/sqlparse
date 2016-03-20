@@ -391,7 +391,7 @@ schema_element -> view_def                                                      
 create_role_def -> CREATE ROLE NAME                                                             : {'create role', unwrap_bin('$3')}.
 create_table_def -> CREATE create_opts TABLE table '(' base_table_element_commalist ')'         : {'create table', '$4', '$6', '$2'}.
 create_user_def -> CREATE USER NAME identified opt_user_opts_list                               : {'create user', unwrap_bin('$3'), '$4', '$5'}.
-drop_table_def -> DROP TABLE opt_exists table_list opt_restrict_cascade                         : {'drop table', {'tables', '$4'}, '$3', '$5'}.
+drop_table_def -> DROP tbl_type TABLE opt_exists table_list opt_restrict_cascade                : {'drop table', {'tables', '$5'}, '$4', '$6', '$2'}.
 
 drop_role_def -> DROP ROLE NAME                                                                 : {'drop role', unwrap_bin('$3')}.
 drop_index_def -> DROP INDEX opt_index_name FROM table                                          : {'drop index', '$3', '$5'}.

@@ -35,6 +35,8 @@
 "DROP TABLE IF EXISTS name_table_1 RESTRICT".
 "DROP TABLE IF EXISTS name_table_1, name_table_2 RESTRICT".
 
+"DROP imem_dal_skvh TABLE skvhtest".
+
 %% 
 %% TESTS DROP USER
 %%

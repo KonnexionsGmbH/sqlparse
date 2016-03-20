@@ -385,8 +385,6 @@
             
             <li><a href="#query_spec" title="query_spec">query_spec</a></li>
             
-            <li><a href="#select_statement" title="select_statement">select_statement</a></li>
-            
          </ul>
          
       </p><br><p style="font-size: 14px; font-weight:bold"><a name="scalar_sub_exp">scalar_sub_exp:</a></p>
@@ -561,8 +559,6 @@
             
             <li><a href="#query_spec" title="query_spec">query_spec</a></li>
             
-            <li><a href="#select_statement" title="select_statement">select_statement</a></li>
-            
             <li><a href="#update_statement_positioned" title="update_statement_positioned">update_statement_positioned</a></li>
             
          </ul>
@@ -648,8 +644,6 @@
          <ul>
             
             <li><a href="#query_spec" title="query_spec">query_spec</a></li>
-            
-            <li><a href="#select_statement" title="select_statement">select_statement</a></li>
             
          </ul>
          
@@ -1379,17 +1373,13 @@
          </ul>
          
       </p><br><p style="font-size: 14px; font-weight:bold"><a name="select_statement">select_statement:</a></p>
-      <img border="0" src="diagram/select_statement.png" height="156" width="932" usemap="#select_statement.map"><map name="select_statement.map">
-         <area shape="rect" coords="49,1,135,33" href="#query_exp" title="query_exp">
-         <area shape="rect" coords="399,45,559,77" href="#select_field_commalist" title="select_field_commalist">
-         <area shape="rect" coords="653,45,781,77" href="#target_commalist" title="target_commalist">
-         <area shape="rect" coords="801,45,883,77" href="#table_exp" title="table_exp"></map>
+      <img border="0" src="diagram/select_statement.png" height="36" width="144" usemap="#select_statement.map"><map name="select_statement.map">
+         <area shape="rect" coords="29,1,115,33" href="#query_exp" title="query_exp"></map>
       
       <p>
          
          <div class="ebnf"><pre><a href="#select_statement" title="select_statement" shape="rect">select_statement</a>
-         ::= <a href="#query_exp" title="query_exp" shape="rect">query_exp</a>
-           | 'SELECT' 'HINT'? ( 'ALL' | 'DISTINCT' )? <a href="#select_field_commalist" title="select_field_commalist" shape="rect">select_field_commalist</a> 'INTO' <a href="#target_commalist" title="target_commalist" shape="rect">target_commalist</a> <a href="#table_exp" title="table_exp" shape="rect">table_exp</a></pre></div>
+         ::= <a href="#query_exp" title="query_exp" shape="rect">query_exp</a></pre></div>
          
       </p>
       

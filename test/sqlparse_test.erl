@@ -9,14 +9,26 @@ sql_test_() ->
                 Sql when is_list(Sql) -> Sql;
                 _ -> "*"
             end ++ ".tst",
+    Logs = case os:getenv("LOG") of
+               V when length(V) > 0 ->
+                   case lists:map(
+                          fun(VStr) ->
+                                  list_to_integer(VStr)
+                          end, re:split(V,",",[{return,list}])) of
+                       VIs when is_list(VIs) -> VIs;
+                       _ -> []
+                   end;
+               _ -> []
+           end,
+    io:format(user, "File = ~s, Logs = ~p~n", [WCard, Logs]),
     {ok, Cwd} = file:get_cwd(),
     [_|RootPath] = lists:reverse(filename:split(Cwd)),
     TestDir = filename:join(lists:reverse(["test" | RootPath])),
     TestFiles = lists:sort([filename:join(TestDir, T)
                             || T <- filelib:wildcard(WCard, TestDir)]),
-    group_gen(TestFiles).
+    group_gen(TestFiles, Logs).
 
-group_gen(TestFiles) ->
+group_gen(TestFiles, Logs) ->
     {generator,
      fun () ->
              case TestFiles of
@@ -47,47 +59,42 @@ group_gen(TestFiles) ->
                      AugTests = lists:zip(TestLines, Tests),
                      TestGroup = filename:rootname(
                                    filename:basename(TestFile)),
-                     [tests_gen(TestGroup, AugTests, Opts)
-                      | group_gen(RestTestFiles)]
+                     [tests_gen(TestGroup, AugTests, Opts, Logs)
+                      | group_gen(RestTestFiles, Logs)]
              end
      end}.
 
-tests_gen(TestGroup, Tests, Opts) ->
-    Verbose = case proplists:get_value(verbose, Opts) of
-                  V when is_integer(V), V >= 0 -> V;
-                  _ -> 0
-              end,
+tests_gen(TestGroup, Tests, Opts, Logs) ->
     SelTests = case proplists:get_value(tests, Opts) of
                    St when St =:= undefined; St =:= [] ->
                        {Indices, _} = lists:unzip(Tests),
                        Indices;
                    St -> St
                end,
-    tests_gen(TestGroup, Tests, Verbose, SelTests, []).
+    tests_gen(TestGroup, Tests, Logs, SelTests, []).
 
-tests_gen(_TestGroup, [], _Verbose, _SelTests, Acc) ->
-    %?debugFmt("[~s] Verbose ~p,~nSelTests ~p,~nAcc ~p"
-    %          , [_TestGroup, _Verbose, _SelTests, lists:reverse(Acc)]),
+tests_gen(_TestGroup, [], _Logs, _SelTests, Acc) ->
     {inparallel, lists:reverse(Acc)};
-tests_gen(TestGroup, [{I,T}|Tests], Verbose, SelTests, Acc) ->
+tests_gen(TestGroup, [{I,T}|Tests], Logs, SelTests, Acc) ->
     case lists:member(I, SelTests) of
         true ->
-            tests_gen(TestGroup, Tests, Verbose, SelTests
-                      , [{TestGroup, I
-                          , fun() ->
-                                    ?MODULE:test_sql(TestGroup, T, Verbose)
-                            end}
-                         | Acc]);
+            tests_gen(TestGroup, Tests, Logs, SelTests,
+                      [{TestGroup, I,
+                        fun() ->
+                                ?MODULE:test_sql(TestGroup, T, Logs)
+                        end} | Acc]);
         _ -> Acc
     end.
 
 -define(D(__Lvl,__Fmt,__Args),
-        if Verbose >= __Lvl -> ?debugFmt(__Fmt, __Args);
-           true -> ok
+        case lists:member(__Lvl, Logs) of
+            true -> ?debugFmt(__Fmt, __Args);
+            _ -> ok
         end).
 -define(D(__Lvl,__Msg),
-        if Verbose >= __Lvl -> ?debugMsg(__Msg);
-           true -> ok
+        case lists:member(__Lvl, Logs) of
+            true -> ?debugMsg(__Msg);
+            _ -> ok
         end).
 
 -define(D_(__Msg),          ?D(0,__Msg)).
@@ -104,7 +111,7 @@ tests_gen(TestGroup, [{I,T}|Tests], Verbose, SelTests, Acc) ->
 -define(D5(__Msg),          ?D(5,__Msg)).
 -define(D5(__Fmt,__Args),   ?D(5,__Fmt,__Args)).
 
-test_sql(TestGroup, Test, Verbose) ->
+test_sql(TestGroup, Test, Logs) ->
     ?D1("~n ~s", [Test]),
     case sqlparse:parsetree_with_tokens(Test) of
         {ok, {ParseTree, Tokens}} ->
@@ -113,7 +120,7 @@ test_sql(TestGroup, Test, Verbose) ->
                        {error, Error} -> throw({error, Error});
                        NS -> NS
                    end,
-            ?D3("~n > ~ts~n", [NSql]),
+            ?D3("~n ~ts~n", [NSql]),
             {ok, {NPTree, NToks}}
             = try
                   {ok, {NPT, NT}} = sqlparse:parsetree_with_tokens(NSql),
@@ -131,7 +138,7 @@ test_sql(TestGroup, Test, Verbose) ->
             ?assertEqual(ParseTree, NPTree),
             ?D4("~n ~p~n", [ParseTree]);
         {lex_error, Error} ->
-            ?D1("Failed lexer ~p", [Error]),
+            ?D_("Failed lexer ~p", [Error]),
             ?assertEqual(ok, Error);
         {parse_error, {Error, Tokens}} ->
             ?D_("~nFailed: ~p~nTest: ~s~nTokens ~p", [Error,Test,Tokens]),

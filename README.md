@@ -46,3 +46,13 @@ Test Cases
 These test cases are also documentation of current support
 
 `SQL=<test> rebar eunit skip_deps=true` to run one specific <test>.tst file  from `test/` folder
+`LOG=0,1,2,3,4,5 rebar eunit skip_deps=true` to enable different types of log, one or more logs cane be enabled, default 0
+
+level|type
+---|---
+0|only errors
+1|test sql
+2|parse tree of test sql
+3|fold sql
+4|parse tree og fold sql
+5|unused

@@ -2,7 +2,7 @@
 %%-*- coding: utf-8 -*-
 
 % Test control options
-[{verbose, 0}, {tests, []}].
+[{tests, []}].
 
 %% 
 %% TESTS

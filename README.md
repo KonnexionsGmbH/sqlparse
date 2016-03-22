@@ -45,8 +45,8 @@ Test Cases
 
 These test cases are also documentation of current support
 
-`SQL=<test> rebar eunit skip_deps=true` to run one specific <test>.tst file  from `test/` folder
-`LOG=0,1,2,3,4,5 rebar eunit skip_deps=true` to enable different types of log, one or more logs cane be enabled, default 0
+* `SQL=<test> rebar eunit skip_deps=true` to run one specific <test>.tst file  from `test/` folder
+* `LOG=0,1,2,3,4,5 rebar eunit skip_deps=true` to enable different types of log, one or more logs can be enabled, default 0
 
 level|type
 ---|---

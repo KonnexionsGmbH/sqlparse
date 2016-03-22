@@ -16,9 +16,9 @@ sql_test_() ->
                                   list_to_integer(VStr)
                           end, re:split(V,",",[{return,list}])) of
                        VIs when is_list(VIs) -> VIs;
-                       _ -> []
+                       _ -> [0]
                    end;
-               _ -> []
+               _ -> [0]
            end,
     io:format(user, "File = ~s, Logs = ~p~n", [WCard, Logs]),
     {ok, Cwd} = file:get_cwd(),

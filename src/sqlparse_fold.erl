@@ -53,7 +53,11 @@ fold(FType, Fun, Ctx, Lvl, {select, Opts} = ST) ->
     end,
     {NewOs, NewCtx1} = lists:foldl(fun(O, {Acc, CtxAcc}) ->
             {SubAcc, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl+1, O),
-            {Acc++[" ", SubAcc], CtxAcc1}
+            if length(SubAcc) > 0 ->
+                   {Acc++[" ", SubAcc], CtxAcc1};
+               true ->
+                   {Acc, CtxAcc1}
+            end
         end,
         {[], NewCtx},
         Opts),
@@ -61,7 +65,7 @@ fold(FType, Fun, Ctx, Lvl, {select, Opts} = ST) ->
         top_down -> NewCtx1;
         bottom_up -> Fun(ST, NewCtx1)
     end,
-    {"select "++lists:flatten(NewOs), NewCtx2};
+    {"select"++lists:flatten(NewOs), NewCtx2};
 
 %
 % INSERT
@@ -868,8 +872,7 @@ fold(FType, Fun, Ctx, Lvl, {from, Forms} = ST) ->
         top_down -> NewCtx1;
         bottom_up -> Fun(ST, NewCtx1)
     end,
-    {"from " ++FormStr++ " "
-    , NewCtx3};
+    {"from " ++FormStr, NewCtx3};
 fold(FType, Fun, Ctx, Lvl, {'group by', GroupBy} = ST) ->
     NewCtx = case FType of
         top_down -> Fun(ST, Ctx);
@@ -935,7 +938,7 @@ fold(FType, Fun, Ctx, Lvl, {'order by', OrderBy} = ST) ->
         bottom_up -> Fun(ST, NewCtx1)
     end,
     {if Size > 0 ->
-        " order by " ++ string:join(OrderByStr, ", ")
+        "order by " ++ string:join(OrderByStr, ", ")
         ++ " ";
         true -> ""
      end
@@ -1221,8 +1224,7 @@ fold(FType, Fun, Ctx, Lvl, {where, Where} = ST)
         top_down -> NewCtx1;
         bottom_up -> Fun(ST, NewCtx1)
     end,
-    {"where " ++ WhereStr
-    , NewCtx2};
+    {"where " ++ WhereStr, NewCtx2};
 
 % Like operator
 fold(FType, Fun, Ctx, Lvl, {'like',Var,Like,OptEsc} = ST) ->

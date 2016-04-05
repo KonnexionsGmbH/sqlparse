@@ -246,6 +246,7 @@ UNION ALL
 % predicate exists -------------------------------------------------------------
 
 "SELECT * FROM name_table_1 WHERE EXISTS (SELECT * FROM name_table_2)".
+"SELECT * FROM name_table_1 WHERE NOT EXISTS (SELECT * FROM name_table_2)".
 
 % hierarchical query clause ----------------------------------------------------
 

@@ -125,6 +125,58 @@ fld TUPLE(0) default fun(_D) -> {} end.
 
 "CREATE imem_dal_skvh TABLE test()".
 
+"CREATE TABLE hr_job_history
+(
+    employee_id   number(6,0)    NOT NULL,
+    start_date    date           NOT NULL,
+    end_date      date           NOT NULL,
+    job_id        varchar2(10)   NOT NULL,
+    department_id number(4,0)
+);".
+
+"CREATE TABLE hr_job_history
+(
+    employee_id   number(6,0)    NOT NULL,
+    start_date    date           NOT NULL,
+    end_date      date           NOT NULL,
+    job_id        varchar2(10)   NOT NULL,
+    department_id number(4,0),
+    CHECK (end_date > start_date)
+);".
+
+"CREATE TABLE hr_countries
+(
+    country_id   char(2)         NOT NULL PRIMARY KEY,
+    country_name varchar2(40),
+    region_id    integer
+)".
+
+"CREATE TABLE hr_countries
+(
+    country_id   char(2)         NOT NULL PRIMARY KEY,
+    country_name varchar2(40),
+    region_id    integer,
+    FOREIGN KEY (region_id) REFERENCES hr_regions
+)".
+
+"CREATE TABLE hr_countries
+(
+    country_id   char(2)         NOT NULL PRIMARY KEY,
+    country_name varchar2(40),
+    region_id    integer,
+    FOREIGN KEY (region_id) REFERENCES hr_regions (region_id)
+)".
+
+"CREATE TABLE hr_job_history
+(
+    employee_id   number(6,0)    NOT NULL,
+    start_date    date           NOT NULL,
+    end_date      date           NOT NULL,
+    job_id        varchar2(10)   NOT NULL,
+    department_id number(4,0),
+    PRIMARY KEY (employee_id, start_date)
+);".
+
 %%
 %% TESTS CREATE VIEW
 %%

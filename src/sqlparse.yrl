@@ -553,7 +553,7 @@ table_constraint_def ->
 table_constraint_def -> CHECK '(' search_condition ')'                                          : {'check', '$3'}.
 
 column_commalist -> column                                                                      : ['$1'].
-column_commalist -> column_commalist ',' column                                                 : '$1' ++ ['$3'].
+column_commalist -> column ',' column_commalist                                                 : ['$1' | '$3'].
 
 view_def -> CREATE VIEW table opt_column_commalist                                              : {'create view', '$3', '$4'}.
 view_def -> AS query_spec opt_with_check_option                                                 : {'as', '$2', '$3'}.

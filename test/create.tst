@@ -164,7 +164,25 @@ fld TUPLE(0) default fun(_D) -> {} end.
     country_id   char(2)         NOT NULL PRIMARY KEY,
     country_name varchar2(40),
     region_id    integer,
+    FOREIGN KEY (region_id1, region_id2, region_id3)
+        REFERENCES hr_regions
+)".
+
+"CREATE TABLE hr_countries
+(
+    country_id   char(2)         NOT NULL PRIMARY KEY,
+    country_name varchar2(40),
+    region_id    integer,
     FOREIGN KEY (region_id) REFERENCES hr_regions (region_id)
+)".
+
+"CREATE TABLE hr_countries
+(
+    country_id   char(2)         NOT NULL PRIMARY KEY,
+    country_name varchar2(40),
+    region_id    integer,
+    FOREIGN KEY (r_id1, r_id2, r_id3)
+        REFERENCES hr_regions (id1, id2, id3)
 )".
 
 "CREATE TABLE hr_job_history

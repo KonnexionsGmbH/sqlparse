@@ -171,7 +171,9 @@ fold(FType, Fun, Ctx, Lvl, {'create table', Tab, Fields, Opts} = ST)
         top_down -> NewCtx3;
         bottom_up -> Fun(ST, NewCtx3)
     end,
-    {"create " ++ OptsStr ++ " table " ++ binary_to_list(Tab)
+    {"create " ++ if length(OptsStr) > 0 ->
+                         OptsStr ++ " ";
+                     true -> "" end ++ "table " ++ binary_to_list(Tab)
         ++ " (" ++ string:join(Clms, ", ") ++ ")"
     , NewCtx4};
 
@@ -1752,6 +1754,67 @@ fold(FType, Fun, Ctx, _Lvl, {where_current_of, {cur, CurName}} = ST) ->
         bottom_up -> Fun(ST, NewCtx)
     end,
     {" where current of "++CurName, NewCtx1};
+
+fold(FType, Fun, Ctx, Lvl, {check, Condition} = ST) ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {ConditionStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl+1, Condition),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
+    {" check ("++ConditionStr++")", NewCtx2};
+
+fold(FType, Fun, Ctx, Lvl, {'foreign key', ClmList, {'ref', Ref}} = ST) ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {ColStrList, NewCtx1} =
+    lists:foldl(
+      fun(Clm, {StrList, ICtx}) ->
+              {CStr, ICtx1} = fold(FType, Fun, ICtx, Lvl+1, Clm),
+              {[CStr|StrList], ICtx1}
+      end, {[], NewCtx}, ClmList),
+    ClmStr = string:join(lists:reverse(ColStrList), ", "),
+    case Ref of
+        {Table, TblClmList} ->
+            {TblStr, NewCtx2} = fold(FType, Fun, NewCtx1, Lvl+1, Table),
+            {TblColStrList, NewCtx3} =
+            lists:foldl(
+              fun(Clm, {StrList, ICtx}) ->
+                      {CStr, ICtx1} = fold(FType, Fun, ICtx, Lvl+1, Clm),
+                      {[CStr|StrList], ICtx1}
+              end, {[], NewCtx2}, TblClmList),
+            RefStr = TblStr ++ " (" ++ string:join(lists:reverse(TblColStrList), ", ") ++ ")";
+        Table ->
+            {RefStr, NewCtx3} = fold(FType, Fun, NewCtx1, Lvl+1, Table)
+    end,
+    NewCtx4 = case FType of
+        top_down -> NewCtx3;
+        bottom_up -> Fun(ST, NewCtx3)
+    end,
+    {" foreign key ("++ClmStr++") references "++RefStr, NewCtx4};
+
+fold(FType, Fun, Ctx, Lvl, {'primary key', ClmList} = ST) ->
+    NewCtx = case FType of
+        top_down -> Fun(ST, Ctx);
+        bottom_up -> Ctx
+    end,
+    {ColStrList, NewCtx1} =
+    lists:foldl(
+      fun(Clm, {StrList, ICtx}) ->
+              {CStr, ICtx1} = fold(FType, Fun, ICtx, Lvl+1, Clm),
+              {[CStr|StrList], ICtx1}
+      end, {[], NewCtx}, ClmList),
+    ClmStr = string:join(lists:reverse(ColStrList), ", "),
+    NewCtx2 = case FType of
+        top_down -> NewCtx1;
+        bottom_up -> Fun(ST, NewCtx1)
+    end,
+    {" primary key ("++ClmStr++")", NewCtx2};
 
 %
 % UNSUPPORTED

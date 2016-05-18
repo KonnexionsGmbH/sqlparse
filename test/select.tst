@@ -277,3 +277,58 @@ UNION ALL
 "SELECT * FROM name_table_1 WHERE name_column_1 = name_column_2 ORDER BY name_column_4 ASC, name_column_5 DESC".
 "SELECT * FROM name_table_1 WHERE name_column_1 = name_column_2 ORDER BY name_column_4 DESC, name_column_5 ASC".
 
+% aggregate functions ----------------------------------------------------------
+
+"SELECT AVG(name_column_3) FROM name_table_1 WHERE name_column_1 = name_column_2".
+% "SELECT AVG(ALL name_column_3) FROM name_table_1 WHERE name_column_1 = name_column_2".
+% "SELECT AVG(DISTINCT name_column_3) FROM name_table_1 WHERE name_column_1 = name_column_2".
+"SELECT CORR(name_column_3,name_column_4) FROM name_table_1 WHERE name_column_1 = name_column_2".
+"SELECT COUNT(*) FROM name_table_1 WHERE name_column_1 = name_column_2".
+"SELECT COUNT(name_column_3) FROM name_table_1 WHERE name_column_1 = name_column_2".
+% "SELECT COUNT(ALL name_column_3) FROM name_table_1 WHERE name_column_1 = name_column_2".
+% "SELECT COUNT(DISTINCT name_column_3) FROM name_table_1 WHERE name_column_1 = name_column_2".
+"SELECT COVAR_POP(name_column_3,name_column_4) FROM name_table_1 WHERE name_column_1 = name_column_2".
+"SELECT COVAR_SAMP(name_column_3,name_column_4) FROM name_table_1 WHERE name_column_1 = name_column_2".
+"SELECT MAX(name_column_3) FROM name_table_1 WHERE name_column_1 = name_column_2".
+% "SELECT MAX(ALL name_column_3) FROM name_table_1 WHERE name_column_1 = name_column_2".
+% "SELECT MAX(DISTINCT name_column_3) FROM name_table_1 WHERE name_column_1 = name_column_2".
+"SELECT MEDIAN(name_column_3) FROM name_table_1 WHERE name_column_1 = name_column_2".
+"SELECT MIN(name_column_3) FROM name_table_1 WHERE name_column_1 = name_column_2".
+% "SELECT MIN(ALL name_column_3) FROM name_table_1 WHERE name_column_1 = name_column_2".
+% "SELECT MIN(DISTINCT name_column_3) FROM name_table_1 WHERE name_column_1 = name_column_2".
+"SELECT REGR_AVGX(name_column_3,name_column_4) FROM name_table_1 WHERE name_column_1 = name_column_2".
+"SELECT REGR_AVGY(name_column_3,name_column_4) FROM name_table_1 WHERE name_column_1 = name_column_2".
+"SELECT REGR_COUNT(name_column_3,name_column_4) FROM name_table_1 WHERE name_column_1 = name_column_2".
+"SELECT REGR_INTERCEPT(name_column_3,name_column_4) FROM name_table_1 WHERE name_column_1 = name_column_2".
+"SELECT REGR_R2(name_column_3,name_column_4) FROM name_table_1 WHERE name_column_1 = name_column_2".
+"SELECT REGR_SLOPE(name_column_3,name_column_4) FROM name_table_1 WHERE name_column_1 = name_column_2".
+"SELECT REGR_SXX(name_column_3,name_column_4) FROM name_table_1 WHERE name_column_1 = name_column_2".
+"SELECT REGR_SXY(name_column_3,name_column_4) FROM name_table_1 WHERE name_column_1 = name_column_2".
+"SELECT REGR_SYY(name_column_3,name_column_4) FROM name_table_1 WHERE name_column_1 = name_column_2".
+"SELECT STDDEV(name_column_3) FROM name_table_1 WHERE name_column_1 = name_column_2".
+% "SELECT STDDEV(ALL name_column_3) FROM name_table_1 WHERE name_column_1 = name_column_2".
+% "SELECT STDDEV(DISTINCT name_column_3) FROM name_table_1 WHERE name_column_1 = name_column_2".
+"SELECT STDDEV_POP(name_column_3) FROM name_table_1 WHERE name_column_1 = name_column_2".
+"SELECT STDDEV_SAMP(name_column_3) FROM name_table_1 WHERE name_column_1 = name_column_2".
+"SELECT SUM(name_column_3) FROM name_table_1 WHERE name_column_1 = name_column_2".
+% "SELECT SUM(ALL name_column_3) FROM name_table_1 WHERE name_column_1 = name_column_2".
+% "SELECT SUM(DISTINCT name_column_3) FROM name_table_1 WHERE name_column_1 = name_column_2".
+"SELECT VAR_POP(name_column_3) FROM name_table_1 WHERE name_column_1 = name_column_2".
+"SELECT VAR_SAMPLE(name_column_3) FROM name_table_1 WHERE name_column_1 = name_column_2".
+"SELECT VARIANCE(name_column_3) FROM name_table_1 WHERE name_column_1 = name_column_2".
+% "SELECT VARIANCE(ALL name_column_3) FROM name_table_1 WHERE name_column_1 = name_column_2".
+% "SELECT VARIANCE(DISTINCT name_column_3) FROM name_table_1 WHERE name_column_1 = name_column_2".
+
+"SELECT * FROM name_table_1 WHERE name_column_1 = name_column_2 AND COUNT(name_column_3)".
+
+"SELECT column_1,column_2,COUNT(column_3) 
+   FROM name_table_1 
+  WHERE name_column_1 = name_column_2 
+  GROUP BY column_1,column_2,REGR_COUNT(name_column_3,name_column_4)".
+
+"SELECT column_1,column_2,COUNT(column_3) 
+   FROM name_table_1 
+  WHERE name_column_1 = name_column_2 
+  GROUP BY column_1,column_2,column_3 
+ HAVING COUNT(name_column_3) > 5".
+

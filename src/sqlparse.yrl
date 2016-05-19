@@ -182,7 +182,10 @@ Terminals
  COMPARISON
  ALL
  FUNS
- AMMSC
+ AMMSC1
+ AMMSC2
+ AMMSC3
+ AMMSC4
  ANY
  AS
  ASC
@@ -964,10 +967,15 @@ function_ref -> NAME '.' NAME '(' fun_args ')'                                  
 function_ref -> NAME '(' fun_args ')'                                                           : {'fun', unwrap_bin('$1'), make_list('$3')}.
 function_ref -> FUNS                                                                            : {'fun', unwrap_bin('$1'), []}.
 function_ref -> FUNS  '(' fun_args ')'                                                          : {'fun', unwrap_bin('$1'), make_list('$3')}.
-function_ref -> AMMSC '(' '*' ')'                                                               : {'fun', unwrap_bin('$1'), [<<"*">>]}.
-function_ref -> AMMSC '(' DISTINCT column_ref ')'                                               : {'fun', unwrap_bin('$1'), [{'distinct', '$4'}]}.
-function_ref -> AMMSC '(' ALL scalar_exp ')'                                                    : {'fun', unwrap_bin('$1'), [{'all', '$4'}]}.
-function_ref -> AMMSC '(' scalar_exp ')'                                                        : {'fun', unwrap_bin('$1'), make_list('$3')}.
+function_ref -> AMMSC1 '(' scalar_exp ')'                                                       : {'fun', unwrap_bin('$1'), make_list('$3')}.
+function_ref -> AMMSC2 '(' scalar_exp ',' scalar_exp ')'                                        : {'fun', unwrap_bin('$1'), make_list(lists:flatten(['$3'] ++ ['$5']))}.
+function_ref -> AMMSC3 '(' DISTINCT scalar_exp ')'                                              : {'fun', unwrap_bin('$1'), [{'distinct', '$4'}]}.
+function_ref -> AMMSC3 '(' ALL scalar_exp ')'                                                   : {'fun', unwrap_bin('$1'), [{'all', '$4'}]}.
+function_ref -> AMMSC3 '(' scalar_exp ')'                                                       : {'fun', unwrap_bin('$1'), make_list('$3')}.
+function_ref -> AMMSC4 '(' '*' ')'                                                              : {'fun', unwrap_bin('$1'), [<<"*">>]}.
+function_ref -> AMMSC4 '(' DISTINCT scalar_exp ')'                                              : {'fun', unwrap_bin('$1'), [{'distinct', '$4'}]}.
+function_ref -> AMMSC4 '(' ALL scalar_exp ')'                                                   : {'fun', unwrap_bin('$1'), [{'all', '$4'}]}.
+function_ref -> AMMSC4 '(' scalar_exp ')'                                                       : {'fun', unwrap_bin('$1'), make_list('$3')}.
 
 fun_args -> fun_arg                                                                             : ['$1']. 
 fun_args -> fun_arg ',' fun_args                                                                : ['$1' | '$3'].

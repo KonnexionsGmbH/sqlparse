@@ -186,7 +186,7 @@ Erlang code.
 
     % AMMSCs
     {"^(?i)(AVG)$",             'AMMSC3'},
-    {"^(?i)(CORR1)$",           'AMMSC2'},
+    {"^(?i)(CORR)$",            'AMMSC2'},
     {"^(?i)(COUNT)$",           'AMMSC4'},
     {"^(?i)(COVAR_POP)$",       'AMMSC2'},
     {"^(?i)(COVAR_SAMP)$",      'AMMSC2'},

@@ -1816,6 +1816,24 @@ fold(FType, Fun, Ctx, Lvl, {'primary key', ClmList} = ST) ->
     end,
     {" primary key ("++ClmStr++")", NewCtx2};
 
+% 
+% Handling of aggregate function types 3/4
+%
+fold(FType, Fun, Ctx, _Lvl, {all, Column} = ST) ->
+  NewCtx = case FType of
+             top_down -> Fun(ST, Ctx);
+             bottom_up -> Ctx
+           end,
+  {" all " ++ binary_to_list(Column)
+    , NewCtx};
+fold(FType, Fun, Ctx, _Lvl, {distinct, Column} = ST) ->
+  NewCtx = case FType of
+             top_down -> Fun(ST, Ctx);
+             bottom_up -> Ctx
+           end,
+  {" distinct " ++ binary_to_list(Column)
+    , NewCtx};
+
 %
 % UNSUPPORTED
 %

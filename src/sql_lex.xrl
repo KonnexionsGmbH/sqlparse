@@ -185,11 +185,30 @@ Erlang code.
     {"^(?i)(ORDERED_SET)$",     'ORDERED_SET'},
 
     % AMMSCs
-    {"^(?i)(AVG)$",             'AMMSC'},
-    {"^(?i)(MIN)$",             'AMMSC'},
-    {"^(?i)(MAX)$",             'AMMSC'},
-    {"^(?i)(SUM)$",             'AMMSC'},
-    {"^(?i)(COUNT)$",           'AMMSC'},
+    {"^(?i)(AVG)$",             'AMMSC3'},
+    {"^(?i)(CORR)$",            'AMMSC2'},
+    {"^(?i)(COUNT)$",           'AMMSC4'},
+    {"^(?i)(COVAR_POP)$",       'AMMSC2'},
+    {"^(?i)(COVAR_SAMP)$",      'AMMSC2'},
+    {"^(?i)(MAX)$",             'AMMSC3'},
+    {"^(?i)(MEDIAN)$",          'AMMSC1'},
+    {"^(?i)(MIN)$",             'AMMSC3'},
+    {"^(?i)(REGR_AVGX)$",       'AMMSC2'},
+    {"^(?i)(REGR_AVGY)$",       'AMMSC2'},
+    {"^(?i)(REGR_COUNT)$",      'AMMSC2'},
+    {"^(?i)(REGR_INTERCEPT)$",  'AMMSC2'},
+    {"^(?i)(REGR_R2)$",         'AMMSC2'},
+    {"^(?i)(REGR_SLOPE)$",      'AMMSC2'},
+    {"^(?i)(REGR_SXX)$",        'AMMSC2'},
+    {"^(?i)(REGR_SXY)$",        'AMMSC2'},
+    {"^(?i)(REGR_SYY)$",        'AMMSC2'},
+    {"^(?i)(STDDEV)$",          'AMMSC3'},
+    {"^(?i)(STDDEV_POP)$",      'AMMSC1'},
+    {"^(?i)(STDDEV_SAMP)$",     'AMMSC1'},
+    {"^(?i)(SUM)$",             'AMMSC3'},
+    {"^(?i)(VAR_POP)$",         'AMMSC3'},
+    {"^(?i)(VAR_SAMP)$",        'AMMSC1'},
+    {"^(?i)(VARIANCE)$",        'AMMSC3'},
 
     % FUNs
     {"^(?i)(TO_CHAR)$",         'FUNS'},
@@ -216,7 +235,6 @@ Erlang code.
     {"^(?i)(BOOL_AND)$",        'UFUN'},
     {"^(?i)(BOOL_OR)$",         'UFUN'},
     {"^(?i)(SELECTIVITY)$",     'UFUN'},
-    {"^(?i)(STDDEV_POP)$",      'UFUN'},
 
     % Truncate
     {"^(?i)(TRUNCATE)$",        'TRUNCATE'},
@@ -250,7 +268,10 @@ match_any(TokenChars, TokenLen, _TokenLine, []) ->
 match_any(TokenChars, TokenLen, TokenLine, [{P,T}|TPs]) ->
     case re:run(TokenChars, P, [{capture, first, list}]) of
         {match,[_]} ->
-            if (T =:= 'AMMSC') orelse
+            if (T =:= 'AMMSC1') orelse
+               (T =:= 'AMMSC2') orelse
+               (T =:= 'AMMSC3') orelse
+               (T =:= 'AMMSC4') orelse
                (T =:= 'FUNS') orelse
                (T =:= 'UFUN') -> {token, {T, TokenLine, list_to_atom(TokenChars)}};
             true              -> {token, {T, TokenLine}}

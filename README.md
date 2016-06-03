@@ -29,8 +29,8 @@ Parsing
 ````
 Compiling
 ````erlang
-4> sqlparse:fold(ParseTree).
-"select * from table_1"
+4> sqlparse:pt_to_string(ParseTree).
+<<"select * from table_1">>
 ````
 
 Test Cases

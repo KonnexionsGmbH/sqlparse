@@ -17,3 +17,4 @@
 "declare begin schm.proc(:p_first,:p_second,:p_result); dbms_output.put_line('Goodbye cruel World!'); end".
 "begin dbms_output.put_line('Hello World!'); dbms_output.put_line('Goodbye cruel World!'); end;".
 "begin update a set d = g where e=f; insert into a values(1,2); end;".
+%"begin :d := 1; end;".

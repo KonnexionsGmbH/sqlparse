@@ -19,7 +19,7 @@ Rules.
                                                     : parse_json(TokenLine, TokenChars).
 
 % punctuation
-(=|<>|<|>|<=|>=)                                    : {token, {'COMPARISON', TokenLine, list_to_atom(TokenChars)}}.
+(:=|=|<>|<|>|<=|>=)                                 : {token, {'COMPARISON', TokenLine, list_to_atom(TokenChars)}}.
 ([\|\-\+\*\/\(\)\,\.\;]|(\|\|)|(div))               : {token, {list_to_atom(TokenChars), TokenLine}}.
 
 % names

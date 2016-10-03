@@ -185,30 +185,30 @@ Erlang code.
     {"^(?i)(ORDERED_SET)$",     'ORDERED_SET'},
 
     % AMMSCs
-    {"^(?i)(AVG)$",             'AMMSC3'},
-    {"^(?i)(CORR)$",            'AMMSC2'},
-    {"^(?i)(COUNT)$",           'AMMSC4'},
-    {"^(?i)(COVAR_POP)$",       'AMMSC2'},
-    {"^(?i)(COVAR_SAMP)$",      'AMMSC2'},
-    {"^(?i)(MAX)$",             'AMMSC3'},
-    {"^(?i)(MEDIAN)$",          'AMMSC1'},
-    {"^(?i)(MIN)$",             'AMMSC3'},
-    {"^(?i)(REGR_AVGX)$",       'AMMSC2'},
-    {"^(?i)(REGR_AVGY)$",       'AMMSC2'},
-    {"^(?i)(REGR_COUNT)$",      'AMMSC2'},
-    {"^(?i)(REGR_INTERCEPT)$",  'AMMSC2'},
-    {"^(?i)(REGR_R2)$",         'AMMSC2'},
-    {"^(?i)(REGR_SLOPE)$",      'AMMSC2'},
-    {"^(?i)(REGR_SXX)$",        'AMMSC2'},
-    {"^(?i)(REGR_SXY)$",        'AMMSC2'},
-    {"^(?i)(REGR_SYY)$",        'AMMSC2'},
-    {"^(?i)(STDDEV)$",          'AMMSC3'},
-    {"^(?i)(STDDEV_POP)$",      'AMMSC1'},
-    {"^(?i)(STDDEV_SAMP)$",     'AMMSC1'},
-    {"^(?i)(SUM)$",             'AMMSC3'},
-    {"^(?i)(VAR_POP)$",         'AMMSC3'},
-    {"^(?i)(VAR_SAMP)$",        'AMMSC1'},
-    {"^(?i)(VARIANCE)$",        'AMMSC3'},
+    {"^(?i)(AVG)$",             'FUNS'},
+    {"^(?i)(CORR)$",            'FUNS'},
+    {"^(?i)(COUNT)$",           'FUNS'},
+    {"^(?i)(COVAR_POP)$",       'FUNS'},
+    {"^(?i)(COVAR_SAMP)$",      'FUNS'},
+    {"^(?i)(MAX)$",             'FUNS'},
+    {"^(?i)(MEDIAN)$",          'FUNS'},
+    {"^(?i)(MIN)$",             'FUNS'},
+    {"^(?i)(REGR_AVGX)$",       'FUNS'},
+    {"^(?i)(REGR_AVGY)$",       'FUNS'},
+    {"^(?i)(REGR_COUNT)$",      'FUNS'},
+    {"^(?i)(REGR_INTERCEPT)$",  'FUNS'},
+    {"^(?i)(REGR_R2)$",         'FUNS'},
+    {"^(?i)(REGR_SLOPE)$",      'FUNS'},
+    {"^(?i)(REGR_SXX)$",        'FUNS'},
+    {"^(?i)(REGR_SXY)$",        'FUNS'},
+    {"^(?i)(REGR_SYY)$",        'FUNS'},
+    {"^(?i)(STDDEV)$",          'FUNS'},
+    {"^(?i)(STDDEV_POP)$",      'FUNS'},
+    {"^(?i)(STDDEV_SAMP)$",     'FUNS'},
+    {"^(?i)(SUM)$",             'FUNS'},
+    {"^(?i)(VAR_POP)$",         'FUNS'},
+    {"^(?i)(VAR_SAMP)$",        'FUNS'},
+    {"^(?i)(VARIANCE)$",        'FUNS'},
 
     % FUNs
     {"^(?i)(TO_CHAR)$",         'FUNS'},
@@ -268,11 +268,7 @@ match_any(TokenChars, TokenLen, _TokenLine, []) ->
 match_any(TokenChars, TokenLen, TokenLine, [{P,T}|TPs]) ->
     case re:run(TokenChars, P, [{capture, first, list}]) of
         {match,[_]} ->
-            if (T =:= 'AMMSC1') orelse
-               (T =:= 'AMMSC2') orelse
-               (T =:= 'AMMSC3') orelse
-               (T =:= 'AMMSC4') orelse
-               (T =:= 'FUNS') orelse
+            if (T =:= 'FUNS') orelse
                (T =:= 'UFUN') -> {token, {T, TokenLine, list_to_atom(TokenChars)}};
             true              -> {token, {T, TokenLine}}
         end;

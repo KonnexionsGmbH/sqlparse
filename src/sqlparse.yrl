@@ -1005,6 +1005,9 @@ table -> NAME '.' NAME AS NAME                                                  
                                                                                                    , unwrap_bin('$5')}.
 table -> NAME '.' NAME NAME                                                                     : {as, list_to_binary([unwrap('$1'),".",unwrap('$3')])
                                                                                                    , unwrap_bin('$4')}.
+table -> parameter                                                                              : '$1'.
+table -> parameter NAME                                                                         : {as, '$1', unwrap_bin('$2')}.
+table -> parameter AS NAME                                                                      : {as, '$1', unwrap_bin('$3')}.
 
 column_ref -> JSON                                                                              : jpparse('$1').
 column_ref -> NAME '.' JSON                                                                     : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3')])).

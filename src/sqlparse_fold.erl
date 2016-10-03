@@ -1135,11 +1135,14 @@ fold(FType, Fun, Ctx, Lvl, {'$from_as', A, B} = ST)
         bottom_up -> Ctx
     end,
     {AStr, NewCtx1}
-    = if is_binary(A) ->
-             {string:strip(binary_to_list(A)), Fun(A, NewCtx)};
-         true ->
-             {A0, NCtx} = fold(FType, Fun, NewCtx, Lvl+1, A),
-             {lists:flatten(["(",string:strip(A0),")"]), NCtx}
+    = case A of
+          A when is_binary(A) ->
+              {string:strip(binary_to_list(A)), Fun(A, NewCtx)};
+          {param, A0} when is_binary(A0) ->
+              {string:strip(binary_to_list(A0)), Fun(A, NewCtx)};
+          A ->
+              {A0, NCtx} = fold(FType, Fun, NewCtx, Lvl+1, A),
+              {lists:flatten(["(",string:strip(A0),")"]), NCtx}
       end,
     NewCtx2 = Fun(B, NewCtx1),
     NewCtx3 = case FType of

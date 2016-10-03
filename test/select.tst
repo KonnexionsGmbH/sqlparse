@@ -12,6 +12,10 @@
 %<<"SELECT * from tab1 INNER JOIN tab2 tab3 tab4 on a = b">>.
 %<<"select * from ALL_USERS where order by user_id asc">>.
 
+"select * from :t".
+"select * from :t tst1".
+"select * from :t as tst2".
+
 <<"select a < 0, f(a+2 as d), f2(a < 3 as f) from abc">>.
 
 <<"select 'öüäéèà', 'شلاؤيثبلتهتنمةىخ','นี่คือการทดสอบ' from dual"/utf8>>.

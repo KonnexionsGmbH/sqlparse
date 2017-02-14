@@ -1,13 +1,7 @@
-.eunit
-*.o
-*.beam
-*.plt
-*.swp
-*.swo
-*.dot
+_build
 erl_crash.dump
-.rebar/
-ebin/
-deps/
+rebar.lock
+src/*.dot
 src/sql_lex.erl
 src/sqlparse.erl
+test/*.beam

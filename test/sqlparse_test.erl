@@ -22,7 +22,7 @@ sql_test_() ->
            end,
     io:format(user, "File = ~s, Logs = ~p~n", [WCard, Logs]),
     {ok, Cwd} = file:get_cwd(),
-    [_|RootPath] = lists:reverse(filename:split(Cwd)),
+    RootPath = lists:reverse(filename:split(Cwd)),
     TestDir = filename:join(lists:reverse(["test" | RootPath])),
     TestFiles = lists:sort([filename:join(TestDir, T)
                             || T <- filelib:wildcard(WCard, TestDir)]),

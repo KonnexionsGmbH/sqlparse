@@ -1,9 +1,6 @@
 install:
   - wget https://s3.amazonaws.com/rebar3/rebar3 && chmod +x rebar3
 language: erlang
-notifications:
-  email:
-    - travis@k2informatics.ch
 otp_release:
   - 18.3
   - 18.2.1
@@ -12,7 +9,6 @@ otp_release:
   - 18.0
   - 17.5
   - 17.4
-  - 17.3
   - 17.1
   - 17.0
 script:

@@ -12,6 +12,5 @@ otp_release:
   - 17.1
   - 17.0
 script:
-  - ./rebar3 compile  
-after_success:
+  - ./rebar3 compile
   - ./rebar3 eunit

@@ -5,11 +5,7 @@
   {description, "A LALR SQL parser and compiler"},
   {vsn, "1.5.4"},
   {registered, []},
-  {applications, [
-                  kernel,
-                  stdlib,
-                  jpparse
-                 ]},
-  {mod, {sqlparse, []}},
+  {applications, [kernel, stdlib, jpparse]},
+  {modules, [sqlparse,sqlparse_fold]},
   {env, []}
  ]}.

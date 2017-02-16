@@ -1058,10 +1058,8 @@ when_action -> CONTINUE                                                         
 Erlang code.
 
 % parser and compiler interface
--export([pt_to_string/1, foldtd/3, foldbu/3
-         , parsetree/1
-         , parsetree_with_tokens/1
-         , is_reserved/1]).
+-export([pt_to_string/1, foldtd/3, foldbu/3, parsetree/1,
+         parsetree_with_tokens/1, is_reserved/1]).
 
 -define(Dbg(__Rule, __Production),
 begin

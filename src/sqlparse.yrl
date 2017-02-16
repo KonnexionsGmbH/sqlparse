@@ -1057,15 +1057,6 @@ when_action -> CONTINUE                                                         
 
 Erlang code.
 
--behaviour(application).
--behaviour(supervisor).
-
-% application callbacks
--export([start/0, start/2, stop/1, stop/0]).
-
-% Supervisor callbacks
--export([init/1]).
-
 % parser and compiler interface
 -export([pt_to_string/1, foldtd/3, foldbu/3
          , parsetree/1
@@ -1077,22 +1068,6 @@ begin
     io:format(user, "__ "??__Rule" (~p)~n", [__Production]),
     __Production
 end). 
-
-%%-----------------------------------------------------------------------------
-%%                          dummy application interface
-%%-----------------------------------------------------------------------------
-
-start() ->
-    jpparse:start(),
-    application:start(?MODULE).
-stop() ->
-    application:stop(?MODULE),
-    jpparse:stop().
-
-start(_Type, _Args) -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
-stop(_State)        -> ok.
-
-init([])            -> {ok, { {one_for_one, 5, 10}, []} }.
 
 %%-----------------------------------------------------------------------------
 %%                          parser helper functions

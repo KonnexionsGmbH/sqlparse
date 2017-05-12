@@ -1,0 +1,1079 @@
+./amber ellipsis examples 50000000 silent
+
+GRAMMAR DEBUG INFORMATION
+
+================================================================================
+041: create_table_def : CREATE ( tbl_scope )? ( tbl_type )? TABLE_X table '(' ( base_table_element ( ',' base_table_element )* )? ')' ;
+================================================================================
+
+Grammar ambiguity detected.
+Two different ``Subphrase'' derivation trees for the same phrase.
+
+TREE 1
+------
+
+Subphrase alternative at line 41, col 29 of grammar {
+}
+
+TREE 2
+------
+
+Subphrase alternative at line 41, col 29 of grammar {
+  Subphrase alternative at line 41, col 39 of grammar {
+  }
+  Subphrase alternative at line 41, col 53 of grammar {
+  }
+}
+
+Use %prio annotation to select an alternative.
+
+END OF GRAMMAR DEBUG INFORMATION
+
+
+GRAMMAR DEBUG INFORMATION
+
+================================================================================
+     alter_user_def : ( ALTER USER NAME ( ',' NAME )* proxy_clause )
+068:                | ( ALTER USER NAME spec_item ( spec_item )* )
+                    | ( ALTER USER NAME NAME NAME )
+                    ;
+     spec_item : identified
+086:           | user_opt
+               | user_role
+               ;
+
+     user_opt : ( ( DEFAULT | TEMPORARY ) TABLESPACE NAME )
+097:          | ( quota  ( quota )* )
+              | ( PROFILE NAME )
+              ;
+================================================================================
+
+Grammar ambiguity detected.
+There are two different parses
+for the beginning of ``Subphrase'', alternative at line 68, col 24 of grammar,
+upto and containing ``Subphrase'' at line 68, col 46 of grammar.
+
+PARSE 1
+-------
+
+Subphrase alternative at line 68, col 24 of grammar {
+  ALTER
+  USER
+  NAME
+  spec_item alternative at line 86, col 20 of grammar {
+    user_opt alternative at line 97, col 12 of grammar {
+      Subphrase alternative at line 97, col 18 of grammar {
+        quota { ... }
+        Subphrase alternative at line 97, col 27 of grammar {
+          quota { ... }
+          Subphrase alternative at line 97, col 27 of grammar {
+          }
+        }
+      }
+    }
+  }
+  Subphrase alternative at line 68, col 56 of grammar {
+  }
+}
+
+PARSE 2
+-------
+
+Subphrase alternative at line 68, col 24 of grammar {
+  ALTER
+  USER
+  NAME
+  spec_item alternative at line 86, col 20 of grammar {
+    user_opt alternative at line 97, col 12 of grammar {
+      Subphrase alternative at line 97, col 18 of grammar {
+        quota { ... }
+        Subphrase alternative at line 97, col 27 of grammar {
+        }
+      }
+    }
+  }
+  Subphrase alternative at line 68, col 56 of grammar {
+    spec_item alternative at line 86, col 20 of grammar {
+      user_opt alternative at line 97, col 12 of grammar {
+        Subphrase alternative at line 97, col 18 of grammar {
+          quota { ... }
+          Subphrase alternative at line 97, col 27 of grammar {
+          }
+        }
+      }
+    }
+    Subphrase alternative at line 68, col 56 of grammar {
+    }
+  }
+}
+
+For ``Subphrase'' at line 68, col 46 of grammar,
+use %short annotation to select first parse,
+use %long annotation to select second parse.
+
+END OF GRAMMAR DEBUG INFORMATION
+
+
+GRAMMAR DEBUG INFORMATION
+
+================================================================================
+     scalar_sub_exp : ( scalar_sub_exp ( '+' | '-' | '*' | '/' | OPERATOR_INTDIV ) scalar_sub_exp )
+350:                | ( ( '+' | '-' ) ( scalar_sub_exp | literal ) )
+                    | NULL
+352:                | atom
+                    | subquery
+                    | column_ref
+                    | function_ref
+                    | ( '(' scalar_sub_exp ')' )
+                    ;
+
+     atom : parameter_ref
+362:      | literal
+          | USER
+          ;
+================================================================================
+
+Grammar ambiguity detected.
+Two different ``Subphrase'' derivation trees for the same phrase.
+
+TREE 1
+------
+
+Subphrase alternative at line 350, col 59 of grammar {
+  literal { ... }
+}
+
+TREE 2
+------
+
+Subphrase alternative at line 350, col 49 of grammar {
+  scalar_sub_exp alternative at line 352, col 21 of grammar {
+    atom alternative at line 362, col 14 of grammar {
+      literal { ... }
+    }
+  }
+}
+
+Use %prio annotation to select an alternative.
+
+END OF GRAMMAR DEBUG INFORMATION
+
+
+GRAMMAR DEBUG INFORMATION
+
+================================================================================
+================================================================================
+
+Grammar ambiguity detected.
+There are two different parses
+for the beginning of ``Subphrase'', alternative at line 68, col 56 of grammar,
+upto and containing ``Subphrase'' at line 68, col 56 of grammar.
+
+PARSE 1
+-------
+
+Subphrase alternative at line 68, col 56 of grammar {
+  spec_item alternative at line 86, col 20 of grammar {
+    user_opt alternative at line 97, col 12 of grammar {
+      Subphrase alternative at line 97, col 18 of grammar {
+        quota { ... }
+        Subphrase alternative at line 97, col 27 of grammar {
+          quota { ... }
+          Subphrase alternative at line 97, col 27 of grammar {
+          }
+        }
+      }
+    }
+  }
+  Subphrase alternative at line 68, col 56 of grammar {
+  }
+}
+
+PARSE 2
+-------
+
+Subphrase alternative at line 68, col 56 of grammar {
+  spec_item alternative at line 86, col 20 of grammar {
+    user_opt alternative at line 97, col 12 of grammar {
+      Subphrase alternative at line 97, col 18 of grammar {
+        quota { ... }
+        Subphrase alternative at line 97, col 27 of grammar {
+        }
+      }
+    }
+  }
+  Subphrase alternative at line 68, col 56 of grammar {
+    spec_item alternative at line 86, col 20 of grammar {
+      user_opt alternative at line 97, col 12 of grammar {
+        Subphrase alternative at line 97, col 18 of grammar {
+          quota { ... }
+          Subphrase alternative at line 97, col 27 of grammar {
+          }
+        }
+      }
+    }
+    Subphrase alternative at line 68, col 56 of grammar {
+    }
+  }
+}
+
+For ``Subphrase'' at line 68, col 56 of grammar,
+use %short annotation to select first parse,
+use %long annotation to select second parse.
+
+END OF GRAMMAR DEBUG INFORMATION
+
+
+GRAMMAR DEBUG INFORMATION
+
+================================================================================
+================================================================================
+
+Grammar ambiguity detected.
+There are two different parses
+for the beginning of ``Subphrase'', alternative at line 43, col 56 of grammar,
+upto and containing ``Subphrase'' at line 43, col 56 of grammar.
+
+PARSE 1
+-------
+
+Subphrase alternative at line 43, col 56 of grammar {
+  user_opt alternative at line 97, col 12 of grammar {
+    Subphrase alternative at line 97, col 18 of grammar {
+      quota { ... }
+      Subphrase alternative at line 97, col 27 of grammar {
+        quota { ... }
+        Subphrase alternative at line 97, col 27 of grammar {
+        }
+      }
+    }
+  }
+  Subphrase alternative at line 43, col 56 of grammar {
+  }
+}
+
+PARSE 2
+-------
+
+Subphrase alternative at line 43, col 56 of grammar {
+  user_opt alternative at line 97, col 12 of grammar {
+    Subphrase alternative at line 97, col 18 of grammar {
+      quota { ... }
+      Subphrase alternative at line 97, col 27 of grammar {
+      }
+    }
+  }
+  Subphrase alternative at line 43, col 56 of grammar {
+    user_opt alternative at line 97, col 12 of grammar {
+      Subphrase alternative at line 97, col 18 of grammar {
+        quota { ... }
+        Subphrase alternative at line 97, col 27 of grammar {
+        }
+      }
+    }
+    Subphrase alternative at line 43, col 56 of grammar {
+    }
+  }
+}
+
+For ``Subphrase'' at line 43, col 56 of grammar,
+use %short annotation to select first parse,
+use %long annotation to select second parse.
+
+END OF GRAMMAR DEBUG INFORMATION
+
+
+GRAMMAR DEBUG INFORMATION
+
+================================================================================
+================================================================================
+
+Grammar ambiguity detected.
+There are two different parses
+for the beginning of ``Subphrase'', alternative at line 125, col 19 of grammar,
+upto and containing ``Subphrase'' at line 125, col 32 of grammar.
+
+PARSE 1
+-------
+
+Subphrase alternative at line 125, col 19 of grammar {
+  CREATE
+  VIEW
+  table alternative at line 391, col 9 of grammar {
+    Subphrase alternative at line 391, col 11 of grammar {
+      Subphrase { ... }
+      NAME
+      Subphrase alternative at line 391, col 32 of grammar {
+        Subphrase alternative at line 391, col 35 of grammar {
+        }
+        NAME
+      }
+    }
+  }
+  Subphrase alternative at line 125, col 49 of grammar {
+  }
+}
+
+PARSE 2
+-------
+
+Subphrase alternative at line 125, col 19 of grammar {
+  CREATE
+  VIEW
+  table alternative at line 391, col 9 of grammar {
+    Subphrase alternative at line 391, col 11 of grammar {
+      Subphrase { ... }
+      NAME
+      Subphrase alternative at line 391, col 32 of grammar {
+      }
+    }
+  }
+  Subphrase alternative at line 125, col 49 of grammar {
+    column_commalist alternative at line 123, col 25 of grammar {
+      column alternative at line 408, col 13 of grammar {
+        NAME
+      }
+      Subphrase alternative at line 123, col 29 of grammar {
+      }
+    }
+  }
+}
+
+For ``Subphrase'' at line 125, col 32 of grammar,
+use %short annotation to select first parse,
+use %long annotation to select second parse.
+
+END OF GRAMMAR DEBUG INFORMATION
+
+
+GRAMMAR DEBUG INFORMATION
+
+Grammar ambiguity detected.
+Two different ``Subphrase'' derivation trees for the same phrase.
+
+TREE 1
+------
+
+Subphrase alternative at line 378, col 47 of grammar {
+  literal { ... }
+}
+
+TREE 2
+------
+
+Subphrase alternative at line 378, col 37 of grammar {
+  fun_arg alternative at line 380, col 16 of grammar {
+    atom alternative at line 362, col 14 of grammar {
+      literal { ... }
+    }
+  }
+}
+
+Use %prio annotation to select an alternative.
+
+END OF GRAMMAR DEBUG INFORMATION
+
+
+GRAMMAR DEBUG INFORMATION
+
+Grammar ambiguity detected.
+Two different ``fun_arg'' derivation trees for the same phrase.
+
+TREE 1
+------
+
+fun_arg alternative at line 374, col 11 of grammar {
+  Subphrase alternative at line 374, col 13 of grammar {
+    '('
+    fun_arg alternative at line 381, col 20 of grammar {
+      subquery alternative at line 341, col 20 of grammar {
+        query_exp { ... }
+      }
+    }
+    ')'
+  }
+}
+
+TREE 2
+------
+
+fun_arg alternative at line 381, col 20 of grammar {
+  subquery alternative at line 341, col 20 of grammar {
+    query_exp alternative at line 228, col 22 of grammar {
+      query_term alternative at line 235, col 14 of grammar {
+        Subphrase alternative at line 235, col 16 of grammar {
+          '('
+          query_exp { ... }
+          ')'
+        }
+      }
+    }
+  }
+}
+
+Use %prio annotation to select an alternative.
+
+END OF GRAMMAR DEBUG INFORMATION
+
+
+GRAMMAR DEBUG INFORMATION
+
+Grammar ambiguity detected.
+There are two different parses
+for the beginning of ``insert_statement'', alternative at line 206, col 25 of grammar,
+upto and containing ``Subphrase'' at line 206, col 38 of grammar.
+
+PARSE 1
+-------
+
+insert_statement alternative at line 206, col 25 of grammar {
+  INSERT
+  INTO
+  table alternative at line 391, col 9 of grammar {
+    Subphrase alternative at line 391, col 11 of grammar {
+      Subphrase { ... }
+      NAME
+      Subphrase alternative at line 391, col 32 of grammar {
+      }
+    }
+  }
+  Subphrase alternative at line 206, col 40 of grammar {
+    Subphrase alternative at line 206, col 57 of grammar {
+      column_commalist alternative at line 123, col 25 of grammar {
+        column alternative at line 408, col 13 of grammar {
+          NAME
+        }
+        Subphrase alternative at line 123, col 29 of grammar {
+        }
+      }
+    }
+    Subphrase { ... }
+    Subphrase alternative at line 206, col 153 of grammar {
+    }
+  }
+}
+
+PARSE 2
+-------
+
+insert_statement alternative at line 206, col 25 of grammar {
+  INSERT
+  INTO
+  table alternative at line 391, col 9 of grammar {
+    Subphrase alternative at line 391, col 11 of grammar {
+      Subphrase { ... }
+      NAME
+      Subphrase alternative at line 391, col 32 of grammar {
+        Subphrase alternative at line 391, col 35 of grammar {
+        }
+        NAME
+      }
+    }
+  }
+  Subphrase alternative at line 206, col 40 of grammar {
+    Subphrase alternative at line 206, col 57 of grammar {
+    }
+    Subphrase { ... }
+    Subphrase alternative at line 206, col 153 of grammar {
+    }
+  }
+}
+
+For ``Subphrase'' at line 206, col 38 of grammar,
+use %long annotation to select first parse,
+use %short annotation to select second parse.
+
+END OF GRAMMAR DEBUG INFORMATION
+
+
+GRAMMAR DEBUG INFORMATION
+
+Grammar ambiguity detected.
+Two different ``scalar_sub_exp'' derivation trees for the same phrase.
+
+TREE 1
+------
+
+scalar_sub_exp alternative at line 356, col 18 of grammar {
+  Subphrase alternative at line 356, col 20 of grammar {
+    '('
+    scalar_sub_exp alternative at line 353, col 25 of grammar {
+      subquery alternative at line 341, col 20 of grammar {
+        query_exp { ... }
+      }
+    }
+    ')'
+  }
+}
+
+TREE 2
+------
+
+scalar_sub_exp alternative at line 353, col 25 of grammar {
+  subquery alternative at line 341, col 20 of grammar {
+    query_exp alternative at line 228, col 22 of grammar {
+      query_term alternative at line 235, col 14 of grammar {
+        Subphrase alternative at line 235, col 16 of grammar {
+          '('
+          query_exp { ... }
+          ')'
+        }
+      }
+    }
+  }
+}
+
+Use %prio annotation to select an alternative.
+
+END OF GRAMMAR DEBUG INFORMATION
+
+
+GRAMMAR DEBUG INFORMATION
+
+Grammar ambiguity detected.
+There are two different parses
+for the beginning of ``Subphrase'', alternative at line 290, col 19 of grammar,
+upto and containing ``Subphrase'' at line 290, col 21 of grammar.
+
+PARSE 1
+-------
+
+Subphrase alternative at line 290, col 19 of grammar {
+  table alternative at line 391, col 9 of grammar {
+    Subphrase alternative at line 391, col 11 of grammar {
+      Subphrase { ... }
+      NAME
+      Subphrase alternative at line 391, col 32 of grammar {
+      }
+    }
+  }
+  Subphrase alternative at line 290, col 36 of grammar {
+    range_variable alternative at line 416, col 21 of grammar {
+      NAME
+    }
+  }
+}
+
+PARSE 2
+-------
+
+Subphrase alternative at line 290, col 19 of grammar {
+  table alternative at line 391, col 9 of grammar {
+    Subphrase alternative at line 391, col 11 of grammar {
+      Subphrase { ... }
+      NAME
+      Subphrase alternative at line 391, col 32 of grammar {
+        Subphrase alternative at line 391, col 35 of grammar {
+        }
+        NAME
+      }
+    }
+  }
+  Subphrase alternative at line 290, col 36 of grammar {
+  }
+}
+
+For ``Subphrase'' at line 290, col 21 of grammar,
+use %long annotation to select first parse,
+use %short annotation to select second parse.
+
+END OF GRAMMAR DEBUG INFORMATION
+
+
+GRAMMAR DEBUG INFORMATION
+
+Grammar ambiguity detected.
+Two different ``fun_arg'' derivation trees for the same phrase.
+
+TREE 1
+------
+
+fun_arg alternative at line 377, col 13 of grammar {
+  Subphrase alternative at line 377, col 21 of grammar {
+    fun_arg alternative at line 378, col 13 of grammar {
+      Subphrase alternative at line 378, col 15 of grammar {
+        Subphrase { ... }
+        Subphrase alternative at line 378, col 37 of grammar {
+          fun_arg { ... }
+        }
+      }
+    }
+    Subphrase { ... }
+    fun_arg { ... }
+  }
+}
+
+TREE 2
+------
+
+fun_arg alternative at line 378, col 13 of grammar {
+  Subphrase alternative at line 378, col 15 of grammar {
+    Subphrase { ... }
+    Subphrase alternative at line 378, col 37 of grammar {
+      fun_arg alternative at line 377, col 13 of grammar {
+        Subphrase alternative at line 377, col 21 of grammar {
+          fun_arg { ... }
+          Subphrase { ... }
+          fun_arg { ... }
+        }
+      }
+    }
+  }
+}
+
+Use %prio annotation to select an alternative.
+
+END OF GRAMMAR DEBUG INFORMATION
+
+
+GRAMMAR DEBUG INFORMATION
+
+Grammar ambiguity detected.
+Two different ``fun_arg'' derivation trees for the same phrase.
+
+TREE 1
+------
+
+fun_arg alternative at line 382, col 13 of grammar {
+  Subphrase alternative at line 382, col 21 of grammar {
+    fun_arg alternative at line 378, col 13 of grammar {
+      Subphrase alternative at line 378, col 15 of grammar {
+        Subphrase { ... }
+        Subphrase alternative at line 378, col 37 of grammar {
+          fun_arg { ... }
+        }
+      }
+    }
+    AS
+    NAME
+  }
+}
+
+TREE 2
+------
+
+fun_arg alternative at line 378, col 13 of grammar {
+  Subphrase alternative at line 378, col 15 of grammar {
+    Subphrase { ... }
+    Subphrase alternative at line 378, col 37 of grammar {
+      fun_arg alternative at line 382, col 13 of grammar {
+        Subphrase alternative at line 382, col 21 of grammar {
+          fun_arg { ... }
+          AS
+          NAME
+        }
+      }
+    }
+  }
+}
+
+Use %prio annotation to select an alternative.
+
+END OF GRAMMAR DEBUG INFORMATION
+
+
+GRAMMAR DEBUG INFORMATION
+
+Grammar ambiguity detected.
+Two different ``fun_arg'' derivation trees for the same phrase.
+
+TREE 1
+------
+
+fun_arg alternative at line 383, col 13 of grammar {
+  Subphrase alternative at line 383, col 21 of grammar {
+    fun_arg alternative at line 378, col 13 of grammar {
+      Subphrase alternative at line 378, col 15 of grammar {
+        Subphrase { ... }
+        Subphrase alternative at line 378, col 37 of grammar {
+          fun_arg { ... }
+        }
+      }
+    }
+    COMPARISON
+    fun_arg { ... }
+  }
+}
+
+TREE 2
+------
+
+fun_arg alternative at line 378, col 13 of grammar {
+  Subphrase alternative at line 378, col 15 of grammar {
+    Subphrase { ... }
+    Subphrase alternative at line 378, col 37 of grammar {
+      fun_arg alternative at line 383, col 13 of grammar {
+        Subphrase alternative at line 383, col 21 of grammar {
+          fun_arg { ... }
+          COMPARISON
+          fun_arg { ... }
+        }
+      }
+    }
+  }
+}
+
+Use %prio annotation to select an alternative.
+
+END OF GRAMMAR DEBUG INFORMATION
+
+
+GRAMMAR DEBUG INFORMATION
+
+Grammar ambiguity detected.
+Two different ``search_condition'' derivation trees for the same phrase.
+
+TREE 1
+------
+
+search_condition alternative at line 308, col 20 of grammar {
+  Subphrase alternative at line 308, col 22 of grammar {
+    '('
+    search_condition alternative at line 309, col 28 of grammar {
+      predicate alternative at line 312, col 32 of grammar {
+        comparison_predicate alternative at line 321, col 40 of grammar {
+          scalar_opt_as_exp alternative at line 343, col 21 of grammar {
+            Subphrase alternative at line 343, col 32 of grammar {
+              scalar_exp alternative at line 347, col 27 of grammar {
+                scalar_sub_exp { ... }
+                Subphrase alternative at line 347, col 45 of grammar {
+                }
+              }
+              Subphrase alternative at line 343, col 45 of grammar {
+              }
+            }
+          }
+        }
+      }
+    }
+    ')'
+  }
+}
+
+TREE 2
+------
+
+search_condition alternative at line 309, col 28 of grammar {
+  predicate alternative at line 312, col 32 of grammar {
+    comparison_predicate alternative at line 321, col 40 of grammar {
+      scalar_opt_as_exp alternative at line 343, col 21 of grammar {
+        Subphrase alternative at line 343, col 32 of grammar {
+          scalar_exp alternative at line 347, col 27 of grammar {
+            scalar_sub_exp alternative at line 356, col 18 of grammar {
+              Subphrase alternative at line 356, col 20 of grammar {
+                '('
+                scalar_sub_exp { ... }
+                ')'
+              }
+            }
+            Subphrase alternative at line 347, col 45 of grammar {
+            }
+          }
+          Subphrase alternative at line 343, col 45 of grammar {
+          }
+        }
+      }
+    }
+  }
+}
+
+Use %prio annotation to select an alternative.
+
+END OF GRAMMAR DEBUG INFORMATION
+
+
+GRAMMAR DEBUG INFORMATION
+
+Grammar ambiguity detected.
+Two different ``comparison_predicate'' derivation trees for the same phrase.
+
+TREE 1
+------
+
+comparison_predicate alternative at line 323, col 24 of grammar {
+  Subphrase alternative at line 323, col 35 of grammar {
+    scalar_exp { ... }
+    COMPARISON
+    subquery { ... }
+  }
+}
+
+TREE 2
+------
+
+comparison_predicate alternative at line 322, col 24 of grammar {
+  Subphrase alternative at line 322, col 26 of grammar {
+    Subphrase alternative at line 322, col 32 of grammar {
+    }
+    scalar_exp { ... }
+    COMPARISON
+    scalar_exp alternative at line 347, col 27 of grammar {
+      scalar_sub_exp alternative at line 353, col 25 of grammar {
+        subquery { ... }
+      }
+      Subphrase alternative at line 347, col 45 of grammar {
+      }
+    }
+  }
+}
+
+Use %prio annotation to select an alternative.
+
+END OF GRAMMAR DEBUG INFORMATION
+
+
+GRAMMAR DEBUG INFORMATION
+
+Grammar ambiguity detected.
+Two different ``comparison_predicate'' derivation trees for the same phrase.
+
+TREE 1
+------
+
+comparison_predicate alternative at line 323, col 24 of grammar {
+  Subphrase alternative at line 323, col 35 of grammar {
+    scalar_exp { ... }
+    COMPARISON
+    subquery { ... }
+  }
+}
+
+TREE 2
+------
+
+comparison_predicate alternative at line 321, col 40 of grammar {
+  scalar_opt_as_exp alternative at line 343, col 21 of grammar {
+    Subphrase alternative at line 343, col 32 of grammar {
+      scalar_exp { ... }
+      Subphrase alternative at line 343, col 45 of grammar {
+        COMPARISON
+        scalar_exp alternative at line 347, col 27 of grammar {
+          scalar_sub_exp alternative at line 353, col 25 of grammar {
+            subquery { ... }
+          }
+          Subphrase alternative at line 347, col 45 of grammar {
+          }
+        }
+      }
+    }
+  }
+}
+
+Use %prio annotation to select an alternative.
+
+END OF GRAMMAR DEBUG INFORMATION
+
+
+GRAMMAR DEBUG INFORMATION
+
+Grammar ambiguity detected.
+There are two different parses
+for the beginning of ``Subphrase'', alternative at line 245, col 49 of grammar,
+upto and containing ``select_field_commalist'' at line 245, col 55 of grammar.
+
+PARSE 1
+-------
+
+Subphrase alternative at line 245, col 49 of grammar {
+  select_field_commalist alternative at line 245, col 26 of grammar {
+    Subphrase alternative at line 245, col 49 of grammar {
+      select_field_commalist { ... }
+      ','
+      select_field_commalist { ... }
+    }
+  }
+  ','
+  select_field_commalist { ... }
+}
+
+PARSE 2
+-------
+
+Subphrase alternative at line 245, col 49 of grammar {
+  select_field_commalist { ... }
+  ','
+  select_field_commalist alternative at line 245, col 26 of grammar {
+    Subphrase alternative at line 245, col 49 of grammar {
+      select_field_commalist { ... }
+      ','
+      select_field_commalist { ... }
+    }
+  }
+}
+
+For ``select_field_commalist'' at line 245, col 55 of grammar,
+use %short annotation to select first parse,
+use %long annotation to select second parse.
+
+END OF GRAMMAR DEBUG INFORMATION
+
+
+GRAMMAR DEBUG INFORMATION
+
+Grammar ambiguity detected.
+Two different ``scalar_sub_exp'' derivation trees for the same phrase.
+
+TREE 1
+------
+
+scalar_sub_exp alternative at line 349, col 18 of grammar {
+  Subphrase alternative at line 349, col 33 of grammar {
+    scalar_sub_exp alternative at line 350, col 18 of grammar {
+      Subphrase alternative at line 350, col 20 of grammar {
+        Subphrase { ... }
+        Subphrase alternative at line 350, col 49 of grammar {
+          scalar_sub_exp { ... }
+        }
+      }
+    }
+    Subphrase { ... }
+    scalar_sub_exp { ... }
+  }
+}
+
+TREE 2
+------
+
+scalar_sub_exp alternative at line 350, col 18 of grammar {
+  Subphrase alternative at line 350, col 20 of grammar {
+    Subphrase { ... }
+    Subphrase alternative at line 350, col 49 of grammar {
+      scalar_sub_exp alternative at line 349, col 18 of grammar {
+        Subphrase alternative at line 349, col 33 of grammar {
+          scalar_sub_exp { ... }
+          Subphrase { ... }
+          scalar_sub_exp { ... }
+        }
+      }
+    }
+  }
+}
+
+Use %prio annotation to select an alternative.
+
+END OF GRAMMAR DEBUG INFORMATION
+
+
+GRAMMAR DEBUG INFORMATION
+
+Grammar ambiguity detected.
+Two different ``scalar_opt_as_exp'' derivation trees for the same phrase.
+
+TREE 1
+------
+
+scalar_opt_as_exp alternative at line 344, col 21 of grammar {
+  Subphrase alternative at line 344, col 32 of grammar {
+    scalar_exp alternative at line 347, col 27 of grammar {
+      scalar_sub_exp alternative at line 353, col 25 of grammar {
+        subquery alternative at line 341, col 20 of grammar {
+          query_exp alternative at line 228, col 22 of grammar {
+            query_term alternative at line 234, col 23 of grammar {
+              query_spec alternative at line 238, col 19 of grammar {
+                SELECT
+                Subphrase alternative at line 238, col 26 of grammar {
+                }
+                Subphrase alternative at line 238, col 46 of grammar {
+                }
+                selection { ... }
+                Subphrase alternative at line 238, col 66 of grammar {
+                }
+                table_exp alternative at line 256, col 16 of grammar {
+                  FROM
+                  from_commalist alternative at line 258, col 26 of grammar {
+                    table_ref alternative at line 290, col 13 of grammar {
+                      Subphrase alternative at line 290, col 19 of grammar {
+                        table { ... }
+                        Subphrase alternative at line 290, col 36 of grammar {
+                        }
+                      }
+                    }
+                  }
+                  Subphrase alternative at line 256, col 46 of grammar {
+                  }
+                  Subphrase alternative at line 256, col 77 of grammar {
+                  }
+                  Subphrase alternative at line 256, col 88 of grammar {
+                  }
+                  Subphrase alternative at line 256, col 124 of grammar {
+                  }
+                  Subphrase alternative at line 256, col 162 of grammar {
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      Subphrase alternative at line 347, col 45 of grammar {
+      }
+    }
+    Subphrase alternative at line 344, col 37 of grammar {
+    }
+    NAME
+  }
+}
+
+TREE 2
+------
+
+scalar_opt_as_exp alternative at line 343, col 21 of grammar {
+  Subphrase alternative at line 343, col 32 of grammar {
+    scalar_exp alternative at line 347, col 27 of grammar {
+      scalar_sub_exp alternative at line 353, col 25 of grammar {
+        subquery alternative at line 341, col 20 of grammar {
+          query_exp alternative at line 228, col 22 of grammar {
+            query_term alternative at line 234, col 23 of grammar {
+              query_spec alternative at line 238, col 19 of grammar {
+                SELECT
+                Subphrase alternative at line 238, col 26 of grammar {
+                }
+                Subphrase alternative at line 238, col 46 of grammar {
+                }
+                selection { ... }
+                Subphrase alternative at line 238, col 66 of grammar {
+                }
+                table_exp alternative at line 256, col 16 of grammar {
+                  FROM
+                  from_commalist alternative at line 258, col 26 of grammar {
+                    table_ref alternative at line 290, col 13 of grammar {
+                      Subphrase alternative at line 290, col 19 of grammar {
+                        table { ... }
+                        Subphrase alternative at line 290, col 36 of grammar {
+                          range_variable alternative at line 416, col 21 of grammar {
+                            NAME
+                          }
+                        }
+                      }
+                    }
+                  }
+                  Subphrase alternative at line 256, col 46 of grammar {
+                  }
+                  Subphrase alternative at line 256, col 77 of grammar {
+                  }
+                  Subphrase alternative at line 256, col 88 of grammar {
+                  }
+                  Subphrase alternative at line 256, col 124 of grammar {
+                  }
+                  Subphrase alternative at line 256, col 162 of grammar {
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      Subphrase alternative at line 347, col 45 of grammar {
+      }
+    }
+    Subphrase alternative at line 343, col 45 of grammar {
+    }
+  }
+}
+
+Use %prio annotation to select an alternative.
+
+END OF GRAMMAR DEBUG INFORMATION
+
+
+20 ambiguities detected.

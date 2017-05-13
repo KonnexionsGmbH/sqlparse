@@ -1,3 +1,25 @@
+%% -----------------------------------------------------------------------------
+%%
+%% sqlparse.yrl: SQL parser - parser definition.
+%%
+%% Copyright (c) 2012-17 K2 Informatics GmbH.  All Rights Reserved.
+%%
+%% This file is provided to you under the Apache License,
+%% Version 2.0 (the "License"); you may not use this file
+%% except in compliance with the License.  You may obtain
+%% a copy of the License at
+%%
+%%   http://www.apache.org/licenses/LICENSE-2.0
+%%
+%% Unless required by applicable law or agreed to in writing,
+%% software distributed under the License is distributed on an
+%% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+%% KIND, either express or implied.  See the License for the
+%% specific language governing permissions and limitations
+%% under the License.
+%%
+%% -----------------------------------------------------------------------------
+
 %% -*- erlang -*-
 Header "%% Copyright (C) K2 Informatics GmbH"
 "%% @private"
@@ -7,324 +29,325 @@ Header "%% Copyright (C) K2 Informatics GmbH"
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Nonterminals
- sql_list
- schema
- opt_schema_element_list
- schema_element_list
- schema_element
- create_role_def
- create_table_def
- create_user_def
+ all_or_any_predicate
+ alter_user_def
+ any_all_some
+ assignment
+ assignment_commalist
+ atom
+ base_table_element
+ base_table_element_commalist
+ between_predicate
+ case_when_exp
+ case_when_opt_as_exp
+ case_when_then
+ case_when_then_list
+ close_statement
+ column
+ column_commalist
+ column_def
+ column_def_opt
+ column_def_opt_list
+ column_ref
+ column_ref_commalist
+ commit_statement
+ comparison_predicate
  create_index_def
+ create_index_opt_filter
+ create_index_opt_norm
  create_index_opts
  create_index_spec
  create_index_spec_items
- create_index_opt_norm
- create_index_opt_filter
- index_name
- opt_index_name
- alter_user_def
- drop_role_def
- drop_table_def
- drop_index_def
- drop_user_def
- base_table_element_commalist
- base_table_element
- column_def
- column_def_opt_list
- column_def_opt
- table_constraint_def
- column_commalist
- view_def
- opt_with_check_option
- opt_column_commalist
- grant_def
- revoke_def
- opt_on_obj_clause
- opt_with_grant_option
- opt_with_revoke_option
- system_privilege_list
- grantee_commalist
- grantee
+ create_opts
+ create_role_def
+ create_table_def
+ create_user_def
+ cursor
  cursor_def
- opt_order_by_clause
- ordering_spec_commalist
- ordering_spec
- opt_asc_desc
- manipulative_statement
- close_statement
- commit_statement
+ data_type
+ db_user_proxy
  delete_statement_positioned
  delete_statement_searched
+ drop_index_def
+ drop_role_def
+ drop_table_def
+ drop_user_def
+ existence_test
+ extra
  fetch_statement
- insert_statement
- values_or_query_spec
- insert_atom_commalist
- insert_atom
- open_statement
- rollback_statement
- select_statement
- opt_all_distinct
- update_statement_positioned
- assignment_commalist
- assignment
- update_statement_searched
- target_commalist
- target
- query_exp
- query_term
- query_spec
- opt_into
- selection
- table_exp
  from_clause
  from_commalist
- table_ref
- join_ref
- opt_where_clause
- where_clause
- opt_hierarchical_query_clause
- hierarchical_query_clause
- opt_group_by_clause
- opt_nocycle
- column_ref_commalist
- opt_having_clause
- search_condition
- predicate
- comparison_predicate
- between_predicate
- like_predicate
- opt_escape
- test_for_null
- in_predicate
- all_or_any_predicate
- any_all_some
- existence_test
- subquery
- scalar_exp
- scalar_opt_as_exp
- scalar_sub_exp
- scalar_exp_commalist
- select_field_commalist
- atom
- parameter_ref
+ fun_arg
+ fun_args
  function_ref
  function_ref_list
- %concat_list
- fun_args
- fun_arg
- literal
- table
- column_ref
- data_type
- column
- cursor
- parameter
- range_variable
- user
- sql
- when_action
- opt_hint
- table_list
- opt_exists
- opt_restrict_cascade
+ grant_def
+ grantee
+ grantee_commalist
+ hierarchical_query_clause
  identified
- opt_user_opts_list
- opt_as
- user_opt
- quota_list
- quota
- proxy_clause
- user_list
- spec_list
- spec_item
- role_list
- user_role
- opt_sgn_num
- create_opts
- tbl_scope
- tbl_type
- truncate_table 
- table_name 
- opt_materialized
- opt_storage
- system_privilege
- extra
- returning
+ in_predicate
+ index_name
+ inner_cross_join
+ insert_atom
+ insert_atom_commalist
+ insert_statement
  join_clause
  join_list
- inner_cross_join
- outer_join
- opt_join_on_or_using_clause
  join_on_or_using_clause
- outer_join_type
- query_partition_clause
- case_when_exp
- case_when_opt_as_exp
- case_when_then_list
- case_when_then
+ join_ref
+ like_predicate
+ literal
+ manipulative_statement
+ open_statement
+ opt_all_distinct
+ opt_as
+ opt_asc_desc
+ opt_column_commalist
  opt_else
+ opt_escape
+ opt_exists
+ opt_group_by_clause
+ opt_having_clause
+ opt_hierarchical_query_clause
+ opt_hint
+ opt_index_name
+ opt_into
+ opt_join_on_or_using_clause
+ opt_materialized
+ opt_nocycle
+ opt_on_obj_clause
+ opt_order_by_clause
+ opt_restrict_cascade
+ opt_schema_element_list
+ opt_sgn_num
+ opt_storage
+ opt_user_opts_list
+ opt_where_clause
+ opt_with_check_option
+ opt_with_grant_option
+ opt_with_revoke_option
+ ordering_spec
+ ordering_spec_commalist
+ outer_join
+ outer_join_type
+ parameter
+ parameter_ref
+ predicate
  procedure_call
- db_user_proxy
- proxy_with
  proxy_auth_req
+ proxy_clause
+ proxy_with
+ query_exp
+ query_partition_clause
+ query_spec
+ query_term
+ quota
+ quota_list
+ range_variable
+ returning
+ revoke_def
+ role_list
+ rollback_statement
+ scalar_exp
+ scalar_exp_commalist
+ scalar_opt_as_exp
+ scalar_sub_exp
+ schema
+ schema_element
+ schema_element_list
+ search_condition
+ select_field_commalist
+ select_statement
+ selection
+ spec_item
+ spec_list
+ sql
+ sql_list
+ subquery
+ system_privilege
+ system_privilege_list
+ table
+ table_constraint_def
+ table_exp
+ table_list
+ table_name
+ table_ref
+ target
+ target_commalist
+ tbl_scope
+ tbl_type
+ test_for_null
+ truncate_table
+ update_statement_positioned
+ update_statement_searched
+ user
+ user_list
+ user_opt
+ user_role
+ values_or_query_spec
+ view_def
+ when_action
+ where_clause
 .
 
-    %% symbolic tokens
-    %% literal keyword tokens
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% symbolic tokens
+%% literal keyword tokens
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %'LANGUAGE' 'PROCEDURE' 'SQLCODE'
 Terminals
- NAME
- STRING
- INTNUM
- APPROXNUM
- COMPARISON
+ 'AND'
+ 'NOT'
+ 'OR'
  ALL
- FUNS
+ ALTER
  ANY
+ APPROXNUM
  AS
  ASC
+ AUTHENTICATION
  AUTHORIZATION
+ BAG
+ BEGIN
  BETWEEN
+ BITMAP
  BY
+ CALL
+ CASCADE
+ CASE
  CHECK
  CLOSE
+ CLUSTER
  COMMIT
+ COMPARISON
+ CONNECT
+ CONSTRAINS
  CONTINUE
  CREATE
+ CROSS
  CURRENT
  CURSOR
  DECLARE
- BEGIN
  DEFAULT
  DELETE
  DESC
+ DIRECTORY
  DISTINCT
- ESCAPE
- EXISTS
  DROP
- RESTRICT
- CASCADE
+ ELSE
+ END
+ ENTERPRISE
+ ESCAPE
+ EXCEPT
+ EXISTS
+ EXTERNALLY
  FETCH
+ FILTER_WITH
  FOR
+ FORCE
  FOREIGN
  FOUND
  FROM
+ FULL
+ FUNS
+ GLOBALLY
  GOTO
  GRANT
  GROUP
+ HASHMAP
  HAVING
+ HIERARCHY
+ HINT
+ IDENTIFIED
+ IF
  IN
+ INDEX
  INDICATOR
+ INNER
  INSERT
+ INTERSECT
+ INTNUM
  INTO
  IS
+ JAVA
+ JOIN
+ JSON
  KEY
+ KEYLIST
+ LEFT
  LIKE
+ LOCAL
+ LOG
+ MATERIALIZED
+ MINUS
+ NAME
+ NATURAL
+ NO
+ NOCYCLE
+ NONE
+ NORM_WITH
  NULLX
  OF
  ON
  OPEN
  OPTION
  ORDER
+ ORDERED_SET
+ OUTER
  PARAMETER
+ PARTITION
+ PRESERVE
  PRIMARY
+ PRIOR
  PRIVILEGES
+ PROFILE
  PUBLIC
+ PURGE
+ QUOTA
  REFERENCES
+ REQUIRED
+ RESOURCE
+ RESTRICT
+ RETURN
+ RETURNING
+ REUSE
+ REVOKE
+ RIGHT
+ ROLE
+ ROLES
  ROLLBACK
  SCHEMA
  SELECT
  SET
  SOME
+ SOURCE
  SQLERROR
+ START
+ STORAGE
+ STRING
  TABLE
+ TABLESPACE
+ TEMPORARY
+ THEN
+ THROUGH
  TO
+ TRUNCATE
  UNION
- INTERSECT
- MINUS
  UNIQUE
+ UNLIMITED
  UPDATE
  USER
+ USERS
+ USING
  VALUES
  VIEW
+ WHEN
  WHENEVER
  WHERE
  WITH
  WORK
- HINT
- IDENTIFIED
- EXTERNALLY
- GLOBALLY
- TABLESPACE
- TEMPORARY
- PROFILE
- PRIOR
- QUOTA
- UNLIMITED
- ALTER
- ENTERPRISE
- REVOKE
- THROUGH
- USERS
- ROLE
- ROLES
- EXCEPT
- NO
- NONE
- CONNECT
- LOCAL
- CLUSTER
- ORDERED_SET
- BAG
- TRUNCATE
- PRESERVE
- PURGE
- MATERIALIZED
- LOG
- REUSE
- STORAGE
- HIERARCHY
- DIRECTORY
- JAVA
- SOURCE
- RESOURCE
- CONSTRAINS
- FORCE
- RETURNING
- RETURN
- INNER
- OUTER
- LEFT
- RIGHT
- FULL
- CROSS
- NATURAL
- JOIN
- USING
- PARTITION
- START
- NOCYCLE
- CASE
- WHEN
- IF
- THEN
- ELSE
- END
- CALL
- JSON
- BITMAP
- KEYLIST
- HASHMAP
- INDEX
- NORM_WITH
- FILTER_WITH
- REQUIRED
- AUTHENTICATION
- 'AND'
- 'NOT'
- 'OR'
  '+'
  '-'
  '*'
@@ -341,8 +364,9 @@ Terminals
 
 Rootsymbol sql_list.
 
-
-    %% operators
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% operators
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Left        110 'OR'.
 Left        120 'AND'.
@@ -361,6 +385,7 @@ extra -> '$empty'                                                               
 extra -> NAME  ';'                                                                              : {extra, unwrap_bin('$1')}.
 
 sql -> procedure_call                                                                           : '$1'.
+
 procedure_call -> DECLARE BEGIN function_ref_list END                                           : {'declare begin procedure', '$3'}.
 procedure_call -> DECLARE BEGIN sql_list END                                                    : {'declare begin procedure', '$3'}.
 procedure_call -> BEGIN function_ref_list END                                                   : {'begin procedure', '$2'}.
@@ -370,9 +395,12 @@ procedure_call -> CALL function_ref                                             
 function_ref_list -> function_ref ';'                                                           : ['$1'].
 function_ref_list -> function_ref ';' function_ref_list                                         : ['$1' | '$3'].
 
-    %% schema definition language
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% schema definition language
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 sql -> schema                                                                                   : '$1'.
-   
+
 schema -> CREATE SCHEMA AUTHORIZATION user opt_schema_element_list                              : {'create schema authorization', '$4', '$5'}.
 
 opt_schema_element_list -> '$empty'                                                             : [].
@@ -556,7 +584,7 @@ column_commalist -> column ',' column_commalist                                 
 
 view_def -> CREATE VIEW table opt_column_commalist                                              : {'create view', '$3', '$4'}.
 view_def -> AS query_spec opt_with_check_option                                                 : {'as', '$2', '$3'}.
-   
+
 opt_with_check_option -> '$empty'                                                               : [].
 opt_with_check_option -> WITH CHECK OPTION                                                      : 'with check option'.
 
@@ -608,7 +636,9 @@ grantee -> PUBLIC                                                               
 grantee -> NAME                                                                                 : unwrap_bin('$1').
 grantee -> NAME IDENTIFIED BY NAME                                                              : {'identified by', unwrap_bin('$1'), unwrap_bin('$4')}.
 
-    %% cursor definition
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% cursor definition
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 sql -> cursor_def                                                                               : '$1'.
 
@@ -627,7 +657,9 @@ opt_asc_desc -> '$empty'                                                        
 opt_asc_desc -> ASC                                                                             : <<"asc">>.
 opt_asc_desc -> DESC                                                                            : <<"desc">>.
 
-    %% manipulative statements
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% manipulative statements
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 sql -> manipulative_statement                                                                   : '$1'.
 
@@ -727,7 +759,9 @@ opt_where_clause -> where_clause                                                
 opt_hierarchical_query_clause -> '$empty'                                                       : {'hierarchical query', {}}.
 opt_hierarchical_query_clause -> hierarchical_query_clause                                      : '$1'.
 
-    %% query expressions
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% query expressions
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 query_exp -> query_term                                                                         : '$1'.
 query_exp -> query_exp UNION query_term                                                         : {'union', '$1', '$3'}.
@@ -742,13 +776,12 @@ returning -> RETURN selection INTO selection                                    
 query_term -> query_spec                                                                        : '$1'.
 query_term -> '(' query_exp ')'                                                                 : '$2'.
 
-query_spec -> SELECT opt_hint opt_all_distinct selection opt_into table_exp
-           : {select,
-              if '$2' == {} -> []; true -> ['$2'] end ++
-              if '$3' == {} -> []; true -> ['$3'] end ++
-              [{fields, '$4'}] ++
-              if '$5' == {} -> []; true -> [{into, '$5'}] end ++
-              '$6'}.
+query_spec -> SELECT opt_hint opt_all_distinct selection opt_into table_exp                     : {select,
+                                                                                                   if '$2' == {} -> []; true -> ['$2'] end ++
+                                                                                                   if '$3' == {} -> []; true -> ['$3'] end ++
+                                                                                                   [{fields, '$4'}] ++
+                                                                                                   if '$5' == {} -> []; true -> [{into, '$5'}] end ++
+                                                                                                   '$6'}.
 
 opt_into -> '$empty'                                                                            : {}.
 opt_into -> INTO target_commalist                                                               : '$2'.
@@ -764,7 +797,7 @@ select_field_commalist -> select_field_commalist ',' select_field_commalist     
 
 case_when_opt_as_exp -> case_when_exp                                                           : '$1'.
 case_when_opt_as_exp -> case_when_exp NAME                                                      : {as, '$1', unwrap_bin('$2')}.
-case_when_opt_as_exp -> case_when_exp AS NAME                                                   : {as, '$1', unwrap_bin('$3')}. 
+case_when_opt_as_exp -> case_when_exp AS NAME                                                   : {as, '$1', unwrap_bin('$3')}.
 
 case_when_exp -> '(' case_when_exp ')'                                                          : '$2'.
 case_when_exp -> CASE case_when_then_list opt_else END                                          : {'case', <<>>, '$2', '$3'}.
@@ -778,12 +811,11 @@ case_when_then -> WHEN search_condition THEN scalar_opt_as_exp                  
 opt_else -> '$empty'                                                                            : {}.
 opt_else -> ELSE scalar_opt_as_exp                                                              : '$2'.
 
-table_exp ->
-     from_clause opt_where_clause
-                 opt_hierarchical_query_clause
-                 opt_group_by_clause
-                 opt_having_clause
-                 opt_order_by_clause                                                            : ['$1', '$2', '$3', '$4', '$5', '$6'].
+table_exp -> from_clause opt_where_clause
+                         opt_hierarchical_query_clause
+                         opt_group_by_clause
+                         opt_having_clause
+                         opt_order_by_clause                                                    : ['$1', '$2', '$3', '$4', '$5', '$6'].
 
 from_clause -> FROM from_commalist                                                              : {from, '$2'}.
 
@@ -870,7 +902,9 @@ column_ref_commalist -> column_ref_commalist ',' function_ref                   
 opt_having_clause -> '$empty'                                                                   : {'having', {}}.
 opt_having_clause -> HAVING search_condition                                                    : {'having', '$2'}.
 
-    %% search conditions
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% search conditions
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 search_condition -> search_condition OR search_condition                                        : {'or', '$1', '$3'}.
 search_condition -> search_condition AND search_condition                                       : {'and', '$1', '$3'}.
@@ -911,7 +945,7 @@ in_predicate -> scalar_exp NOT IN scalar_exp_commalist                          
 in_predicate -> scalar_exp IN scalar_exp_commalist                                              : {'in', '$1', {'list', '$3'}}.
 
 all_or_any_predicate -> scalar_exp COMPARISON any_all_some subquery                             : {unwrap('$2'), '$1', {'$3', ['$4']}}.
-           
+
 any_all_some -> ANY                                                                             : 'ANY'.
 any_all_some -> ALL                                                                             : 'ALL'.
 any_all_some -> SOME                                                                            : 'SOME'.
@@ -920,12 +954,14 @@ existence_test -> EXISTS subquery                                               
 
 subquery -> query_exp                                                                           : '$1'.
 
-    %% scalar expressions
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% scalar expressions
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 scalar_opt_as_exp -> scalar_exp                                                                 : '$1'.
 scalar_opt_as_exp -> scalar_exp COMPARISON scalar_exp                                           : {unwrap('$2'), '$1', '$3'}.
 scalar_opt_as_exp -> scalar_exp NAME                                                            : {as, '$1', unwrap_bin('$2')}.
-scalar_opt_as_exp -> scalar_exp AS NAME                                                         : {as, '$1', unwrap_bin('$3')}. 
+scalar_opt_as_exp -> scalar_exp AS NAME                                                         : {as, '$1', unwrap_bin('$3')}.
 scalar_exp -> scalar_sub_exp '||' scalar_exp                                                    : {'||','$1','$3'}.
 scalar_exp -> scalar_sub_exp                                                                    : '$1'.
 
@@ -967,7 +1003,7 @@ function_ref -> FUNS   '(' '*' ')'                                              
 function_ref -> FUNS    '(' DISTINCT column_ref ')'                                             : {'fun', unwrap_bin('$1'), [{'distinct', '$4'}]}.
 function_ref -> FUNS     '(' ALL scalar_exp ')'                                                 : {'fun', unwrap_bin('$1'), [{'all', '$4'}]}.
 
-fun_args -> fun_arg                                                                             : ['$1']. 
+fun_args -> fun_arg                                                                             : ['$1'].
 fun_args -> fun_arg ',' fun_args                                                                : ['$1' | '$3'].
 
 fun_arg -> '(' fun_arg ')'                                                                      : '$2'.
@@ -994,7 +1030,9 @@ literal -> INTNUM                                                               
 literal -> APPROXNUM                                                                            : unwrap_bin('$1').
 %literal -> JSON                                                                                 : jpparse('$1').
 
-    %% miscellaneous
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% miscellaneous
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 table -> NAME                                                                                   : unwrap_bin('$1').
 table -> NAME AS NAME                                                                           : {as, unwrap_bin('$1'), unwrap_bin('$3')}.
@@ -1032,7 +1070,9 @@ data_type -> NAME '(' opt_sgn_num ',' opt_sgn_num ')'                           
 opt_sgn_num -> INTNUM                                                                           : unwrap_bin('$1').
 opt_sgn_num -> '-' INTNUM                                                                       : list_to_binary(["-",unwrap_bin('$2')]).
 
-    %% the various things you can name
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% the various things you can name
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 column -> NAME                                                                                  : unwrap_bin('$1').
 column -> STRING                                                                                : unwrap_bin('$1').
@@ -1045,7 +1085,9 @@ range_variable -> NAME                                                          
 
 user -> NAME                                                                                    : {'user', unwrap('$1')}.
 
-    %% embedded condition things
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% embedded condition things
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 sql -> WHENEVER NOT FOUND when_action                                                           : {'when_not_found', '$1'}.
 sql -> WHENEVER SQLERROR when_action                                                            : {'when_sql_err', '$1'}.
@@ -1053,43 +1095,70 @@ sql -> WHENEVER SQLERROR when_action                                            
 when_action -> GOTO NAME                                                                        : {'goto', unwrap('$2')}.
 when_action -> CONTINUE                                                                         : 'continue'.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Erlang code.
 
+%% -----------------------------------------------------------------------------
+%%
+%% sqlparse.erl: SQL parser - parser.
+%%
+%% Copyright (c) 2012-17 K2 Informatics GmbH.  All Rights Reserved.
+%%
+%% This file is provided to you under the Apache License,
+%% Version 2.0 (the "License"); you may not use this file
+%% except in compliance with the License.  You may obtain
+%% a copy of the License at
+%%
+%%   http://www.apache.org/licenses/LICENSE-2.0
+%%
+%% Unless required by applicable law or agreed to in writing,
+%% software distributed under the License is distributed on an
+%% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+%% KIND, either express or implied.  See the License for the
+%% specific language governing permissions and limitations
+%% under the License.
+%%
+%% -----------------------------------------------------------------------------
+
+
 % parser and compiler interface
--export([pt_to_string/1, foldtd/3, foldbu/3, parsetree/1,
-         parsetree_with_tokens/1, is_reserved/1]).
+-export([
+    foldbu/3,
+    foldtd/3,
+    is_reserved/1,
+    parsetree/1,
+    parsetree_with_tokens/1,
+    pt_to_string/1,
+    pt_to_string_bu/1
+]).
 
 -define(Dbg(__Rule, __Production),
-begin
-    io:format(user, "__ "??__Rule" (~p)~n", [__Production]),
-    __Production
-end). 
+    begin
+        io:format(user, "__ "??__Rule" (~p)~n", [__Production]),
+        __Production
+    end).
 
 %%-----------------------------------------------------------------------------
 %%                          parser helper functions
 %%-----------------------------------------------------------------------------
 
-jpparse({_,_,X}) -> jpparse(X);
+jpparse({_, _, X}) -> jpparse(X);
 jpparse(X) ->
     {ok, Pt} = jpparse:parsetree(X),
     Pt.
 
-unwrap({_,_,X}) -> X;
+unwrap({_, _, X}) -> X;
 unwrap(X) -> X.
 
-unwrap_bin({_,_,X}) when is_list(X) -> list_to_binary([X]);
-unwrap_bin({_,_,X}) when is_atom(X) -> atom_to_binary(X, unicode).
+unwrap_bin({_, _, X}) when is_list(X) -> list_to_binary([X]);
+unwrap_bin({_, _, X}) when is_atom(X) -> atom_to_binary(X, unicode).
 
 strl2atom([]) -> '';
-strl2atom(Strs) -> list_to_atom(lists:flatten(string:join([string:to_lower(unwrap(S)) || S <- Strs], " "))).
+strl2atom(Strs) ->
+    list_to_atom(lists:flatten(string:join([string:to_lower(unwrap(S)) || S <- Strs], " "))).
 
 make_list(L) when is_list(L) -> L;
 make_list(L) -> [L].
-
-%%-----------------------------------------------------------------------------
-
 
 %%-----------------------------------------------------------------------------
 %%                                  PARSER
@@ -1097,10 +1166,10 @@ make_list(L) -> [L].
 -spec parsetree(binary()|list()) ->
     {parse_error, term()} | {lex_error, term()} | {ok, [tuple()]}.
 parsetree(Sql) ->
-   case parsetree_with_tokens(Sql) of
-       {ok, {ParseTree, _Tokens}} -> {ok, ParseTree};
-       Error -> Error
-   end.
+    case parsetree_with_tokens(Sql) of
+        {ok, {ParseTree, _Tokens}} -> {ok, ParseTree};
+        Error -> Error
+    end.
 
 -spec parsetree_with_tokens(binary()|list()) ->
     {parse_error, term()} | {lex_error, term()} | {ok, {[tuple()], list()}}.
@@ -1108,18 +1177,18 @@ parsetree_with_tokens([]) -> {parse_error, invalid_string};
 parsetree_with_tokens(<<>>) -> {parse_error, invalid_string};
 parsetree_with_tokens(Sql0) ->
     Sql = re:replace(Sql0, "(^[ \r\n]+)|([ \r\n]+$)", "",
-                     [global, {return, list}]),
-    [C|_] = lists:reverse(Sql),
+        [global, {return, list}]),
+    [C | _] = lists:reverse(Sql),
     NSql = if C =:= $; -> Sql; true -> string:strip(Sql) ++ ";" end,
     case sql_lex:string(NSql) of
         {ok, Toks, _} ->
             case sqlparse:parse(Toks) of
                 {ok, PTree} -> {ok, {PTree, Toks}};
-                {error,{N,?MODULE,ErrorTerms}} ->
+                {error, {N, ?MODULE, ErrorTerms}} ->
                     {parse_error, {lists:flatten([integer_to_list(N), ": ", ErrorTerms]), Toks}};
-                {error,Error} -> {parse_error, {Error, Toks}}
+                {error, Error} -> {parse_error, {Error, Toks}}
             end;
-        {error,Error,_} -> {lex_error, Error}
+        {error, Error, _} -> {lex_error, Error}
     end.
 
 -spec is_reserved(binary() | atom() | list()) -> true | false.
@@ -1129,7 +1198,7 @@ is_reserved(Word) when is_atom(Word) ->
     is_reserved(erlang:atom_to_list(Word));
 is_reserved(Word) when is_list(Word) ->
     lists:member(erlang:list_to_atom(string:to_upper(Word)),
-                 sql_lex:reserved_keywords()).
+        sql_lex:reserved_keywords()).
 
 %%-----------------------------------------------------------------------------
 
@@ -1139,22 +1208,25 @@ is_reserved(Word) when is_list(Word) ->
 %%-----------------------------------------------------------------------------
 
 -spec pt_to_string(tuple()| list()) -> {error, term()} | binary().
-pt_to_string(PTree) -> foldtd(fun(_,_) -> null_fun end, null_fun, PTree).
+pt_to_string(PTree) -> foldtd(fun(_, _) -> null_fun end, null_fun, PTree).
 
 -spec foldtd(fun(), term(), tuple() | list()) -> {error, term()} | binary().
 foldtd(Fun, Ctx, PTree) when is_function(Fun, 2) ->
     try sqlparse_fold:fold(top_down, Fun, Ctx, 0, PTree) of
-        {error,_} = Error -> Error;
+        {error, _} = Error -> Error;
         {Sql, null_fun = Ctx} -> list_to_binary(string:strip(Sql));
         {_Output, NewCtx} -> NewCtx
     catch
         _:Error -> {error, Error}
     end.
 
+-spec pt_to_string_bu(tuple()| list()) -> {error, term()} | binary().
+pt_to_string_bu(PTree) -> foldbu(fun(_, _) -> null_fun end, null_fun, PTree).
+
 -spec foldbu(fun(), term(), tuple()) -> {error, term()} | binary().
 foldbu(Fun, Ctx, PTree) when is_function(Fun, 2) ->
     try sqlparse_fold:fold(bottom_up, Fun, Ctx, 0, PTree) of
-        {error,_} = Error -> Error;
+        {error, _} = Error -> Error;
         {Sql, null_fun = Ctx} -> list_to_binary(string:strip(Sql));
         {_Output, NewCtx} -> NewCtx
     catch

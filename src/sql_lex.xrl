@@ -1,6 +1,6 @@
 %% -----------------------------------------------------------------------------
 %%
-%% sql_lex.xrl: SQL parser lexer definition.
+%% sql_lex.xrl: SQL - lexer definition.
 %%
 %% Copyright (c) 2012-17 K2 Informatics GmbH.  All Rights Reserved.
 %%
@@ -70,7 +70,7 @@ Erlang code.
 
 %% -----------------------------------------------------------------------------
 %%
-%% sylexer.erl: SQL parser - lexer.
+%% sqllexer.erl: SQL - lexer.
 %%
 %% Copyright (c) 2012-17 K2 Informatics GmbH.  All Rights Reserved.
 %%

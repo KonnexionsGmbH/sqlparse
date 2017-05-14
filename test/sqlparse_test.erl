@@ -1,6 +1,6 @@
 %% -----------------------------------------------------------------------------
 %%
-%% sqlparse_test.erl: SQL parser - test driver.
+%% sqlparse_test.erl: SQL - test driver.
 %%
 %% Copyright (c) 2012-17 K2 Informatics GmbH.  All Rights Reserved.
 %%

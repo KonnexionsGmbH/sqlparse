@@ -1,3 +1,27 @@
+/*
+%% -----------------------------------------------------------------------------
+%%
+%% sqlparse.acc: SQL - parser definition for ACCENT.
+%%
+%% Copyright (c) 2012-17 K2 Informatics GmbH.  All Rights Reserved.
+%%
+%% This file is provided to you under the Apache License,
+%% Version 2.0 (the "License"); you may not use this file
+%% except in compliance with the License.  You may obtain
+%% a copy of the License at
+%%
+%%   http://www.apache.org/licenses/LICENSE-2.0
+%%
+%% Unless required by applicable law or agreed to in writing,
+%% software distributed under the License is distributed on an
+%% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+%% KIND, either express or implied.  See the License for the
+%% specific language governing permissions and limitations
+%% under the License.
+%%
+%% -----------------------------------------------------------------------------
+*/
+
 /* reoplace 'TABLE' by 'TABLE_X' */
 
 %token ALL, ALTER, AND, ANY, APPROXNUM, AS, ASC, AUTHENTICATION, AUTHORIZATION, BAG, BEGIN, BETWEEN, BITMAP, BY, CALL, CASCADE, CASE, CHECK, CLOSE, CLUSTER, COMMIT, COMPARISON, CONNECT, CONSTRAINS, CONTINUE, CREATE, CROSS, CURRENT, CURSOR, DECLARE, DEFAULT, DELETE, DESC, DIRECTORY, DISTINCT, DROP, ELSE, END, ENTERPRISE, ESCAPE, EXCEPT, EXISTS, EXTERNALLY, FETCH, FILTER_WITH, FOR, FORCE, FOREIGN, FOUND, FROM, FULL, FUNS, GLOBALLY, GOTO, GRANT, GROUP, HASHMAP, HAVING, HIERARCHY, HINT, IDENTIFIED, IF, IN, INDEX, INDICATOR, INNER, INSERT, INTERSECT, INTNUM, INTO, IS, JAVA, JOIN, JSON, KEY, KEYLIST, LEFT, LIKE, LOCAL, LOG, MATERIALIZED, MINUS, NAME, NATURAL, NO, NOCYCLE, NONE, NORM_WITH, NOT, NULL, OF, ON, OPEN, OPERATOR_CONCAT, OPERATOR_INTDIV, OPTION, OR, ORDER, ORDERED_SET, OUTER, PARAMETER, PARTITION, PRIMARY, PRESERVE, PRIOR, PRIVILEGES, PROFILE, PUBLIC, PURGE, QUOTA, REFERENCES, REQUIRED, RESOURCE, RESTRICT, RETURN, RETURNING, REUSE, REVOKE, RIGHT, ROLE, ROLES, ROLLBACK, SCHEMA, SELECT, SET, SOME, SOURCE, SQLERROR, START, STORAGE, STRING, TABLE_X, TABLESPACE, TEMPORARY, THEN, THROUGH, TO, TRUNCATE, UNION, UNIQUE, UNLIMITED, UPDATE, USER, USERS, USING, VALUES, VIEW, WHEN, WHENEVER, WHERE, WITH, WORK ;
@@ -421,3 +445,4 @@ when_action : ( GOTO NAME )
             | CONTINUE
             ;
 
+/* -------------------------------------------------------------------------- */

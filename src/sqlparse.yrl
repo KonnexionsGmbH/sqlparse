@@ -1,6 +1,6 @@
 %% -----------------------------------------------------------------------------
 %%
-%% sqlparse.yrl: SQL parser - parser definition.
+%% sqlparse.yrl: SQL - parser definition.
 %%
 %% Copyright (c) 2012-17 K2 Informatics GmbH.  All Rights Reserved.
 %%
@@ -1100,7 +1100,7 @@ Erlang code.
 
 %% -----------------------------------------------------------------------------
 %%
-%% sqlparse.erl: SQL parser - parser.
+%% sqlparse.erl: SQL - parser.
 %%
 %% Copyright (c) 2012-17 K2 Informatics GmbH.  All Rights Reserved.
 %%

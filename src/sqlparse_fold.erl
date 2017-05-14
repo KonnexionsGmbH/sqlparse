@@ -1,6 +1,6 @@
 %% -----------------------------------------------------------------------------
 %%
-%% sqlparse_fold.erl: SQL parser - utilities.
+%% sqlparse_fold.erl: SQL - utilities.
 %%
 %% Copyright (c) 2012-17 K2 Informatics GmbH.  All Rights Reserved.
 %%

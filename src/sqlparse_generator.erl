@@ -63,7 +63,7 @@
 ]).
 -define(ALL_CLAUSE_EUNIT_RELIABILITY_SQL, [
     insert_statement,
-    procedure_call
+    view_def
 ]).
 
 -define(CODE_TEMPLATES, code_templates).

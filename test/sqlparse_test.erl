@@ -1,6 +1,6 @@
 %% -----------------------------------------------------------------------------
 %%
-%% sqlparse_test.erl: SQL parser - test driver.
+%% sqlparse_test.erl: SQL - test driver.
 %%
 %% Copyright (c) 2012-17 K2 Informatics GmbH.  All Rights Reserved.
 %%
@@ -52,26 +52,26 @@ common_test_source(Source) ->
             %% 2. ParseTree ==> Source (=NSource_TD)
             %% -----------------------------------------------------------------
             NSource_TD = case ?PARSER_MODULE:pt_to_string(ParseTree) of
-                {error, Error_TD} ->
-                    ct:pal("~n[TD] Error ParseTree -> NewSource : Source   ~n > ~p", [Source]),
-                    ct:pal("~n[TD] Error ParseTree -> NewSource : ParseTree~n > ~p", [ParseTree]),
-                    throw({error, Error_TD});
-                NS_TD ->
-                    NS_TD
-            end,
+                             {error, Error_TD} ->
+                                 ct:pal("~n[TD] Error ParseTree -> NewSource : Source   ~n > ~p", [Source]),
+                                 ct:pal("~n[TD] Error ParseTree -> NewSource : ParseTree~n > ~p", [ParseTree]),
+                                 throw({error, Error_TD});
+                             NS_TD ->
+                                 NS_TD
+                         end,
             %% -----------------------------------------------------------------
             %% 3. Source (=NSource_TD) ==> ParseTree (=NPT_TD)
             %% -----------------------------------------------------------------
             {ok, {NPTree_TD, _NToks_TD}}
                 = try
-                {ok, {NPT_TD, NT_TD}} = ?PARSER_MODULE:parsetree_with_tokens(NSource_TD),
-                {ok, {NPT_TD, NT_TD}}
-            catch
-                ExceptionTD:ReasonTD ->
-                    ct:pal("~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Source   ~n > ~p", [Source]),
-                    ct:pal("~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : NewSource~n > ~p", [NSource_TD]),
-                    throw({error, "[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens " ++ atom_to_list(ExceptionTD) ++ " : " ++ ReasonTD})
-            end,
+                      {ok, {NPT_TD, NT_TD}} = ?PARSER_MODULE:parsetree_with_tokens(NSource_TD),
+                      {ok, {NPT_TD, NT_TD}}
+                  catch
+                      ExceptionTD:ReasonTD ->
+                          ct:pal("~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Source   ~n > ~p", [Source]),
+                          ct:pal("~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : NewSource~n > ~p", [NSource_TD]),
+                          throw({error, "[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens " ++ atom_to_list(ExceptionTD) ++ " : " ++ ReasonTD})
+                  end,
             if ParseTree /= NPTree_TD ->
                 ct:pal("~n[TD] Error ParseTree = NPTree : Source      ~n > ~p", [Source]),
                 ct:pal("~n[TD] Error ParseTree = NPTree : NewParseTree~n > ~p", [NPTree_TD]),
@@ -96,26 +96,26 @@ common_test_source(Source) ->
             %% 2. ParseTree ==> Source (=NSource_BU)
             %% -----------------------------------------------------------------
             NSource_BU = case ?PARSER_MODULE:pt_to_string_bu(ParseTree) of
-                {error, Error_BU} ->
-                    ct:pal("~n[BU] Error ParseTree -> NewSource : Source   ~n > ~p", [Source]),
-                    ct:pal("~n[BU] Error ParseTree -> NewSource : ParseTree~n > ~p", [ParseTree]),
-                    throw({error, "[BU] Error ParseTree -> NewSource : " ++ Error_BU});
-                NS_BU ->
-                    NS_BU
-            end,
+                             {error, Error_BU} ->
+                                 ct:pal("~n[BU] Error ParseTree -> NewSource : Source   ~n > ~p", [Source]),
+                                 ct:pal("~n[BU] Error ParseTree -> NewSource : ParseTree~n > ~p", [ParseTree]),
+                                 throw({error, "[BU] Error ParseTree -> NewSource : " ++ Error_BU});
+                             NS_BU ->
+                                 NS_BU
+                         end,
             %% -----------------------------------------------------------------
             %% 3. Source (=NSource_BU) ==> ParseTree (=NPT_BU)
             %% -----------------------------------------------------------------
             {ok, {NPTree_BU, _NToks_BU}}
                 = try
-                {ok, {NPT_BU, NT_BU}} = ?PARSER_MODULE:parsetree_with_tokens(NSource_BU),
-                {ok, {NPT_BU, NT_BU}}
-            catch
-                ExceptionBU:ReasonBU ->
-                    ct:pal("~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Source   ~n > ~p", [Source]),
-                    ct:pal("~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : NewSource~n > ~p", [NSource_BU]),
-                    throw({error, "[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens " ++ atom_to_list(ExceptionBU) ++ " : " ++ ReasonBU})
-            end,
+                      {ok, {NPT_BU, NT_BU}} = ?PARSER_MODULE:parsetree_with_tokens(NSource_BU),
+                      {ok, {NPT_BU, NT_BU}}
+                  catch
+                      ExceptionBU:ReasonBU ->
+                          ct:pal("~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Source   ~n > ~p", [Source]),
+                          ct:pal("~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : NewSource~n > ~p", [NSource_BU]),
+                          throw({error, "[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens " ++ atom_to_list(ExceptionBU) ++ " : " ++ ReasonBU})
+                  end,
             if ParseTree /= NPTree_BU ->
                 ct:pal("~n[BU] Error ParseTree = NPTree : Source      ~n > ~p", [Source]),
                 ct:pal("~n[BU] Error ParseTree = NPTree : NewParseTree~n > ~p", [NPTree_BU]),
@@ -151,22 +151,22 @@ common_test_source(Source) ->
 
 eunit_test_() ->
     WCard = case os:getenv(?ENV_VAR_FILE_WILDCARD) of
-        SourceFiles when is_list(SourceFiles) ->
-            SourceFiles;
-        _ ->
-            "*"
-    end ++ ?ENV_VAR_FILE_TYPE,
+                SourceFiles when is_list(SourceFiles) ->
+                    SourceFiles;
+                _ ->
+                    "*"
+            end ++ ?ENV_VAR_FILE_TYPE,
     Logs = case os:getenv(?ENV_VAR_LOGGING_LEVEL) of
-        V when length(V) > 0 ->
-            case lists:map(
-                fun(VStr) ->
-                    list_to_integer(VStr)
-                end, re:split(V, ",", [{return, list}])) of
-                VIs when is_list(VIs) -> VIs;
-                _ -> [0]
-            end;
-        _ -> [0]
-    end,
+               V when length(V) > 0 ->
+                   case lists:map(
+                       fun(VStr) ->
+                           list_to_integer(VStr)
+                       end, re:split(V, ",", [{return, list}])) of
+                       VIs when is_list(VIs) -> VIs;
+                       _ -> [0]
+                   end;
+               _ -> [0]
+           end,
     ?debugFmt(?MODULE_STRING ++ ":eunit_test_ ===>~nFile = ~s, Logs = ~p~n", [WCard, Logs]),
     {ok, Cwd} = file:get_cwd(),
     ?debugFmt(?MODULE_STRING ++ ":eunit_test_ ===>~nCwd: ~p~n", [Cwd]),
@@ -224,30 +224,31 @@ eunit_test_source(_TestGroup, Source, Logs) ->
             %% 2. ParseTree ==> Source (=NSource_TD)
             %% -----------------------------------------------------------------
             NSource_TD = case ?PARSER_MODULE:pt_to_string(ParseTree) of
-                {error, Error_TD} ->
-                    ?D_("~n[TD] Error ParseTree -> NewSource : ParseTree~n > ~p", [ParseTree]),
-                    ?D_("~n[TD] Error ParseTree -> NewSource : Error~n > ~p", [Error_TD]),
-                    throw({error, Error_TD});
-                NS_TD ->
-                    NS_TD
-            end,
+                             {error, Error_TD} ->
+                                 ?D_("~n[TD] Error ParseTree -> NewSource : ParseTree~n > ~p", [ParseTree]),
+                                 ?D_("~n[TD] Error ParseTree -> NewSource : Error~n > ~p", [Error_TD]),
+                                 throw({error, Error_TD});
+                             NS_TD ->
+                                 NS_TD
+                         end,
+            ?debugFmt(?MODULE_STRING ++ ":eunit_test_source ===>~NewSource = ~p~n", [NSource_TD]),
             ?D3("~n[TD] NewSource~n~s", [NSource_TD]),
             %% -----------------------------------------------------------------
             %% 3. Source (=NSource_TD) ==> ParseTree (=NPT_TD)
             %% -----------------------------------------------------------------
             {ok, {NPTree_TD, _NToks_TD}}
                 = try
-                {ok, {NPT_TD, NT_TD}} = ?PARSER_MODULE:parsetree_with_tokens(NSource_TD),
-                {ok, {NPT_TD, NT_TD}}
-            catch
-                ExceptionTD:ReasonTD ->
-                    ?D_("~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Source   ~n > ~p", [Source]),
-                    ?D_("~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : TestGroup~n > ~p", [_TestGroup]),
-                    ?D_("~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : NewSource~n > ~p", [NSource_TD]),
-                    ?D_("~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Exception~n > ~p", [ExceptionTD]),
-                    ?D_("~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Reason   ~n > ~p", [ReasonTD]),
-                    throw({error, "[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens"})
-            end,
+                      {ok, {NPT_TD, NT_TD}} = ?PARSER_MODULE:parsetree_with_tokens(NSource_TD),
+                      {ok, {NPT_TD, NT_TD}}
+                  catch
+                      ExceptionTD:ReasonTD ->
+                          ?D_("~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Source   ~n > ~p", [Source]),
+                          ?D_("~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : TestGroup~n > ~p", [_TestGroup]),
+                          ?D_("~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : NewSource~n > ~p", [NSource_TD]),
+                          ?D_("~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Exception~n > ~p", [ExceptionTD]),
+                          ?D_("~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Reason   ~n > ~p", [ReasonTD]),
+                          throw({error, "[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens"})
+                  end,
             if ParseTree /= NPTree_TD ->
                 ?D_("~n[TD] Error ParseTree = NPTree : Source      ~n > ~p", [Source]),
                 ?D_("~n[TD] Error ParseTree = NPTree : NewParseTree~n > ~p", [NPTree_TD]),
@@ -273,29 +274,29 @@ eunit_test_source(_TestGroup, Source, Logs) ->
             %% 2. ParseTree ==> Source (=NSource_BU)
             %% -----------------------------------------------------------------
             NSource_BU = case ?PARSER_MODULE:pt_to_string_bu(ParseTree) of
-                {error, Error_BU} ->
-                    ?D_("~n[BU] Error ParseTree -> NewSource : ParseTree~n > ~p", [ParseTree]),
-                    throw({error, "[BU] Error ParseTree -> NewSource : " ++ Error_BU});
-                NS_BU ->
-                    NS_BU
-            end,
+                             {error, Error_BU} ->
+                                 ?D_("~n[BU] Error ParseTree -> NewSource : ParseTree~n > ~p", [ParseTree]),
+                                 throw({error, "[BU] Error ParseTree -> NewSource : " ++ Error_BU});
+                             NS_BU ->
+                                 NS_BU
+                         end,
             ?D3("~n[BU] NewSource~n~s", [NSource_BU]),
             %% -----------------------------------------------------------------
             %% 3. Source (=NSource_BU) ==> ParseTree (=NPT_BU)
             %% -----------------------------------------------------------------
             {ok, {NPTree_BU, _NToks_BU}}
                 = try
-                {ok, {NPT_BU, NT_BU}} = ?PARSER_MODULE:parsetree_with_tokens(NSource_BU),
-                {ok, {NPT_BU, NT_BU}}
-            catch
-                ExceptionBU:ReasonBU ->
-                    ?D_("~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Source   ~n > ~p", [Source]),
-                    ?D_("~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : TestGroup~n > ~p", [_TestGroup]),
-                    ?D_("~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : NewSource~n > ~p", [NSource_BU]),
-                    ?D_("~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Exception~n > ~p", [ExceptionBU]),
-                    ?D_("~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Reason   ~n > ~p", [ReasonBU]),
-                    throw({error, "[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens"})
-            end,
+                      {ok, {NPT_BU, NT_BU}} = ?PARSER_MODULE:parsetree_with_tokens(NSource_BU),
+                      {ok, {NPT_BU, NT_BU}}
+                  catch
+                      ExceptionBU:ReasonBU ->
+                          ?D_("~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Source   ~n > ~p", [Source]),
+                          ?D_("~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : TestGroup~n > ~p", [_TestGroup]),
+                          ?D_("~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : NewSource~n > ~p", [NSource_BU]),
+                          ?D_("~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Exception~n > ~p", [ExceptionBU]),
+                          ?D_("~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Reason   ~n > ~p", [ReasonBU]),
+                          throw({error, "[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens"})
+                  end,
             if ParseTree /= NPTree_BU ->
                 ?D_("~n[BU] Error ParseTree = NPTree : Source      ~n > ~p", [Source]),
                 ?D_("~n[BU] Error ParseTree = NPTree : NewParseTree~n > ~p", [NPTree_BU]),
@@ -341,36 +342,36 @@ group_gen(TestFiles, Logs) ->
                     {ok, [Opts | Tests]} = file:consult(TestFile),
                     {ok, TestFileBin} = file:read_file(TestFile),
                     TestLines = [begin
-                        TRe0 = re:replace(T, "(.*)(\")(.*)", "\\1\\\\\"\\3"
-                            , [{return, list}, ungreedy, global, dotall]),
-                        TRe = list_to_binary(io_lib:format("~p", [TRe0])),
-                        case binary:match(TestFileBin, TRe) of
-                            {I1, _} ->
-                                <<Head:I1/binary, _/binary>> = TestFileBin,
-                                case re:run(Head, ".*[\r\n]", [global]) of
-                                    {match, Matches} -> length(Matches) + 1;
-                                    nomatch ->
-                                        io:format(user,
-                                            "~p~n"
-                                            ">>>>>>>>>>> HEAD ~p <<<<<<<<<<<~n"
-                                            "Opts ~p~n"
-                                            "Tests ~p~n"
-                                            "T ~p~n"
-                                            "TRe ~p~n"
-                                            , [TestFile, Head, Opts, Tests, T, TRe]),
-                                        error(nomatch)
-                                end;
-                            nomatch ->
-                                %io:format(user, "~n~nNOMATCH -------------------------~n"
-                                %                "File : ~s~n~n"
-                                %                "Target ---~n~n~s~n~n"
-                                %                "With ---~n~n~s~n~n"
-                                %                "File Content ---~n~n~s~n"
-                                %                "---------------------------------~n~n"
-                                %          , [TestFile, T, TRe, TestFileBin]),
-                                I
-                        end
-                    end
+                                     TRe0 = re:replace(T, "(.*)(\")(.*)", "\\1\\\\\"\\3"
+                                         , [{return, list}, ungreedy, global, dotall]),
+                                     TRe = list_to_binary(io_lib:format("~p", [TRe0])),
+                                     case binary:match(TestFileBin, TRe) of
+                                         {I1, _} ->
+                                             <<Head:I1/binary, _/binary>> = TestFileBin,
+                                             case re:run(Head, ".*[\r\n]", [global]) of
+                                                 {match, Matches} -> length(Matches) + 1;
+                                                 nomatch ->
+                                                     io:format(user,
+                                                         "~p~n"
+                                                         ">>>>>>>>>>> HEAD ~p <<<<<<<<<<<~n"
+                                                         "Opts ~p~n"
+                                                         "Tests ~p~n"
+                                                         "T ~p~n"
+                                                         "TRe ~p~n"
+                                                         , [TestFile, Head, Opts, Tests, T, TRe]),
+                                                     error(nomatch)
+                                             end;
+                                         nomatch ->
+                                             %io:format(user, "~n~nNOMATCH -------------------------~n"
+                                             %                "File : ~s~n~n"
+                                             %                "Target ---~n~n~s~n~n"
+                                             %                "With ---~n~n~s~n~n"
+                                             %                "File Content ---~n~n~s~n"
+                                             %                "---------------------------------~n~n"
+                                             %          , [TestFile, T, TRe, TestFileBin]),
+                                             I
+                                     end
+                                 end
                         || {I, T} <- lists:zip(lists:seq(1, length(Tests)), Tests)],
                     AugTests = lists:zip(TestLines, Tests),
                     TestGroup = filename:rootname(
@@ -387,11 +388,11 @@ group_gen(TestFiles, Logs) ->
 tests_gen(TestGroup, Tests, Opts, Logs) ->
     ?debugFmt(?MODULE_STRING ++ ":tests_gen ===>~nTestGroup = ~p~n Tests = ~p~n Opts = ~p~n Logs = ~p~n", [TestGroup, Tests, Opts, Logs]),
     SelTests = case proplists:get_value(tests, Opts) of
-        St when St =:= undefined; St =:= [] ->
-            {Indices, _} = lists:unzip(Tests),
-            Indices;
-        St -> St
-    end,
+                   St when St =:= undefined; St =:= [] ->
+                       {Indices, _} = lists:unzip(Tests),
+                       Indices;
+                   St -> St
+               end,
     tests_gen(TestGroup, Tests, Logs, SelTests, []).
 
 tests_gen(_TestGroup, [], _Logs, _SelTests, Acc) ->

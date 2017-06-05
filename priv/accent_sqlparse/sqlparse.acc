@@ -1,6 +1,30 @@
-/* reoplace 'TABLE' by 'TABLE_X' */
+/*
+%% -----------------------------------------------------------------------------
+%%
+%% sqlparse.acc: SQL - parser definition for ACCENT.
+%%
+%% Copyright (c) 2012-17 K2 Informatics GmbH.  All Rights Reserved.
+%%
+%% This file is provided to you under the Apache License,
+%% Version 2.0 (the "License"); you may not use this file
+%% except in compliance with the License.  You may obtain
+%% a copy of the License at
+%%
+%%   http://www.apache.org/licenses/LICENSE-2.0
+%%
+%% Unless required by applicable law or agreed to in writing,
+%% software distributed under the License is distributed on an
+%% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+%% KIND, either express or implied.  See the License for the
+%% specific language governing permissions and limitations
+%% under the License.
+%%
+%% -----------------------------------------------------------------------------
+*/
 
-%token ALL, ALTER, AND, ANY, APPROXNUM, AS, ASC, AUTHENTICATION, AUTHORIZATION, BAG, BEGIN, BETWEEN, BITMAP, BY, CALL, CASCADE, CASE, CHECK, CLOSE, CLUSTER, COMMIT, COMPARISON, CONNECT, CONSTRAINS, CONTINUE, CREATE, CROSS, CURRENT, CURSOR, DECLARE, DEFAULT, DELETE, DESC, DIRECTORY, DISTINCT, DROP, ELSE, END, ENTERPRISE, ESCAPE, EXCEPT, EXISTS, EXTERNALLY, FETCH, FILTER_WITH, FOR, FORCE, FOREIGN, FOUND, FROM, FULL, FUNS, GLOBALLY, GOTO, GRANT, GROUP, HASHMAP, HAVING, HIERARCHY, HINT, IDENTIFIED, IF, IN, INDEX, INDICATOR, INNER, INSERT, INTERSECT, INTNUM, INTO, IS, JAVA, JOIN, JSON, KEY, KEYLIST, LEFT, LIKE, LOCAL, LOG, MATERIALIZED, MINUS, NAME, NATURAL, NO, NOCYCLE, NONE, NORM_WITH, NOT, NULL, OF, ON, OPEN, OPERATOR_CONCAT, OPERATOR_INTDIV, OPTION, OR, ORDER, ORDERED_SET, OUTER, PARAMETER, PARTITION, PRIMARY, PRESERVE, PRIOR, PRIVILEGES, PROFILE, PUBLIC, PURGE, QUOTA, REFERENCES, REQUIRED, RESOURCE, RESTRICT, RETURN, RETURNING, REUSE, REVOKE, RIGHT, ROLE, ROLES, ROLLBACK, SCHEMA, SELECT, SET, SOME, SOURCE, SQLERROR, START, STORAGE, STRING, TABLE_X, TABLESPACE, TEMPORARY, THEN, THROUGH, TO, TRUNCATE, UNION, UNIQUE, UNLIMITED, UPDATE, USER, USERS, USING, VALUES, VIEW, WHEN, WHENEVER, WHERE, WITH, WORK ;
+/* replace 'TABLE' by 'TABLE' (reason: issues with ACCENT) */
+
+%token ALL, ALTER, AND, ANY, APPROXNUM, AS, ASC, AUTHENTICATION, AUTHORIZATION, BAG, BEGIN, BETWEEN, BITMAP, BY, CALL, CASCADE, CASE, CHECK, CLOSE, CLUSTER, COMMIT, COMPARISON, CONNECT, CONSTRAINTS, CONTINUE, CREATE, CROSS, CURRENT, CURSOR, DECLARE, DEFAULT, DELETE, DESC, DIRECTORY, DISTINCT, DROP, ELSE, END, ENTERPRISE, ESCAPE, EXCEPT, EXISTS, EXTERNALLY, FETCH, FILTER_WITH, FOR, FORCE, FOREIGN, FOUND, FROM, FULL, FUNS, GLOBALLY, GOTO, GRANT, GROUP, HASHMAP, HAVING, HIERARCHY, HINT, IDENTIFIED, IF, IN, INDEX, INDICATOR, INNER, INSERT, INTERSECT, INTNUM, INTO, IS, JAVA, JOIN, JSON, KEY, KEYLIST, LEFT, LIKE, LOCAL, LOG, MATERIALIZED, MINUS, NAME, NATURAL, NO, NOCYCLE, NONE, NORM_WITH, NOT, NULL, OF, ON, OPEN, OPERATOR_CONCAT, OPERATOR_INTDIV, OPTION, OR, ORDER, ORDERED_SET, OUTER, PARAMETER, PARTITION, PRIMARY, PRESERVE, PRIOR, PRIVILEGES, PROFILE, PUBLIC, PURGE, QUOTA, REFERENCES, REQUIRED, RESOURCE, RESTRICT, RETURN, RETURNING, REUSE, REVOKE, RIGHT, ROLE, ROLES, ROLLBACK, SCHEMA, SELECT, SET, SOME, SOURCE, SQLERROR, START, STORAGE, STRING, TABLE, TABLESPACE, TEMPORARY, THEN, THROUGH, TO, TRUNCATE, UNION, UNIQUE, UNLIMITED, UPDATE, USER, USERS, USING, VALUES, VIEW, WHEN, WHENEVER, WHERE, WITH, WORK ;
 
 %nodefault
 
@@ -38,11 +62,11 @@ schema_element : create_role_def
 
 create_role_def : CREATE ROLE NAME ;
 
-create_table_def : CREATE ( tbl_scope )? ( tbl_type )? TABLE_X table '(' ( base_table_element ( ',' base_table_element )* )? ')' ;
+create_table_def : CREATE ( tbl_scope )? ( tbl_type )? TABLE table '(' ( base_table_element ( ',' base_table_element )* )? ')' ;
 
 create_user_def : CREATE USER NAME identified ( user_opt )* ;
 
-drop_table_def : DROP tbl_type TABLE_X ( IF EXISTS ) ( table ( ',' table )* ) ( RESTRICT | CASCADE )? ;
+drop_table_def ::= 'DROP' ( NAME )? 'TABLE' ( 'IF' 'EXISTS' )? ( table ( ',' table )* ) ( 'RESTRICT' | 'CASCADE' )?
 
 drop_role_def : DROP ROLE NAME ;
 
@@ -71,7 +95,7 @@ alter_user_def : ( ALTER USER NAME ( ',' NAME )* proxy_clause )
 
 drop_user_def : DROP USER NAME ( CASCADE )? ;
 
-proxy_clause : ( GRANT | REVOKE ) CONNECT THROUGH ( ( ENTERPRISE USERS ) | ( db_user_proxy )? ) ;
+proxy_clause : ( GRANT | REVOKE ) CONNECT THROUGH ( ( ENTERPRISE USERS ) | db_user_proxy ) ;
 
 db_user_proxy : proxy_with
               | ( ( proxy_with )? AUTHENTICATION REQUIRED )
@@ -122,7 +146,7 @@ table_constraint_def : ( UNIQUE '(' column_commalist ')' )
 
 column_commalist : column ( ',' column )* ;
 
-view_def : ( CREATE VIEW table ( column_commalist )? )
+view_def : ( CREATE VIEW table ( '(' column_commalist ')' )? )
          | ( AS query_spec ( WITH CHECK OPTION )? )
          ;
 
@@ -149,7 +173,7 @@ system_privilege : SELECT
 
 with_grant_option : WITH ( GRANT | NAME | HIERARCHY ) OPTION ;
 
-with_revoke_option : ( CASCADE CONSTRAINS )
+with_revoke_option : ( CASCADE CONSTRAINTS )
                    | FORCE
                    ;
 
@@ -191,7 +215,7 @@ manipulative_statement : close_statement
 
 table_name : ( ( NAME '.' )? NAME '.' )? NAME ;
 
-truncate_table : TRUNCATE TABLE_X table_name ( ( PRESERVE | PURGE ) MATERIALIZED VIEW LOG )? ( ( DROP | REUSE ) STORAGE )? ;
+truncate_table : TRUNCATE TABLE table_name ( ( PRESERVE | PURGE ) MATERIALIZED VIEW LOG )? ( ( DROP | REUSE ) STORAGE )? ;
 
 close_statement : CLOSE cursor ;
 
@@ -203,7 +227,7 @@ delete_statement_searched : DELETE FROM table ( where_clause )? ( returning )? ;
 
 fetch_statement : FETCH cursor INTO target_commalist ;
 
-insert_statement : INSERT INTO table ( ( column_commalist )? ( ( VALUES '(' scalar_opt_as_exp ( ',' scalar_opt_as_exp )* ')' ) | query_spec ) ( returning )? )? ;
+insert_statement : INSERT INTO table ( ( '(' column_commalist ')' )? ( ( VALUES '(' scalar_opt_as_exp ( ',' scalar_opt_as_exp )* ')' ) | query_spec ) ( returning )? )? ;
 
 open_statement : OPEN cursor ;
 
@@ -217,14 +241,13 @@ assignment_commalist : assignment ( ',' assignment )* ;
 
 assignment : column COMPARISON scalar_opt_as_exp ;
 
-update_statement_searched : UPDATE table SET assignment_commalist ( where_clause )? cursor ( returning )? ;
+update_statement_searched : UPDATE table SET assignment_commalist ( where_clause )? ( returning )? ;
 
 target_commalist : target ( ',' target )* ;
 
 target : NAME
        | parameter_ref
        ;
-
 query_exp : query_term
           | ( query_exp ( ( UNION ( ALL )? ) | INTERSECT | MINUS ) query_term )
           ;
@@ -273,7 +296,8 @@ inner_cross_join : ( ( INNER )? JOIN join_ref join_on_or_using_clause )
                  ;
 
 join_on_or_using_clause : ( ON search_condition )
-                        | ( USING '(' select_field_commalist ')' ) ;
+                        | ( USING '(' select_field_commalist ')' )
+                        ;
 
 outer_join : ( NATURAL outer_join_type JOIN join_ref ( query_partition_clause )? ( join_on_or_using_clause )? )
            | ( ( query_partition_clause ( NATURAL )? )? outer_join_type JOIN join_ref ( query_partition_clause )? ( join_on_or_using_clause )? )
@@ -285,7 +309,6 @@ outer_join_type : ( FULL ( OUTER )? )
                 | ( LEFT ( OUTER )? )
                 | ( RIGHT ( OUTER )? )
                 ;
-
 
 table_ref : ( table ( range_variable )? )
           | ( '(' query_exp ')' ( ( AS )? NAME )? )
@@ -344,7 +367,7 @@ scalar_opt_as_exp : ( scalar_exp ( COMPARISON scalar_exp )? )
                   | ( scalar_exp ( AS )? NAME )
                   ;
 
-scalar_exp : scalar_sub_exp ( OPERATOR_CONCAT scalar_sub_exp )* ;
+scalar_exp : scalar_sub_exp ( OPERATOR_CONCAT scalar_exp ) ;
 
 scalar_sub_exp : ( scalar_sub_exp ( '+' | '-' | '*' | '/' | OPERATOR_INTDIV ) scalar_sub_exp )
                | ( ( '+' | '-' ) ( scalar_sub_exp | literal ) )
@@ -421,3 +444,4 @@ when_action : ( GOTO NAME )
             | CONTINUE
             ;
 
+/* -------------------------------------------------------------------------- */

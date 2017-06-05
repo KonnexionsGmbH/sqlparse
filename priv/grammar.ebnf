@@ -1,3 +1,27 @@
+/*
+%% -----------------------------------------------------------------------------
+%%
+%% grammar.ebnf: SQL - grammar definition in ebnf format.
+%%
+%% Copyright (c) 2012-17 K2 Informatics GmbH.  All Rights Reserved.
+%%
+%% This file is provided to you under the Apache License,
+%% Version 2.0 (the "License"); you may not use this file
+%% except in compliance with the License.  You may obtain
+%% a copy of the License at
+%%
+%%   http://www.apache.org/licenses/LICENSE-2.0
+%%
+%% Unless required by applicable law or agreed to in writing,
+%% software distributed under the License is distributed on an
+%% "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+%% KIND, either express or implied.  See the License for the
+%% specific language governing permissions and limitations
+%% under the License.
+%%
+%% -----------------------------------------------------------------------------
+*/
+
 /* =============================================================================
 sql_list -> sql ';' extra                                                                       : [{'$1','$3'}].
 sql_list -> sql_list sql ';' extra                                                              : '$1' ++ [{'$2','$4'}].
@@ -19,8 +43,8 @@ sql -> procedure_call                                                           
 sql -> schema                                                                                   : '$1'.
 sql -> cursor_def                                                                               : '$1'.
 sql -> manipulative_statement                                                                   : '$1'.
-sql -> WHENEVER NOT FOUND when_action                                                           : {'when_not_found', '$1'}.
-sql -> WHENEVER SQLERROR when_action                                                            : {'when_sql_err', '$1'}.
+sql -> WHENEVER NOT FOUND when_action                                                           : {'when_not_found', '$4'}.
+sql -> WHENEVER SQLERROR when_action                                                            : {'when_sql_err', '$3'}.
 ============================================================================= */
 
 sql ::= procedure_call
@@ -100,10 +124,11 @@ create_user_def -> CREATE USER NAME identified opt_user_opts_list               
 create_user_def ::= 'CREATE' 'USER' NAME identified ( user_opt )*
 
 /* =============================================================================
-drop_table_def -> DROP tbl_type TABLE opt_exists table_list opt_restrict_cascade                : {'drop table', {'tables', '$5'}, '$4', '$6', '$2'}.
+drop_table_def -> DROP      TABLE opt_exists table_list opt_restrict_cascade                    : {'drop table', {'tables', '$4'}, '$3', '$5', <<>>}.
+drop_table_def -> DROP NAME TABLE opt_exists table_list opt_restrict_cascade                    : {'drop table', {'tables', '$5'}, '$4', '$6', unwrap_bin('$2')}.
 ============================================================================= */
 
-drop_table_def ::= 'DROP' tbl_type 'TABLE' ( 'IF' 'EXISTS' ) ( table ( ',' table )* ) ( 'RESTRICT' | 'CASCADE' )?
+drop_table_def ::= 'DROP' ( NAME )? 'TABLE' ( 'IF' 'EXISTS' )? ( table ( ',' table )* ) ( 'RESTRICT' | 'CASCADE' )?
 
 /* =============================================================================
 drop_role_def -> DROP ROLE NAME                                                                 : {'drop role', unwrap_bin('$3')}.
@@ -152,7 +177,7 @@ create_index_opt_filter -> '$empty'                                             
 create_index_opt_filter -> FILTER_WITH STRING                                                   : {'filter', unwrap_bin('$2')}.
 ============================================================================= */
 
-create_index_def ::= 'CREATE' ( 'BITMAP' | 'KEYLIST' | 'HASHMAP' | 'UNIQUE' )? 'INDEX' ( index_name )? 'ON' table ( '(' ( NAME | JSON )* ')' )?
+create_index_def ::= 'CREATE' ( 'BITMAP' | 'KEYLIST' | 'HASHMAP' | 'UNIQUE' )? 'INDEX' ( index_name )? 'ON' table ( '(' ( NAME | JSON ) ( '|' NAME | JSON )* ')' )?
                     ( 'NORM_WITH' STRING )?  ( 'FILTER_WITH' STRING )?
 
 JSON ::= [A-Za-z0-9_\.]+ ( [:#\[\{]+ | ( [\s\t\n\r]*[#\[\{]+ ) ) ( [A-Za-z0-9_\.\:\(\)] | '[' | ']' | [\{\}\#\,\|\-\+\*\/\\%\s\t\n\r] )*
@@ -224,10 +249,9 @@ proxy_clause -> REVOKE CONNECT THROUGH ENTERPRISE USERS                         
 proxy_clause -> REVOKE CONNECT THROUGH db_user_proxy                                            : {'revoke connect', '$4'}.
 ============================================================================= */
 
-proxy_clause ::= ( 'GRANT' | 'REVOKE' ) 'CONNECT' 'THROUGH' ( ( 'ENTERPRISE' 'USERS' ) | ( db_user_proxy )? )
+proxy_clause ::= ( 'GRANT' | 'REVOKE' ) 'CONNECT' 'THROUGH' ( ( 'ENTERPRISE' 'USERS' ) | db_user_proxy )
 
 /* =============================================================================
-db_user_proxy -> '$empty'                                                                       : {}.
 db_user_proxy -> proxy_with                                                                     : '$1'.
 db_user_proxy -> proxy_auth_req                                                                 : '$1'.
 db_user_proxy -> proxy_with proxy_auth_req                                                      : {'$1', '$2'}.
@@ -397,7 +421,7 @@ opt_column_commalist -> '$empty'                                                
 opt_column_commalist -> '(' column_commalist ')'                                                : '$2'.
 ============================================================================= */
 
-view_def ::= ( 'CREATE' 'VIEW' table ( column_commalist )? )
+view_def ::= ( 'CREATE' 'VIEW' table ( '(' column_commalist ')' )? )
            | ( 'AS' query_spec ( 'WITH' 'CHECK' 'OPTION' )? )
 
 /* =============================================================================
@@ -418,8 +442,8 @@ revoke_def ::= 'REVOKE' system_privilege_list ( on_obj_clause )? 'FROM' grantee 
 opt_on_obj_clause -> '$empty'                                                                   : {'on', <<"">>}.
 opt_on_obj_clause -> ON table                                                                   : {'on', '$2'}.
 opt_on_obj_clause -> ON DIRECTORY NAME                                                          : {'on directory', unwrap_bin('$3')}.
-opt_on_obj_clause -> ON JAVA SOURCE table                                                       : {'on java source', unwrap_bin('$4')}.
-opt_on_obj_clause -> ON JAVA RESOURCE table                                                     : {'on java resource', unwrap_bin('$4')}.
+opt_on_obj_clause -> ON JAVA SOURCE table                                                       : {'on java source', '$4'}.
+opt_on_obj_clause -> ON JAVA RESOURCE table                                                     : {'on java resource', '$4'}.
 ============================================================================= */
 
 on_obj_clause ::= ( 'ON' table )
@@ -468,11 +492,11 @@ with_grant_option ::= 'WITH' ( 'GRANT' | NAME | 'HIERARCHY' ) 'OPTION'
 
 /* =============================================================================
 opt_with_revoke_option -> '$empty'                                                              : ''.
-opt_with_revoke_option -> CASCADE CONSTRAINS                                                    : 'cascade constrains'.
+opt_with_revoke_option -> CASCADE CONSTRAINTS                                                   : 'cascade constraints'.
 opt_with_revoke_option -> FORCE                                                                 : 'force'.
 ============================================================================= */
 
-with_revoke_option ::= ( 'CASCADE' 'CONSTRAINS' )
+with_revoke_option ::= ( 'CASCADE' 'CONSTRAINTS' )
                      | 'FORCE'
 
 /* =============================================================================
@@ -638,7 +662,7 @@ insert_atom_commalist -> insert_atom_commalist ',' insert_atom                  
 insert_atom -> scalar_opt_as_exp                                                                : '$1'.
 ============================================================================= */
 
-insert_statement ::= 'INSERT' 'INTO' table ( ( column_commalist )? ( ( 'VALUES' '(' scalar_opt_as_exp ( ',' scalar_opt_as_exp )* ')' ) | query_spec ) ( returning )? )?
+insert_statement ::= 'INSERT' 'INTO' table ( ( '(' column_commalist ')' )? ( ( 'VALUES' '(' scalar_opt_as_exp ( ',' scalar_opt_as_exp )* ')' ) | query_spec ) ( returning )? )?
 
 /* =============================================================================
 open_statement -> OPEN cursor                                                                   : {'open', '$2'}.
@@ -692,7 +716,7 @@ COMPARISON ::= ':=' | '=' | '<>' | '<' | '>' | '<=' | '>='
 update_statement_searched -> UPDATE table SET assignment_commalist opt_where_clause returning   : {'update', '$2', {'set', '$4'}, '$5', '$6'}.
 ============================================================================= */
 
-update_statement_searched ::= 'UPDATE' table 'SET' assignment_commalist ( where_clause )? cursor ( returning )?
+update_statement_searched ::= 'UPDATE' table 'SET' assignment_commalist ( where_clause )? ( returning )?
 
 /* =============================================================================
 target_commalist -> target                                                                      : ['$1'].
@@ -1017,36 +1041,35 @@ comparison_predicate ::= scalar_opt_as_exp
                        | ( scalar_exp COMPARISON subquery )
 
 /* =============================================================================
-between_predicate -> scalar_exp NOT BETWEEN scalar_exp AND scalar_exp                           : {'not', {'between', '$1', '$4', '$6'}}.
-between_predicate -> scalar_exp BETWEEN scalar_exp AND scalar_exp                               : {'between', '$1', '$3', '$5'}.
+between_predicate -> scalar_exp NOT BETWEEN scalar_exp AND scalar_exp                           : {'not between', '$1', '$4', '$6'}.
+between_predicate -> scalar_exp     BETWEEN scalar_exp AND scalar_exp                           : {between,       '$1', '$3', '$5'}.
 ============================================================================= */
 
 between_predicate ::= scalar_exp ( 'NOT' )? 'BETWEEN' scalar_exp 'AND' scalar_exp
 
 /* =============================================================================
-like_predicate -> scalar_exp NOT LIKE scalar_exp opt_escape                                     : {'not', {'like', '$1', '$4', '$5'}}.
-like_predicate -> scalar_exp LIKE scalar_exp opt_escape                                         : {'like', '$1', '$3', '$4'}.
-
-opt_escape -> '$empty'                                                                          : <<>>.
-opt_escape -> ESCAPE atom                                                                       : '$2'.
+like_predicate -> scalar_exp NOT LIKE scalar_exp ESCAPE atom                                    : {'not like', '$1', '$4', '$6'}.
+like_predicate -> scalar_exp NOT LIKE scalar_exp                                                : {'not like', '$1', '$4', []}.
+like_predicate -> scalar_exp     LIKE scalar_exp ESCAPE atom                                    : {like,       '$1', '$3', '$5'}.
+like_predicate -> scalar_exp     LIKE scalar_exp                                                : {like,       '$1', '$3', []}.
 ============================================================================= */
 
 like_predicate ::= scalar_exp ( 'NOT' )? 'LIKE' scalar_exp ( 'ESCAPE' atom )?
 
 /* =============================================================================
-test_for_null -> scalar_exp IS NOT NULLX                                                        : {'not', {'is', '$1', <<"null">>}}.
-test_for_null -> scalar_exp IS NULLX                                                            : {'is', '$1', <<"null">>}.
+test_for_null -> scalar_exp IS NOT NULLX                                                        : {'is not', '$1', <<"null">>}.
+test_for_null -> scalar_exp IS     NULLX                                                        : {is,       '$1', <<"null">>}.
 ============================================================================= */
 
 test_for_null ::= scalar_exp 'IS' ( 'NOT' )? 'NULL'
 
 /* =============================================================================
-in_predicate -> scalar_exp NOT IN '(' subquery ')'                                              : {'not', {'in', '$1', '$5'}}.
-in_predicate -> scalar_exp IN '(' subquery ')'                                                  : {'in', '$1', '$4'}.
-in_predicate -> scalar_exp NOT IN '(' scalar_exp_commalist ')'                                  : {'not', {'in', '$1', {'list', '$5'}}}.
-in_predicate -> scalar_exp IN '(' scalar_exp_commalist ')'                                      : {'in', '$1', {'list', '$4'}}.
-in_predicate -> scalar_exp NOT IN scalar_exp_commalist                                          : {'not', {'in', '$1', {'list', '$4'}}}.
-in_predicate -> scalar_exp IN scalar_exp_commalist                                              : {'in', '$1', {'list', '$3'}}.
+in_predicate -> scalar_exp NOT IN '(' subquery ')'                                              : {'not in', '$1', '$5'}.
+in_predicate -> scalar_exp     IN '(' subquery ')'                                              : {in,       '$1', '$4'}.
+in_predicate -> scalar_exp NOT IN '(' scalar_exp_commalist ')'                                  : {'not in', '$1', {list, '$5'}}.
+in_predicate -> scalar_exp     IN '(' scalar_exp_commalist ')'                                  : {in,       '$1', {list, '$4'}}.
+in_predicate -> scalar_exp NOT IN scalar_exp_commalist                                          : {'not in', '$1', {list, '$4'}}.
+in_predicate -> scalar_exp     IN scalar_exp_commalist                                          : {in,       '$1', {list, '$3'}}.
 ============================================================================= */
 
 in_predicate ::= ( scalar_exp ( 'NOT' )? 'IN' '(' subquery ')' )
@@ -1092,7 +1115,7 @@ scalar_exp -> scalar_sub_exp '||' scalar_exp                                    
 scalar_exp -> scalar_sub_exp                                                                    : '$1'.
 ============================================================================= */
 
-scalar_exp ::= scalar_sub_exp ( '||' scalar_sub_exp )*
+scalar_exp ::= scalar_sub_exp ( '||' scalar_exp )
 
 /* =============================================================================
 scalar_sub_exp -> scalar_sub_exp '+' scalar_sub_exp                                             : {'+','$1','$3'}.
@@ -1237,8 +1260,8 @@ table ::= ( ( NAME '.' )? NAME ( ( AS )? NAME )? )
 
 /* =============================================================================
 column_ref -> JSON                                                                              : jpparse('$1').
-column_ref -> NAME '.' JSON                                                                     : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3')])).
-column_ref -> NAME '.' NAME '.' JSON                                                            : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')])).
+column_ref -> NAME '.' JSON                                                                     : [unwrap('$1'),".",jpparse('$3')].
+column_ref -> NAME '.' NAME '.' JSON                                                            : [unwrap('$1'),".",unwrap('$3'),".",jpparse('$5')].
 column_ref -> NAME                                                                              : unwrap_bin('$1').
 column_ref -> NAME '.' NAME                                                                     : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
 column_ref -> NAME '.' NAME '.' NAME                                                            : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).
@@ -1323,5 +1346,4 @@ when_action -> CONTINUE                                                         
 when_action ::= ( 'GOTO' NAME )
               | 'CONTINUE'
 
-/* =============================================================================
-============================================================================= */
+/* ========================================================================== */

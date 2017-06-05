@@ -28,21 +28,40 @@
 %%
 (\|\|)                                  { return OPERATOR_CONCAT; }
 (div)                                   { return OPERATOR_INTDIV; }
+
+/* erlang funcs */
 (fun\([A-Za-z0-9,_]*\).*\->.*end\.)     { return STRING; }
 (fun\s['A-Za-z0-9_]+:['A-Za-z0-9_]+\/[0-9]+\.) {
                                           return STRING; }
+                                          
+/* strings */
 (\'([^\']*(\'\')*)*\')                  { return STRING; }
 (\"((\$|[^\"]*)*(\"\")*)*\")            { return NAME; }
+
+/* hint */
 ((\/\*)[^\*\/]*(\*\/))                  { return HINT; }
+
+/* punctuation */                                          
+(:=|=|<>|<|>|<=|>=)                     { return COMPARISON; }
+
+/* names */
+[A-Za-z][A-Za-z0-9_@:#\$]*              { return NAME; }
+
+/* JSON */
 ([A-Za-z0-9_\.]+([:#\[\{]+|([\s\t\n\r]*[#\[\{]+))[A-Za-z0-9_\.\:\(\)\[\]\{\}\#\,\|\-\+\*\/\\%\s\t\n\r]*) {
                                           return JSON; }
-(:=|=|<>|<|>|<=|>=)                     { return COMPARISON; }
-[A-Za-z][A-Za-z0-9_@:#\$]*              { return NAME; }
+
+/* parameters */
 (\:[A-Za-z0-9_\.][A-Za-z0-9_\.]*)       { return PARAMETER; }
+
+/* numbers */
 ([0-9]+)                                { return INTNUM; }
 ((([\.][0-9]+)|([0-9]+[\.]?[0-9]*))[eE]?[+-]?[0-9]*[fFdD]?)  {
                                           return APPROXNUM; }
+                                          
+/* comments */                                          
 ((\-\-).*[\n])                          { /* COMMENT */ }
+
 .                                       { yyerror("illegal token"); }
 
 /* -------------------------------------------------------------------------- */

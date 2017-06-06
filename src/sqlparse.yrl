@@ -586,8 +586,8 @@ column_commalist -> column                                                      
 column_commalist -> column ',' column_commalist                                                 : ['$1' | '$3'].
 
 view_def -> CREATE VIEW table opt_column_commalist                                              : {'create view', '$3', '$4'}.
-view_def -> AS query_spec                                                                       : {as, '$2', [],                  " as "}.
-view_def -> AS query_spec WITH CHECK OPTION                                                     : {as, '$2', "with check option", " as "}.
+view_def -> AS query_spec                                                                       : {as, '$2', [],                   "as "}.
+view_def -> AS query_spec WITH CHECK OPTION                                                     : {as, '$2', " with check option", "as "}.
 
 opt_column_commalist -> '$empty'                                                                : [].
 opt_column_commalist -> '(' column_commalist ')'                                                : {'$2', "("}.

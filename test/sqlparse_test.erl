@@ -231,7 +231,7 @@ eunit_test_source(_TestGroup, Source, Logs) ->
                              NS_TD ->
                                  NS_TD
                          end,
-            ?debugFmt(?MODULE_STRING ++ ":eunit_test_source ===>~NewSource = ~p~n", [NSource_TD]),
+            ?debugFmt(?MODULE_STRING ++ ":eunit_test_source ===>~NewSource = ~ts~n", [NSource_TD]),
             ?D3("~n[TD] NewSource~n~s", [NSource_TD]),
             %% -----------------------------------------------------------------
             %% 3. Source (=NSource_TD) ==> ParseTree (=NPT_TD)

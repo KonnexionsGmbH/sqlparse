@@ -62,7 +62,6 @@
 -define(ALL_CLAUSE_EUNIT_RELIABILITY, [
 ]).
 -define(ALL_CLAUSE_EUNIT_RELIABILITY_SQL, [
-    insert_statement
 ]).
 
 -define(CODE_TEMPLATES, code_templates).
@@ -80,11 +79,13 @@
 ).
 
 -define(MAX_BASIC, 1000).
--define(MAX_SQL, 2000).
--define(MAX_STATEMENT, 1000).
+-define(MAX_SQL, 10000).
+-define(MAX_STATEMENT, 5000).
 
 -define(PATH_CT, "test").
 -define(PATH_EUNIT, "test").
+
+-define(TIMETRAP_MINUTES, 30).
 
 -define(NODEBUG, true).
 -include_lib("eunit/include/eunit.hrl").
@@ -236,7 +237,7 @@ create_code() ->
 %% Level 10
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    create_code_layer_2(),
+    create_code_layer(),
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Level 11
@@ -377,114 +378,6 @@ create_code_layer() ->
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     create_code(join_clause),
-
-    ok.
-
-create_code_layer_2() ->
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Level 1
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-    create_code(fun_arg),
-    create_code(scalar_sub_exp),
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Level 2
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-    create_code(from_commalist),
-    create_code(fun_args),
-    create_code(scalar_exp),
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Level 3
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-    create_code(between_predicate),
-    create_code(function_ref),
-    create_code(like_predicate),
-    create_code(ordering_spec),
-    create_code(scalar_opt_as_exp),
-    create_code(test_for_null),
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Level 4
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-    create_code(assignment),
-    create_code(column_ref_commalist),
-    create_code(function_ref_list),
-    create_code(order_by_clause),
-    create_code(scalar_exp_commalist),
-    create_code(search_condition),
-
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%% Level 5
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%
-%%    create_code(assignment_commalist),
-%%    create_code(case_when_then),
-%%    create_code(column_def_opt),
-%%    create_code(hierarchical_query_clause),
-%%    create_code(query_partition_clause),
-%%    create_code(table_constraint_def),
-%%    create_code(where_clause),
-%%
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%% Level 6
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%
-%%    create_code(case_when_then_list),
-%%    create_code(column_def),
-%%    create_code(table_exp),
-%%
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%% Level 7
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%
-%%    create_code(case_when_exp),
-%%    create_code(query_spec),
-%%
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%% Level 8
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%
-%%    create_code(query_term),
-%%    create_code(select_field_commalist),
-%%
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%% Level 9
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%
-%%    create_code(join_on_or_using_clause),
-%%    create_code(query_exp),
-%%    create_code(schema),
-%%
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%% Level 10
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%
-%%    create_code(all_or_any_predicate),
-%%    create_code(comparison_predicate),
-%%    create_code(cursor_def),
-%%    create_code(existence_test),
-%%    create_code(in_predicate),
-%%    create_code(inner_cross_join),
-%%    create_code(outer_join),
-%%    create_code(returning),
-%%
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%% Level 11
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%
-%%    create_code(join_list),
-%%
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%% Level 12
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%
-%%    create_code(join_clause),
 
     ok.
 
@@ -1173,8 +1066,7 @@ create_code(create_index_def = Rule) ->
                     _ -> []
                 end ++
                 " On" ++
-                " " ++ lists:nth(rand:uniform(Table_Length), Table) ++
-                "(" ++
+                " " ++ lists:nth(rand:uniform(Table_Length), Table) ++ " (" ++
                 case rand:uniform(3) rem 3 of
                     1 ->
                         case rand:uniform(2) rem 2 of
@@ -1215,7 +1107,7 @@ create_code(create_index_def = Rule) ->
                                  " " ++ lists:nth(rand:uniform(Name_Length), Name)
                          end
                 end ++
-                " ) " ++
+                ") " ++
                 case rand:uniform(2) rem 2 of
                     1 ->
                         " Norm_with " ++ lists:nth(rand:uniform(String_Length), String);
@@ -1279,8 +1171,7 @@ create_code(create_table_def = Rule) ->
                     _ -> []
                 end ++
                 " Table" ++
-                " " ++ lists:nth(rand:uniform(Table_Length), Table) ++
-                "(" ++
+                " " ++ lists:nth(rand:uniform(Table_Length), Table) ++ " (" ++
                 case rand:uniform(4) rem 4 of
                     1 ->
                         lists:nth(rand:uniform(Base_Table_Element_Length), Base_Table_Element) ++
@@ -1403,12 +1294,10 @@ create_code(data_type = Rule) ->
         [
             case rand:uniform(2) rem 2 of
                 1 -> lists:nth(rand:uniform(Name_Length), Name) ++
-                    "(" ++ lists:nth(rand:uniform(Opt_Sgn_Num_Length), Opt_Sgn_Num) ++
-                    ")";
+                    "(" ++ lists:nth(rand:uniform(Opt_Sgn_Num_Length), Opt_Sgn_Num) ++ ")";
                 _ -> lists:nth(rand:uniform(Name_Length), Name) ++
                     "(" ++ lists:nth(rand:uniform(Opt_Sgn_Num_Length), Opt_Sgn_Num) ++
-                    "," ++ lists:nth(rand:uniform(Opt_Sgn_Num_Length), Opt_Sgn_Num) ++
-                    ")"
+                    "," ++ lists:nth(rand:uniform(Opt_Sgn_Num_Length), Opt_Sgn_Num) ++ ")"
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
@@ -4242,7 +4131,7 @@ file_create_ct(Type, Rule) ->
     io:format(File, "~s~n", [""]),
     io:format(File, "~s~n", ["suite() ->"]),
     io:format(File, "~s~n", ["    ["]),
-    io:format(File, "~s~n", ["        {timetrap, {minutes, 10}}"]),
+    io:format(File, "~s~n", ["        {timetrap, {minutes, " ++ integer_to_list(?TIMETRAP_MINUTES) ++ "}}"]),
     io:format(File, "~s~n", ["    ]."]),
     io:format(File, "~s~n", [""]),
     io:format(File, "~s~n", ["init_per_suite(Config) ->"]),

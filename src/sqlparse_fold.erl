@@ -1483,7 +1483,8 @@ fold(FType, Fun, Ctx, Lvl, {from, Froms} = ST) ->
                                              {F1, F2} when is_binary(F1), is_binary(F2) ->
                                                  {Acc ++ [binary_to_list(F1) ++ " " ++ binary_to_list(F2)], Fun(F, CtxAcc)};
                                              {F1, F2} when is_binary(F1) ->
-                                                 {Acc ++ [binary_to_list(F1) ++ " " ++ F2], Fun(F, CtxAcc)};
+                                                 {F2Str, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, F2),
+                                                 {Acc ++ [binary_to_list(F1) ++ " " ++ F2Str], Fun(F, CtxAcc1)};
                                              {{as, _, _, _, _} = F1, F2} ->
                                                  {F1Str, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, F1),
                                                  {Acc ++ [F1Str ++ " " ++ F2], CtxAcc1};

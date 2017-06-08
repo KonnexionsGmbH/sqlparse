@@ -41,9 +41,8 @@ Rules.
 ([\|\-\+\*\/\(\)\,\.\;]|(\|\|)|(div))               : {token, {list_to_atom(TokenChars), TokenLine}}.
 
 % JSON
-(JSON[A-Za-z0-9_\.]+([:#\[\{]+|([\s\t\n\r]*[#\[\{]+))[A-Za-z0-9_\.\:\(\)\[\]\{\}\#\,\|\-\+\*\/\\%\s\t\n\r]*)
-%(\|[:{\[#].*\|)
-                                                    : parse_json(TokenLine, TokenChars).
+% (JSON[A-Za-z0-9_\.]+([:#\[\{]+|([\s\t\n\r]*[#\[\{]+))[A-Za-z0-9_\.\:\(\)\[\]\{\}\#\,\|\-\+\*\/\\%\s\t\n\r]*)
+(\|[\.:{\[#]([^\|]*)+\|)                            : parse_json(TokenLine, TokenChars).
 
 % names
 %[A-Za-z][A-Za-z0-9_@:#]*                           : {token, {'NAME', TokenLen, TokenChars}}.
@@ -333,7 +332,7 @@ match_fun(TokenLine, TokenChars) ->
     {token, {'STRING', TokenLine, MatchedFunStr}, string:sub_string(TokenChars, length(MatchedFunStr) + 1)}.
 
 parse_json(TokenLine, TokenCharsIn) ->
-    TokenChars = string:substr(TokenCharsIn, 5),
+    TokenChars = string:substr(TokenCharsIn, 2, length(TokenCharsIn) - 2),
     ?Dbg("TokenChars=~p", [TokenChars]),
     parse_json(TokenLine, TokenChars, "", "", 0).
 

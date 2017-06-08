@@ -859,8 +859,8 @@ outer_join -> query_partition_clause NATURAL outer_join_type JOIN
               join_ref query_partition_clause opt_join_on_or_using_clause                       : {{'$3', '$1', natural}, '$5', '$6', '$7'}.
 % -----------------------------------------------------------------------------------------------
 
-query_partition_clause -> PARTITION BY '(' scalar_exp_commalist ')'                             : {partition_by, '$4'}.
-query_partition_clause -> PARTITION BY scalar_exp_commalist                                     : {partition_by, '$3'}.
+query_partition_clause -> PARTITION BY '(' scalar_exp_commalist ')'                             : {partition_by, '$4', "("}.
+query_partition_clause -> PARTITION BY scalar_exp_commalist                                     : {partition_by, '$3', []} .
 
 outer_join_type -> FULL                                                                         : full.
 outer_join_type -> LEFT                                                                         : left.

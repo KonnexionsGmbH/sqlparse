@@ -78,9 +78,9 @@
     _Start = erlang:monotonic_time(1000)
 ).
 
--define(MAX_BASIC, 1000).
--define(MAX_SQL, 10000).
--define(MAX_STATEMENT, 5000).
+-define(MAX_BASIC, 250).
+-define(MAX_SQL, ?MAX_BASIC * 8).
+-define(MAX_STATEMENT, ?MAX_BASIC * 4).
 
 -define(PATH_CT, "test").
 -define(PATH_EUNIT, "test").
@@ -2288,31 +2288,31 @@ create_code(json = Rule) ->
 
     Code =
         [
-            "JSON..g:b.f[f(p.r:q)]",
-            "JSON.:a",
-            "JSON.:b",
-            "JSON_.g:b.f[f(p.r:s)]",
-            "JSON_:b2",
-            "JSON_:b[f(p:q)]",
-            "JSON_a1:f()",
-            "JSON_a::b",
-            "JSON_a::b::c",
-            "JSON_a:b",
-            "JSON_a:bc:df",
-            "JSONa {b}",
-            "JSONa {}",
-            "JSONa.g:b.f[f(p.r:q)]",
-            "JSONa.g:b.f[f(p.r:r)]",
-            "JSONa.g:b.f[f(p.r:s)]",
-            "JSONa.g:b.f[f(p.r:t)]",
-            "JSONa0_ {}",
-            "JSONa::bc..12",
-            "JSONa:[]",
-            "JSONa:b[f(p:q)]",
-            "JSONa:b[f(p:r)]",
-            "JSONa:f()",
-            "JSONa:f(i)",
-            "JSONa[]"
+            "|#_.g:b.f[f(p.r:s)]|",
+            "|..g:b.f[f(p.r:q)]|",
+            "|.:a|",
+            "|.:b|",
+            "|._a::b::c|",
+            "|._a::b|",
+            "|._a:bc:df|",
+            "|._a:b|",
+            "|.a {b}|",
+            "|.a {}|",
+            "|.a.g:b.f[f(p.r:q)]|",
+            "|.a.g:b.f[f(p.r:r)]|",
+            "|.a.g:b.f[f(p.r:s)]|",
+            "|.a.g:b.f[f(p.r:t)]|",
+            "|.a0_ {}|",
+            "|.a::bc..12|",
+            "|.a:[]|",
+            "|.a:b[f(p:q)]|",
+            "|.a:b[f(p:r)]|",
+            "|.a:f()|",
+            "|.a:f(i)|",
+            "|.a[]|",
+            "|:_a1:f()|",
+            "|[_:b[f(p:q)]]|",
+            "|{_:b2}|"
         ],
     store_code(Rule, Code, ?MAX_BASIC, true),
     store_code(column_ref, Code, ?MAX_BASIC, true),

@@ -33,7 +33,7 @@
 (fun\([A-Za-z0-9,_]*\).*\->.*end\.)     { return STRING; }
 (fun\s['A-Za-z0-9_]+:['A-Za-z0-9_]+\/[0-9]+\.) {
                                           return STRING; }
-                                          
+
 /* strings */
 (\'([^\']*(\'\')*)*\')                  { return STRING; }
 (\"((\$|[^\"]*)*(\"\")*)*\")            { return NAME; }
@@ -41,7 +41,7 @@
 /* hint */
 ((\/\*)[^\*\/]*(\*\/))                  { return HINT; }
 
-/* punctuation */                                          
+/* punctuation */
 (:=|=|<>|<|>|<=|>=)                     { return COMPARISON; }
 
 /* names */
@@ -58,8 +58,8 @@
 ([0-9]+)                                { return INTNUM; }
 ((([\.][0-9]+)|([0-9]+[\.]?[0-9]*))[eE]?[+-]?[0-9]*[fFdD]?)  {
                                           return APPROXNUM; }
-                                          
-/* comments */                                          
+
+/* comments */
 ((\-\-).*[\n])                          { /* COMMENT */ }
 
 .                                       { yyerror("illegal token"); }

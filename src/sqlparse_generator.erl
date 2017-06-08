@@ -62,8 +62,6 @@
 -define(ALL_CLAUSE_EUNIT_RELIABILITY, [
 ]).
 -define(ALL_CLAUSE_EUNIT_RELIABILITY_SQL, [
-    insert_statement,
-    view_def
 ]).
 
 -define(CODE_TEMPLATES, code_templates).
@@ -80,12 +78,14 @@
     _Start = erlang:monotonic_time(1000)
 ).
 
--define(MAX_BASIC, 1000).
--define(MAX_SQL, 6000).
--define(MAX_STATEMENT, 3000).
+-define(MAX_BASIC, 250).
+-define(MAX_SQL, ?MAX_BASIC * 8).
+-define(MAX_STATEMENT, ?MAX_BASIC * 4).
 
 -define(PATH_CT, "test").
 -define(PATH_EUNIT, "test").
+
+-define(TIMETRAP_MINUTES, 30).
 
 -define(NODEBUG, true).
 -include_lib("eunit/include/eunit.hrl").
@@ -237,7 +237,7 @@ create_code() ->
 %% Level 10
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    create_code_layer_2(),
+    create_code_layer(),
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Level 11
@@ -381,114 +381,6 @@ create_code_layer() ->
 
     ok.
 
-create_code_layer_2() ->
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Level 1
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-    create_code(fun_arg),
-    create_code(scalar_sub_exp),
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Level 2
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-    create_code(from_commalist),
-    create_code(fun_args),
-    create_code(scalar_exp),
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Level 3
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-    create_code(between_predicate),
-    create_code(function_ref),
-    create_code(like_predicate),
-    create_code(ordering_spec),
-    create_code(scalar_opt_as_exp),
-    create_code(test_for_null),
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Level 4
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-    create_code(assignment),
-    create_code(column_ref_commalist),
-%%    create_code(function_ref_list),
-%%    create_code(order_by_clause),
-%%    create_code(scalar_exp_commalist),
-%%    create_code(search_condition),
-
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%% Level 5
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%
-%%    create_code(assignment_commalist),
-%%    create_code(case_when_then),
-%%    create_code(column_def_opt),
-%%    create_code(hierarchical_query_clause),
-%%    create_code(query_partition_clause),
-%%    create_code(table_constraint_def),
-%%    create_code(where_clause),
-%%
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%% Level 6
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%
-%%    create_code(case_when_then_list),
-%%    create_code(column_def),
-%%    create_code(table_exp),
-%%
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%% Level 7
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%
-%%    create_code(case_when_exp),
-%%    create_code(query_spec),
-%%
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%% Level 8
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%
-%%    create_code(query_term),
-%%    create_code(select_field_commalist),
-%%
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%% Level 9
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%
-%%    create_code(join_on_or_using_clause),
-%%    create_code(query_exp),
-%%    create_code(schema),
-%%
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%% Level 10
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%
-%%    create_code(all_or_any_predicate),
-%%    create_code(comparison_predicate),
-%%    create_code(cursor_def),
-%%    create_code(existence_test),
-%%    create_code(in_predicate),
-%%    create_code(inner_cross_join),
-%%    create_code(outer_join),
-%%    create_code(returning),
-%%
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%% Level 11
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%
-%%    create_code(join_list),
-%%
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%% Level 12
-%%%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%
-%%    create_code(join_clause),
-
-    ok.
-
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Adding parentheses to a query_spec.
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -514,7 +406,7 @@ create_code(all_or_any_predicate = Rule) ->
 
     Code =
         [
-                lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp) ++
+                bracket_query_spec(lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp)) ++
                 " " ++ lists:nth(rand:uniform(Comparison_Length), Comparison) ++
                 case rand:uniform(3) rem 3 of
                     1 -> " Any";
@@ -706,13 +598,13 @@ create_code(between_predicate = Rule) ->
 
     Code =
         [
-                lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp) ++
+                bracket_query_spec(lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp)) ++
                 case rand:uniform(2) rem 2 of
                     1 -> " Not";
                     _ -> []
                 end ++
-                " Between " ++ lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp) ++
-                " And " ++ lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp)
+                " Between " ++ bracket_query_spec(lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp)) ++
+                " And " ++ bracket_query_spec(lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp))
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
     store_code(Rule, Code, ?MAX_BASIC, true),
@@ -1124,12 +1016,13 @@ create_code(comparison_predicate = Rule) ->
                          1 -> "Prior ";
                          _ -> []
                      end ++
-                    lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp) ++
+                    bracket_query_spec(lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp)) ++
                     " " ++ lists:nth(rand:uniform(Comparison_Length), Comparison) ++
-                    " " ++ lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp);
-                _ -> lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp) ++
-                    " " ++ lists:nth(rand:uniform(Comparison_Length), Comparison) ++
-                    " " ++ bracket_query_spec(lists:nth(rand:uniform(Subquery_Length), Subquery))
+                    " " ++ bracket_query_spec(lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp));
+                _ ->
+                    bracket_query_spec(lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp)) ++
+                        " " ++ lists:nth(rand:uniform(Comparison_Length), Comparison) ++
+                        " " ++ bracket_query_spec(lists:nth(rand:uniform(Subquery_Length), Subquery))
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
@@ -1173,8 +1066,7 @@ create_code(create_index_def = Rule) ->
                     _ -> []
                 end ++
                 " On" ++
-                " " ++ lists:nth(rand:uniform(Table_Length), Table) ++
-                "(" ++
+                " " ++ lists:nth(rand:uniform(Table_Length), Table) ++ " (" ++
                 case rand:uniform(3) rem 3 of
                     1 ->
                         case rand:uniform(2) rem 2 of
@@ -1215,7 +1107,7 @@ create_code(create_index_def = Rule) ->
                                  " " ++ lists:nth(rand:uniform(Name_Length), Name)
                          end
                 end ++
-                " ) " ++
+                ") " ++
                 case rand:uniform(2) rem 2 of
                     1 ->
                         " Norm_with " ++ lists:nth(rand:uniform(String_Length), String);
@@ -1279,8 +1171,7 @@ create_code(create_table_def = Rule) ->
                     _ -> []
                 end ++
                 " Table" ++
-                " " ++ lists:nth(rand:uniform(Table_Length), Table) ++
-                "(" ++
+                " " ++ lists:nth(rand:uniform(Table_Length), Table) ++ " (" ++
                 case rand:uniform(4) rem 4 of
                     1 ->
                         lists:nth(rand:uniform(Base_Table_Element_Length), Base_Table_Element) ++
@@ -1403,12 +1294,10 @@ create_code(data_type = Rule) ->
         [
             case rand:uniform(2) rem 2 of
                 1 -> lists:nth(rand:uniform(Name_Length), Name) ++
-                    "(" ++ lists:nth(rand:uniform(Opt_Sgn_Num_Length), Opt_Sgn_Num) ++
-                    ")";
+                    "(" ++ lists:nth(rand:uniform(Opt_Sgn_Num_Length), Opt_Sgn_Num) ++ ")";
                 _ -> lists:nth(rand:uniform(Name_Length), Name) ++
                     "(" ++ lists:nth(rand:uniform(Opt_Sgn_Num_Length), Opt_Sgn_Num) ++
-                    "," ++ lists:nth(rand:uniform(Opt_Sgn_Num_Length), Opt_Sgn_Num) ++
-                    ")"
+                    "," ++ lists:nth(rand:uniform(Opt_Sgn_Num_Length), Opt_Sgn_Num) ++ ")"
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
@@ -1800,15 +1689,12 @@ create_code(function_ref = Rule) ->
                          1 -> lists:nth(rand:uniform(Name_Length), Name) ++
                              "." ++ lists:nth(rand:uniform(Name_Length), Name) ++
                              "." ++ lists:nth(rand:uniform(Name_Length), Name) ++
-                             "(" ++ lists:nth(rand:uniform(Fun_Args_Length), Fun_Args) ++
-                             ")";
+                             "(" ++ lists:nth(rand:uniform(Fun_Args_Length), Fun_Args) ++ ")";
                          2 -> lists:nth(rand:uniform(Name_Length), Name) ++
                              "." ++ lists:nth(rand:uniform(Name_Length), Name) ++
-                             "(" ++ lists:nth(rand:uniform(Fun_Args_Length), Fun_Args) ++
-                             ")";
+                             "(" ++ lists:nth(rand:uniform(Fun_Args_Length), Fun_Args) ++ ")";
                          _ -> lists:nth(rand:uniform(Name_Length), Name) ++
-                             "(" ++ lists:nth(rand:uniform(Fun_Args_Length), Fun_Args) ++
-                             ")"
+                             "(" ++ lists:nth(rand:uniform(Fun_Args_Length), Fun_Args) ++ ")"
                      end;
                 _ -> lists:nth(rand:uniform(Funs_Length), Funs) ++
                 case rand:uniform(20) rem 20 of
@@ -1821,7 +1707,7 @@ create_code(function_ref = Rule) ->
                             3 ->
                                 "Distinct " ++ lists:nth(rand:uniform(Column_Ref_Length), Column_Ref);
                             _ ->
-                                "All " ++ lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp)
+                                "All " ++ bracket_query_spec(lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp))
                         end ++
                         ")"
                 end
@@ -2107,7 +1993,7 @@ create_code(in_predicate = Rule) ->
 
     Code =
         [
-                lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp) ++
+                bracket_query_spec(lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp)) ++
                 case rand:uniform(2) rem 2 of
                     1 -> " Not";
                     _ -> []
@@ -2402,31 +2288,31 @@ create_code(json = Rule) ->
 
     Code =
         [
-            "JSON..g:b.f[f(p.r:q)]",
-            "JSON.:a",
-            "JSON.:b",
-            "JSON_.g:b.f[f(p.r:s)]",
-            "JSON_:b2",
-            "JSON_:b[f(p:q)]",
-            "JSON_a1:f()",
-            "JSON_a::b",
-            "JSON_a::b::c",
-            "JSON_a:b",
-            "JSON_a:bc:df",
-            "JSONa {b}",
-            "JSONa {}",
-            "JSONa.g:b.f[f(p.r:q)]",
-            "JSONa.g:b.f[f(p.r:r)]",
-            "JSONa.g:b.f[f(p.r:s)]",
-            "JSONa.g:b.f[f(p.r:t)]",
-            "JSONa0_ {}",
-            "JSONa::bc..12",
-            "JSONa:[]",
-            "JSONa:b[f(p:q)]",
-            "JSONa:b[f(p:r)]",
-            "JSONa:f()",
-            "JSONa:f(i)",
-            "JSONa[]"
+            "|#_.g:b.f[f(p.r:s)]|",
+            "|..g:b.f[f(p.r:q)]|",
+            "|.:a|",
+            "|.:b|",
+            "|._a::b::c|",
+            "|._a::b|",
+            "|._a:bc:df|",
+            "|._a:b|",
+            "|.a {b}|",
+            "|.a {}|",
+            "|.a.g:b.f[f(p.r:q)]|",
+            "|.a.g:b.f[f(p.r:r)]|",
+            "|.a.g:b.f[f(p.r:s)]|",
+            "|.a.g:b.f[f(p.r:t)]|",
+            "|.a0_ {}|",
+            "|.a::bc..12|",
+            "|.a:[]|",
+            "|.a:b[f(p:q)]|",
+            "|.a:b[f(p:r)]|",
+            "|.a:f()|",
+            "|.a:f(i)|",
+            "|.a[]|",
+            "|:_a1:f()|",
+            "|[_:b[f(p:q)]]|",
+            "|{_:b2}|"
         ],
     store_code(Rule, Code, ?MAX_BASIC, true),
     store_code(column_ref, Code, ?MAX_BASIC, true),
@@ -2446,12 +2332,12 @@ create_code(like_predicate = Rule) ->
 
     Code =
         [
-                lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp) ++
+                bracket_query_spec(lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp)) ++
                 case rand:uniform(2) rem 2 of
                     1 -> " Not";
                     _ -> []
                 end ++
-                " Like " ++ lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp) ++
+                " Like " ++ bracket_query_spec(lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp)) ++
                 case rand:uniform(2) rem 2 of
                     1 ->
                         " Escape " ++ lists:nth(rand:uniform(Atom_Length), Atom);
@@ -2614,7 +2500,7 @@ create_code(ordering_spec = Rule) ->
 
     Code =
         [
-                lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp) ++
+                bracket_query_spec(lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp)) ++
                 case rand:uniform(3) rem 3 of
                     1 -> " Asc";
                     2 -> " Desc";
@@ -3176,7 +3062,7 @@ create_code(scalar_exp = Rule) ->
                 bracket_query_spec(lists:nth(rand:uniform(Scalar_Sub_Exp_Length), Scalar_Sub_Exp)) ++
                 case rand:uniform(2) rem 2 of
                     1 ->
-                        " || " ++ lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp);
+                        " || " ++ bracket_query_spec(lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp));
                     _ ->
                         []
                 end
@@ -3235,15 +3121,17 @@ create_code(scalar_opt_as_exp = Rule) ->
     Code =
         [
             case rand:uniform(2) rem 2 of
-                1 -> lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp) ++
-                    lists:nth(rand:uniform(Comparison_Length), Comparison) ++
-                    lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp);
-                _ -> lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp) ++
-                    case rand:uniform(2) rem 2 of
-                        1 -> " As";
-                        _ -> []
-                    end ++
-                    " " ++ lists:nth(rand:uniform(Name_Length), Name)
+                1 ->
+                    bracket_query_spec(lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp)) ++
+                        lists:nth(rand:uniform(Comparison_Length), Comparison) ++
+                        bracket_query_spec(lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp));
+                _ ->
+                    bracket_query_spec(lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp)) ++
+                        case rand:uniform(2) rem 2 of
+                            1 -> " As";
+                            _ -> []
+                        end ++
+                        " " ++ lists:nth(rand:uniform(Name_Length), Name)
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
@@ -3924,7 +3812,7 @@ create_code(test_for_null = Rule) ->
 
     Code =
         [
-                lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp) ++
+                bracket_query_spec(lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp)) ++
                 " Is" ++
                 case rand:uniform(2) rem 2 of
                     1 -> " Not";
@@ -4243,7 +4131,7 @@ file_create_ct(Type, Rule) ->
     io:format(File, "~s~n", [""]),
     io:format(File, "~s~n", ["suite() ->"]),
     io:format(File, "~s~n", ["    ["]),
-    io:format(File, "~s~n", ["        {timetrap, {minutes, 10}}"]),
+    io:format(File, "~s~n", ["        {timetrap, {minutes, " ++ integer_to_list(?TIMETRAP_MINUTES) ++ "}}"]),
     io:format(File, "~s~n", ["    ]."]),
     io:format(File, "~s~n", [""]),
     io:format(File, "~s~n", ["init_per_suite(Config) ->"]),

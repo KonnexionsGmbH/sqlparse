@@ -439,26 +439,47 @@ fold(FType, Fun, Ctx, _Lvl, {'alter user', [Usr | _] = Users, {Grant, GrantArg}}
 % AS SELECT
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(FType, Fun, Ctx, Lvl, {'as', {select, _} = QuerySpec, Check, " as "} = ST) ->
+fold(FType, Fun, Ctx, Lvl, {'as', {select, _} = QuerySpec, [], "as " = As} = ST) ->
     ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, ST]),
     NewCtx = case FType of
                  top_down -> Fun(ST, Ctx);
                  bottom_up -> Ctx
              end,
     {QuerySpecStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl + 1, QuerySpec),
-    CheckStr =
-        case is_binary(Check) of
-            true -> binary_to_list(Check);
-            _ -> Check
-        end,
     NewCtx2 = case FType of
                   top_down -> Fun(ST, NewCtx1);
                   bottom_up -> NewCtx1
               end,
-    RT = {QuerySpecStr ++ " as " ++ case length(CheckStr) == 0 of
-                                        true -> [];
-                                        _ -> CheckStr
-                                    end, NewCtx2},
+    RT = {As ++ QuerySpecStr, NewCtx2},
+    ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
+    RT;
+fold(FType, Fun, Ctx, Lvl, {'as', {select, _} = QuerySpec, " with check option" = Check, "as " = As} = ST) ->
+    ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, ST]),
+    NewCtx = case FType of
+                 top_down -> Fun(ST, Ctx);
+                 bottom_up -> Ctx
+             end,
+    {QuerySpecStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl + 1, QuerySpec),
+    NewCtx2 = case FType of
+                  top_down -> Fun(ST, NewCtx1);
+                  bottom_up -> NewCtx1
+              end,
+    RT = {As ++ QuerySpecStr ++ Check, NewCtx2},
+    ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
+    RT;
+fold(FType, Fun, Ctx, Lvl, {'as', {select, _} = QuerySpec, Name, " as " = As} = ST)
+    when is_binary(Name) ->
+    ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, ST]),
+    NewCtx = case FType of
+                 top_down -> Fun(ST, Ctx);
+                 bottom_up -> Ctx
+             end,
+    {QuerySpecStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl + 1, QuerySpec),
+    NewCtx2 = case FType of
+                  top_down -> Fun(ST, NewCtx1);
+                  bottom_up -> NewCtx1
+              end,
+    RT = {QuerySpecStr ++ As ++ binary_to_list(Name), NewCtx2},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
 
@@ -1462,7 +1483,8 @@ fold(FType, Fun, Ctx, Lvl, {from, Froms} = ST) ->
                                              {F1, F2} when is_binary(F1), is_binary(F2) ->
                                                  {Acc ++ [binary_to_list(F1) ++ " " ++ binary_to_list(F2)], Fun(F, CtxAcc)};
                                              {F1, F2} when is_binary(F1) ->
-                                                 {Acc ++ [binary_to_list(F1) ++ " " ++ F2], Fun(F, CtxAcc)};
+                                                 {F2Str, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, F2),
+                                                 {Acc ++ [binary_to_list(F1) ++ " " ++ F2Str], Fun(F, CtxAcc1)};
                                              {{as, _, _, _, _} = F1, F2} ->
                                                  {F1Str, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, F1),
                                                  {Acc ++ [F1Str ++ " " ++ F2], CtxAcc1};

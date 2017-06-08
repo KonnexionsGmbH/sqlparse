@@ -192,7 +192,6 @@ Nonterminals
 %% literal keyword tokens
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%'LANGUAGE' 'PROCEDURE' 'SQLCODE'
 Terminals
  ALL
  ALTER
@@ -367,7 +366,8 @@ Rootsymbol sql_list.
 Nonassoc    200 COMPARISON.                 %% = <> < > <= >=
 Left        300 '+' '-'.
 Left        400 '*' '/'.
-%Unary       500 '-'.
+
+% Nonassoc    900 function_ref_list.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -375,10 +375,11 @@ sql_list -> sql ';' extra                                                       
 sql_list -> sql_list sql ';' extra                                                              : '$1' ++ [{'$2','$4'}].
 
 % sql_list -> column_def_opt ';'                                                                  : '$1'.
-% sql_list -> column_ref_commalist ';'                                                            : '$1'.
+% sql_list -> column_ref ';'                                                                      : '$1'.
 % sql_list -> fun_arg ';'                                                                         : '$1'.
 % sql_list -> function_ref ';'                                                                    : '$1'.
 % sql_list -> function_ref_list ';'                                                               : '$1'.
+% sql_list -> opt_group_by_clause ';'                                                             : '$1'.
 % sql_list -> predicate ';'                                                                       : '$1'.
 % sql_list -> procedure_call ';'                                                                  : '$1'.
 % sql_list -> scalar_exp ';'                                                                      : '$1'.
@@ -586,8 +587,8 @@ column_commalist -> column                                                      
 column_commalist -> column ',' column_commalist                                                 : ['$1' | '$3'].
 
 view_def -> CREATE VIEW table opt_column_commalist                                              : {'create view', '$3', '$4'}.
-view_def -> AS query_spec                                                                       : {as, '$2', [],                  " as "}.
-view_def -> AS query_spec WITH CHECK OPTION                                                     : {as, '$2', "with check option", " as "}.
+view_def -> AS query_spec                                                                       : {as, '$2', [],                   "as "}.
+view_def -> AS query_spec WITH CHECK OPTION                                                     : {as, '$2', " with check option", "as "}.
 
 opt_column_commalist -> '$empty'                                                                : [].
 opt_column_commalist -> '(' column_commalist ')'                                                : {'$2', "("}.
@@ -792,7 +793,6 @@ selection -> select_field_commalist                                             
 
 select_field_commalist -> case_when_opt_as_exp                                                  : ['$1'].
 select_field_commalist -> scalar_opt_as_exp                                                     : ['$1'].
-%select_field_commalist -> search_condition                                                      : ['$1'].
 select_field_commalist -> '*'                                                                   : [<<"*">>].
 select_field_commalist -> select_field_commalist ',' select_field_commalist                     : '$1' ++ '$3'.
 
@@ -859,8 +859,8 @@ outer_join -> query_partition_clause NATURAL outer_join_type JOIN
               join_ref query_partition_clause opt_join_on_or_using_clause                       : {{'$3', '$1', natural}, '$5', '$6', '$7'}.
 % -----------------------------------------------------------------------------------------------
 
-query_partition_clause -> PARTITION BY '(' scalar_exp_commalist ')'                             : {partition_by, '$4'}.
-query_partition_clause -> PARTITION BY scalar_exp_commalist                                     : {partition_by, '$3'}.
+query_partition_clause -> PARTITION BY '(' scalar_exp_commalist ')'                             : {partition_by, '$4', "("}.
+query_partition_clause -> PARTITION BY scalar_exp_commalist                                     : {partition_by, '$3', []} .
 
 outer_join_type -> FULL                                                                         : full.
 outer_join_type -> LEFT                                                                         : left.
@@ -1026,7 +1026,6 @@ fun_arg -> fun_arg COMPARISON fun_arg                                           
 literal -> STRING                                                                               : unwrap_bin('$1').
 literal -> INTNUM                                                                               : unwrap_bin('$1').
 literal -> APPROXNUM                                                                            : unwrap_bin('$1').
-%literal -> JSON                                                                                 : jpparse('$1').
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% miscellaneous
@@ -1056,7 +1055,9 @@ column_ref -> NAME '.' NAME '.' NAME '(' '+' ')'                                
 column_ref -> NAME '.' '*'                                                                      : list_to_binary([unwrap('$1'),".*"]).
 column_ref -> NAME '.' NAME '.' '*'                                                             : list_to_binary([unwrap('$1'),".",unwrap('$3'),".*"]).
 
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% data types
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 data_type -> STRING                                                                             : unwrap_bin('$1').
 data_type -> NAME                                                                               : unwrap_bin('$1').

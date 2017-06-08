@@ -2,6 +2,10 @@ install:
   - wget https://s3.amazonaws.com/rebar3/rebar3 && chmod +x rebar3
 language: erlang
 otp_release:
+  - 19.3
+  - 19.2
+  - 19.1
+  - 19.0
   - 18.3
   - 18.2.1
   - 18.2
@@ -10,3 +14,4 @@ otp_release:
 script:
   - ./rebar3 compile
   - ./rebar3 eunit
+  - ./rebar3 ct

@@ -53,6 +53,7 @@
     rollback_statement,
     schema,
     select_statement,
+    special,
     truncate_table,
     update_statement,
     view_def,
@@ -62,6 +63,7 @@
 -define(ALL_CLAUSE_EUNIT_RELIABILITY, [
 ]).
 -define(ALL_CLAUSE_EUNIT_RELIABILITY_SQL, [
+    special
 ]).
 
 -define(CODE_TEMPLATES, code_templates).
@@ -266,6 +268,12 @@ create_code() ->
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     create_code(sql_list),
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Level 15
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    create_code(special),
 
     ok.
 
@@ -3789,6 +3797,65 @@ create_code(select_field_commalist = Rule) ->
         ],
     store_code(Rule, Code, ?MAX_BASIC, true),
     store_code(selection, Code_1, ?MAX_BASIC, true),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Special variations.
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(special = Rule) ->
+    ?CREATE_CODE_START,
+    Code = [
+        %% ---------------------------------------------------------------------
+        %% Problem: ALL
+        %% ---------------------------------------------------------------------
+        %% function_ref -> FUNS     '(' ALL scalar_exp ')'
+        %% ---------------------------------------------------------------------
+        "Call Upper (All Null)",
+        "Call Upper (All 5)",
+        "Call Upper (All 'text')",
+        "Call Upper (All |:_a1:f()|)",
+        "Call Upper (All name.|:_a1:f()|)",
+        "Call Upper (All name1.name2.|:_a1:f()|)",
+        "Call Upper (All name)",
+        "Call Upper (All name1.name2)",
+        "Call Upper (All name1.name2.name3)",
+        %% ---------------------------------------------------------------------
+        %% Problem: data_type with parenteheses
+        %% ---------------------------------------------------------------------
+        %% data_type -> NAME '(' opt_sgn_num ')'
+        %% data_type -> NAME '(' opt_sgn_num ',' opt_sgn_num ')'
+        %% ---------------------------------------------------------------------
+        "Create Table table_name (column_name name (1))",
+        "Create Table table_name (column_name name (-1))",
+        "Create Table table_name (column_name name (1, 2))",
+        "Create Table table_name (column_name name (-1, -2))",
+        %% ---------------------------------------------------------------------
+        %% Problem: INSERT
+        %% ---------------------------------------------------------------------
+        %% insert_statement -> INSERT INTO table opt_column_commalist values_or_query_spec returning
+        %% ---------------------------------------------------------------------
+        "Insert Into table_name  Values (1)",
+        "Insert Into table_name Select source_column From source_table",
+        "Insert Into table_name (column_name) Values (1)",
+        "Insert Into table_name ('column_string') Values (1)",
+        "Insert Into table_name (column_name) Select source_column From source_table",
+        "Insert Into table_name ('column_string') Select source_column From source_table",
+        %% ---------------------------------------------------------------------
+        %% Problem: ORDER BY
+        %% ---------------------------------------------------------------------
+        %% opt_order_by_clause -> ORDER BY ordering_spec_commalist
+        %% ---------------------------------------------------------------------
+        "Select * From table_name Order By column_name",
+        %% ---------------------------------------------------------------------
+        %% Problem: Optional Returning phrase
+        %% ---------------------------------------------------------------------
+        %% returning -> RETURNING selection INTO selection
+        %% returning -> RETURN    selection INTO selection
+        %% ---------------------------------------------------------------------
+        "Insert Into table_name (column_name) Values (1) Return result_column Into show_column"
+    ],
+    dets:insert(?CODE_TEMPLATES, {Rule, Code}),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

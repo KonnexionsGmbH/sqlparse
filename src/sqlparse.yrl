@@ -593,11 +593,11 @@ view_def -> AS query_spec WITH CHECK OPTION                                     
 opt_column_commalist -> '$empty'                                                                : [].
 opt_column_commalist -> '(' column_commalist ')'                                                : {'$2', "("}.
 
-grant_def ->
- GRANT system_privilege_list opt_on_obj_clause TO grantee_commalist opt_with_grant_option       : {grant, '$2', '$3', {to, '$5'}, '$6'}.
+grant_def -> GRANT system_privilege_list opt_on_obj_clause TO grantee_commalist opt_with_grant_option
+                                                                                                : {grant, '$2', '$3', {to, '$5'}, '$6'}.
 
-revoke_def ->
- REVOKE system_privilege_list opt_on_obj_clause FROM grantee_commalist opt_with_revoke_option   : {revoke, '$2', '$3', {from, '$5'}, '$6'}.
+revoke_def -> REVOKE system_privilege_list opt_on_obj_clause FROM grantee_commalist opt_with_revoke_option
+                                                                                                : {revoke, '$2', '$3', {from, '$5'}, '$6'}.
 
 opt_on_obj_clause -> '$empty'                                                                   : {on, <<"">>}.
 opt_on_obj_clause -> ON table                                                                   : {on, '$2'}.
@@ -773,7 +773,7 @@ query_exp -> query_exp MINUS query_term                                         
 
 returning -> '$empty'                                                                           : {returning, {}}.
 returning -> RETURNING selection INTO selection                                                 : {returning, '$2', '$4'}.
-returning -> RETURN selection INTO selection                                                    : {return, '$2', '$4'}.
+returning -> RETURN    selection INTO selection                                                 : {return, '$2', '$4'}.
 
 query_term -> query_spec                                                                        : '$1'.
 query_term -> '(' query_exp ')'                                                                 : {'$2', "("}.
@@ -1050,8 +1050,7 @@ column_ref -> NAME '.' NAME                                                     
 column_ref -> NAME '.' NAME '.' NAME                                                            : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).
 column_ref -> NAME '(' '+' ')'                                                                  : list_to_binary([unwrap('$1'),"(+)"]).
 column_ref -> NAME '.' NAME '(' '+' ')'                                                         : list_to_binary([unwrap('$1'),".",unwrap('$3'),"(+)"]).
-column_ref -> NAME '.' NAME '.' NAME '(' '+' ')'                                                : list_to_binary([unwrap('$1'),".",unwrap('$3'),"."
-                                                                                                                  ,unwrap('$5'),"(+)"]).
+column_ref -> NAME '.' NAME '.' NAME '(' '+' ')'                                                : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5'),"(+)"]).
 column_ref -> NAME '.' '*'                                                                      : list_to_binary([unwrap('$1'),".*"]).
 column_ref -> NAME '.' NAME '.' '*'                                                             : list_to_binary([unwrap('$1'),".",unwrap('$3'),".*"]).
 

@@ -1139,7 +1139,7 @@ create_code(comparison = Rule) ->
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% comparison_predicate : scalar_opt_as_exp
 %%                      | ( ( PRIOR )? scalar_exp COMPARISON scalar_exp )
-%%                      | ( scalar_exp COMPARISON subquery )
+%%                      | ( scalar_exp COMPARISON subquery )       RULE OBSOLETE
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(comparison_predicate = Rule) ->
@@ -1795,7 +1795,8 @@ create_code(from_commalist = Rule) ->
 %%         | function_ref
 %%         | column_ref
 %%         | ( fun_arg ( '+' | '-' | '*' | '/' | OPERATOR_INTDIV | OPERATOR_CONCAT ) fun_arg )
-%%         | ( ( '+' | '-' ) ( fun_arg | literal ) )
+%%         | ( ( '+' | '-' ) fun_arg )
+%%         | ( ( '+' | '-' ) literal )                             RULE OBSOLETE
 %%         | NULL
 %%         | atom
 %%         | subquery
@@ -3589,7 +3590,8 @@ create_code(scalar_opt_as_exp = Rule) ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% scalar_sub_exp : ( scalar_sub_exp ( '+' | '-' | '*' | '/' | OPERATOR_INTDIV ) scalar_sub_exp )
-%%                | ( ( '+' | '-' ) ( scalar_sub_exp | literal ) )
+%%                | ( ( '+' | '-' )  scalar_sub_exp )
+%%                | ( ( '+' | '-' ) literal )                      RULE OBSOLETE
 %%                | NULL
 %%                | atom
 %%                | subquery

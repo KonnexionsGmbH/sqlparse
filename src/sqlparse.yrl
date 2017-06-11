@@ -1014,8 +1014,6 @@ fun_arg -> fun_arg 'div' fun_arg                                                
 fun_arg -> fun_arg '||' fun_arg                                                                 : {'||','$1','$3'}.
 fun_arg -> '+' fun_arg                                                                          : {'+','$2'}. %prec UMINU
 fun_arg -> '-' fun_arg                                                                          : {'-','$2'}. %prec UMINU
-fun_arg -> '+' literal                                                                          : '$2'.
-fun_arg -> '-' literal                                                                          : list_to_binary(["-",'$2']).
 fun_arg -> NULLX                                                                                : <<"NULL">>.
 fun_arg -> atom                                                                                 : '$1'.
 fun_arg -> subquery                                                                             : '$1'.

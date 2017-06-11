@@ -420,7 +420,9 @@ schema_element -> create_user_def                                               
 schema_element -> view_def                                                                      : '$1'.
 
 create_role_def -> CREATE ROLE NAME                                                             : {'create role', unwrap_bin('$3')}.
+
 create_table_def -> CREATE create_opts TABLE table '(' base_table_element_commalist ')'         : {'create table', '$4', '$6', '$2'}.
+
 create_user_def -> CREATE USER NAME identified opt_user_opts_list                               : {'create user', unwrap_bin('$3'), '$4', '$5'}.
 
 drop_table_def -> DROP      TABLE opt_exists table_list opt_restrict_cascade                    : {'drop table', {'tables', '$4'}, '$3', '$5', <<>>}.
@@ -432,8 +434,8 @@ drop_index_def -> DROP INDEX opt_index_name FROM table                          
 opt_index_name -> '$empty'                                                                      : {}.
 opt_index_name -> index_name                                                                    : '$1'.
 
-create_index_def -> CREATE create_index_opts INDEX opt_index_name ON table create_index_spec
-                    create_index_opt_norm create_index_opt_filter                               : {'create index', '$2', '$4', '$6', '$7', '$8', '$9'}.
+create_index_def -> CREATE create_index_opts INDEX opt_index_name ON table create_index_spec create_index_opt_norm create_index_opt_filter
+                                                                                                : {'create index', '$2', '$4', '$6', '$7', '$8', '$9'}.
 
 create_index_opts -> '$empty'                                                                   : {}.
 create_index_opts -> BITMAP                                                                     : bitmap.
@@ -473,17 +475,16 @@ tbl_type -> NAME                                                                
 
 alter_user_def -> ALTER USER user_list proxy_clause                                             : {'alter user', '$3', '$4'}.
 alter_user_def -> ALTER USER NAME spec_list                                                     : {'alter user', unwrap_bin('$3'), {spec, '$4'}}.
-alter_user_def -> ALTER USER NAME NAME NAME                                                     :
-                  {'alter user', unwrap_bin('$3'),
-                   {'spec',
-                    [case {string:to_lower(unwrap('$4')), string:to_lower(unwrap('$5'))} of
-                         {"account", "lock"} -> {account, lock};
-                         {"account", "unlock"} -> {account, unlock};
-                         {"password", "expire"} -> {password, expire};
-                         Unknown -> exit({invalid_option, Unknown})
-                     end]
-                   }
-                  }.
+alter_user_def -> ALTER USER NAME NAME NAME                                                     : {'alter user', unwrap_bin('$3'),
+                                                                                                   {'spec',
+                                                                                                    [case {string:to_lower(unwrap('$4')), string:to_lower(unwrap('$5'))} of
+                                                                                                         {"account", "lock"} -> {account, lock};
+                                                                                                         {"account", "unlock"} -> {account, unlock};
+                                                                                                         {"password", "expire"} -> {password, expire};
+                                                                                                         Unknown -> exit({invalid_option, Unknown})
+                                                                                                     end]
+                                                                                                   }
+                                                                                                  }.
 
 drop_user_def -> DROP USER NAME                                                                 : {'drop user', unwrap_bin('$3'), []}.
 drop_user_def -> DROP USER NAME CASCADE                                                         : {'drop user', unwrap_bin('$3'), ['cascade']}.
@@ -503,6 +504,7 @@ db_user_proxy -> proxy_with proxy_auth_req                                      
 proxy_with -> WITH NO ROLES                                                                     : 'with no roles'.
 proxy_with -> WITH ROLE role_list                                                               : {'with role', '$3'}.
 proxy_with -> WITH ROLE ALL EXCEPT role_list                                                    : {'with role all except', '$5'}.
+
 proxy_auth_req -> AUTHENTICATION REQUIRED                                                       : 'authentication required'.
 
 spec_list -> spec_item                                                                          : ['$1'].
@@ -579,8 +581,8 @@ column_def_opt -> REFERENCES table '(' column_commalist ')'                     
 table_constraint_def -> UNIQUE '(' column_commalist ')'                                         : {unique, '$3'}.
 table_constraint_def -> PRIMARY KEY '(' column_commalist ')'                                    : {'primary key', '$4'}.
 table_constraint_def -> FOREIGN KEY '(' column_commalist ')' REFERENCES table                   : {'foreign key', '$4', {'ref', '$7'}}.
-table_constraint_def ->
-            FOREIGN KEY '(' column_commalist ')' REFERENCES table '(' column_commalist ')'      : {'foreign key', '$4', {'ref', {'$7', '$9'}}}.
+table_constraint_def -> FOREIGN KEY '(' column_commalist ')' REFERENCES table '(' column_commalist ')'
+                                                                                                : {'foreign key', '$4', {'ref', {'$7', '$9'}}}.
 table_constraint_def -> CHECK '(' search_condition ')'                                          : {check, '$3'}.
 
 column_commalist -> column                                                                      : ['$1'].
@@ -644,7 +646,6 @@ grantee -> NAME IDENTIFIED BY NAME                                              
 
 sql -> cursor_def                                                                               : '$1'.
 
-
 cursor_def -> DECLARE cursor CURSOR FOR query_exp opt_order_by_clause                           : {declare, '$2', {cur_for, '$5'}, '$6'}.
 
 opt_order_by_clause -> '$empty'                                                                 : {'order by', []}.
@@ -691,6 +692,7 @@ manipulative_statement -> grant_def                                             
 manipulative_statement -> revoke_def                                                            : '$1'.
 
 truncate_table -> TRUNCATE TABLE table_name opt_materialized opt_storage                        : {'truncate table', '$3', '$4', '$5'}.
+
 table_name -> NAME                                                                              : unwrap_bin('$1').
 table_name -> NAME '.' NAME                                                                     : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
 table_name -> NAME '.' NAME '.' NAME                                                            : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).
@@ -739,8 +741,8 @@ opt_all_distinct -> '$empty'                                                    
 opt_all_distinct -> ALL                                                                         : {opt, <<"all">>}.
 opt_all_distinct -> DISTINCT                                                                    : {opt, <<"distinct">>}.
 
-update_statement_positioned -> UPDATE table SET assignment_commalist
-                                                           WHERE CURRENT OF cursor returning    : {update, '$2', {set, '$4'}, {where_current_of, '$8'}, '$9'}.
+update_statement_positioned -> UPDATE table SET assignment_commalist WHERE CURRENT OF cursor returning
+                                                                                                : {update, '$2', {set, '$4'}, {where_current_of, '$8'}, '$9'}.
 
 assignment_commalist -> assignment                                                              : ['$1'].
 assignment_commalist -> assignment_commalist ',' assignment                                     : '$1' ++ ['$3'].
@@ -833,6 +835,9 @@ join_list -> join_list join_list                                                
 
 inner_cross_join -> INNER JOIN join_ref join_on_or_using_clause                                 : {join_inner, '$3', '$4'}.
 inner_cross_join -> JOIN join_ref join_on_or_using_clause                                       : {join, '$2', '$3'}.
+inner_cross_join -> CROSS JOIN join_ref                                                         : {cross_join, '$3'}.
+inner_cross_join -> NATURAL JOIN join_ref                                                       : {natural_join, '$3'}.
+inner_cross_join -> NATURAL INNER JOIN join_ref                                                 : {natural_inner_join, '$4'}.
 
 join_on_or_using_clause -> ON search_condition                                                  : {on, '$2'}.
 join_on_or_using_clause -> USING '(' select_field_commalist ')'                                 : {using, '$3'}.
@@ -841,22 +846,22 @@ opt_join_on_or_using_clause -> '$empty'                                         
 opt_join_on_or_using_clause -> join_on_or_using_clause                                          : '$1'.
 
 % ----------------------------------------------------------------------------------------------- {{join_type, partition, opt_natural} ... }
-outer_join -> NATURAL outer_join_type JOIN join_ref opt_join_on_or_using_clause                 : {{'$2', {}, natural}, '$4', {}, '$5'}.
-outer_join -> NATURAL outer_join_type JOIN join_ref query_partition_clause
-              opt_join_on_or_using_clause                                                       : {{'$2', {}, natural}, '$4', '$5', '$6'}.
+outer_join -> NATURAL outer_join_type JOIN join_ref                        opt_join_on_or_using_clause
+                                                                                                : {{'$2', {}, natural}, '$4', {}, '$5'}.
+outer_join -> NATURAL outer_join_type JOIN join_ref query_partition_clause opt_join_on_or_using_clause
+                                                                                                : {{'$2', {}, natural}, '$4', '$5', '$6'}.
+outer_join -> query_partition_clause outer_join_type JOIN join_ref                        opt_join_on_or_using_clause
+                                                                                                : {{'$2', '$1', {}}, '$4', {}, '$5'}.
+outer_join -> query_partition_clause outer_join_type JOIN join_ref query_partition_clause opt_join_on_or_using_clause
+                                                                                                : {{'$2', '$1', {}}, '$4', '$5', '$6'}.
 
-outer_join -> query_partition_clause outer_join_type JOIN join_ref opt_join_on_or_using_clause  : {{'$2', '$1', {}}, '$4', {}, '$5'}.
-outer_join -> query_partition_clause outer_join_type JOIN join_ref
-              query_partition_clause opt_join_on_or_using_clause                                : {{'$2', '$1', {}}, '$4', '$5', '$6'}.
-
-outer_join -> outer_join_type JOIN join_ref opt_join_on_or_using_clause                         : {{'$1', {}, {}}, '$3', {}, '$4'}.
-outer_join -> outer_join_type JOIN join_ref query_partition_clause
-              opt_join_on_or_using_clause                                                       : {{'$1', {}, {}}, '$3', '$4', '$5'}.
-
-outer_join -> query_partition_clause NATURAL outer_join_type JOIN join_ref
-              opt_join_on_or_using_clause                                                       : {{'$3', '$1', natural}, '$5', {}, '$6'}.
-outer_join -> query_partition_clause NATURAL outer_join_type JOIN
-              join_ref query_partition_clause opt_join_on_or_using_clause                       : {{'$3', '$1', natural}, '$5', '$6', '$7'}.
+outer_join -> outer_join_type JOIN join_ref                        opt_join_on_or_using_clause  : {{'$1', {}, {}}, '$3', {}, '$4'}.
+outer_join -> outer_join_type JOIN join_ref query_partition_clause opt_join_on_or_using_clause
+                                                                                                : {{'$1', {}, {}}, '$3', '$4', '$5'}.
+outer_join -> query_partition_clause NATURAL outer_join_type JOIN join_ref                        opt_join_on_or_using_clause
+                                                                                                : {{'$3', '$1', natural}, '$5', {}, '$6'}.
+outer_join -> query_partition_clause NATURAL outer_join_type JOIN join_ref query_partition_clause opt_join_on_or_using_clause
+                                                                                                : {{'$3', '$1', natural}, '$5', '$6', '$7'}.
 % -----------------------------------------------------------------------------------------------
 
 query_partition_clause -> PARTITION BY '(' scalar_exp_commalist ')'                             : {partition_by, '$4', "("}.
@@ -868,10 +873,6 @@ outer_join_type -> RIGHT                                                        
 outer_join_type -> FULL OUTER                                                                   : full_outer.
 outer_join_type -> LEFT OUTER                                                                   : left_outer.
 outer_join_type -> RIGHT OUTER                                                                  : right_outer.
-
-inner_cross_join -> CROSS JOIN join_ref                                                         : {cross_join, '$3'}.
-inner_cross_join -> NATURAL JOIN join_ref                                                       : {natural_join, '$3'}.
-inner_cross_join -> NATURAL INNER JOIN join_ref                                                 : {natural_inner_join, '$4'}.
 
 table_ref -> table                                                                              : '$1'.
 table_ref -> '(' query_exp ')'                                                                  : {'$2', "("}.
@@ -924,7 +925,6 @@ predicate -> existence_test                                                     
 comparison_predicate -> scalar_opt_as_exp                                                       : '$1'.
 comparison_predicate -> PRIOR scalar_exp COMPARISON scalar_exp                                  : {unwrap('$3'), {prior, '$2'}, '$4'}.
 comparison_predicate -> scalar_exp COMPARISON PRIOR scalar_exp                                  : {unwrap('$2'), '$1', {prior, '$4'}}.
-comparison_predicate -> scalar_exp COMPARISON subquery                                          : {unwrap('$2'), '$1', '$3'}.
 
 between_predicate -> scalar_exp NOT BETWEEN scalar_exp AND scalar_exp                           : {'not between', '$1', '$4', '$6'}.
 between_predicate -> scalar_exp     BETWEEN scalar_exp AND scalar_exp                           : {between,       '$1', '$3', '$5'}.
@@ -962,6 +962,7 @@ scalar_opt_as_exp -> scalar_exp                                                 
 scalar_opt_as_exp -> scalar_exp COMPARISON scalar_exp                                           : {unwrap('$2'), '$1', '$3'}.
 scalar_opt_as_exp -> scalar_exp    NAME                                                         : {as, '$1', unwrap_bin('$2'), " "}.
 scalar_opt_as_exp -> scalar_exp AS NAME                                                         : {as, '$1', unwrap_bin('$3'), " as "}.
+
 scalar_exp -> scalar_sub_exp '||' scalar_exp                                                    : {'||','$1','$3'}.
 scalar_exp -> scalar_sub_exp                                                                    : '$1'.
 
@@ -972,8 +973,6 @@ scalar_sub_exp -> scalar_sub_exp '/' scalar_sub_exp                             
 scalar_sub_exp -> scalar_sub_exp 'div' scalar_sub_exp                                           : {'div','$1','$3'}.
 scalar_sub_exp -> '+' scalar_sub_exp                                                            : {'+','$2'}.                   %prec UMINU
 scalar_sub_exp -> '-' scalar_sub_exp                                                            : {'-','$2'}.                   %prec UMINU
-scalar_sub_exp -> '+' literal                                                                   : list_to_binary(["+",'$2']).
-scalar_sub_exp -> '-' literal                                                                   : list_to_binary(["-",'$2']).
 scalar_sub_exp -> NULLX                                                                         : <<"NULL">>.
 scalar_sub_exp -> atom                                                                          : '$1'.
 scalar_sub_exp -> subquery                                                                      : '$1'.

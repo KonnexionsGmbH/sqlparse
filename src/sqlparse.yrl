@@ -76,7 +76,8 @@ Nonterminals
  extra
  fetch_statement
  from_clause
- from_commalist
+ from_column
+ from_column_commalist
  fun_arg
  fun_args
  function_ref
@@ -92,6 +93,7 @@ Nonterminals
  insert_atom
  insert_atom_commalist
  insert_statement
+ join
  join_clause
  join_list
  join_on_or_using_clause
@@ -154,6 +156,7 @@ Nonterminals
  schema_element
  schema_element_list
  search_condition
+ select_field
  select_field_commalist
  select_statement
  selection
@@ -367,23 +370,10 @@ Nonassoc    200 COMPARISON.                 %% = <> < > <= >=
 Left        300 '+' '-'.
 Left        400 '*' '/'.
 
-% Nonassoc    900 function_ref_list.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-sql_list -> sql ';' extra                                                                       : [{'$1','$3'}].
+sql_list ->          sql ';' extra                                                              :         [{'$1','$3'}].
 sql_list -> sql_list sql ';' extra                                                              : '$1' ++ [{'$2','$4'}].
-
-% sql_list -> column_def_opt ';'                                                                  : '$1'.
-% sql_list -> column_ref ';'                                                                      : '$1'.
-% sql_list -> fun_arg ';'                                                                         : '$1'.
-% sql_list -> function_ref ';'                                                                    : '$1'.
-% sql_list -> function_ref_list ';'                                                               : '$1'.
-% sql_list -> opt_group_by_clause ';'                                                             : '$1'.
-% sql_list -> predicate ';'                                                                       : '$1'.
-% sql_list -> procedure_call ';'                                                                  : '$1'.
-% sql_list -> scalar_exp ';'                                                                      : '$1'.
-% sql_list -> scalar_sub_exp ';'                                                                  : '$1'.
 
 extra -> '$empty'                                                                               : {extra, <<>>}.
 extra -> NAME  ';'                                                                              : {extra, unwrap_bin('$1')}.
@@ -410,7 +400,7 @@ schema -> CREATE SCHEMA AUTHORIZATION NAME opt_schema_element_list              
 opt_schema_element_list -> '$empty'                                                             : [].
 opt_schema_element_list -> schema_element_list                                                  : '$1'.
 
-schema_element_list -> schema_element                                                           : ['$1'].
+schema_element_list ->                     schema_element                                       :         ['$1'].
 schema_element_list -> schema_element_list schema_element                                       : '$1' ++ ['$2'].
 
 schema_element -> create_role_def                                                               : '$1'.
@@ -539,12 +529,11 @@ user_opt -> PROFILE NAME                                                        
 quota_list -> quota                                                                             : ['$1'].
 quota_list -> quota quota_list                                                                  : ['$1'] ++ '$2'.
 
-quota -> QUOTA UNLIMITED ON NAME                                                                : {'unlimited on', unwrap_bin('$4')}.
-quota -> QUOTA INTNUM ON NAME                                                                   : {limited, unwrap_bin('$2'), unwrap_bin('$4')}.
-quota -> QUOTA INTNUM NAME ON NAME                                                              : {limited, list_to_binary([unwrap('$2'),unwrap('$3')])
-                                                                                                   , unwrap_bin('$5')}.
+quota -> QUOTA UNLIMITED   ON NAME                                                              : {'unlimited on', unwrap_bin('$4')}.
+quota -> QUOTA INTNUM      ON NAME                                                              : {limited, unwrap_bin('$2'), unwrap_bin('$4')}.
+quota -> QUOTA INTNUM NAME ON NAME                                                              : {limited, list_to_binary([unwrap('$2'),unwrap('$3')]),unwrap_bin('$5')}.
 
-table_list -> table                                                                             : ['$1'].
+table_list ->                table                                                              :         ['$1'].
 table_list -> table_list ',' table                                                              : '$1' ++ ['$3'].
 
 opt_exists -> '$empty'                                                                          : {}.
@@ -555,7 +544,7 @@ opt_restrict_cascade -> RESTRICT                                                
 opt_restrict_cascade -> CASCADE                                                                 : 'cascade'.
 
 base_table_element_commalist -> '$empty'                                                        : [].
-base_table_element_commalist -> base_table_element                                              : ['$1'].
+base_table_element_commalist ->                                  base_table_element             :         ['$1'].
 base_table_element_commalist -> base_table_element_commalist ',' base_table_element             : '$1' ++ ['$3'].
 
 base_table_element -> column_def                                                                : '$1'.
@@ -633,7 +622,7 @@ opt_with_revoke_option -> '$empty'                                              
 opt_with_revoke_option -> CASCADE CONSTRAINTS                                                   : 'cascade constraints'.
 opt_with_revoke_option -> FORCE                                                                 : 'force'.
 
-grantee_commalist -> grantee                                                                    : ['$1'].
+grantee_commalist ->                       grantee                                              :         ['$1'].
 grantee_commalist -> grantee_commalist ',' grantee                                              : '$1' ++ ['$3'].
 
 grantee -> PUBLIC                                                                               : 'public'.
@@ -651,7 +640,7 @@ cursor_def -> DECLARE cursor CURSOR FOR query_exp opt_order_by_clause           
 opt_order_by_clause -> '$empty'                                                                 : {'order by', []}.
 opt_order_by_clause -> ORDER BY ordering_spec_commalist                                         : {'order by', '$3'}.
 
-ordering_spec_commalist -> ordering_spec                                                        : ['$1'].
+ordering_spec_commalist ->                             ordering_spec                            :         ['$1'].
 ordering_spec_commalist -> ordering_spec_commalist ',' ordering_spec                            : '$1' ++ ['$3'].
 
 ordering_spec -> scalar_exp opt_asc_desc                                                        : {'$1', '$2'}.
@@ -702,7 +691,7 @@ opt_materialized -> PRESERVE MATERIALIZED VIEW LOG                              
 opt_materialized -> PURGE MATERIALIZED VIEW LOG                                                 : {'materialized view log', 'purge'}.
 
 opt_storage ->  '$empty'                                                                        : {}.
-opt_storage ->  DROP STORAGE                                                                    : {storage, 'drop'}.
+opt_storage ->  DROP  STORAGE                                                                   : {storage, 'drop'}.
 opt_storage ->  REUSE STORAGE                                                                   : {storage, 'reuse'}.
 
 close_statement -> CLOSE cursor                                                                 : {close, '$2'}.
@@ -722,7 +711,7 @@ insert_statement -> INSERT INTO table opt_column_commalist values_or_query_spec 
 values_or_query_spec -> VALUES '(' insert_atom_commalist ')'                                    : {values, '$3'}.
 values_or_query_spec -> query_spec                                                              : '$1'.
 
-insert_atom_commalist -> insert_atom                                                            : ['$1'].
+insert_atom_commalist ->                           insert_atom                                  :         ['$1'].
 insert_atom_commalist -> insert_atom_commalist ',' insert_atom                                  : '$1' ++ ['$3'].
 
 insert_atom -> scalar_opt_as_exp                                                                : '$1'.
@@ -744,14 +733,14 @@ opt_all_distinct -> DISTINCT                                                    
 update_statement_positioned -> UPDATE table SET assignment_commalist WHERE CURRENT OF cursor returning
                                                                                                 : {update, '$2', {set, '$4'}, {where_current_of, '$8'}, '$9'}.
 
-assignment_commalist -> assignment                                                              : ['$1'].
+assignment_commalist ->                          assignment                                     :         ['$1'].
 assignment_commalist -> assignment_commalist ',' assignment                                     : '$1' ++ ['$3'].
 
 assignment -> column COMPARISON scalar_opt_as_exp                                               : {'=', '$1', '$3'}.
 
 update_statement_searched -> UPDATE table SET assignment_commalist opt_where_clause returning   : {update, '$2', {set, '$4'}, '$5', '$6'}.
 
-target_commalist -> target                                                                      : ['$1'].
+target_commalist ->                      target                                                 :         ['$1'].
 target_commalist -> target_commalist ',' target                                                 : '$1' ++ ['$3'].
 
 target -> NAME                                                                                  : unwrap_bin('$1').
@@ -768,10 +757,10 @@ opt_hierarchical_query_clause -> hierarchical_query_clause                      
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 query_exp -> query_term                                                                         : '$1'.
-query_exp -> query_exp UNION query_term                                                         : {union, '$1', '$3'}.
+query_exp -> query_exp UNION     query_term                                                     : {union, '$1', '$3'}.
 query_exp -> query_exp UNION ALL query_term                                                     : {'union all', '$1', '$4'}.
 query_exp -> query_exp INTERSECT query_term                                                     : {intersect, '$1', '$3'}.
-query_exp -> query_exp MINUS query_term                                                         : {minus, '$1', '$3'}.
+query_exp -> query_exp MINUS     query_term                                                     : {minus, '$1', '$3'}.
 
 returning -> '$empty'                                                                           : {returning, {}}.
 returning -> RETURNING selection INTO selection                                                 : {returning, '$2', '$4'}.
@@ -793,17 +782,19 @@ opt_into -> INTO target_commalist IN NAME                                       
 
 selection -> select_field_commalist                                                             : '$1'.
 
-select_field_commalist -> case_when_opt_as_exp                                                  : ['$1'].
-select_field_commalist -> scalar_opt_as_exp                                                     : ['$1'].
-select_field_commalist -> '*'                                                                   : [<<"*">>].
-select_field_commalist -> select_field_commalist ',' select_field_commalist                     : '$1' ++ '$3'.
+select_field -> case_when_opt_as_exp                                                            : ['$1'].
+select_field -> scalar_opt_as_exp                                                               : ['$1'].
+select_field -> '*'                                                                             : [<<"*">>].
+
+select_field_commalist ->                            select_field                               :         ['$1'].
+select_field_commalist -> select_field_commalist ',' select_field                               : '$1' ++ ['$3'].
 
 case_when_opt_as_exp -> case_when_exp                                                           : '$1'.
 case_when_opt_as_exp -> case_when_exp    NAME                                                   : {as, '$1', unwrap_bin('$2'), " "}.
 case_when_opt_as_exp -> case_when_exp AS NAME                                                   : {as, '$1', unwrap_bin('$3'), " as "}.
 
 case_when_exp -> '(' case_when_exp ')'                                                          : {'$2', "("}.
-case_when_exp -> CASE case_when_then_list opt_else END                                          : {'case', <<>>, '$2', '$3'}.
+case_when_exp -> CASE                   case_when_then_list opt_else END                        : {'case', <<>>, '$2', '$3'}.
 case_when_exp -> CASE scalar_opt_as_exp case_when_then_list opt_else END                        : {'case', '$2', '$3', '$4'}.
 
 case_when_then_list -> case_when_then                                                           : ['$1'].
@@ -820,23 +811,27 @@ table_exp -> from_clause opt_where_clause
                          opt_having_clause
                          opt_order_by_clause                                                    : ['$1', '$2', '$3', '$4', '$5', '$6'].
 
-from_clause -> FROM from_commalist                                                              : {from, '$2'}.
+from_clause -> FROM from_column_commalist                                                       : {from, '$2'}.
 
-from_commalist -> table_ref                                                                     : ['$1'].
-from_commalist -> '(' join_clause ')'                                                           : {['$2'], ")"}.
-from_commalist -> join_clause                                                                   : ['$1'].
-from_commalist -> from_commalist ',' from_commalist                                             : '$1'++'$3'.
+from_column -> table_ref                                                                        : ['$1'].
+from_column -> '(' join_clause ')'                                                              : {['$2'], "("}.
+from_column -> join_clause                                                                      : ['$1'].
+
+from_column_commalist ->                           from_column                                  :        ['$1'].
+from_column_commalist -> from_column_commalist ',' from_column                                  : '$1'++ ['$3'].
 
 join_clause -> table_ref join_list                                                              : {'$1', '$2'}.
 
-join_list -> inner_cross_join                                                                   : ['$1'].
-join_list -> outer_join                                                                         : ['$1'].
-join_list -> join_list join_list                                                                : '$1'++'$2'.
+join -> inner_cross_join                                                                        : '$1'.
+join -> outer_join                                                                              : '$1'.
+
+join_list ->           join                                                                     :        ['$1'].
+join_list -> join_list join                                                                     : '$1'++ ['$2'].
 
 inner_cross_join -> INNER JOIN join_ref join_on_or_using_clause                                 : {join_inner, '$3', '$4'}.
-inner_cross_join -> JOIN join_ref join_on_or_using_clause                                       : {join, '$2', '$3'}.
-inner_cross_join -> CROSS JOIN join_ref                                                         : {cross_join, '$3'}.
-inner_cross_join -> NATURAL JOIN join_ref                                                       : {natural_join, '$3'}.
+inner_cross_join -> JOIN       join_ref join_on_or_using_clause                                 : {join,       '$2', '$3'}.
+inner_cross_join -> CROSS         JOIN join_ref                                                 : {cross_join,         '$3'}.
+inner_cross_join -> NATURAL       JOIN join_ref                                                 : {natural_join,       '$3'}.
 inner_cross_join -> NATURAL INNER JOIN join_ref                                                 : {natural_inner_join, '$4'}.
 
 join_on_or_using_clause -> ON search_condition                                                  : {on, '$2'}.
@@ -865,13 +860,13 @@ outer_join -> query_partition_clause NATURAL outer_join_type JOIN join_ref query
 % -----------------------------------------------------------------------------------------------
 
 query_partition_clause -> PARTITION BY '(' scalar_exp_commalist ')'                             : {partition_by, '$4', "("}.
-query_partition_clause -> PARTITION BY scalar_exp_commalist                                     : {partition_by, '$3', []} .
+query_partition_clause -> PARTITION BY     scalar_exp_commalist                                 : {partition_by, '$3', []} .
 
 outer_join_type -> FULL                                                                         : full.
 outer_join_type -> LEFT                                                                         : left.
 outer_join_type -> RIGHT                                                                        : right.
-outer_join_type -> FULL OUTER                                                                   : full_outer.
-outer_join_type -> LEFT OUTER                                                                   : left_outer.
+outer_join_type -> FULL  OUTER                                                                  : full_outer.
+outer_join_type -> LEFT  OUTER                                                                  : left_outer.
 outer_join_type -> RIGHT OUTER                                                                  : right_outer.
 
 table_ref -> table                                                                              : '$1'.
@@ -896,8 +891,8 @@ where_clause -> WHERE search_condition                                          
 opt_group_by_clause  -> '$empty'                                                                : {'group by', []}.
 opt_group_by_clause  -> GROUP BY column_ref_commalist                                           : {'group by', '$3'}.
 
-column_ref_commalist -> function_ref                                                            : ['$1'].
-column_ref_commalist -> column_ref                                                              : ['$1'].
+column_ref_commalist ->                          function_ref                                   :         ['$1'].
+column_ref_commalist ->                          column_ref                                     :         ['$1'].
 column_ref_commalist -> column_ref_commalist ',' column_ref                                     : '$1' ++ ['$3'].
 column_ref_commalist -> column_ref_commalist ',' function_ref                                   : '$1' ++ ['$3'].
 
@@ -980,7 +975,7 @@ scalar_sub_exp -> column_ref                                                    
 scalar_sub_exp -> function_ref                                                                  : '$1'.
 scalar_sub_exp -> '(' scalar_sub_exp ')'                                                        : {'$2', "("}.
 
-scalar_exp_commalist -> scalar_opt_as_exp                                                       : ['$1'].
+scalar_exp_commalist ->                          scalar_opt_as_exp                              :         ['$1'].
 scalar_exp_commalist -> scalar_exp_commalist ',' scalar_opt_as_exp                              : '$1' ++ ['$3'].
 
 atom -> parameter_ref                                                                           : '$1'.
@@ -1060,7 +1055,7 @@ data_type -> NAME                                                               
 data_type -> NAME '(' opt_sgn_num ')'                                                           : {unwrap_bin('$1'), "(", '$3'}.
 data_type -> NAME '(' opt_sgn_num ',' opt_sgn_num ')'                                           : {unwrap_bin('$1'), "(", '$3', '$5'}.
 
-opt_sgn_num -> INTNUM                                                                           : unwrap_bin('$1').
+opt_sgn_num ->     INTNUM                                                                       : unwrap_bin('$1').
 opt_sgn_num -> '-' INTNUM                                                                       : list_to_binary(["-",unwrap_bin('$2')]).
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

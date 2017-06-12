@@ -45,15 +45,12 @@ Rules.
 (\|[\.:{\[#]([^\|]*)+\|)                            : parse_json(TokenLine, TokenChars).
 
 % names
-%[A-Za-z][A-Za-z0-9_@:#]*                           : {token, {'NAME', TokenLen, TokenChars}}.
 [A-Za-z][A-Za-z0-9_@:#\$]*                          : match_any(TokenChars, TokenLen, TokenLine, ?TokenPatters).
 
 % parameters
 (\:[A-Za-z0-9_\.][A-Za-z0-9_\.]*)                   : {token, {'PARAMETER', TokenLine, TokenChars}}.
 
 % numbers
-%(([\+\-]?)([0-9]+\.[0-9]+([eE][\+\-]?[0-9]+)*))    : {token, {'APPROXNUM', TokenLine, list_to_float(TokenChars)}}.
-%([\+\-]?[0-9]+)                                    : {token, {'INTNUM', TokenLine, list_to_integer(TokenChars)}}.
 ([0-9]+)                                            : {token, {'INTNUM', TokenLine, TokenChars}}.
 ((([\.][0-9]+)|([0-9]+[\.]?[0-9]*))[eE]?[+-]?[0-9]*[fFdD]?)
                                                     : {token, {'APPROXNUM', TokenLine, TokenChars}}.

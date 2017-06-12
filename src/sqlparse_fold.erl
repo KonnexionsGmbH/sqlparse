@@ -1164,12 +1164,8 @@ fold(FType, Fun, Ctx, Lvl, {fields, Fields} = ST) ->
                  bottom_up -> Ctx
              end,
     {FieldsStr, NewCtx1} = lists:foldl(fun(F, {Acc, CtxAcc}) ->
-        case F of
-            F when is_binary(F) -> {Acc ++ [binary_to_list(F)], Fun(F, CtxAcc)};
-            Other ->
-                {SubAcc, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, Other),
-                {Acc ++ [SubAcc], CtxAcc1}
-        end
+        {SubAcc, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, F),
+        {Acc ++ [SubAcc], CtxAcc1}
                                        end,
         {[], NewCtx},
         Fields),
@@ -1254,18 +1250,8 @@ fold(FType, Fun, Ctx, Lvl, {from, Froms} = ST) ->
                  bottom_up -> Ctx
              end,
     {FrmStr, NewCtx2} = lists:foldl(fun(F, {Acc, CtxAcc}) ->
-        case F of
-            F when is_binary(F) ->
-                {Acc ++ [binary_to_list(F)], Fun(F, CtxAcc)};
-            {F1, F2} when is_binary(F1), is_binary(F2) ->
-                {Acc ++ [lists:append([binary_to_list(F1), " ", binary_to_list(F2)])], Fun(F, CtxAcc)};
-            {F1, F2} when is_binary(F1) ->
-                {F2Str, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, F2),
-                {Acc ++ [lists:append([binary_to_list(F1), " ", F2Str])], Fun(F, CtxAcc1)};
-            Other ->
-                {SubAcc, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, Other),
-                {Acc ++ [SubAcc], CtxAcc1}
-        end
+        {SubAcc, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, F),
+        {Acc ++ [SubAcc], CtxAcc1}
                                     end, {[], NewCtx}, Froms),
     {FromStr, NewCtx1} = {string:join(FrmStr, ", "), NewCtx2},
     NewCtx3 = case FType of
@@ -2321,22 +2307,14 @@ fold(FType, Fun, Ctx, Lvl, {R, Sel, Var} = ST)
              end,
     NewCtx1 = Fun(R, NewCtx),
     {SelStr, NewCtx2} = lists:foldl(fun(S, {Acc, CtxAcc}) ->
-        case S of
-            S when is_binary(S) -> {Acc ++ [binary_to_list(S)], Fun(S, CtxAcc)};
-            S ->
-                {SubAcc, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, S),
-                {Acc ++ [SubAcc], CtxAcc1}
-        end
+        {SubAcc, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, S),
+        {Acc ++ [SubAcc], CtxAcc1}
                                     end,
         {[], NewCtx1},
         Sel),
     {VarStr, NewCtx3} = lists:foldl(fun(V, {Acc, CtxAcc}) ->
-        case V of
-            V when is_binary(V) -> {Acc ++ [binary_to_list(V)], Fun(V, CtxAcc)};
-            V ->
-                {SubAcc, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, V),
-                {Acc ++ [SubAcc], CtxAcc1}
-        end
+        {SubAcc, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, V),
+        {Acc ++ [SubAcc], CtxAcc1}
                                     end,
         {[], NewCtx2},
         Var),
@@ -2690,12 +2668,8 @@ fold(FType, Fun, Ctx, Lvl, {using, ColumnList} = ST) ->
                  bottom_up -> Ctx
              end,
     {ColumnListStr, NewCtx1} = lists:foldl(fun(C, {Acc, CtxAcc}) ->
-        case C of
-            C when is_binary(C) -> {Acc ++ [binary_to_list(C)], Fun(C, CtxAcc)};
-            _ ->
-                {SubAcc, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, C),
-                {Acc ++ [SubAcc], CtxAcc1}
-        end
+        {SubAcc, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, C),
+        {Acc ++ [SubAcc], CtxAcc1}
                                            end,
         {[], NewCtx},
         ColumnList),

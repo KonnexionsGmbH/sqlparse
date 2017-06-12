@@ -390,10 +390,12 @@ OptInto03.                        OptInto ::= "INTO" TargetCommalist "IN" "NAME"
 
 Selection01.                      Selection ::= SelectFieldCommalist ;
 
-SelectFieldCommalist01.           SelectFieldCommalist ::= CaseWhenOptAsExp                              ;
-SelectFieldCommalist02.           SelectFieldCommalist ::= ScalarOptAsExp                                ;
-SelectFieldCommalist03.           SelectFieldCommalist ::= "*"                                           ;
-SelectFieldCommalist04.           SelectFieldCommalist ::= SelectFieldCommalist "," SelectFieldCommalist ;
+SelectField01.                    SelectField ::= CaseWhenOptAsExp ;
+SelectField02.                    SelectField ::= ScalarOptAsExp   ;
+SelectField03.                    SelectField ::= "*"              ;
+
+SelectFieldCommalist01.           SelectFieldCommalist ::=                          SelectField ;
+SelectFieldCommalist02.           SelectFieldCommalist ::= SelectFieldCommalist "," SelectField ;
 
 CaseWhenOptAsExp01.               CaseWhenOptAsExp ::= CaseWhenExp             ;
 CaseWhenOptAsExp02.               CaseWhenOptAsExp ::= CaseWhenExp      "NAME" ;
@@ -413,18 +415,22 @@ OptElse02.                        OptElse ::= "ELSE" ScalarOptAsExp ;
 
 Tableexp01.                       Tableexp ::= FromClause OptWhereClause OptHierarchicalQueryClause OptGroupByClause OptHavingClause OptOrderByClause ;
 
-FromClause01.                     FromClause ::= "FROM" FromCommalist ;
+FromClause01.                     FromClause ::= "FROM" FromColumnCommalist ;
 
-FromCommalist01.                  FromCommalist ::= TableRef                        ;
-FromCommalist02.                  FromCommalist ::= "(" JoinClause ")"              ;
-FromCommalist03.                  FromCommalist ::= JoinClause                      ;
-FromCommalist04.                  FromCommalist ::= FromCommalist "," FromCommalist ;
+FromColumn01.                     FromColumn ::= TableRef           ;
+FromColumn02.                     FromColumn ::= "(" JoinClause ")" ;
+FromColumn03.                     FromColumn ::= JoinClause         ;
+
+FromCommalist01.                  FromColumnCommalist ::=                         FromColumn ;
+FromCommalist02.                  FromColumnCommalist ::= FromColumnCommalist "," FromColumn ;
 
 JoinClause01.                     JoinClause ::= TableRef JoinList ;
 
-JoinList01.                       JoinList ::= InnerCrossJoin    ;
-JoinList02.                       JoinList ::= OuterJoin         ;
-JoinList03.                       JoinList ::= JoinList JoinList ;
+Join01.                           Join ::= InnerCrossJoin ;
+Join02.                           Join ::= OuterJoin      ;
+
+JoinList01.                       JoinList ::=          Join ;
+JoinList02.                       JoinList ::= JoinList Join ;
 
 InnerCrossJoin01.                 InnerCrossJoin ::= "INNER" "JOIN" JoinRef JoinOnOrUsingClause ;
 InnerCrossJoin02.                 InnerCrossJoin ::=         "JOIN" JoinRef JoinOnOrUsingClause ;
@@ -481,8 +487,8 @@ WhereClause01.                    WhereClause ::= "WHERE" SearchCondition ;
 OptGroupByClause01.               OptGroupByClause  ::= "$empty"                        ;
 OptGroupByClause02.               OptGroupByClause  ::= "GROUP" "BY" ColumnRefCommalist ;
 
-ColumnRefCommalist01.             ColumnRefCommalist ::= FunctionRef                        ;
-ColumnRefCommalist02.             ColumnRefCommalist ::= ColumnRef                          ;
+ColumnRefCommalist01.             ColumnRefCommalist ::=                        FunctionRef ;
+ColumnRefCommalist02.             ColumnRefCommalist ::=                        ColumnRef   ;
 ColumnRefCommalist03.             ColumnRefCommalist ::= ColumnRefCommalist "," ColumnRef   ;
 ColumnRefCommalist04.             ColumnRefCommalist ::= ColumnRefCommalist "," FunctionRef ;
 

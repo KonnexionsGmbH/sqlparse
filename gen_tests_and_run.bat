@@ -1,7 +1,7 @@
 @echo off
 rem ----------------------------------------------------------------------------
 rem
-rem gen_tests.bat: SQL - generating test data.
+rem gen_tests_and_run.bat: SQL - generate and run test data.
 rem
 rem Copyright (c) 2012-17 K2 Informatics GmbH.  All Rights Reserved.
 rem
@@ -25,4 +25,13 @@ setlocal enableDelayedExpansion
 echo !DATE!_!TIME!
 call rebar3 compile
 erl -noshell -pa _build\default\lib\sqlparse\ebin -s sqlparse_generator generate -s init stop
+echo !DATE!_!TIME!
+set SOURCEFILES_OLD=SOURCEFILES
+set SOURCEFILES=
+call rebar3 eunit
+set SOURCEFILES=SOURCEFILES_OLD
+echo !DATE!_!TIME!
+call rebar3 ct
+echo !DATE!_!TIME!
+call rebar3 cover
 echo !DATE!_!TIME!

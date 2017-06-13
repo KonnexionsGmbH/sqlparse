@@ -170,8 +170,8 @@ create_index_spec -> '(' create_index_spec_items ')'                            
 
 create_index_spec_items -> NAME                                                                 : [unwrap_bin('$1')].
 create_index_spec_items -> NAME '|' create_index_spec_items                                     : [unwrap_bin('$1') | '$3'].
-create_index_spec_items -> JSON                                                                 : [jpparse('$1')].
-create_index_spec_items -> JSON '|' create_index_spec_items                                     : [jpparse('$1') | '$3'].
+create_index_spec_items -> JSON                                                                 : [{jp, jpparse('$1')}].
+create_index_spec_items -> JSON '|' create_index_spec_items                                     : [{jp, jpparse('$1')} | '$3'].
 
 create_index_opt_norm -> '$empty'                                                               : {}.
 create_index_opt_norm -> NORM_WITH STRING                                                       : {norm, unwrap_bin('$2')}.
@@ -1257,9 +1257,9 @@ table ::= ( ( NAME '.' )? NAME ( ( AS )? NAME )? )
         | ( parameter ( ( AS )? NAME )? )
 
 /* =============================================================================
-column_ref -> JSON                                                                              : jpparse('$1').
-column_ref -> NAME '.' JSON                                                                     : [unwrap('$1'),".",jpparse('$3')].
-column_ref -> NAME '.' NAME '.' JSON                                                            : [unwrap('$1'),".",unwrap('$3'),".",jpparse('$5')].
+column_ref -> JSON                                                                              : {jp, jpparse('$1')}.
+column_ref -> NAME     JSON                                                                     : {list_to_binary(unwrap('$1')), {jp,jpparse('$2')}}.
+column_ref -> NAME '.' NAME     JSON                                                            : {list_to_binary([unwrap('$1'),".",unwrap('$3')]), {jp,jpparse('$4')}}.
 column_ref -> NAME                                                                              : unwrap_bin('$1').
 column_ref -> NAME '.' NAME                                                                     : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
 column_ref -> NAME '.' NAME '.' NAME                                                            : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).
@@ -1270,7 +1270,8 @@ column_ref -> NAME '.' '*'                                                      
 column_ref -> NAME '.' NAME '.' '*'                                                             : list_to_binary([unwrap('$1'),".",unwrap('$3'),".*"]).
 ============================================================================= */
 
-column_ref ::= ( ( ( NAME '.' )? NAME '.' )? ( JSON | NAME ) )
+column_ref ::= ( ( ( NAME '.' )? NAME )? JSON )
+             | ( ( ( NAME '.' )? NAME '.' )? NAME )
              | ( ( ( NAME '.' )? NAME '.' )? NAME '(' '+' ')' )
              | ( ( NAME '.' )? NAME '.' '*' )
 

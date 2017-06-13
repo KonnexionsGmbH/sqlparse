@@ -631,8 +631,8 @@ Table09.                          Table ::= Parameter      "NAME"         ;
 Table10.                          Table ::= Parameter "AS" "NAME"         ;
 
 ColumnRef01.                      ColumnRef ::=                       "JSON"             ;
-ColumnRef02.                      ColumnRef ::=            "NAME" "." "JSON"             ;
-ColumnRef03.                      ColumnRef ::= "NAME" "." "NAME" "." "JSON"             ;
+ColumnRef02.                      ColumnRef ::=            "NAME"     "JSON"             ;
+ColumnRef03.                      ColumnRef ::= "NAME" "." "NAME"     "JSON"             ;
 ColumnRef04.                      ColumnRef ::=                       "NAME"             ;
 ColumnRef05.                      ColumnRef ::=            "NAME" "." "NAME"             ;
 ColumnRef06.                      ColumnRef ::= "NAME" "." "NAME" "." "NAME"             ;

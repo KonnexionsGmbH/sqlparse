@@ -41,8 +41,7 @@ Rules.
 ([\|\-\+\*\/\(\)\,\.\;]|(\|\|)|(div))               : {token, {list_to_atom(TokenChars), TokenLine}}.
 
 % JSON
-% (JSON[A-Za-z0-9_\.]+([:#\[\{]+|([\s\t\n\r]*[#\[\{]+))[A-Za-z0-9_\.\:\(\)\[\]\{\}\#\,\|\-\+\*\/\\%\s\t\n\r]*)
-(\|[\.:{\[#]([^\|]*)+\|)                            : parse_json(TokenLine, TokenChars).
+(\|[:{\[#]([^\|]*)+\|)                              : parse_json(TokenLine, TokenChars).
 
 % names
 [A-Za-z][A-Za-z0-9_@:#\$]*                          : match_any(TokenChars, TokenLen, TokenLine, ?TokenPatters).

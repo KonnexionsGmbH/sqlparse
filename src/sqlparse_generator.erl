@@ -80,9 +80,9 @@
     _Start = erlang:monotonic_time(1000)
 ).
 
--define(MAX_BASIC, 250).
--define(MAX_SQL, ?MAX_BASIC * 8).
--define(MAX_STATEMENT, ?MAX_BASIC * 4).
+-define(MAX_BASIC, 500).
+-define(MAX_SQL, ?MAX_BASIC * 16).
+-define(MAX_STATEMENT, ?MAX_BASIC * 8).
 
 -define(PATH_CT, "test").
 -define(PATH_EUNIT, "test").
@@ -979,12 +979,10 @@ create_code(column_ref = Rule) ->
                     lists:nth(rand:uniform(Name_Length), Name),
                     ".",
                     lists:nth(rand:uniform(Name_Length), Name),
-                    ".",
                     lists:nth(rand:uniform(Json_Length), Json)
                 ]);
                 4 -> lists:append([
                     lists:nth(rand:uniform(Name_Length), Name),
-                    ".",
                     lists:nth(rand:uniform(Json_Length), Json)
                 ]);
                 5 -> lists:append([
@@ -2658,30 +2656,33 @@ create_code(json = Rule) ->
     Code =
         [
             "|#_.g:b.f[f(p.r:s)]|",
-            "|..g:b.f[f(p.r:q)]|",
-            "|.:a|",
-            "|.:b|",
-            "|._a::b::c|",
-            "|._a::b|",
-            "|._a:bc:df|",
-            "|._a:b|",
-            "|.a {b}|",
-            "|.a {}|",
-            "|.a.g:b.f[f(p.r:q)]|",
-            "|.a.g:b.f[f(p.r:r)]|",
-            "|.a.g:b.f[f(p.r:s)]|",
-            "|.a.g:b.f[f(p.r:t)]|",
-            "|.a0_ {}|",
-            "|.a::bc..12|",
-            "|.a:[]|",
-            "|.a:b[f(p:q)]|",
-            "|.a:b[f(p:r)]|",
-            "|.a:f()|",
-            "|.a:f(i)|",
-            "|.a[]|",
+            "|:.g:b.f[f(p.r:q)]|",
+            "|::a|",
+            "|::bc..12|",
+            "|::b|",
+            "|:[]|",
             "|:_a1:f()|",
+            "|:_a::b::c|",
+            "|:_a::b|",
+            "|:_a:bc:df|",
+            "|:_a:b|",
+            "|:a0_ {}|",
+            "|:b.f[f(p.r:q)]|",
+            "|:b.f[f(p.r:r)]|",
+            "|:b.f[f(p.r:s)]|",
+            "|:b.f[f(p.r:t)]|",
+            "|:b.f\n[\tf(p.r:q)]|",
+            "|:b[f(p:q)]|",
+            "|:b[f(p:r)]|",
+            "|:b|",
+            "|:f()|",
+            "|:f(i)|",
+            "|:{b}|",
+            "|:{}|",
+            "|[]|",
             "|[_:b[f(p:q)]]|",
-            "|{_:b2}|"
+            "|{_:b2}|",
+            "|{}|"
         ],
     store_code(Rule, Code, ?MAX_BASIC, true),
     store_code(column_ref, Code, ?MAX_BASIC, true),
@@ -2738,8 +2739,10 @@ create_code(name = Rule) ->
             "\\\"on/off ident\\\"",
             "\\\"X+ident\\\"",
             "credit_limit_ident",
-            "I@DENT_10_@",
+            "I@DENT_000_@",
+            "I@DENT_100_@",
             "I@DENT_1_",
+            "I@DENT_200_@",
             "I@DENT_2__",
             "I@DENT_3_#",
             "I@DENT_4_$",
@@ -3834,6 +3837,25 @@ create_code(special = Rule) ->
     ?CREATE_CODE_START,
     Code = [
         %% ---------------------------------------------------------------------
+        %% chenged: JSON
+        %% ---------------------------------------------------------------------
+        %% create_index_spec_items -> JSON
+        %% create_index_spec_items -> JSON '|' create_index_spec_items
+        %% ---------------------------------------------------------------------
+        "Create Index a On b (|:d{}|)",
+        "Create Index a On b (c | |:d{}|)",
+        %% ---------------------------------------------------------------------
+        %% column_ref -> JSON
+        %% column_ref -> NAME     JSON
+        %% column_ref -> NAME '.' NAME     JSON
+        %% ---------------------------------------------------------------------
+        "Select |:a:b| From x",
+        "Select column_name|:a:b| From x",
+        "Select table_name.column_name|:a:b| From x",
+        "Select column_name From x",
+        "Select table_name.column_name From x",
+        "Select schema_name.table_name.column_name From x",
+        %% ---------------------------------------------------------------------
         %% Problem: ALL
         %% ---------------------------------------------------------------------
         %% function_ref -> FUNS     '(' ALL scalar_exp ')'
@@ -3842,8 +3864,8 @@ create_code(special = Rule) ->
         "Call Upper (All 5)",
         "Call Upper (All 'text')",
         "Call Upper (All |:_a1:f()|)",
-        "Call Upper (All name.|:_a1:f()|)",
-        "Call Upper (All name1.name2.|:_a1:f()|)",
+        "Call Upper (All name|:_a1:f()|)",
+        "Call Upper (All name1.name2|:_a1:f()|)",
         "Call Upper (All name)",
         "Call Upper (All name1.name2)",
         "Call Upper (All name1.name2.name3)",

@@ -441,8 +441,8 @@ create_index_spec -> '(' create_index_spec_items ')'                            
 
 create_index_spec_items -> NAME                                                                 : [unwrap_bin('$1')].
 create_index_spec_items -> NAME '|' create_index_spec_items                                     : [unwrap_bin('$1') | '$3'].
-create_index_spec_items -> JSON                                                                 : [jpparse('$1')].
-create_index_spec_items -> JSON '|' create_index_spec_items                                     : [jpparse('$1') | '$3'].
+create_index_spec_items -> JSON                                                                 : [{jp, jpparse('$1')}].
+create_index_spec_items -> JSON '|' create_index_spec_items                                     : [{jp, jpparse('$1')} | '$3'].
 
 create_index_opt_norm -> '$empty'                                                               : {}.
 create_index_opt_norm -> NORM_WITH STRING                                                       : {norm, unwrap_bin('$2')}.
@@ -687,12 +687,12 @@ table_name -> NAME '.' NAME                                                     
 table_name -> NAME '.' NAME '.' NAME                                                            : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).
 
 opt_materialized -> '$empty'                                                                    : {}.
-opt_materialized -> PRESERVE MATERIALIZED VIEW LOG                                              : {'materialized view log', 'preserve'}.
-opt_materialized -> PURGE MATERIALIZED VIEW LOG                                                 : {'materialized view log', 'purge'}.
+opt_materialized -> PRESERVE MATERIALIZED VIEW LOG                                              : {'materialized view log', preserve}.
+opt_materialized -> PURGE MATERIALIZED VIEW LOG                                                 : {'materialized view log', purge}.
 
 opt_storage ->  '$empty'                                                                        : {}.
-opt_storage ->  DROP  STORAGE                                                                   : {storage, 'drop'}.
-opt_storage ->  REUSE STORAGE                                                                   : {storage, 'reuse'}.
+opt_storage ->  DROP  STORAGE                                                                   : {storage, drop}.
+opt_storage ->  REUSE STORAGE                                                                   : {storage, reuse}.
 
 close_statement -> CLOSE cursor                                                                 : {close, '$2'}.
 
@@ -941,9 +941,9 @@ in_predicate -> scalar_exp     IN scalar_exp_commalist                          
 
 all_or_any_predicate -> scalar_exp COMPARISON any_all_some subquery                             : {unwrap('$2'), '$1', {'$3', ['$4']}}.
 
-any_all_some -> ANY                                                                             : 'any'.
-any_all_some -> ALL                                                                             : 'all'.
-any_all_some -> SOME                                                                            : 'some'.
+any_all_some -> ANY                                                                             : any.
+any_all_some -> ALL                                                                             : all.
+any_all_some -> SOME                                                                            : some.
 
 existence_test -> EXISTS subquery                                                               : {exists, '$2'}.
 
@@ -1034,9 +1034,9 @@ table -> parameter                                                              
 table -> parameter    NAME                                                                      : {as, '$1', unwrap_bin('$2'), " "}.
 table -> parameter AS NAME                                                                      : {as, '$1', unwrap_bin('$3'), " as "}.
 
-column_ref -> JSON                                                                              : jpparse('$1').
-column_ref -> NAME '.' JSON                                                                     : [unwrap('$1'),".",jpparse('$3')].
-column_ref -> NAME '.' NAME '.' JSON                                                            : [unwrap('$1'),".",unwrap('$3'),".",jpparse('$5')].
+column_ref -> JSON                                                                              : {jp, jpparse('$1')}.
+column_ref -> NAME     JSON                                                                     : {jp, list_to_binary(unwrap('$1')), jpparse('$2')}.
+column_ref -> NAME '.' NAME     JSON                                                            : {jp, list_to_binary([unwrap('$1'),".",unwrap('$3')]), jpparse('$4')}.
 column_ref -> NAME                                                                              : unwrap_bin('$1').
 column_ref -> NAME '.' NAME                                                                     : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
 column_ref -> NAME '.' NAME '.' NAME                                                            : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).

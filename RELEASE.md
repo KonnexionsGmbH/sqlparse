@@ -1,14 +1,14 @@
-# sqlparse - the SQL parser written in Erlang
+# sqlparse - LALR grammar based SQL Parser
 
 [![Build Status](https://travis-ci.org/walter-weinmann/sqlparse.svg?branch=master)](https://travis-ci.org/walter-weinmann/sqlparse)
 
 # Release Notes
 
-## Version x.x.x
+## Version 3.0.0
 
-Release Date: 03.05.2017 - Grammar as of 30.04.2017
+Release Date: dd.mm.2017
 
-### Pure grammar changes
+### Grammar and parse tree changes
 
 - **APPROXNUM**
 
@@ -18,20 +18,11 @@ New: ((([\.][0-9]+)|([0-9]+[\.]?[0-9]*))[eE]?[+-]?[0-9]*[fFdD]?)
 Old: (([0-9]+\.[0-9]+([eE][\+\-]?[0-9]+)*))
 ```
 
-- **JSON**
-
-```
-New: (\|[:{\[#]([^\|]*)+\|)
- 
-Old: ([A-Za-z0-9_\.]+([:#\[\{]+|([\s\t\n\r]*[#\[\{]+))[A-Za-z0-9_\.\:\(\)\[\]\{\}\#\,\|\-\+\*\/\\%\s\t\n\r]*)
-```
-
-### Grammar and parse tree changes
-
 - **between_predicate**
 
 ```
-New: between_predicate -> scalar_exp NOT BETWEEN scalar_exp AND scalar_exp                           : {'not between', '$1', '$4', '$6'}.
+New: between_predicate -> scalar_exp not_between scalar_exp AND scalar_exp                           : {'not between', '$1', '$3', '$5'}.
+     not_between -> NOT BETWEEN                                                                      : 'not between'.
  
 Old: between_predicate -> scalar_exp NOT BETWEEN scalar_exp AND scalar_exp                           : {'not', {'between', '$1', '$4', '$6'}}.
 ```
@@ -133,9 +124,11 @@ Old: from_commalist -> table_ref                                                
 - **fun_arg**
 
 ```
-New: n/a
+New: fun_arg -> unary_add_or_subtract fun_arg                                                        : {'$1', '$2'}.
  
-Old: fun_arg -> '+' literal                                                                          : '$2'.
+Old: fun_arg -> '+' fun_arg                                                                          : {'+','$2'}. %prec UMINU
+     fun_arg -> '-' fun_arg                                                                          : {'-','$2'}. %prec UMINU
+     fun_arg -> '+' literal                                                                          : '$2'.
      fun_arg -> '-' literal                                                                          : list_to_binary(["-",'$2']).
 ```
 
@@ -159,14 +152,14 @@ Old: identified -> IDENTIFIED BY NAME                                           
 - **in_predicate**
 
 ```
-New: in_predicate -> scalar_exp NOT IN '(' subquery ')'                                              : {'not in', '$1', '$5'}.
-     in_predicate -> scalar_exp NOT IN '(' scalar_exp_commalist ')'                                  : {'not in', '$1', {list, '$5'}}.
-     in_predicate -> scalar_exp NOT IN scalar_exp_commalist                                          : {'not in', '$1', {list, '$4'}}.
+New: in_predicate -> scalar_exp not_in '(' subquery ')'                                              : {'not in', '$1', '$4'}.
+     in_predicate -> scalar_exp not_in '(' scalar_exp_commalist ')'                                  : {'not in', '$1', {list, '$4'}}.
+     not_in -> NOT IN                                                                                : 'not in'.
  
 Old: in_predicate -> scalar_exp NOT IN '(' subquery ')'                                              : {'not', {'in', '$1', '$5'}}.
      in_predicate -> scalar_exp NOT IN '(' scalar_exp_commalist ')'                                  : {'not', {'in', '$1', {'list', '$5'}}}.
      in_predicate -> scalar_exp NOT IN scalar_exp_commalist                                          : {'not', {'in', '$1', {'list', '$4'}}}.
-
+     in_predicate -> scalar_exp     IN scalar_exp_commalist                                          : {in,       '$1', {list, '$3'}}.
 ```
 
 - **join_list**
@@ -195,19 +188,24 @@ Old: join_ref -> '(' query_exp ')'                                              
      join_ref -> '(' query_exp ')' NAME                                                              : {as,'$2',unwrap_bin('$4')}.
 ```
 
+- **JSON**
+
+```
+New: (\|[:{\[#]([^\|]*)+\|)
+ 
+Old: ([A-Za-z0-9_\.]+([:#\[\{]+|([\s\t\n\r]*[#\[\{]+))[A-Za-z0-9_\.\:\(\)\[\]\{\}\#\,\|\-\+\*\/\\%\s\t\n\r]*)
+```
+
 - **like_predicate**
 
 ```
-New: like_predicate -> scalar_exp NOT LIKE scalar_exp ESCAPE atom                                    : {'not like', '$1', '$4', '$6'}.
-     like_predicate -> scalar_exp NOT LIKE scalar_exp                                                : {'not like', '$1', '$4', []}.
-     like_predicate -> scalar_exp     LIKE scalar_exp ESCAPE atom                                    : {like,       '$1', '$3', '$5'}.
-     like_predicate -> scalar_exp     LIKE scalar_exp                                                : {like,       '$1', '$3', []}.
- 
+New: like_predicate -> scalar_exp not_like scalar_exp opt_escape                                     : {'not like', '$1', '$3', '$4'}.
+     not_like -> NOT LIKE                                                                            : 'not like'.
+     opt_escape  -> '$empty'                                                                         : [].
+
 Old: like_predicate -> scalar_exp NOT LIKE scalar_exp opt_escape                                     : {'not', {'like', '$1', '$4', '$5'}}.
      like_predicate -> scalar_exp LIKE scalar_exp opt_escape                                         : {'like', '$1', '$3', '$4'}.
-     
      opt_escape -> '$empty'                                                                          : <<>>.
-     opt_escape -> ESCAPE atom                                                                       : '$2'.
 ```
 
 - **opt_on_obj_clause**
@@ -306,7 +304,10 @@ Old: table_ref -> '(' query_exp ')'                                             
 - **test_for_null**
 
 ```
-New: test_for_null -> scalar_exp IS NOT NULLX                                                        : {'is not', '$1', <<"null">>}.
+New: test_for_null -> scalar_exp is_not_null                                                         : {'is not', '$1', <<"null">>}.
+     test_for_null -> scalar_exp is_null                                                             : {'is',     '$1', <<"null">>}.
+     is_not_null -> IS NOT NULLX                                                                     : 'is not'.
+     is_null -> IS NULLX                                                                             : is.
  
 Old: test_for_null -> scalar_exp IS NOT NULLX                                                        : {'not', {'is', '$1', <<"null">>}}.
 ```
@@ -325,8 +326,17 @@ Old: view_def -> CREATE VIEW table opt_column_commalist                         
      opt_with_check_option -> WITH CHECK OPTION                                                      : 'with check option'.
 ```
 
-### Features modified
+### New features
 
-- **ocparse_generator**: checking the result of performance common tests
-- **ocparse_test**: comparison of source code removed
-- **ocparse_test**: messages improved
+- **BNFC (BNF Converter)**: grammar in LBNF (Labelled BNF grammar) format to enable the [BNFC tools](http://bnfc.digitalgrammars.com "BNFC")
+- **Generating test data**: module and scripts to generate test data covering the whole grammar definition for common test and eunit test
+- **Railroad diagrams**: grammar definition in EBNF format to create railroad diagrams with the online application [Railroad Diagram Generator](http://bottlecaps.de/rr/ui "Railroad Diagram Generator") 
+- **Wiki documentation**: extending the documentation via GitHub Wiki
+
+### Modified features
+
+- **Code coverage**: 100% code coverage in folder module sqlparse_fold.erl 
+- **Debugging refined**: eunit debugging messages at the start and the end of every fold function 
+- **Grammar cleanup**: removing ded grammar rules and reduce/reduce conflicts; minimising the shift/reduce conflicts 
+- **JSONPath**: embedding JSONPath expressions in SQL grammar rules between two vertical bars 
+- **Test driver**: adding common test support and refactoring of eunit tests

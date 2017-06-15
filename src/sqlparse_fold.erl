@@ -290,7 +290,6 @@ fold(FType, Fun, Ctx, Lvl, {'as', {select, _} = QuerySpec, " with check option" 
                  bottom_up -> Ctx
              end,
     {QuerySpecStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl + 1, QuerySpec),
-    ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n QuerySpecStr: ~p~n", [QuerySpecStr]),
     NewCtx2 = case FType of
                   top_down -> Fun(ST, NewCtx1);
                   bottom_up -> NewCtx1
@@ -499,9 +498,7 @@ fold(FType, Fun, Ctx, Lvl, {'create index', Opts, Idx, Table, Spec, Norm, Filter
     {IdxStr, NewCtx2} = fold(FType, Fun, NewCtx1, Lvl + 1, Idx),
     {TableStr, NewCtx3} = fold(FType, Fun, NewCtx2, Lvl + 1, Table),
     {Specs, NewCtx4} = lists:foldl(fun(S, {Acc, CtxAcc}) ->
-        ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n S: ~p~n", [S]),
         {SubAcc, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, S),
-        ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n SubAcc: ~p~n", [SubAcc]),
         {Acc ++ [SubAcc], CtxAcc1}
                                    end,
         {[], NewCtx3},
@@ -1459,20 +1456,23 @@ fold(FType, Fun, Ctx, _Lvl, {'identified globally', E} = ST) ->
 % In operator
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(FType, Fun, Ctx, Lvl, {Type, L, {'list', _} = R} = ST)
-    when (Type == in orelse Type == 'not in') andalso is_binary(L) ->
+fold(FType, Fun, Ctx, Lvl, {Type, L, R} = ST)
+    when (Type == in orelse Type == 'not in') ->
     ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, ST]),
     NewCtx = case FType of
                  top_down -> Fun(ST, Ctx);
                  bottom_up -> Ctx
              end,
-    NewCtx1 = Fun(L, NewCtx),
+    {LStr, NewCtx1} = case is_binary(L) of
+                          true -> {binary_to_list(L), Fun(L, NewCtx)};
+                          _ -> fold(FType, Fun, NewCtx, Lvl + 1, L)
+                      end,
     {RStr, NewCtx2} = fold(FType, Fun, NewCtx1, Lvl + 1, R),
     NewCtx3 = case FType of
                   top_down -> NewCtx2;
                   bottom_up -> Fun(ST, NewCtx2)
               end,
-    RT = {lists:flatten([binary_to_list(L), " ", atom_to_list(Type), " ", RStr]), NewCtx3},
+    RT = {lists:flatten([LStr, " ", atom_to_list(Type), " (", RStr, ")"]), NewCtx3},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
 
@@ -2754,12 +2754,7 @@ fold(FType, Fun, Ctx, Lvl, {Op, L, R} = ST)
              end,
     {Fl, NewCtx1} = fold(FType, Fun, NewCtx, Lvl + 1, L),
     NewCtx2 = Fun(Op, NewCtx1),
-    {Fr, NewCtx3} = case {Op, element(1, R)} of
-                        {'and', 'or'} ->
-                            {Rs, NC2} = fold(FType, Fun, NewCtx2, Lvl + 1, R),
-                            {Rs, NC2};
-                        _ -> fold(FType, Fun, NewCtx2, Lvl + 1, R)
-                    end,
+    {Fr, NewCtx3} = fold(FType, Fun, NewCtx2, Lvl + 1, R),
     NewCtx4 = case FType of
                   top_down -> NewCtx3;
                   bottom_up -> Fun(ST, NewCtx3)

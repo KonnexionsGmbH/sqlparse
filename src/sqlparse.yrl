@@ -93,6 +93,8 @@ Nonterminals
  insert_atom
  insert_atom_commalist
  insert_statement
+ is_not_null
+ is_null
  join
  join_clause
  join_list
@@ -101,11 +103,15 @@ Nonterminals
  like_predicate
  literal
  manipulative_statement
+ not_between
+ not_in
+ not_like
  open_statement
  opt_all_distinct
  opt_asc_desc
  opt_column_commalist
  opt_else
+ opt_escape
  opt_exists
  opt_group_by_clause
  opt_having_clause
@@ -179,6 +185,7 @@ Nonterminals
  tbl_type
  test_for_null
  truncate_table
+ unary_add_or_subtract
  update_statement_positioned
  update_statement_searched
  user_list
@@ -363,12 +370,18 @@ Terminals
 Rootsymbol sql_list.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% operators
+%% precedence
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Nonassoc    200 COMPARISON.                 %% = <> < > <= >=
-Left        300 '+' '-'.
-Left        400 '*' '/'.
+Left        100 OR.
+Left        200 AND.
+Left        300 NOT.
+Nonassoc    400 BETWEEN EXISTS IN is_not_null is_null LIKE not_between not_in.
+Nonassoc    500 COMPARISON.
+Left        600 '+' '-' '||'.
+Left        700 '*' '/' 'div'.
+Nonassoc    800 PRIOR.
+Left        800 unary_add_or_subtract.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -921,23 +934,32 @@ comparison_predicate -> scalar_opt_as_exp                                       
 comparison_predicate -> PRIOR scalar_exp COMPARISON scalar_exp                                  : {unwrap('$3'), {prior, '$2'}, '$4'}.
 comparison_predicate -> scalar_exp COMPARISON PRIOR scalar_exp                                  : {unwrap('$2'), '$1', {prior, '$4'}}.
 
-between_predicate -> scalar_exp NOT BETWEEN scalar_exp AND scalar_exp                           : {'not between', '$1', '$4', '$6'}.
+between_predicate -> scalar_exp not_between scalar_exp AND scalar_exp                           : {'not between', '$1', '$3', '$5'}.
 between_predicate -> scalar_exp     BETWEEN scalar_exp AND scalar_exp                           : {between,       '$1', '$3', '$5'}.
 
-like_predicate -> scalar_exp NOT LIKE scalar_exp ESCAPE atom                                    : {'not like', '$1', '$4', '$6'}.
-like_predicate -> scalar_exp NOT LIKE scalar_exp                                                : {'not like', '$1', '$4', []}.
-like_predicate -> scalar_exp     LIKE scalar_exp ESCAPE atom                                    : {like,       '$1', '$3', '$5'}.
-like_predicate -> scalar_exp     LIKE scalar_exp                                                : {like,       '$1', '$3', []}.
+not_between -> NOT BETWEEN                                                                      : 'not between'.
 
-test_for_null -> scalar_exp IS NOT NULLX                                                        : {'is not', '$1', <<"null">>}.
-test_for_null -> scalar_exp IS     NULLX                                                        : {is,       '$1', <<"null">>}.
+like_predicate -> scalar_exp not_like scalar_exp opt_escape                                     : {'not like', '$1', '$3', '$4'}.
+like_predicate -> scalar_exp     LIKE scalar_exp opt_escape                                     : {like,       '$1', '$3', '$4'}.
 
-in_predicate -> scalar_exp NOT IN '(' subquery ')'                                              : {'not in', '$1', '$5'}.
+not_like -> NOT LIKE                                                                            : 'not like'.
+
+opt_escape  -> '$empty'                                                                         : [].
+opt_escape  -> ESCAPE atom                                                                      : '$2'.
+
+test_for_null -> scalar_exp is_not_null                                                         : {'is not', '$1', <<"null">>}.
+test_for_null -> scalar_exp is_null                                                             : {'is',     '$1', <<"null">>}.
+
+is_not_null -> IS NOT NULLX                                                                     : 'is not'.
+
+is_null -> IS NULLX                                                                             : is.
+
+in_predicate -> scalar_exp not_in '(' subquery ')'                                              : {'not in', '$1', '$4'}.
 in_predicate -> scalar_exp     IN '(' subquery ')'                                              : {in,       '$1', '$4'}.
-in_predicate -> scalar_exp NOT IN '(' scalar_exp_commalist ')'                                  : {'not in', '$1', {list, '$5'}}.
+in_predicate -> scalar_exp not_in '(' scalar_exp_commalist ')'                                  : {'not in', '$1', {list, '$4'}}.
 in_predicate -> scalar_exp     IN '(' scalar_exp_commalist ')'                                  : {in,       '$1', {list, '$4'}}.
-in_predicate -> scalar_exp NOT IN scalar_exp_commalist                                          : {'not in', '$1', {list, '$4'}}.
-in_predicate -> scalar_exp     IN scalar_exp_commalist                                          : {in,       '$1', {list, '$3'}}.
+
+not_in -> NOT IN                                                                                : 'not in'.
 
 all_or_any_predicate -> scalar_exp COMPARISON any_all_some subquery                             : {unwrap('$2'), '$1', {'$3', ['$4']}}.
 
@@ -961,19 +983,21 @@ scalar_opt_as_exp -> scalar_exp AS NAME                                         
 scalar_exp -> scalar_sub_exp '||' scalar_exp                                                    : {'||','$1','$3'}.
 scalar_exp -> scalar_sub_exp                                                                    : '$1'.
 
-scalar_sub_exp -> scalar_sub_exp '+' scalar_sub_exp                                             : {'+','$1','$3'}.
-scalar_sub_exp -> scalar_sub_exp '-' scalar_sub_exp                                             : {'-','$1','$3'}.
-scalar_sub_exp -> scalar_sub_exp '*' scalar_sub_exp                                             : {'*','$1','$3'}.
-scalar_sub_exp -> scalar_sub_exp '/' scalar_sub_exp                                             : {'/','$1','$3'}.
-scalar_sub_exp -> scalar_sub_exp 'div' scalar_sub_exp                                           : {'div','$1','$3'}.
-scalar_sub_exp -> '+' scalar_sub_exp                                                            : {'+','$2'}.                   %prec UMINU
-scalar_sub_exp -> '-' scalar_sub_exp                                                            : {'-','$2'}.                   %prec UMINU
+scalar_sub_exp -> scalar_sub_exp '+'    scalar_sub_exp                                          : {'+','$1','$3'}.
+scalar_sub_exp -> scalar_sub_exp '-'    scalar_sub_exp                                          : {'-','$1','$3'}.
+scalar_sub_exp -> scalar_sub_exp '*'    scalar_sub_exp                                          : {'*','$1','$3'}.
+scalar_sub_exp -> scalar_sub_exp '/'    scalar_sub_exp                                          : {'/','$1','$3'}.
+scalar_sub_exp -> scalar_sub_exp 'div'  scalar_sub_exp                                          : {'div','$1','$3'}.
+scalar_sub_exp -> unary_add_or_subtract scalar_sub_exp                                          : {'$1','$2'}.
 scalar_sub_exp -> NULLX                                                                         : <<"NULL">>.
 scalar_sub_exp -> atom                                                                          : '$1'.
 scalar_sub_exp -> subquery                                                                      : '$1'.
 scalar_sub_exp -> column_ref                                                                    : '$1'.
 scalar_sub_exp -> function_ref                                                                  : '$1'.
 scalar_sub_exp -> '(' scalar_sub_exp ')'                                                        : {'$2', "("}.
+
+unary_add_or_subtract -> '+'                                                                    : '+'.
+unary_add_or_subtract -> '-'                                                                    : '-'.
 
 scalar_exp_commalist ->                          scalar_opt_as_exp                              :         ['$1'].
 scalar_exp_commalist -> scalar_exp_commalist ',' scalar_opt_as_exp                              : '$1' ++ ['$3'].
@@ -1001,14 +1025,13 @@ fun_args -> fun_arg ',' fun_args                                                
 fun_arg -> '(' fun_arg ')'                                                                      : {'$2', "("}.
 fun_arg -> function_ref                                                                         : '$1'.
 fun_arg -> column_ref                                                                           : '$1'.
-fun_arg -> fun_arg '+' fun_arg                                                                  : {'+','$1','$3'}.
-fun_arg -> fun_arg '-' fun_arg                                                                  : {'-','$1','$3'}.
-fun_arg -> fun_arg '*' fun_arg                                                                  : {'*','$1','$3'}.
-fun_arg -> fun_arg '/' fun_arg                                                                  : {'/','$1','$3'}.
+fun_arg -> fun_arg '+' fun_arg                                                                  : {'+',  '$1','$3'}.
+fun_arg -> fun_arg '-' fun_arg                                                                  : {'-',  '$1','$3'}.
+fun_arg -> fun_arg '*' fun_arg                                                                  : {'*',  '$1','$3'}.
+fun_arg -> fun_arg '/' fun_arg                                                                  : {'/',  '$1','$3'}.
 fun_arg -> fun_arg 'div' fun_arg                                                                : {'div','$1','$3'}.
-fun_arg -> fun_arg '||' fun_arg                                                                 : {'||','$1','$3'}.
-fun_arg -> '+' fun_arg                                                                          : {'+','$2'}. %prec UMINU
-fun_arg -> '-' fun_arg                                                                          : {'-','$2'}. %prec UMINU
+fun_arg -> fun_arg '||' fun_arg                                                                 : {'||', '$1','$3'}.
+fun_arg -> unary_add_or_subtract fun_arg                                                        : {'$1', '$2'}.
 fun_arg -> NULLX                                                                                : <<"NULL">>.
 fun_arg -> atom                                                                                 : '$1'.
 fun_arg -> subquery                                                                             : '$1'.

@@ -532,8 +532,6 @@ InPredicate01.                    InPredicate ::= ScalarExp "NOT" "IN" "(" Subqu
 InPredicate02.                    InPredicate ::= ScalarExp       "IN" "(" Subquery ")"           ;
 InPredicate03.                    InPredicate ::= ScalarExp "NOT" "IN" "(" ScalarExpCommalist ")" ;
 InPredicate04.                    InPredicate ::= ScalarExp       "IN" "(" ScalarExpCommalist ")" ;
-InPredicate05.                    InPredicate ::= ScalarExp "NOT" "IN"     ScalarExpCommalist     ;
-InPredicate06.                    InPredicate ::= ScalarExp       "IN"     ScalarExpCommalist     ;
 
 AllOrAnyPredicate01.              AllOrAnyPredicate ::= ScalarExp "COMPARISON" AnyAllSome Subquery ;
 
@@ -562,14 +560,17 @@ ScalarSubExp02.                   ScalarSubExp ::= ScalarSubExp "-"   ScalarSubE
 ScalarSubExp03.                   ScalarSubExp ::= ScalarSubExp "*"   ScalarSubExp ;
 ScalarSubExp04.                   ScalarSubExp ::= ScalarSubExp "/"   ScalarSubExp ;
 ScalarSubExp05.                   ScalarSubExp ::= ScalarSubExp "div" ScalarSubExp ;
-ScalarSubExp06.                   ScalarSubExp ::= "+" ScalarSubExp                ;
-ScalarSubExp07.                   ScalarSubExp ::= "-" ScalarSubExp                ;
+ScalarSubExp06.                   ScalarSubExp ::= UnaryAddOrSubtract ScalarSubExp ;
 ScalarSubExp10.                   ScalarSubExp ::= "NULLX"                         ;
 ScalarSubExp11.                   ScalarSubExp ::= Atom                            ;
 ScalarSubExp12.                   ScalarSubExp ::= Subquery                        ;
 ScalarSubExp13.                   ScalarSubExp ::= ColumnRef                       ;
 ScalarSubExp14.                   ScalarSubExp ::= FunctionRef                     ;
 ScalarSubExp15.                   ScalarSubExp ::= "(" ScalarSubExp ")"            ;
+
+
+UnaryAddOrSubtract01.             UnaryAddOrSubtract ::= "+" ;
+UnaryAddOrSubtract02.             UnaryAddOrSubtract ::= "-" ;
 
 ScalarExpCommalist01.             ScalarExpCommalist ::=                        ScalarOptAsExp ;
 ScalarExpCommalist02.             ScalarExpCommalist ::= ScalarExpCommalist "," ScalarOptAsExp ;

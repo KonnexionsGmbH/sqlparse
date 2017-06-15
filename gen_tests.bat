@@ -21,8 +21,12 @@ rem under the License.
 rem
 rem ----------------------------------------------------------------------------
 
-setlocal enableDelayedExpansion
-echo !DATE!_!TIME!
-call rebar3 compile
-erl -noshell -pa _build\default\lib\sqlparse\ebin -s sqlparse_generator generate -s init stop
-echo !DATE!_!TIME!
+> gen_tests.log (
+
+    setlocal enableDelayedExpansion
+    echo !DATE!_!TIME!
+    call rebar3 compile
+    erl -noshell -pa _build\default\lib\sqlparse\ebin -s sqlparse_generator generate -s init stop
+    echo !DATE!_!TIME!
+
+)

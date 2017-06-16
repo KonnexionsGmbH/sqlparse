@@ -408,7 +408,7 @@ function_ref_list -> function_ref ';' function_ref_list                         
 
 sql -> schema                                                                                   : '$1'.
 
-schema -> CREATE SCHEMA AUTHORIZATION NAME opt_schema_element_list                              : {'create schema authorization', unwrap_bin('$4'), '$5'}.
+schema -> CREATE SCHEMA AUTHORIZATION NAME opt_schema_element_list                              : {'create schema authorization', '$4', '$5'}.
 
 opt_schema_element_list -> '$empty'                                                             : [].
 opt_schema_element_list -> schema_element_list                                                  : '$1'.
@@ -428,8 +428,8 @@ create_table_def -> CREATE create_opts TABLE table '(' base_table_element_commal
 
 create_user_def -> CREATE USER NAME identified opt_user_opts_list                               : {'create user', unwrap_bin('$3'), '$4', '$5'}.
 
-drop_table_def -> DROP      TABLE opt_exists table_list opt_restrict_cascade                    : {'drop table', {'tables', '$4'}, '$3', '$5', <<>>}.
-drop_table_def -> DROP NAME TABLE opt_exists table_list opt_restrict_cascade                    : {'drop table', {'tables', '$5'}, '$4', '$6', unwrap_bin('$2')}.
+drop_table_def -> DROP      TABLE opt_exists table_list opt_restrict_cascade                    : {'drop table', {'tables', '$4'}, '$3', '$5', []}.
+drop_table_def -> DROP NAME TABLE opt_exists table_list opt_restrict_cascade                    : {'drop table', {'tables', '$5'}, '$4', '$6', '$2'}.
 
 drop_role_def -> DROP ROLE NAME                                                                 : {'drop role', unwrap_bin('$3')}.
 drop_index_def -> DROP INDEX opt_index_name FROM table                                          : {'drop index', '$3', '$5'}.
@@ -526,9 +526,9 @@ role_list -> NAME                                                               
 role_list -> NAME ',' role_list                                                                 : [unwrap_bin('$1') | '$3'].
 
 identified -> IDENTIFIED            BY NAME                                                     : {'identified by',       unwrap_bin('$3')}.
-identified -> IDENTIFIED EXTERNALLY                                                             : {'identified extern',   []}.
+identified -> IDENTIFIED EXTERNALLY                                                             : {'identified extern',   {}}.
 identified -> IDENTIFIED EXTERNALLY AS NAME                                                     : {'identified extern',   unwrap_bin('$4')}.
-identified -> IDENTIFIED GLOBALLY                                                               : {'identified globally', []}.
+identified -> IDENTIFIED GLOBALLY                                                               : {'identified globally', {}}.
 identified -> IDENTIFIED GLOBALLY   AS NAME                                                     : {'identified globally', unwrap_bin('$4')}.
 
 opt_user_opts_list -> '$empty'                                                                  : [].
@@ -605,9 +605,9 @@ revoke_def -> REVOKE system_privilege_list opt_on_obj_clause FROM grantee_commal
 
 opt_on_obj_clause -> '$empty'                                                                   : {on, <<"">>}.
 opt_on_obj_clause -> ON table                                                                   : {on, '$2'}.
-opt_on_obj_clause -> ON DIRECTORY NAME                                                          : {'on directory', unwrap_bin('$3')}.
-opt_on_obj_clause -> ON JAVA SOURCE table                                                       : {'on java source', '$4'}.
-opt_on_obj_clause -> ON JAVA RESOURCE table                                                     : {'on java resource', '$4'}.
+opt_on_obj_clause -> ON DIRECTORY NAME                                                          : {'on directory',     unwrap_bin('$3')}.
+opt_on_obj_clause -> ON JAVA SOURCE   table                                                     : {'on java source',   unwrap_bin('$4')}.
+opt_on_obj_clause -> ON JAVA RESOURCE table                                                     : {'on java resource', unwrap_bin('$4')}.
 
 system_privilege_list -> '$empty'                                                               : [].
 system_privilege_list -> system_privilege                                                       : ['$1'].
@@ -944,7 +944,7 @@ like_predicate -> scalar_exp     LIKE scalar_exp opt_escape                     
 
 not_like -> NOT LIKE                                                                            : 'not like'.
 
-opt_escape  -> '$empty'                                                                         : [].
+opt_escape  -> '$empty'                                                                         : <<>>.
 opt_escape  -> ESCAPE atom                                                                      : '$2'.
 
 test_for_null -> scalar_exp is_not_null                                                         : {'is not', '$1', <<"null">>}.

@@ -23,10 +23,10 @@ rem ----------------------------------------------------------------------------
 
 > gen_tests.log (
 
-    setlocal enableDelayedExpansion
-    echo !DATE!_!TIME!
-    call rebar3 compile
+    SETLOCAL enableDelayedExpansion
+    ECHO !DATE!_!TIME!
+    CALL rebar3 compile
     erl -noshell -pa _build\default\lib\sqlparse\ebin -s sqlparse_generator generate -s init stop
-    echo !DATE!_!TIME!
+    ECHO !DATE!_!TIME!
 
 )

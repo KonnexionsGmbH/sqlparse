@@ -1,4 +1,4 @@
-@echo off
+@ECHO off
 rem ----------------------------------------------------------------------------
 rem
 rem gen_tests_and_run.bat: SQL - generate and run test data.
@@ -23,19 +23,19 @@ rem ----------------------------------------------------------------------------
 
 > gen_tests_and_run.log (
 
-    setlocal enableDelayedExpansion
-    echo !DATE!_!TIME!
-    call rebar3 compile
+    SETLOCAL enableDelayedExpansion
+    ECHO !DATE!_!TIME!
+    CALL rebar3 compile
     erl -noshell -pa _build\default\lib\sqlparse\ebin -s sqlparse_generator generate -s init stop
-    echo !DATE!_!TIME!
-    set SOURCEFILES_OLD=SOURCEFILES
-    set SOURCEFILES=
-    call rebar3 eunit
-    set SOURCEFILES=SOURCEFILES_OLD
-    echo !DATE!_!TIME!
-    call rebar3 ct
-    echo !DATE!_!TIME!
-    call rebar3 cover
-    echo !DATE!_!TIME!
+    ECHO !DATE!_!TIME!
+    SET SOURCEFILES_OLD=SOURCEFILES
+    SET SOURCEFILES=
+    CALL rebar3 eunit
+    SET SOURCEFILES=SOURCEFILES_OLD
+    ECHO !DATE!_!TIME!
+    CALL rebar3 ct
+    ECHO !DATE!_!TIME!
+    CALL rebar3 cover
+    ECHO !DATE!_!TIME!
 
 )

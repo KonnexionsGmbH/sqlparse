@@ -83,7 +83,7 @@ function_ref_list ::= ( function_ref ';' )
 
 sql -> schema                                                                                   : '$1'.
 
-schema -> CREATE SCHEMA AUTHORIZATION NAME opt_schema_element_list                              : {'create schema authorization', unwrap_bin('$4'), '$5'}.
+schema -> CREATE SCHEMA AUTHORIZATION NAME opt_schema_element_list                              : {'create schema authorization', '$4', '$5'}.
 
 opt_schema_element_list -> '$empty'                                                             : [].
 opt_schema_element_list -> schema_element_list                                                  : '$1'.
@@ -127,8 +127,8 @@ create_user_def -> CREATE USER NAME identified opt_user_opts_list               
 create_user_def ::= 'CREATE' 'USER' NAME identified ( user_opt )*
 
 /* =============================================================================
-drop_table_def -> DROP      TABLE opt_exists table_list opt_restrict_cascade                    : {'drop table', {'tables', '$4'}, '$3', '$5', <<>>}.
-drop_table_def -> DROP NAME TABLE opt_exists table_list opt_restrict_cascade                    : {'drop table', {'tables', '$5'}, '$4', '$6', unwrap_bin('$2')}.
+drop_table_def -> DROP      TABLE opt_exists table_list opt_restrict_cascade                    : {'drop table', {'tables', '$4'}, '$3', '$5', []}.
+drop_table_def -> DROP NAME TABLE opt_exists table_list opt_restrict_cascade                    : {'drop table', {'tables', '$5'}, '$4', '$6', '$2'}.
 ============================================================================= */
 
 drop_table_def ::= 'DROP' ( NAME )? 'TABLE' ( 'IF' 'EXISTS' )? ( table ( ',' table )* ) ( 'RESTRICT' | 'CASCADE' )?
@@ -305,9 +305,9 @@ role_list ::= NAME ( ',' NAME )*
 
 /* =============================================================================
 identified -> IDENTIFIED            BY NAME                                                     : {'identified by',       unwrap_bin('$3')}.
-identified -> IDENTIFIED EXTERNALLY                                                             : {'identified extern',   []}.
+identified -> IDENTIFIED EXTERNALLY                                                             : {'identified extern',   {}}.
 identified -> IDENTIFIED EXTERNALLY AS NAME                                                     : {'identified extern',   unwrap_bin('$4')}.
-identified -> IDENTIFIED GLOBALLY                                                               : {'identified globally', []}.
+identified -> IDENTIFIED GLOBALLY                                                               : {'identified globally', {}}.
 identified -> IDENTIFIED GLOBALLY   AS NAME                                                     : {'identified globally', unwrap_bin('$4')}.
 ============================================================================= */
 
@@ -441,9 +441,9 @@ revoke_def ::= 'REVOKE' system_privilege_list ( on_obj_clause )? 'FROM' grantee 
 /* =============================================================================
 opt_on_obj_clause -> '$empty'                                                                   : {on, <<"">>}.
 opt_on_obj_clause -> ON table                                                                   : {on, '$2'}.
-opt_on_obj_clause -> ON DIRECTORY NAME                                                          : {'on directory', unwrap_bin('$3')}.
-opt_on_obj_clause -> ON JAVA SOURCE table                                                       : {'on java source', '$4'}.
-opt_on_obj_clause -> ON JAVA RESOURCE table                                                     : {'on java resource', '$4'}.
+opt_on_obj_clause -> ON DIRECTORY NAME                                                          : {'on directory',     unwrap_bin('$3')}.
+opt_on_obj_clause -> ON JAVA SOURCE   table                                                     : {'on java source',   unwrap_bin('$4')}.
+opt_on_obj_clause -> ON JAVA RESOURCE table                                                     : {'on java resource', unwrap_bin('$4')}.
 ============================================================================= */
 
 on_obj_clause ::= ( 'ON' table )
@@ -1058,7 +1058,7 @@ like_predicate -> scalar_exp     LIKE scalar_exp opt_escape                     
 
 not_like -> NOT LIKE                                                                            : 'not like'.
 
-opt_escape  -> '$empty'                                                                         : [].
+opt_escape  -> '$empty'                                                                         : <<>>.
 opt_escape  -> ESCAPE atom                                                                      : '$2'.
 ============================================================================= */
 

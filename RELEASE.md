@@ -1,6 +1,6 @@
 # sqlparse - LALR grammar based SQL Parser
 
-[![Build Status](https://travis-ci.org/walter-weinmann/sqlparse.svg?branch=master)](https://travis-ci.org/walter-weinmann/sqlparse)
+[![Build Status](https://travis-ci.org/K2InformaticsGmbH/sqlparse.svg?branch=master)](https://travis-ci.org/K2InformaticsGmbH/sqlparse)
 
 # Release Notes
 
@@ -8,7 +8,7 @@
 
 Release Date: dd.mm.2017
 
-### Grammar and parse tree changes
+### Grammar changes
 
 - **APPROXNUM**
 
@@ -18,11 +18,86 @@ New: ((([\.][0-9]+)|([0-9]+[\.]?[0-9]*))[eE]?[+-]?[0-9]*[fFdD]?)
 Old: (([0-9]+\.[0-9]+([eE][\+\-]?[0-9]+)*))
 ```
 
+- **column_ref**
+
+```
+New: column_ref -> NAME     JSON
+     column_ref -> NAME '.' NAME     JSON
+ 
+Old: column_ref -> NAME '.' JSON
+     column_ref -> NAME '.' NAME '.' JSON
+```
+
+- **comparison_predicate**
+
+```
+New: n/a
+ 
+Old: comparison_predicate -> scalar_exp COMPARISON subquery
+```
+
+- **drop_table_def**
+
+```
+New: drop_table_def -> DROP      TABLE opt_exists table_list opt_restrict_cascade
+     drop_table_def -> DROP NAME TABLE opt_exists table_list opt_restrict_cascade
+ 
+Old: drop_table_def -> DROP tbl_type TABLE opt_exists table_list opt_restrict_cascade
+```
+
+- **db_user_proxy**
+
+```
+New: n/a
+ 
+Old: db_user_proxy -> '$empty'
+```
+
+- **fun_arg**
+
+```
+New: fun_arg -> unary_add_or_subtract fun_arg
+                unary_add_or_subtract -> '+' 
+                unary_add_or_subtract -> '-'
+ 
+Old: fun_arg -> '+' fun_arg
+     fun_arg -> '-' fun_arg
+     fun_arg -> '+' literal
+     fun_arg -> '-' literal
+```
+
+- **in_predicate**
+
+```
+New: n/a
+ 
+Old: in_predicate -> scalar_exp NOT IN scalar_exp_commalist
+     in_predicate -> scalar_exp     IN scalar_exp_commalist
+```
+
+- **JSON**
+
+```
+New: (\|[:{\[#]([^\|]*)+\|)
+ 
+Old: ([A-Za-z0-9_\.]+([:#\[\{]+|([\s\t\n\r]*[#\[\{]+))[A-Za-z0-9_\.\:\(\)\[\]\{\}\#\,\|\-\+\*\/\\%\s\t\n\r]*)
+```
+
+- **scalar_sub_exp**
+
+```
+New: n/a
+ 
+Old: scalar_sub_exp -> '+' literal
+     scalar_sub_exp -> '-' literal
+```
+
+### Parse tree changes
+
 - **between_predicate**
 
 ```
 New: between_predicate -> scalar_exp not_between scalar_exp AND scalar_exp                           : {'not between', '$1', '$3', '$5'}.
-     not_between -> NOT BETWEEN                                                                      : 'not between'.
  
 Old: between_predicate -> scalar_exp NOT BETWEEN scalar_exp AND scalar_exp                           : {'not', {'between', '$1', '$4', '$6'}}.
 ```
@@ -58,14 +133,6 @@ Old: column_ref -> JSON                                                         
 
 ```
 
-- **comparison_predicate**
-
-```
-New: n/a
- 
-Old: comparison_predicate -> scalar_exp COMPARISON subquery                                          : {unwrap('$2'), '$1', '$3'}.
-```
-
 - **create_index_spec_items**
 
 ```
@@ -87,66 +154,12 @@ Old: data_type -> NAME '(' opt_sgn_num ')'                                      
 
 ```
 
-- **drop_table_def**
-
-```
-New: drop_table_def -> DROP      TABLE opt_exists table_list opt_restrict_cascade                    : {'drop table', {'tables', '$4'}, '$3', '$5', <<>>}.
-     drop_table_def -> DROP NAME TABLE opt_exists table_list opt_restrict_cascade                    : {'drop table', {'tables', '$5'}, '$4', '$6', unwrap_bin('$2')}.
- 
-Old: drop_table_def -> DROP tbl_type TABLE opt_exists table_list opt_restrict_cascade                : {'drop table', {'tables', '$5'}, '$4', '$6', '$2'}.
-```
-
-- **db_user_proxy**
-
-```
-New: n/a
- 
-Old: db_user_proxy -> '$empty'                                                                      : {}.
-
-```
-
 - **from_column_commalist**
 
 ```
-New: from_column -> table_ref                                                                        : ['$1'].
-     from_column -> '(' join_clause ')'                                                              : {['$2'], "("}.
-     from_column -> join_clause                                                                      : ['$1'].
+New: from_column -> '(' join_clause ')'                                                              : {['$2'], "("}.
  
-     from_column_commalist ->                           from_column                                  :        ['$1'].
-     from_column_commalist -> from_column_commalist ',' from_column                                  : '$1'++ ['$3'].
- 
-Old: from_commalist -> table_ref                                                                     : ['$1'].
-     from_commalist -> '(' join_clause ')'                                                           : ['$2'].
-     from_commalist -> join_clause                                                                   : ['$1'].
-     from_commalist -> from_commalist ',' from_commalist                                             : '$1'++'$3'.
-```
-
-- **fun_arg**
-
-```
-New: fun_arg -> unary_add_or_subtract fun_arg                                                        : {'$1', '$2'}.
- 
-Old: fun_arg -> '+' fun_arg                                                                          : {'+','$2'}. %prec UMINU
-     fun_arg -> '-' fun_arg                                                                          : {'-','$2'}. %prec UMINU
-     fun_arg -> '+' literal                                                                          : '$2'.
-     fun_arg -> '-' literal                                                                          : list_to_binary(["-",'$2']).
-```
-
-- **identified**
-
-```
-New: identified -> IDENTIFIED            BY NAME                                                     : {'identified by',       unwrap_bin('$3')}.
-     identified -> IDENTIFIED EXTERNALLY                                                             : {'identified extern',   []}.
-     identified -> IDENTIFIED EXTERNALLY AS NAME                                                     : {'identified extern',   unwrap_bin('$4')}.
-     identified -> IDENTIFIED GLOBALLY                                                               : {'identified globally', []}.
-     identified -> IDENTIFIED GLOBALLY   AS NAME                                                     : {'identified globally', unwrap_bin('$4')}.
- 
-Old: identified -> IDENTIFIED BY NAME                                                                : {'identified by', unwrap_bin('$3')}.
-     identified -> IDENTIFIED EXTERNALLY opt_as                                                      : {'identified extern', '$3'}.
-     identified -> IDENTIFIED GLOBALLY opt_as                                                        : {'identified globally', '$3'}.
-     
-     opt_as -> '$empty'                                                                              : {}.
-     opt_as -> AS NAME                                                                               : {'as', unwrap_bin('$2')}.
+Old: from_commalist -> '(' join_clause ')'                                                           : ['$2'].
 ```
 
 - **in_predicate**
@@ -154,26 +167,9 @@ Old: identified -> IDENTIFIED BY NAME                                           
 ```
 New: in_predicate -> scalar_exp not_in '(' subquery ')'                                              : {'not in', '$1', '$4'}.
      in_predicate -> scalar_exp not_in '(' scalar_exp_commalist ')'                                  : {'not in', '$1', {list, '$4'}}.
-     not_in -> NOT IN                                                                                : 'not in'.
  
 Old: in_predicate -> scalar_exp NOT IN '(' subquery ')'                                              : {'not', {'in', '$1', '$5'}}.
      in_predicate -> scalar_exp NOT IN '(' scalar_exp_commalist ')'                                  : {'not', {'in', '$1', {'list', '$5'}}}.
-     in_predicate -> scalar_exp NOT IN scalar_exp_commalist                                          : {'not', {'in', '$1', {'list', '$4'}}}.
-     in_predicate -> scalar_exp     IN scalar_exp_commalist                                          : {in,       '$1', {list, '$3'}}.
-```
-
-- **join_list**
-
-```
-New: join -> inner_cross_join                                                                        : '$1'.
-     join -> outer_join                                                                              : '$1'.
-     
-     join_list ->           join                                                                     :        ['$1'].
-     join_list -> join_list join                                                                     : '$1'++ ['$2'].
- 
-Old: join_list -> inner_cross_join                                                                   : ['$1'].
-     join_list -> outer_join                                                                         : ['$1'].
-     join_list -> join_list join_list                                                                : '$1'++'$2'.
 ```
 
 - **join_ref**
@@ -188,34 +184,12 @@ Old: join_ref -> '(' query_exp ')'                                              
      join_ref -> '(' query_exp ')' NAME                                                              : {as,'$2',unwrap_bin('$4')}.
 ```
 
-- **JSON**
-
-```
-New: (\|[:{\[#]([^\|]*)+\|)
- 
-Old: ([A-Za-z0-9_\.]+([:#\[\{]+|([\s\t\n\r]*[#\[\{]+))[A-Za-z0-9_\.\:\(\)\[\]\{\}\#\,\|\-\+\*\/\\%\s\t\n\r]*)
-```
-
 - **like_predicate**
 
 ```
 New: like_predicate -> scalar_exp not_like scalar_exp opt_escape                                     : {'not like', '$1', '$3', '$4'}.
-     not_like -> NOT LIKE                                                                            : 'not like'.
-     opt_escape  -> '$empty'                                                                         : [].
 
 Old: like_predicate -> scalar_exp NOT LIKE scalar_exp opt_escape                                     : {'not', {'like', '$1', '$4', '$5'}}.
-     like_predicate -> scalar_exp LIKE scalar_exp opt_escape                                         : {'like', '$1', '$3', '$4'}.
-     opt_escape -> '$empty'                                                                          : <<>>.
-```
-
-- **opt_on_obj_clause**
-
-```
-New: opt_on_obj_clause -> ON JAVA SOURCE table                                                       : {'on java source', '$4'}.
-     opt_on_obj_clause -> ON JAVA RESOURCE table                                                     : {'on java resource', '$4'}.
-  
-Old: opt_on_obj_clause -> ON JAVA SOURCE table                                                       : {'on java source', unwrap_bin('$4')}.
-     opt_on_obj_clause -> ON JAVA RESOURCE table                                                     : {'on java resource', unwrap_bin('$4')}.
 ```
 
 - **query_partition_clause**
@@ -246,29 +220,12 @@ Old: scalar_opt_as_exp -> scalar_exp NAME                                       
      scalar_opt_as_exp -> scalar_exp AS NAME                                                         : {as, '$1', unwrap_bin('$3')}. 
 ```
 
-- **scalar_sub_exp**
-
-```
-New: n/a
- 
-Old: scalar_sub_exp -> '+' literal                                                                   : '$2'.
-     scalar_sub_exp -> '-' literal                                                                   : list_to_binary(["-",'$2']).
-```
-
 - **search_condition**
 
 ```
 New: search_condition -> '(' search_condition ')'                                                    : {'$2', "("}.
  
 Old: search_condition -> '(' search_condition ')'                                                    : '$2'.
-```
-
-- **schema**
-
-```
-New: schema -> CREATE SCHEMA AUTHORIZATION NAME opt_schema_element_list                              : {'create schema authorization', unwrap_bin('$4'), '$5'}.
- 
-Old: schema -> CREATE SCHEMA AUTHORIZATION user opt_schema_element_list                              : {'create schema authorization', '$4', '$5'}.
 ```
 
 - **table**
@@ -305,9 +262,6 @@ Old: table_ref -> '(' query_exp ')'                                             
 
 ```
 New: test_for_null -> scalar_exp is_not_null                                                         : {'is not', '$1', <<"null">>}.
-     test_for_null -> scalar_exp is_null                                                             : {'is',     '$1', <<"null">>}.
-     is_not_null -> IS NOT NULLX                                                                     : 'is not'.
-     is_null -> IS NULLX                                                                             : is.
  
 Old: test_for_null -> scalar_exp IS NOT NULLX                                                        : {'not', {'is', '$1', <<"null">>}}.
 ```
@@ -315,12 +269,10 @@ Old: test_for_null -> scalar_exp IS NOT NULLX                                   
 - **view_def**
 
 ```
-New: view_def -> CREATE VIEW table opt_column_commalist                                              : {'create view', '$3', '$4'}.
-     view_def -> AS query_spec                                                                       : {as, '$2', [],                   "as "}.
+New: view_def -> AS query_spec                                                                       : {as, '$2', [],                   "as "}.
      view_def -> AS query_spec WITH CHECK OPTION                                                     : {as, '$2', " with check option", "as "}.
  
-Old: view_def -> CREATE VIEW table opt_column_commalist                                              : {'create view', '$3', '$4'}.
-     view_def -> AS query_spec opt_with_check_option                                                 : {'as', '$2', '$3'}.
+Old: view_def -> AS query_spec opt_with_check_option                                                 : {'as', '$2', '$3'}.
         
      opt_with_check_option -> '$empty'                                                               : [].
      opt_with_check_option -> WITH CHECK OPTION                                                      : 'with check option'.

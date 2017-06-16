@@ -21,35 +21,35 @@ rem under the License.
 rem
 rem ----------------------------------------------------------------------------
 
+Setlocal EnableDelayedExpansion
+
+SET NO_RUNS=%1
+IF "%1" == "" (
+   SET NO_RUNS=1
+)
+
 > stress_test.log (
 
-    call rebar3 compile
+    ECHO =======================================================================
+    ECHO !TIME! Start run - in total %NO_RUNS%
 
-    Setlocal EnableDelayedExpansion
+    RD _build\test\logs /Q /S
+    RD \test\backup /Q /S
+    MD _build\test\logs
 
-    ECHO ============================================================================
-    ECHO !TIME! Start run
-
-    SET no_runs=%1
-    IF "%1" == "" (
-       SET no_runs=1
-    )
-
-    RD ct\logs /Q /S
-    MD ct\logs
-
-    FOR /L %%G IN (1,1,%no_runs%) DO (
-       ECHO ----------------------------------------------------------------------------
+    FOR /L %%G IN (1,1,%NO_RUNS%) DO (
+       ECHO -----------------------------------------------------------------------
        ECHO !TIME! %%G. Step: gen_tests.bat
        CALL gen_tests.bat
-       del test\reliability_*_SUITE.erl
+       DEL test\reliability_*_SUITE.erl
+       MD test\backup\%%G
+       COPY test\*_SUITE.erl test\backup\%%G
        ECHO !TIME! %%G. Step: rebar3 ct
-       rmdir /q /s _build\test
-       CALL rebar3.cmd ct
+       CALL rebar3 ct
     )
 
-    ECHO ----------------------------------------------------------------------------
+    ECHO -----------------------------------------------------------------------
     ECHO !TIME! End   run
-    ECHO ============================================================================
+    ECHO =======================================================================
 
 )

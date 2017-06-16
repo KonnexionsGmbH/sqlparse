@@ -8,4 +8,5 @@ reliability_*
 src/*.dot
 src/sql_lex.erl
 src/sqlparse.erl
+test/backup
 tmp

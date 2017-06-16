@@ -549,7 +549,7 @@ fold(FType, Fun, Ctx, Lvl, {'create role', Role} = ST)
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fold(FType, Fun, Ctx, Lvl, {'create schema authorization', User, SchemaElements} = ST)
-    when is_binary(User), is_list(SchemaElements) ->
+    when is_list(SchemaElements) ->
     ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, ST]),
     NewCtx = case FType of
                  top_down -> Fun(ST, Ctx);
@@ -569,7 +569,7 @@ fold(FType, Fun, Ctx, Lvl, {'create schema authorization', User, SchemaElements}
                   top_down -> NewCtx2;
                   bottom_up -> Fun(ST, NewCtx2)
               end,
-    RT = {lists:append(["create schema authorization ", binary_to_list(User), " ", SchemaElementsStr]), NewCtx3},
+    RT = {lists:append(["create schema authorization ", User, " ", SchemaElementsStr]), NewCtx3},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
 
@@ -979,10 +979,9 @@ fold(FType, Fun, Ctx, Lvl, {'drop table', {tables, Ts}, E, RC, Types} = ST)
                   top_down -> NewCtx2;
                   bottom_up -> Fun(ST, NewCtx2)
               end,
-    TypesStr = binary_to_list(Types),
     RT = {lists:append([
         "drop ",
-        if length(TypesStr) > 0 -> TypesStr ++ " "; true -> [] end,
+        if length(Types) > 0 -> Types ++ " "; true -> [] end,
         "table ",
         if E =:= exists -> "if exists "; true -> [] end,
         string:join(Tables, ", "),
@@ -1397,7 +1396,7 @@ fold(FType, Fun, Ctx, _Lvl, {'identified by', Pswd} = ST) ->
     RT = {"identified by " ++ binary_to_list(Pswd), NewCtx2},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
-fold(FType, Fun, Ctx, _Lvl, {'identified extern', []} = ST) ->
+fold(FType, Fun, Ctx, _Lvl, {'identified extern', {}} = ST) ->
     ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [_Lvl, ST]),
     NewCtx = case FType of
                  top_down -> Fun(ST, Ctx);
@@ -1424,7 +1423,7 @@ fold(FType, Fun, Ctx, _Lvl, {'identified extern', E} = ST) ->
     RT = {"identified externally as " ++ binary_to_list(E), NewCtx2},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
-fold(FType, Fun, Ctx, _Lvl, {'identified globally', []} = ST) ->
+fold(FType, Fun, Ctx, _Lvl, {'identified globally', {}} = ST) ->
     ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [_Lvl, ST]),
     NewCtx = case FType of
                  top_down -> Fun(ST, Ctx);
@@ -1779,7 +1778,7 @@ fold(FType, Fun, Ctx, Lvl, {jp, Name, Value} = ST)
 % Like operator
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(FType, Fun, Ctx, Lvl, {Type, Var, Like, []} = ST)
+fold(FType, Fun, Ctx, Lvl, {Type, Var, Like, <<>>} = ST)
     when Type == like; Type == 'not like' ->
     ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, ST]),
     NewCtx = case FType of

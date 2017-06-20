@@ -183,7 +183,7 @@ create_index_opt_filter -> FILTER_WITH STRING                                   
 create_index_def ::= 'CREATE' ( 'BITMAP' | 'KEYLIST' | 'HASHMAP' | 'UNIQUE' )? 'INDEX' ( index_name )? 'ON' table ( '(' ( NAME | JSON ) ( '|' NAME | JSON )* ')' )?
                     ( 'NORM_WITH' STRING )?  ( 'FILTER_WITH' STRING )?
 
-JSON ::= (\|[:{\[#]([^\|]*)+\|)
+JSON ::= ([|] [:{\[#] [^|]+ [|])
 
 STRING ::= ( 'fun' [A-Za-z0-9,_]* [.]* '->' [.]* 'end.' )
          | ( 'fun\s' ['A-Za-z0-9_]+ ':' ['A-Za-z0-9_]+ '/' [0-9]+ '.' )

@@ -388,6 +388,8 @@ Left        800 unary_add_or_subtract.
 sql_list ->          sql ';' extra                                                              :         [{'$1','$3'}].
 sql_list -> sql_list sql ';' extra                                                              : '$1' ++ [{'$2','$4'}].
 
+% sql_list -> from_column_commalist ';'                                                           : '$1'.
+
 extra -> '$empty'                                                                               : {extra, <<>>}.
 extra -> NAME  ';'                                                                              : {extra, unwrap_bin('$1')}.
 
@@ -408,7 +410,7 @@ function_ref_list -> function_ref ';' function_ref_list                         
 
 sql -> schema                                                                                   : '$1'.
 
-schema -> CREATE SCHEMA AUTHORIZATION NAME opt_schema_element_list                              : {'create schema authorization', '$4', '$5'}.
+schema -> CREATE SCHEMA AUTHORIZATION NAME opt_schema_element_list                              : {'create schema authorization', unwrap('$4'), '$5'}.
 
 opt_schema_element_list -> '$empty'                                                             : [].
 opt_schema_element_list -> schema_element_list                                                  : '$1'.
@@ -429,7 +431,7 @@ create_table_def -> CREATE create_opts TABLE table '(' base_table_element_commal
 create_user_def -> CREATE USER NAME identified opt_user_opts_list                               : {'create user', unwrap_bin('$3'), '$4', '$5'}.
 
 drop_table_def -> DROP      TABLE opt_exists table_list opt_restrict_cascade                    : {'drop table', {'tables', '$4'}, '$3', '$5', []}.
-drop_table_def -> DROP NAME TABLE opt_exists table_list opt_restrict_cascade                    : {'drop table', {'tables', '$5'}, '$4', '$6', '$2'}.
+drop_table_def -> DROP NAME TABLE opt_exists table_list opt_restrict_cascade                    : {'drop table', {'tables', '$5'}, '$4', '$6', unwrap('$2')}.
 
 drop_role_def -> DROP ROLE NAME                                                                 : {'drop role', unwrap_bin('$3')}.
 drop_index_def -> DROP INDEX opt_index_name FROM table                                          : {'drop index', '$3', '$5'}.
@@ -606,8 +608,8 @@ revoke_def -> REVOKE system_privilege_list opt_on_obj_clause FROM grantee_commal
 opt_on_obj_clause -> '$empty'                                                                   : {on, <<"">>}.
 opt_on_obj_clause -> ON table                                                                   : {on, '$2'}.
 opt_on_obj_clause -> ON DIRECTORY NAME                                                          : {'on directory',     unwrap_bin('$3')}.
-opt_on_obj_clause -> ON JAVA SOURCE   table                                                     : {'on java source',   unwrap_bin('$4')}.
-opt_on_obj_clause -> ON JAVA RESOURCE table                                                     : {'on java resource', unwrap_bin('$4')}.
+opt_on_obj_clause -> ON JAVA SOURCE   table                                                     : {'on java source',   '$4'}.
+opt_on_obj_clause -> ON JAVA RESOURCE table                                                     : {'on java resource', '$4'}.
 
 system_privilege_list -> '$empty'                                                               : [].
 system_privilege_list -> system_privilege                                                       : ['$1'].
@@ -769,15 +771,15 @@ opt_hierarchical_query_clause -> hierarchical_query_clause                      
 %% query expressions
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-query_exp -> query_term                                                                         : '$1'.
-query_exp -> query_exp UNION     query_term                                                     : {union, '$1', '$3'}.
+query_exp ->                     query_term                                                     : '$1'.
+query_exp -> query_exp UNION     query_term                                                     : {union,       '$1', '$3'}.
 query_exp -> query_exp UNION ALL query_term                                                     : {'union all', '$1', '$4'}.
-query_exp -> query_exp INTERSECT query_term                                                     : {intersect, '$1', '$3'}.
-query_exp -> query_exp MINUS     query_term                                                     : {minus, '$1', '$3'}.
+query_exp -> query_exp INTERSECT query_term                                                     : {intersect,   '$1', '$3'}.
+query_exp -> query_exp MINUS     query_term                                                     : {minus,       '$1', '$3'}.
 
 returning -> '$empty'                                                                           : {returning, {}}.
 returning -> RETURNING selection INTO selection                                                 : {returning, '$2', '$4'}.
-returning -> RETURN    selection INTO selection                                                 : {return, '$2', '$4'}.
+returning -> RETURN    selection INTO selection                                                 : {return,    '$2', '$4'}.
 
 query_term -> query_spec                                                                        : '$1'.
 query_term -> '(' query_exp ')'                                                                 : {'$2', "("}.
@@ -828,7 +830,7 @@ from_clause -> FROM from_column_commalist                                       
 
 from_column -> table_ref                                                                        : ['$1'].
 from_column -> '(' join_clause ')'                                                              : {['$2'], "("}.
-from_column -> join_clause                                                                      : ['$1'].
+from_column ->     join_clause                                                                  : ['$1'].
 
 from_column_commalist ->                           from_column                                  :        ['$1'].
 from_column_commalist -> from_column_commalist ',' from_column                                  : '$1'++ ['$3'].
@@ -841,9 +843,9 @@ join -> outer_join                                                              
 join_list ->           join                                                                     :        ['$1'].
 join_list -> join_list join                                                                     : '$1'++ ['$2'].
 
-inner_cross_join -> INNER JOIN join_ref join_on_or_using_clause                                 : {join_inner, '$3', '$4'}.
-inner_cross_join -> JOIN       join_ref join_on_or_using_clause                                 : {join,       '$2', '$3'}.
+inner_cross_join ->               JOIN join_ref join_on_or_using_clause                         : {join,               '$2', '$3'}.
 inner_cross_join -> CROSS         JOIN join_ref                                                 : {cross_join,         '$3'}.
+inner_cross_join -> INNER         JOIN join_ref join_on_or_using_clause                         : {join_inner,         '$3', '$4'}.
 inner_cross_join -> NATURAL       JOIN join_ref                                                 : {natural_join,       '$3'}.
 inner_cross_join -> NATURAL INNER JOIN join_ref                                                 : {natural_inner_join, '$4'}.
 
@@ -854,44 +856,44 @@ opt_join_on_or_using_clause -> '$empty'                                         
 opt_join_on_or_using_clause -> join_on_or_using_clause                                          : '$1'.
 
 % ----------------------------------------------------------------------------------------------- {{join_type, partition, opt_natural} ... }
-outer_join -> NATURAL outer_join_type JOIN join_ref                        opt_join_on_or_using_clause
-                                                                                                : {{'$2', {}, natural}, '$4', {}, '$5'}.
-outer_join -> NATURAL outer_join_type JOIN join_ref query_partition_clause opt_join_on_or_using_clause
-                                                                                                : {{'$2', {}, natural}, '$4', '$5', '$6'}.
-outer_join -> query_partition_clause outer_join_type JOIN join_ref                        opt_join_on_or_using_clause
-                                                                                                : {{'$2', '$1', {}}, '$4', {}, '$5'}.
-outer_join -> query_partition_clause outer_join_type JOIN join_ref query_partition_clause opt_join_on_or_using_clause
-                                                                                                : {{'$2', '$1', {}}, '$4', '$5', '$6'}.
-
-outer_join -> outer_join_type JOIN join_ref                        opt_join_on_or_using_clause  : {{'$1', {}, {}}, '$3', {}, '$4'}.
-outer_join -> outer_join_type JOIN join_ref query_partition_clause opt_join_on_or_using_clause
+outer_join ->                                outer_join_type JOIN join_ref                        opt_join_on_or_using_clause
+                                                                                                : {{'$1', {}, {}}, '$3', {}, '$4'}.
+outer_join ->                                outer_join_type JOIN join_ref query_partition_clause opt_join_on_or_using_clause
                                                                                                 : {{'$1', {}, {}}, '$3', '$4', '$5'}.
+outer_join -> NATURAL                        outer_join_type JOIN join_ref                        opt_join_on_or_using_clause
+                                                                                                : {{'$2', {}, natural}, '$4', {}, '$5'}.
+outer_join -> NATURAL                        outer_join_type JOIN join_ref query_partition_clause opt_join_on_or_using_clause
+                                                                                                : {{'$2', {}, natural}, '$4', '$5', '$6'}.
+outer_join -> query_partition_clause         outer_join_type JOIN join_ref                        opt_join_on_or_using_clause
+                                                                                                : {{'$2', '$1', {}}, '$4', {}, '$5'}.
+outer_join -> query_partition_clause         outer_join_type JOIN join_ref query_partition_clause opt_join_on_or_using_clause
+                                                                                                : {{'$2', '$1', {}}, '$4', '$5', '$6'}.
 outer_join -> query_partition_clause NATURAL outer_join_type JOIN join_ref                        opt_join_on_or_using_clause
                                                                                                 : {{'$3', '$1', natural}, '$5', {}, '$6'}.
 outer_join -> query_partition_clause NATURAL outer_join_type JOIN join_ref query_partition_clause opt_join_on_or_using_clause
                                                                                                 : {{'$3', '$1', natural}, '$5', '$6', '$7'}.
 % -----------------------------------------------------------------------------------------------
 
-query_partition_clause -> PARTITION BY '(' scalar_exp_commalist ')'                             : {partition_by, '$4', "("}.
 query_partition_clause -> PARTITION BY     scalar_exp_commalist                                 : {partition_by, '$3', []} .
+query_partition_clause -> PARTITION BY '(' scalar_exp_commalist ')'                             : {partition_by, '$4', "("}.
 
 outer_join_type -> FULL                                                                         : full.
-outer_join_type -> LEFT                                                                         : left.
-outer_join_type -> RIGHT                                                                        : right.
 outer_join_type -> FULL  OUTER                                                                  : full_outer.
+outer_join_type -> LEFT                                                                         : left.
 outer_join_type -> LEFT  OUTER                                                                  : left_outer.
+outer_join_type -> RIGHT                                                                        : right.
 outer_join_type -> RIGHT OUTER                                                                  : right_outer.
 
 table_ref -> table                                                                              : '$1'.
-table_ref -> '(' query_exp ')'                                                                  : {'$2', "("}.
-table_ref -> '(' query_exp ')' AS NAME                                                          : {as, {'$2', "("}, unwrap_bin('$5'), " as "}.
-table_ref -> '(' query_exp ')'    NAME                                                          : {as, {'$2', "("}, unwrap_bin('$4'), " "}.
 table_ref -> table range_variable                                                               : {'$1', '$2'}.
+table_ref -> '(' query_exp ')'                                                                  : {'$2', "("}.
+table_ref -> '(' query_exp ')'    NAME                                                          : {as, {'$2', "("}, unwrap_bin('$4'), " "}.
+table_ref -> '(' query_exp ')' AS NAME                                                          : {as, {'$2', "("}, unwrap_bin('$5'), " as "}.
 
 join_ref -> table                                                                               : '$1'.
 join_ref -> '(' query_exp ')'                                                                   : {'$2', "("}.
-join_ref -> '(' query_exp ')' AS NAME                                                           : {as, {'$2', "("}, unwrap_bin('$5'), " as "}.
 join_ref -> '(' query_exp ')'    NAME                                                           : {as, {'$2', "("}, unwrap_bin('$4'), " "}.
+join_ref -> '(' query_exp ')' AS NAME                                                           : {as, {'$2', "("}, unwrap_bin('$5'), " as "}.
 
 hierarchical_query_clause -> START WITH search_condition CONNECT BY opt_nocycle search_condition: {'hierarchical query', {{'start with', '$3'}, {'connect by', '$6', '$7'}}}.
 hierarchical_query_clause -> CONNECT BY opt_nocycle search_condition START WITH search_condition: {'hierarchical query', {{'connect by', '$3', '$4'}, {'start with', '$7'}}}.
@@ -904,8 +906,8 @@ where_clause -> WHERE search_condition                                          
 opt_group_by_clause  -> '$empty'                                                                : {'group by', []}.
 opt_group_by_clause  -> GROUP BY column_ref_commalist                                           : {'group by', '$3'}.
 
-column_ref_commalist ->                          function_ref                                   :         ['$1'].
 column_ref_commalist ->                          column_ref                                     :         ['$1'].
+column_ref_commalist ->                          function_ref                                   :         ['$1'].
 column_ref_commalist -> column_ref_commalist ',' column_ref                                     : '$1' ++ ['$3'].
 column_ref_commalist -> column_ref_commalist ',' function_ref                                   : '$1' ++ ['$3'].
 

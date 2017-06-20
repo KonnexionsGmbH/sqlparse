@@ -2602,8 +2602,12 @@ fold(FType, Fun, Ctx, Lvl, {update, Table, {set, Set}, Where, Return} = ST) ->
         TableStr,
         " set ",
         string:join(Sets, ","),
-        if length(WhereStr) > 0 orelse length(ReturnStr) > 0 ->
-            lists:append([" ", WhereStr, " ", ReturnStr]);
+        if length(WhereStr) > 0 ->
+            " " ++ WhereStr;
+            true -> []
+        end,
+        if length(ReturnStr) > 0 ->
+            " " ++ ReturnStr;
             true -> []
         end
     ]), NewCtx5},

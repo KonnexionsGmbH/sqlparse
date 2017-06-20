@@ -83,7 +83,7 @@ function_ref_list ::= ( function_ref ';' )
 
 sql -> schema                                                                                   : '$1'.
 
-schema -> CREATE SCHEMA AUTHORIZATION NAME opt_schema_element_list                              : {'create schema authorization', '$4', '$5'}.
+schema -> CREATE SCHEMA AUTHORIZATION NAME opt_schema_element_list                              : {'create schema authorization', unwrap('$4'), '$5'}.
 
 opt_schema_element_list -> '$empty'                                                             : [].
 opt_schema_element_list -> schema_element_list                                                  : '$1'.
@@ -128,7 +128,7 @@ create_user_def ::= 'CREATE' 'USER' NAME identified ( user_opt )*
 
 /* =============================================================================
 drop_table_def -> DROP      TABLE opt_exists table_list opt_restrict_cascade                    : {'drop table', {'tables', '$4'}, '$3', '$5', []}.
-drop_table_def -> DROP NAME TABLE opt_exists table_list opt_restrict_cascade                    : {'drop table', {'tables', '$5'}, '$4', '$6', '$2'}.
+drop_table_def -> DROP NAME TABLE opt_exists table_list opt_restrict_cascade                    : {'drop table', {'tables', '$5'}, '$4', '$6', unwrap('$2')}.
 ============================================================================= */
 
 drop_table_def ::= 'DROP' ( NAME )? 'TABLE' ( 'IF' 'EXISTS' )? ( table ( ',' table )* ) ( 'RESTRICT' | 'CASCADE' )?
@@ -442,8 +442,8 @@ revoke_def ::= 'REVOKE' system_privilege_list ( on_obj_clause )? 'FROM' grantee 
 opt_on_obj_clause -> '$empty'                                                                   : {on, <<"">>}.
 opt_on_obj_clause -> ON table                                                                   : {on, '$2'}.
 opt_on_obj_clause -> ON DIRECTORY NAME                                                          : {'on directory',     unwrap_bin('$3')}.
-opt_on_obj_clause -> ON JAVA SOURCE   table                                                     : {'on java source',   unwrap_bin('$4')}.
-opt_on_obj_clause -> ON JAVA RESOURCE table                                                     : {'on java resource', unwrap_bin('$4')}.
+opt_on_obj_clause -> ON JAVA SOURCE   table                                                     : {'on java source',   '$4'}.
+opt_on_obj_clause -> ON JAVA RESOURCE table                                                     : {'on java resource', '$4'}.
 ============================================================================= */
 
 on_obj_clause ::= ( 'ON' table )
@@ -749,11 +749,11 @@ opt_hierarchical_query_clause -> hierarchical_query_clause                      
 %% query expressions
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-query_exp -> query_term                                                                         : '$1'.
-query_exp -> query_exp UNION     query_term                                                     : {union, '$1', '$3'}.
+query_exp ->                     query_term                                                     : '$1'.
+query_exp -> query_exp UNION     query_term                                                     : {union,       '$1', '$3'}.
 query_exp -> query_exp UNION ALL query_term                                                     : {'union all', '$1', '$4'}.
-query_exp -> query_exp INTERSECT query_term                                                     : {intersect, '$1', '$3'}.
-query_exp -> query_exp MINUS     query_term                                                     : {minus, '$1', '$3'}.
+query_exp -> query_exp INTERSECT query_term                                                     : {intersect,   '$1', '$3'}.
+query_exp -> query_exp MINUS     query_term                                                     : {minus,       '$1', '$3'}.
 ============================================================================= */
 
 query_exp ::= query_term
@@ -852,8 +852,8 @@ table_exp -> from_clause opt_where_clause
 from_clause -> FROM from_column_commalist                                                       : {from, '$2'}.
 
 from_column -> table_ref                                                                        : ['$1'].
-from_column -> '(' join_clause ')'                                                              : {['$2'], ")"}.
-from_column -> join_clause                                                                      : ['$1'].
+from_column -> '(' join_clause ')'                                                              : {['$2'], "("}.
+from_column ->     join_clause                                                                  : ['$1'].
 
 from_column_commalist ->                           from_column                                  :        ['$1'].
 from_column_commalist -> from_column_commalist ',' from_column                                  : '$1'++ ['$3'].
@@ -881,9 +881,9 @@ join ::= inner_cross_join
 join_clause ::= table_ref join ( join )*
 
 /* =============================================================================
-inner_cross_join -> INNER JOIN join_ref join_on_or_using_clause                                 : {join_inner, '$3', '$4'}.
-inner_cross_join -> JOIN       join_ref join_on_or_using_clause                                 : {join,       '$2', '$3'}.
+inner_cross_join ->               JOIN join_ref join_on_or_using_clause                         : {join,               '$2', '$3'}.
 inner_cross_join -> CROSS         JOIN join_ref                                                 : {cross_join,         '$3'}.
+inner_cross_join -> INNER         JOIN join_ref join_on_or_using_clause                         : {join_inner,         '$3', '$4'}.
 inner_cross_join -> NATURAL       JOIN join_ref                                                 : {natural_join,       '$3'}.
 inner_cross_join -> NATURAL INNER JOIN join_ref                                                 : {natural_inner_join, '$4'}.
 ============================================================================= */
@@ -904,18 +904,18 @@ opt_join_on_or_using_clause -> '$empty'                                         
 opt_join_on_or_using_clause -> join_on_or_using_clause                                          : '$1'.
 
 % ----------------------------------------------------------------------------------------------- {{join_type, partition, opt_natural} ... }
-outer_join -> NATURAL outer_join_type JOIN join_ref                        opt_join_on_or_using_clause
-                                                                                                : {{'$2', {}, natural}, '$4', {}, '$5'}.
-outer_join -> NATURAL outer_join_type JOIN join_ref query_partition_clause opt_join_on_or_using_clause
-                                                                                                : {{'$2', {}, natural}, '$4', '$5', '$6'}.
-outer_join -> query_partition_clause outer_join_type JOIN join_ref                        opt_join_on_or_using_clause
-                                                                                                : {{'$2', '$1', {}}, '$4', {}, '$5'}.
-outer_join -> query_partition_clause outer_join_type JOIN join_ref query_partition_clause opt_join_on_or_using_clause
-                                                                                                : {{'$2', '$1', {}}, '$4', '$5', '$6'}.
-
-outer_join -> outer_join_type JOIN join_ref                        opt_join_on_or_using_clause  : {{'$1', {}, {}}, '$3', {}, '$4'}.
-outer_join -> outer_join_type JOIN join_ref query_partition_clause opt_join_on_or_using_clause
+outer_join ->                                outer_join_type JOIN join_ref                        opt_join_on_or_using_clause
+                                                                                                : {{'$1', {}, {}}, '$3', {}, '$4'}.
+outer_join ->                                outer_join_type JOIN join_ref query_partition_clause opt_join_on_or_using_clause
                                                                                                 : {{'$1', {}, {}}, '$3', '$4', '$5'}.
+outer_join -> NATURAL                        outer_join_type JOIN join_ref                        opt_join_on_or_using_clause
+                                                                                                : {{'$2', {}, natural}, '$4', {}, '$5'}.
+outer_join -> NATURAL                        outer_join_type JOIN join_ref query_partition_clause opt_join_on_or_using_clause
+                                                                                                : {{'$2', {}, natural}, '$4', '$5', '$6'}.
+outer_join -> query_partition_clause         outer_join_type JOIN join_ref                        opt_join_on_or_using_clause
+                                                                                                : {{'$2', '$1', {}}, '$4', {}, '$5'}.
+outer_join -> query_partition_clause         outer_join_type JOIN join_ref query_partition_clause opt_join_on_or_using_clause
+                                                                                                : {{'$2', '$1', {}}, '$4', '$5', '$6'}.
 outer_join -> query_partition_clause NATURAL outer_join_type JOIN join_ref                        opt_join_on_or_using_clause
                                                                                                 : {{'$3', '$1', natural}, '$5', {}, '$6'}.
 outer_join -> query_partition_clause NATURAL outer_join_type JOIN join_ref query_partition_clause opt_join_on_or_using_clause
@@ -923,22 +923,21 @@ outer_join -> query_partition_clause NATURAL outer_join_type JOIN join_ref query
 % -----------------------------------------------------------------------------------------------
 ============================================================================= */
 
-outer_join ::= ( 'NATURAL' outer_join_type 'JOIN' join_ref ( query_partition_clause )? ( join_on_or_using_clause )? )
-             | ( ( query_partition_clause ( 'NATURAL' )? )? outer_join_type 'JOIN' join_ref ( query_partition_clause )? ( join_on_or_using_clause )? )
+outer_join ::= ( NATURAL | query_partition_clause | (query_partition_clause NATURAL) )? outer_join_type JOIN join_ref ( query_partition_clause )? ( join_on_or_using_clause )?
 
 /* =============================================================================
-query_partition_clause -> PARTITION BY '(' scalar_exp_commalist ')'                             : {partition_by, '$4', "("}.
 query_partition_clause -> PARTITION BY     scalar_exp_commalist                                 : {partition_by, '$3', []} .
+query_partition_clause -> PARTITION BY '(' scalar_exp_commalist ')'                             : {partition_by, '$4', "("}.
 ============================================================================= */
 
 query_partition_clause ::= 'PARTITION' 'BY' ( ( '(' scalar_exp_commalist ')' ) | scalar_exp_commalist )
 
 /* =============================================================================
 outer_join_type -> FULL                                                                         : full.
-outer_join_type -> LEFT                                                                         : left.
-outer_join_type -> RIGHT                                                                        : right.
 outer_join_type -> FULL  OUTER                                                                  : full_outer.
+outer_join_type -> LEFT                                                                         : left.
 outer_join_type -> LEFT  OUTER                                                                  : left_outer.
+outer_join_type -> RIGHT                                                                        : right.
 outer_join_type -> RIGHT OUTER                                                                  : right_outer.
 ============================================================================= */
 
@@ -948,10 +947,10 @@ outer_join_type ::= ( 'FULL' ( 'OUTER' )? )
 
 /* =============================================================================
 table_ref -> table                                                                              : '$1'.
-table_ref -> '(' query_exp ')'                                                                  : {'$2', "("}.
-table_ref -> '(' query_exp ')' AS NAME                                                          : {as, {'$2', "("}, unwrap_bin('$5'), " as "}.
-table_ref -> '(' query_exp ')'    NAME                                                          : {as, {'$2', "("}, unwrap_bin('$4'), " "}.
 table_ref -> table range_variable                                                               : {'$1', '$2'}.
+table_ref -> '(' query_exp ')'                                                                  : {'$2', "("}.
+table_ref -> '(' query_exp ')'    NAME                                                          : {as, {'$2', "("}, unwrap_bin('$4'), " "}.
+table_ref -> '(' query_exp ')' AS NAME                                                          : {as, {'$2', "("}, unwrap_bin('$5'), " as "}.
 ============================================================================= */
 
 table_ref ::= ( table ( range_variable )? )
@@ -960,8 +959,8 @@ table_ref ::= ( table ( range_variable )? )
 /* =============================================================================
 join_ref -> table                                                                               : '$1'.
 join_ref -> '(' query_exp ')'                                                                   : {'$2', "("}.
-join_ref -> '(' query_exp ')' AS NAME                                                           : {as, {'$2', "("}, unwrap_bin('$5'), " as "}.
 join_ref -> '(' query_exp ')'    NAME                                                           : {as, {'$2', "("}, unwrap_bin('$4'), " "}.
+join_ref -> '(' query_exp ')' AS NAME                                                           : {as, {'$2', "("}, unwrap_bin('$5'), " as "}.
 ============================================================================= */
 
 join_ref ::= table
@@ -988,8 +987,8 @@ where_clause ::= 'WHERE' search_condition
 opt_group_by_clause  -> '$empty'                                                                : {'group by', []}.
 opt_group_by_clause  -> GROUP BY column_ref_commalist                                           : {'group by', '$3'}.
 
-column_ref_commalist ->                          function_ref                                   :         ['$1'].
 column_ref_commalist ->                          column_ref                                     :         ['$1'].
+column_ref_commalist ->                          function_ref                                   :         ['$1'].
 column_ref_commalist -> column_ref_commalist ',' column_ref                                     : '$1' ++ ['$3'].
 column_ref_commalist -> column_ref_commalist ',' function_ref                                   : '$1' ++ ['$3'].
 ============================================================================= */

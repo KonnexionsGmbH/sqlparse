@@ -1225,7 +1225,7 @@ create_code(create_index_def = Rule) ->
                 " On",
                 " ",
                 lists:nth(rand:uniform(Table_Length), Table),
-                case rand:uniform(3) rem 3 of
+                case rand:uniform(4) rem 4 of
                     1 -> lists:append([
                         " (",
                         case rand:uniform(2) rem 2 of
@@ -4864,29 +4864,26 @@ file_create_ct(Type, Rule) ->
     file_write_ct(Type, File, Code).
 
 file_write_ct(_Type, File, []) ->
+    io:format(File, "~s~n", ["    ok."]),
     file:close(File);
 file_write_ct(Type, File, [H | T]) ->
-    io:format(File, "~s~n", ["    " ++
+    io:format(File, "~s~n", [lists:append([
+        "    ",
         case Type of
             performance ->
                 "{ok, _} = sqlparse:parsetree_with_tokens";
             _ ->
                 "sqlparse_test:common_test_source"
-        end ++
-        "(\"" ++
+        end,
+        "(\"",
         case Type of
             reliability_sql ->
                 H ++ ";";
             _ ->
                 H
-        end ++
-        "\")" ++
-        case T of
-            [] ->
-                ".";
-            _ ->
-                ","
-        end]),
+        end,
+        "\"),"
+    ])]),
     file_write_ct(Type, File, T).
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

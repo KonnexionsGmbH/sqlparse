@@ -154,6 +154,15 @@ Old: data_type -> NAME '(' opt_sgn_num ')'                                      
 
 ```
 
+- **drop_table_def**
+
+```
+New: drop_table_def -> DROP      TABLE opt_exists table_list opt_restrict_cascade                    : {'drop table', {'tables', '$4'}, '$3', '$5', []}.
+     drop_table_def -> DROP NAME TABLE opt_exists table_list opt_restrict_cascade                    : {'drop table', {'tables', '$5'}, '$4', '$6', unwrap('$2')}.
+ 
+Old: drop_table_def -> DROP tbl_type TABLE opt_exists table_list opt_restrict_cascade                : {'drop table', {'tables', '$5'}, '$4', '$6', '$2'}.
+```
+
 - **from_column_commalist**
 
 ```
@@ -192,6 +201,16 @@ New: like_predicate -> scalar_exp not_like scalar_exp opt_escape                
 Old: like_predicate -> scalar_exp NOT LIKE scalar_exp opt_escape                                     : {'not', {'like', '$1', '$4', '$5'}}.
 ```
 
+- **opt_on_obj_clause**
+
+```
+New: opt_on_obj_clause -> ON JAVA SOURCE   table                                                     : {'on java source',   '$4'}.
+     opt_on_obj_clause -> ON JAVA RESOURCE table                                                     : {'on java resource', '$4'}.
+
+Old: opt_on_obj_clause -> ON JAVA SOURCE table                                                       : {'on java source', unwrap_bin('$4')}.
+     opt_on_obj_clause -> ON JAVA RESOURCE table                                                     : {'on java resource', unwrap_bin('$4')}.
+```
+
 - **query_partition_clause**
 
 ```
@@ -218,6 +237,14 @@ New: scalar_opt_as_exp -> scalar_exp    NAME                                    
  
 Old: scalar_opt_as_exp -> scalar_exp NAME                                                            : {as, '$1', unwrap_bin('$2')}.
      scalar_opt_as_exp -> scalar_exp AS NAME                                                         : {as, '$1', unwrap_bin('$3')}. 
+```
+
+- **schema**
+
+```
+New: schema -> CREATE SCHEMA AUTHORIZATION NAME opt_schema_element_list                              : {'create schema authorization', unwrap('$4'), '$5'}.
+
+Old: schema -> CREATE SCHEMA AUTHORIZATION user opt_schema_element_list                              : {'create schema authorization', '$4', '$5'}.
 ```
 
 - **search_condition**
@@ -289,6 +316,6 @@ Old: view_def -> AS query_spec opt_with_check_option                            
 
 - **Code coverage**: 100% code coverage in folder module sqlparse_fold.erl 
 - **Debugging refined**: eunit debugging messages at the start and the end of every fold function 
-- **Grammar cleanup**: removing ded grammar rules and reduce/reduce conflicts; minimising the shift/reduce conflicts 
+- **Grammar cleanup**: removing dead grammar rules and reduce/reduce conflicts; reducing the number of shift/reduce conflicts 
 - **JSONPath**: embedding JSONPath expressions in SQL grammar rules between two vertical bars 
 - **Test driver**: adding common test support and refactoring of eunit tests

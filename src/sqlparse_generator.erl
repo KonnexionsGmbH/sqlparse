@@ -80,7 +80,7 @@
     _Start = erlang:monotonic_time(1000)
 ).
 
--define(MAX_BASIC, 500).
+-define(MAX_BASIC, 250).
 -define(MAX_SQL, ?MAX_BASIC * 16).
 -define(MAX_STATEMENT_COMPLEX, ?MAX_BASIC * 8).
 -define(MAX_STATEMENT_SIMPLE, ?MAX_BASIC * 2).
@@ -434,7 +434,7 @@ create_code(all_or_any_predicate = Rule) ->
             ])
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, 0, true),
+    store_code(Rule, Code, 0, false),
     store_code(predicate, Code, ?MAX_BASIC, false),
     store_code(search_condition, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
@@ -554,7 +554,7 @@ create_code(approxnum = Rule) ->
             "63.4f",
             "634F"
         ],
-    store_code(Rule, Code, 0, true),
+    store_code(Rule, Code, 0, false),
     store_code(atom, Code, ?MAX_BASIC, false),
     store_code(fun_arg, Code, ?MAX_BASIC, false),
     store_code(literal, Code, ?MAX_BASIC, false),
@@ -585,7 +585,7 @@ create_code(assignment = Rule) ->
             ])
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -625,7 +625,7 @@ create_code(assignment_commalist = Rule) ->
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -641,7 +641,7 @@ create_code(atom = Rule) ->
         [
             "User"
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     store_code(scalar_sub_exp, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
@@ -669,7 +669,7 @@ create_code(between_predicate = Rule) ->
             ])
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     store_code(predicate, Code, ?MAX_BASIC, false),
     store_code(search_condition, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
@@ -711,10 +711,10 @@ create_code(case_when_exp = Rule) ->
         [
             lists:append(["(", C, ")"]) || C <- Code_1
         ],
-    store_code(Rule, Code ++ Code_1, ?MAX_BASIC, true),
-    store_code(select_field, Code, ?MAX_BASIC, true),
-    store_code(select_field_commalist, Code, ?MAX_BASIC, true),
-    store_code(selection, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code ++ Code_1, ?MAX_BASIC, false),
+    store_code(select_field, Code, ?MAX_BASIC, false),
+    store_code(select_field_commalist, Code, ?MAX_BASIC, false),
+    store_code(selection, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -738,7 +738,7 @@ create_code(case_when_then = Rule) ->
             ])
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -779,7 +779,7 @@ create_code(case_when_then_list = Rule) ->
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -835,7 +835,7 @@ create_code(column_commalist = Rule) ->
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -877,7 +877,7 @@ create_code(column_def = Rule) ->
             ])
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, 0, true),
+    store_code(Rule, Code, 0, false),
     store_code(base_table_element, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
@@ -944,7 +944,7 @@ create_code(column_def_opt = Rule) ->
         end
         || _ <- lists:seq(1, ?MAX_BASIC * 2)
     ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1010,7 +1010,7 @@ create_code(column_ref = Rule) ->
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     store_code(fun_arg, Code, ?MAX_BASIC, false),
     store_code(scalar_sub_exp, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
@@ -1104,7 +1104,7 @@ create_code(column_ref_commalist = Rule) ->
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1140,7 +1140,7 @@ create_code(comparison = Rule) ->
             " <= ",
             " >= "
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1182,7 +1182,7 @@ create_code(comparison_predicate = Rule) ->
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, 0, true),
+    store_code(Rule, Code, 0, false),
     store_code(predicate, Code, ?MAX_BASIC, false),
     store_code(search_condition, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
@@ -1225,9 +1225,9 @@ create_code(create_index_def = Rule) ->
                 " On",
                 " ",
                 lists:nth(rand:uniform(Table_Length), Table),
-                " (",
                 case rand:uniform(3) rem 3 of
                     1 -> lists:append([
+                        " (",
                         case rand:uniform(2) rem 2 of
                             1 ->
                                 " " ++ lists:nth(rand:uniform(Json_Length), Json);
@@ -1247,9 +1247,11 @@ create_code(create_index_def = Rule) ->
                                 " " ++ lists:nth(rand:uniform(Json_Length), Json);
                             _ ->
                                 " " ++ lists:nth(rand:uniform(Name_Length), Name)
-                        end
+                        end,
+                        ") "
                     ]);
                     2 -> lists:append([
+                        " (",
                         case rand:uniform(2) rem 2 of
                             1 ->
                                 " " ++ lists:nth(rand:uniform(Json_Length), Json);
@@ -1262,16 +1264,21 @@ create_code(create_index_def = Rule) ->
                                 " " ++ lists:nth(rand:uniform(Json_Length), Json);
                             _ ->
                                 " " ++ lists:nth(rand:uniform(Name_Length), Name)
-                        end
+                        end,
+                        ") "
                     ]);
-                    _ -> case rand:uniform(2) rem 2 of
-                             1 ->
-                                 " " ++ lists:nth(rand:uniform(Json_Length), Json);
-                             _ ->
-                                 " " ++ lists:nth(rand:uniform(Name_Length), Name)
-                         end
+                    3 -> lists:append([
+                        " (",
+                        case rand:uniform(2) rem 2 of
+                            1 ->
+                                " " ++ lists:nth(rand:uniform(Json_Length), Json);
+                            _ ->
+                                " " ++ lists:nth(rand:uniform(Name_Length), Name)
+                        end,
+                        ") "
+                    ]);
+                    _ -> []
                 end,
-                ") ",
                 case rand:uniform(2) rem 2 of
                     1 ->
                         " Norm_with " ++ lists:nth(rand:uniform(String_Length), String);
@@ -1430,7 +1437,7 @@ create_code(cursor = Rule) ->
         [
             re:replace(N, "IDENT", "CURSOR", [{return, list}]) || N <- Code_1
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1498,7 +1505,7 @@ create_code(data_type = Rule) ->
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1522,7 +1529,7 @@ create_code(db_user_proxy = Rule) ->
         end
         || _ <- lists:seq(1, ?MAX_BASIC * 2)
     ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1702,7 +1709,7 @@ create_code(existence_test = Rule) ->
                 "Exists " ++ bracket_query_spec(lists:nth(rand:uniform(Subquery_Length), Subquery))
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, 0, true),
+    store_code(Rule, Code, 0, false),
     store_code(predicate, Code, ?MAX_BASIC, false),
     store_code(search_condition, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
@@ -1724,7 +1731,7 @@ create_code(extra = Rule) ->
         [
                 re:replace(N, "IDENT", "_EXTRA_", [{return, list}]) ++ ";" || N <- Code_1
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1766,7 +1773,7 @@ create_code(from_column = Rule) ->
         [
             lists:append(["(", J, ")"]) || J <- Join_Clause
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1807,7 +1814,7 @@ create_code(from_column_commalist = Rule) ->
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1880,7 +1887,7 @@ create_code(fun_arg = Rule) ->
         end
         || _ <- lists:seq(1, ?MAX_BASIC * 2)
     ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1921,7 +1928,7 @@ create_code(fun_args = Rule) ->
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1967,7 +1974,8 @@ create_code(function_ref = Rule) ->
                          _ -> lists:append([
                              lists:nth(rand:uniform(Name_Length), Name),
                              "(",
-                                 lists:nth(rand:uniform(Fun_Args_Length), Fun_Args) ++ ")"
+                             lists:nth(rand:uniform(Fun_Args_Length), Fun_Args),
+                             ")"
                          ])
                      end;
                 _ -> lists:nth(rand:uniform(Funs_Length), Funs) ++
@@ -1990,7 +1998,7 @@ create_code(function_ref = Rule) ->
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     store_code(fun_arg, Code, ?MAX_BASIC, false),
     store_code(scalar_sub_exp, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
@@ -2037,7 +2045,7 @@ create_code(function_ref_list = Rule) ->
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2093,7 +2101,7 @@ create_code(funs = Rule) ->
             "VAR_SAMP",
             "VARIANCE"
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2115,8 +2123,11 @@ create_code(grant_def = Rule) ->
         [
             lists:append([
                 "Grant",
-                " ",
-                lists:nth(rand:uniform(System_Privilege_List_Length), System_Privilege_List),
+                case rand:uniform(2) rem 2 of
+                    1 ->
+                        " " ++ lists:nth(rand:uniform(System_Privilege_List_Length), System_Privilege_List);
+                    _ -> []
+                end,
                 case rand:uniform(2) rem 2 of
                     1 ->
                         " " ++ lists:nth(rand:uniform(On_Obj_Clause_Length), On_Obj_Clause);
@@ -2174,7 +2185,7 @@ create_code(grantee = Rule) ->
         end
         || _ <- lists:seq(1, ?MAX_BASIC * 2)
     ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2216,7 +2227,7 @@ create_code(hierarchical_query_clause = Rule) ->
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2254,7 +2265,7 @@ create_code(hint = Rule) ->
             "/*+ NO_MERGE(v) NO_PUSH_PRED(v) */",
             "/*+ NO_PARALLEL(hr_emp) */"
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2282,7 +2293,7 @@ create_code(identified = Rule) ->
         ])
         || _ <- lists:seq(1, ?MAX_BASIC * 2)
     ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     store_code(spec_item, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
@@ -2318,7 +2329,7 @@ create_code(in_predicate = Rule) ->
             ])
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, 0, true),
+    store_code(Rule, Code, 0, false),
     store_code(predicate, Code, ?MAX_BASIC, false),
     store_code(search_condition, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
@@ -2344,7 +2355,7 @@ create_code(index_name = Rule) ->
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2387,8 +2398,8 @@ create_code(inner_cross_join = Rule) ->
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, 0, true),
-    store_code(join, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, 0, false),
+    store_code(join, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2501,7 +2512,7 @@ create_code(intnum = Rule) ->
             "90",
             "90123456789012"
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     store_code(atom, Code, ?MAX_BASIC, false),
     store_code(fun_arg, Code, ?MAX_BASIC, false),
     store_code(literal, Code, ?MAX_BASIC, false),
@@ -2528,8 +2539,8 @@ create_code(join_clause = Rule) ->
             ])
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
-    store_code(from_column, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    % wwe store_code(from_column, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2571,7 +2582,7 @@ create_code(join_list = Rule) ->
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2599,7 +2610,7 @@ create_code(join_on_or_using_clause = Rule) ->
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2634,7 +2645,7 @@ create_code(join_ref = Rule) ->
             ])
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2675,8 +2686,8 @@ create_code(json = Rule) ->
             "|{_:b2}|",
             "|{}|"
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
-    store_code(column_ref, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    store_code(column_ref, Code, ?MAX_BASIC, false),
     store_code(scalar_sub_exp, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
@@ -2709,7 +2720,7 @@ create_code(like_predicate = Rule) ->
             ])
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, 0, true),
+    store_code(Rule, Code, 0, false),
     store_code(predicate, Code, ?MAX_BASIC, false),
     store_code(search_condition, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
@@ -2752,11 +2763,11 @@ create_code(name = Rule) ->
             "X@_ident",
             "X@YZ_ident"
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
-    store_code(column, Code, ?MAX_BASIC, true),
-    store_code(column_ref, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    store_code(column, Code, ?MAX_BASIC, false),
+    store_code(column_ref, Code, ?MAX_BASIC, false),
     store_code(scalar_sub_exp, Code, ?MAX_BASIC, false),
-    store_code(target, Code, ?MAX_BASIC, true),
+    store_code(target, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2791,7 +2802,7 @@ create_code(on_obj_clause = Rule) ->
                 end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2822,7 +2833,7 @@ create_code(opt_sgn_num = Rule) ->
         [
                 "-" ++ I || I <- Intnum
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2864,7 +2875,7 @@ create_code(order_by_clause = Rule) ->
                 end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2886,12 +2897,11 @@ create_code(ordering_spec = Rule) ->
                 end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% outer_join ::= ( 'NATURAL' outer_join_type 'JOIN' join_ref ( query_partition_clause )? ( join_on_or_using_clause )? )
-%%              | ( ( query_partition_clause ( 'NATURAL' )? )? outer_join_type 'JOIN' join_ref ( query_partition_clause )? ( join_on_or_using_clause )? )
+%% outer_join ::= outer_join ::= ( NATURAL | query_partition_clause | (query_partition_clause NATURAL) )? outer_join_type JOIN join_ref ( query_partition_clause )? ( join_on_or_using_clause )?
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(outer_join = Rule) ->
@@ -2907,55 +2917,33 @@ create_code(outer_join = Rule) ->
 
     Code =
         [
-            case rand:uniform(2) rem 2 of
-                1 -> lists:append([
-                    "Natural ",
-                    lists:nth(rand:uniform(Outer_Join_Type_Length), Outer_Join_Type),
-                    " Join ",
-                    lists:nth(rand:uniform(Join_Ref_Length), Join_Ref),
-                    case rand:uniform(2) rem 2 of
-                        1 ->
-                            " " ++ lists:nth(rand:uniform(Query_Partition_Clause_Length), Query_Partition_Clause);
-                        _ -> []
-                    end,
-                    case rand:uniform(2) rem 2 of
-                        1 ->
-                            " " ++ lists:nth(rand:uniform(Join_On_Or_Using_Clause_Length), Join_On_Or_Using_Clause);
-                        _ -> []
-                    end
-                ]);
-                _ -> lists:append([
-                    case rand:uniform(2) rem 2 of
-                        1 ->
-                            lists:append([
-                                lists:nth(rand:uniform(Query_Partition_Clause_Length), Query_Partition_Clause),
-                                " ",
-                                case rand:uniform(2) rem 2 of
-                                    1 -> "Natural ";
-                                    _ -> []
-                                end
-                            ]);
-                        _ -> []
-                    end,
-                    lists:nth(rand:uniform(Outer_Join_Type_Length), Outer_Join_Type),
-                    " Join ",
-                    lists:nth(rand:uniform(Join_Ref_Length), Join_Ref),
-                    case rand:uniform(2) rem 2 of
-                        1 ->
-                            " " ++ lists:nth(rand:uniform(Query_Partition_Clause_Length), Query_Partition_Clause);
-                        _ -> []
-                    end,
-                    case rand:uniform(2) rem 2 of
-                        1 ->
-                            " " ++ lists:nth(rand:uniform(Join_On_Or_Using_Clause_Length), Join_On_Or_Using_Clause);
-                        _ -> []
-                    end
-                ])
-            end
+            lists:append([
+                case rand:uniform(4) rem 4 of
+                    1 -> "Natural ";
+                    2 ->
+                        lists:nth(rand:uniform(Query_Partition_Clause_Length), Query_Partition_Clause) ++ " ";
+                    3 ->
+                        lists:nth(rand:uniform(Query_Partition_Clause_Length), Query_Partition_Clause) ++ " Natural ";
+                    _ -> []
+                end,
+                lists:nth(rand:uniform(Outer_Join_Type_Length), Outer_Join_Type),
+                " Join ",
+                lists:nth(rand:uniform(Join_Ref_Length), Join_Ref),
+                case rand:uniform(2) rem 2 of
+                    1 ->
+                        " " ++ lists:nth(rand:uniform(Query_Partition_Clause_Length), Query_Partition_Clause);
+                    _ -> []
+                end,
+                case rand:uniform(2) rem 2 of
+                    1 ->
+                        " " ++ lists:nth(rand:uniform(Join_On_Or_Using_Clause_Length), Join_On_Or_Using_Clause);
+                    _ -> []
+                end
+            ])
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, 0, true),
-    store_code(join, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, 0, false),
+    store_code(join, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2976,7 +2964,7 @@ create_code(outer_join_type = Rule) ->
             "Right",
             "Right Outer"
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3014,7 +3002,7 @@ create_code(parameter = Rule) ->
             ":par_65_1",
             ":par_65_2_"
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3038,11 +3026,11 @@ create_code(parameter_ref = Rule) ->
                 end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, 0, true),
+    store_code(Rule, Code, 0, false),
     store_code(atom, Code, ?MAX_BASIC, false),
     store_code(fun_arg, Code, ?MAX_BASIC, false),
     store_code(scalar_sub_exp, Code, ?MAX_BASIC, false),
-    store_code(target, Code, ?MAX_BASIC, true),
+    store_code(target, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3119,7 +3107,7 @@ create_code(proxy_clause = Rule) ->
             ])
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3147,7 +3135,7 @@ create_code(proxy_with = Rule) ->
         ])
         || _ <- lists:seq(1, ?MAX_BASIC * 2)
     ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3164,7 +3152,7 @@ create_code(query_partition_clause = Rule) ->
                 "Partition By" ++
                 case rand:uniform(2) rem 2 of
                     1 -> lists:append([
-                        "(",
+                        " (",
                         lists:nth(rand:uniform(Scalar_Exp_Commalist_Length), Scalar_Exp_Commalist),
                         ")"
                     ]);
@@ -3174,7 +3162,7 @@ create_code(query_partition_clause = Rule) ->
 
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3208,11 +3196,11 @@ create_code(query_exp = Rule) ->
             ])
             || _ <- lists:seq(1, ?MAX_STATEMENT_COMPLEX * 2)
         ],
-    store_code(Rule, Code, ?MAX_STATEMENT_COMPLEX, true),
+    store_code(Rule, Code, ?MAX_STATEMENT_COMPLEX, false),
     store_code(fun_arg, Code, ?MAX_BASIC, false),
     store_code(scalar_sub_exp, Code, ?MAX_BASIC, false),
-    store_code(select_statement, Code, ?MAX_STATEMENT_COMPLEX, true),
-    store_code(subquery, Code, ?MAX_STATEMENT_COMPLEX, true),
+    store_code(select_statement, Code, ?MAX_STATEMENT_COMPLEX, false),
+    store_code(subquery, Code, ?MAX_STATEMENT_COMPLEX, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3266,11 +3254,11 @@ create_code(query_spec = Rule) ->
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_COMPLEX, true),
     store_code(fun_arg, Code, ?MAX_BASIC, false),
-    store_code(query_exp, Code, ?MAX_STATEMENT_COMPLEX, true),
-    store_code(query_term, Code, ?MAX_STATEMENT_COMPLEX, true),
+    store_code(query_exp, Code, ?MAX_STATEMENT_COMPLEX, false),
+    store_code(query_term, Code, ?MAX_STATEMENT_COMPLEX, false),
     store_code(scalar_sub_exp, Code, ?MAX_BASIC, false),
-    store_code(select_statement, Code, ?MAX_STATEMENT_COMPLEX, true),
-    store_code(subquery, Code, ?MAX_STATEMENT_COMPLEX, true),
+    store_code(select_statement, Code, ?MAX_STATEMENT_COMPLEX, false),
+    store_code(subquery, Code, ?MAX_STATEMENT_COMPLEX, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3292,12 +3280,12 @@ create_code(query_term = Rule) ->
             ])
             || _ <- lists:seq(1, ?MAX_STATEMENT_COMPLEX * 2)
         ],
-    store_code(Rule, Code, ?MAX_STATEMENT_COMPLEX, true),
+    store_code(Rule, Code, ?MAX_STATEMENT_COMPLEX, false),
     store_code(fun_arg, Code, ?MAX_BASIC, false),
-    store_code(query_exp, Code, ?MAX_STATEMENT_COMPLEX, true),
+    store_code(query_exp, Code, ?MAX_STATEMENT_COMPLEX, false),
     store_code(scalar_sub_exp, Code, ?MAX_BASIC, false),
-    store_code(select_statement, Code, ?MAX_STATEMENT_COMPLEX, true),
-    store_code(subquery, Code, ?MAX_STATEMENT_COMPLEX, true),
+    store_code(select_statement, Code, ?MAX_STATEMENT_COMPLEX, false),
+    store_code(subquery, Code, ?MAX_STATEMENT_COMPLEX, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3334,7 +3322,7 @@ create_code(quota = Rule) ->
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3354,7 +3342,7 @@ create_code(range_variable = Rule) ->
         [
             re:replace(N, "IDENT", "RANGE_VARIABLE", [{return, list}]) || N <- Code_1
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3380,7 +3368,7 @@ create_code(returning = Rule) ->
             ])
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3401,8 +3389,12 @@ create_code(revoke_def = Rule) ->
     Code =
         [
             lists:append([
-                "Revoke ",
-                lists:nth(rand:uniform(System_Privilege_List_Length), System_Privilege_List),
+                "Revoke",
+                case rand:uniform(2) rem 2 of
+                    1 ->
+                        " " ++ lists:nth(rand:uniform(System_Privilege_List_Length), System_Privilege_List);
+                    _ -> []
+                end,
                 case rand:uniform(2) rem 2 of
                     1 ->
                         " " ++ lists:nth(rand:uniform(On_Obj_Clause_Length), On_Obj_Clause);
@@ -3434,7 +3426,7 @@ create_code(revoke_def = Rule) ->
             ])
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
     store_code(manipulative_statement, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
@@ -3475,7 +3467,7 @@ create_code(role_list = Rule) ->
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3517,7 +3509,7 @@ create_code(scalar_exp = Rule) ->
                 end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3559,7 +3551,7 @@ create_code(scalar_exp_commalist = Rule) ->
 
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3596,11 +3588,11 @@ create_code(scalar_opt_as_exp = Rule) ->
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
-    store_code(comparison_predicate, Code, ?MAX_BASIC, true),
-    store_code(select_field, Code, ?MAX_BASIC, true),
-    store_code(select_field_commalist, Code, ?MAX_BASIC, true),
-    store_code(selection, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    store_code(comparison_predicate, Code, ?MAX_BASIC, false),
+    store_code(select_field, Code, ?MAX_BASIC, false),
+    store_code(select_field_commalist, Code, ?MAX_BASIC, false),
+    store_code(selection, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3656,8 +3648,8 @@ create_code(scalar_sub_exp = Rule) ->
         end
         || _ <- lists:seq(1, ?MAX_BASIC * 2)
     ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
-    store_code(scalar_exp, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    store_code(scalar_exp, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3778,10 +3770,10 @@ create_code(select_field_commalist = Rule) ->
             end
         || _ <- lists:seq(1, ?MAX_BASIC * 2)
     ],
-    store_code(Rule, Code_1, ?MAX_BASIC, true),
-    store_code(selec_field, Code_1, ?MAX_BASIC, true),
-    store_code(select_field_commalist, Code_1, ?MAX_BASIC, true),
-    store_code(selection, Code_1, ?MAX_BASIC, true),
+    store_code(Rule, Code_1, ?MAX_BASIC, false),
+    store_code(selec_field, Code_1, ?MAX_BASIC, false),
+    store_code(select_field_commalist, Code_1, ?MAX_BASIC, false),
+    store_code(selection, Code_1, ?MAX_BASIC, false),
 
     [{select_field, Select_Field}] = dets:lookup(?CODE_TEMPLATES, select_field),
     Select_Field_Length = length(Select_Field),
@@ -3815,9 +3807,9 @@ create_code(select_field_commalist = Rule) ->
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
-    store_code(select_field_commalist, Code, ?MAX_BASIC, true),
-    store_code(selection, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    store_code(select_field_commalist, Code, ?MAX_BASIC, false),
+    store_code(selection, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4031,14 +4023,14 @@ create_code(string = Rule) ->
             "'string_65_1'",
             "'string_65_2_'"
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     store_code(atom, Code, ?MAX_BASIC, false),
-    store_code(column, Code, ?MAX_BASIC, true),
-    store_code(data_type, Code, ?MAX_BASIC, true),
+    store_code(column, Code, ?MAX_BASIC, false),
+    store_code(data_type, Code, ?MAX_BASIC, false),
     store_code(fun_arg, Code, ?MAX_BASIC, false),
     store_code(literal, Code, ?MAX_BASIC, false),
     store_code(scalar_sub_exp, Code, ?MAX_BASIC, false),
-    store_code(table, Code, ?MAX_BASIC, true),
+    store_code(table, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4089,7 +4081,7 @@ create_code(system_privilege = Rule) ->
         end
         || _ <- lists:seq(1, ?MAX_BASIC * 2)
     ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4134,7 +4126,7 @@ create_code(system_privilege_list = Rule) ->
         end
         || _ <- lists:seq(1, ?MAX_BASIC * 2)
     ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4196,10 +4188,10 @@ create_code(table = Rule) ->
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
-    store_code(from_column, Code, ?MAX_BASIC, true),
-    store_code(join_ref, Code, ?MAX_BASIC, true),
-    store_code(table_ref, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    store_code(from_column, Code, ?MAX_BASIC, false),
+    store_code(join_ref, Code, ?MAX_BASIC, false),
+    store_code(table_ref, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4254,7 +4246,7 @@ create_code(table_constraint_def = Rule) ->
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, 0, true),
+    store_code(Rule, Code, 0, false),
     store_code(base_table_element, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
@@ -4310,7 +4302,7 @@ create_code(table_exp = Rule) ->
             ])
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4341,7 +4333,7 @@ create_code(table_name = Rule) ->
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4363,18 +4355,21 @@ create_code(table_ref = Rule) ->
                 lists:nth(rand:uniform(Query_Exp_Length), Query_Exp),
                 ")",
                 case rand:uniform(2) rem 2 of
-                    1 -> case rand:uniform(2) rem 2 of
-                             1 -> " As";
-                             _ -> []
-                         end ++
-                        " " ++ lists:nth(rand:uniform(Name_Length), Name);
+                    1 -> lists:append([
+                        case rand:uniform(2) rem 2 of
+                            1 -> " As";
+                            _ -> []
+                        end,
+                        " ",
+                        lists:nth(rand:uniform(Name_Length), Name)
+                    ]);
                     _ -> []
                 end
             ])
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
-    store_code(from_column, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    store_code(from_column, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4398,8 +4393,8 @@ create_code(table_ref_1 = _Rule) ->
             ])
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(from_column, Code, ?MAX_BASIC, true),
-    store_code(table_ref, Code, ?MAX_BASIC, true),
+    store_code(from_column, Code, ?MAX_BASIC, false),
+    store_code(table_ref, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4439,7 +4434,7 @@ create_code(target_commalist = Rule) ->
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4457,7 +4452,7 @@ create_code(tbl_scope = Rule) ->
             "Local",
             "Schema"
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4477,7 +4472,7 @@ create_code(tbl_type = Rule) ->
             "Ordered_set",
             "Set"
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4502,7 +4497,7 @@ create_code(test_for_null = Rule) ->
             ])
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, 0, true),
+    store_code(Rule, Code, 0, false),
     store_code(predicate, Code, ?MAX_BASIC, false),
     store_code(search_condition, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
@@ -4563,11 +4558,12 @@ create_code(update_statement = Rule) ->
                 lists:nth(rand:uniform(Table_Length), Table),
                 " Set ",
                 lists:nth(rand:uniform(Assignment_Commalist_Length), Assignment_Commalist),
-                case rand:uniform(2) rem 2 of
+                case rand:uniform(3) rem 3 of
                     1 ->
                         " Where Current Of " ++ lists:nth(rand:uniform(Cursor_Length), Cursor);
-                    _ ->
-                        " " ++ lists:nth(rand:uniform(Where_Clause_Length), Where_Clause)
+                    2 ->
+                        " " ++ lists:nth(rand:uniform(Where_Clause_Length), Where_Clause);
+                    _ -> []
                 end,
                 case rand:uniform(2) rem 2 of
                     1 ->
@@ -4624,7 +4620,7 @@ create_code(user_opt = Rule) ->
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     store_code(spec_item, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
@@ -4653,7 +4649,7 @@ create_code(user_role = Rule) ->
             end
         || _ <- lists:seq(1, ?MAX_BASIC * 2)
     ],
-    store_code(Rule, Code, 0, true),
+    store_code(Rule, Code, 0, false),
     store_code(spec_item, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
@@ -4718,7 +4714,7 @@ create_code(when_action = Rule) ->
         ] ++ [
             "Goto " ++ N || N <- Name
     ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4763,7 +4759,7 @@ create_code(where_clause = Rule) ->
                 "Where " ++ lists:nth(rand:uniform(Search_Condition_Length), Search_Condition)
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4779,7 +4775,7 @@ create_code(with_grant_option = Rule) ->
             "With Name Option",
             "With Hierarchy Option"
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4795,7 +4791,7 @@ create_code(with_revoke_option = Rule) ->
             "Cascade Constraints",
             "Force"
         ],
-    store_code(Rule, Code, ?MAX_BASIC, true),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

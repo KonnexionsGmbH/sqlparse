@@ -34,16 +34,16 @@ IF "%1" == "" (
     ECHO !TIME! Start run - in total %NO_RUNS%
 
     RD _build\test\logs /Q /S
-    RD \test\backup /Q /S
     MD _build\test\logs
+    RD \tmp\backup /Q /S
 
     FOR /L %%G IN (1,1,%NO_RUNS%) DO (
        ECHO -----------------------------------------------------------------------
        ECHO !TIME! %%G. Step: gen_tests.bat
        CALL gen_tests.bat
        DEL test\reliability_*_SUITE.erl
-       MD test\backup\%%G
-       COPY test\*_SUITE.erl test\backup\%%G
+       MD tmp\backup\%%G
+       COPY test\*_SUITE.erl tmp\backup\%%G
        ECHO !TIME! %%G. Step: rebar3 ct
        CALL rebar3 ct
     )

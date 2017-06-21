@@ -307,15 +307,15 @@ Old: view_def -> AS query_spec opt_with_check_option                            
 
 ### New features
 
-- **BNFC (BNF Converter)**: grammar in LBNF (Labelled BNF grammar) format to enable the [BNFC tools](http://bnfc.digitalgrammars.com "BNFC")
-- **Generating test data**: module and scripts to generate test data covering the whole grammar definition for common test and eunit test
-- **Railroad diagrams**: grammar definition in EBNF format to create railroad diagrams with the online application [Railroad Diagram Generator](http://bottlecaps.de/rr/ui "Railroad Diagram Generator") 
-- **Wiki documentation**: extending the documentation via GitHub Wiki
+- **BNFC (BNF Converter):** grammar in LBNF (Labelled BNF grammar) format to enable the [BNFC tools](http://bnfc.digitalgrammars.com "BNFC")
+- **Generating test data:** module and scripts to generate test data covering the whole grammar definition for common test and eunit test
+- **Railroad diagrams:** grammar definition in EBNF format to create railroad diagrams with the online application [Railroad Diagram Generator](http://bottlecaps.de/rr/ui "Railroad Diagram Generator") 
+- **Wiki documentation:** extending the documentation via GitHub Wiki
 
 ### Modified features
 
-- **Code coverage**: 100% code coverage in folder module sqlparse_fold.erl 
-- **Debugging refined**: eunit debugging messages at the start and the end of every fold function 
-- **Grammar cleanup**: removing dead grammar rules and reduce/reduce conflicts; reducing the number of shift/reduce conflicts 
-- **JSONPath**: embedding JSONPath expressions in SQL grammar rules between two vertical bars 
-- **Test driver**: adding common test support and refactoring of eunit tests
+- **Code coverage:** 100% code coverage in folder module sqlparse_fold.erl 
+- **Debugging refined:** eunit debugging messages at the start and the end of every fold function 
+- **Grammar cleanup:** removing dead grammar rules and reduce/reduce conflicts; reducing the number of shift/reduce conflicts 
+- **JSONPath:** embedding JSONPath expressions in SQL grammar rules between two vertical bars 
+- **Test driver:** adding common test support and refactoring the eunit support

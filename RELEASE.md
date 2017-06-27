@@ -166,7 +166,7 @@ Old: drop_table_def -> DROP tbl_type TABLE opt_exists table_list opt_restrict_ca
 - **from_column_commalist**
 
 ```
-New: from_column -> '(' join_clause ')'                                                              : {['$2'], "("}.
+New: from_column -> '(' join_clause ')'                                                              : [{'$2', "("}].
  
 Old: from_commalist -> '(' join_clause ')'                                                           : ['$2'].
 ```

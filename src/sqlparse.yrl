@@ -597,7 +597,7 @@ view_def -> AS query_spec                                                       
 view_def -> AS query_spec WITH CHECK OPTION                                                     : {as, '$2', " with check option", "as "}.
 
 opt_column_commalist -> '$empty'                                                                : [].
-opt_column_commalist -> '(' column_commalist ')'                                                : {'$2', "("}.
+opt_column_commalist -> '(' column_commalist ')'                                                : '$2'.
 
 grant_def -> GRANT system_privilege_list opt_on_obj_clause TO grantee_commalist opt_with_grant_option
                                                                                                 : {grant, '$2', '$3', {to, '$5'}, '$6'}.
@@ -801,8 +801,8 @@ select_field -> case_when_opt_as_exp                                            
 select_field -> scalar_opt_as_exp                                                               : ['$1'].
 select_field -> '*'                                                                             : [<<"*">>].
 
-select_field_commalist ->                            select_field                               :         ['$1'].
-select_field_commalist -> select_field_commalist ',' select_field                               : '$1' ++ ['$3'].
+select_field_commalist ->                            select_field                               :         '$1'.
+select_field_commalist -> select_field_commalist ',' select_field                               : '$1' ++ '$3'.
 
 case_when_opt_as_exp -> case_when_exp                                                           : '$1'.
 case_when_opt_as_exp -> case_when_exp    NAME                                                   : {as, '$1', unwrap_bin('$2'), " "}.
@@ -829,11 +829,11 @@ table_exp -> from_clause opt_where_clause
 from_clause -> FROM from_column_commalist                                                       : {from, '$2'}.
 
 from_column -> table_ref                                                                        : ['$1'].
-from_column -> '(' join_clause ')'                                                              : {['$2'], "("}.
+from_column -> '(' join_clause ')'                                                              : [{'$2', "("}].
 from_column ->     join_clause                                                                  : ['$1'].
 
-from_column_commalist ->                           from_column                                  :        ['$1'].
-from_column_commalist -> from_column_commalist ',' from_column                                  : '$1'++ ['$3'].
+from_column_commalist ->                           from_column                                  :        '$1'.
+from_column_commalist -> from_column_commalist ',' from_column                                  : '$1'++ '$3'.
 
 join_clause -> table_ref join_list                                                              : {'$1', '$2'}.
 

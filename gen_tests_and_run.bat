@@ -37,5 +37,7 @@ rem ----------------------------------------------------------------------------
     ECHO !DATE!_!TIME!
     CALL rebar3 cover
     ECHO !DATE!_!TIME!
+    CALL rebar3 dialyzer
+    ECHO !DATE!_!TIME!
 
 )

@@ -715,7 +715,7 @@ fold(FType, Fun, Ctx, Lvl, {'create view', Table, []} = ST) ->
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
 
-fold(FType, Fun, Ctx, Lvl, {'create view', Table, {Columns, "("}} = ST) ->
+fold(FType, Fun, Ctx, Lvl, {'create view', Table, Columns} = ST) ->
     ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, ST]),
     NewCtx = case FType of
                  top_down -> Fun(ST, Ctx);
@@ -1507,13 +1507,13 @@ fold(FType, Fun, Ctx, Lvl, {insert, Tab, {cols, Columns}, {values, Values}, Retu
                             _ -> fold(FType, Fun, NewCtx, Lvl + 1, Tab)
                         end,
     {CStrs, NewCtx2} = case Columns of
-                           {Cols, _} -> lists:foldl(fun(C, {Acc, CtxAcc}) ->
+                           [] -> {[], NewCtx1};
+                           _ -> lists:foldl(fun(C, {Acc, CtxAcc}) ->
                                {CT, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, C),
                                {Acc ++ [CT], CtxAcc1}
-                                                    end,
+                                            end,
                                {[], NewCtx1},
-                               Cols);
-                           [] -> {[], NewCtx1}
+                               Columns)
                        end,
     {Vals, NewCtx3} = lists:foldl(fun(V, {Acc1, CtxAcc1}) ->
         case V of
@@ -1556,13 +1556,13 @@ fold(FType, Fun, Ctx, Lvl, {insert, Tab, {cols, Columns}, {select, _} = SubQuery
                             _ -> fold(FType, Fun, NewCtx, Lvl + 1, Tab)
                         end,
     {CStrs, NewCtx2} = case Columns of
-                           {Cols, _} -> lists:foldl(fun(C, {Acc, CtxAcc}) ->
+                           [] -> {[], NewCtx1};
+                           _ -> lists:foldl(fun(C, {Acc, CtxAcc}) ->
                                {CT, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, C),
                                {Acc ++ [CT], CtxAcc1}
-                                                    end,
+                                            end,
                                {[], NewCtx1},
-                               Cols);
-                           [] -> {[], NewCtx1}
+                               Columns)
                        end,
     {SubQueryStr, NewCtx3} = fold(FType, Fun, NewCtx2, Lvl + 1, SubQuery),
     {Ret, NewCtx4} = fold(FType, Fun, NewCtx3, Lvl + 1, Return),

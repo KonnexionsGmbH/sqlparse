@@ -595,7 +595,7 @@ fold(FType, Fun, Ctx, Lvl, {'create table', Tab, Fields, Opts} = ST) ->
     NewCtx2 = Fun(Tab, NewCtx1),
     {Clms, NewCtx3} = lists:foldl(fun(Clm, {Acc, CtxAcc}) ->
         case Clm of
-            {C, {T, "(", N, N1}, O} when is_binary(C) ->
+            {C, {T, N, N1}, O} when is_binary(C) ->
                 CtxAcc1 = Fun(C, CtxAcc),
                 CtxAcc2 = Fun(T, CtxAcc1),
                 CtxAcc3 = Fun(N, CtxAcc2),
@@ -604,7 +604,7 @@ fold(FType, Fun, Ctx, Lvl, {'create table', Tab, Fields, Opts} = ST) ->
                 {Acc ++ [binary_to_list(
                     list_to_binary([C, " ", T, "(", N, ",", N1, ")", SubAcc])
                 )], CtxAcc5};
-            {C, {T, "(", N}, O} when is_binary(C) ->
+            {C, {T, N}, O} when is_binary(C) ->
                 CtxAcc1 = Fun(C, CtxAcc),
                 CtxAcc2 = Fun(T, CtxAcc1),
                 CtxAcc3 = Fun(N, CtxAcc2),

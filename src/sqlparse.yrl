@@ -1077,8 +1077,8 @@ column_ref -> NAME '.' NAME '.' '*'                                             
 
 data_type -> STRING                                                                             : unwrap_bin('$1').
 data_type -> NAME                                                                               : unwrap_bin('$1').
-data_type -> NAME '(' opt_sgn_num ')'                                                           : {unwrap_bin('$1'), "(", '$3'}.
-data_type -> NAME '(' opt_sgn_num ',' opt_sgn_num ')'                                           : {unwrap_bin('$1'), "(", '$3', '$5'}.
+data_type -> NAME '(' opt_sgn_num ')'                                                           : {unwrap_bin('$1'), '$3'}.
+data_type -> NAME '(' opt_sgn_num ',' opt_sgn_num ')'                                           : {unwrap_bin('$1'), '$3', '$5'}.
 
 opt_sgn_num ->     INTNUM                                                                       : unwrap_bin('$1').
 opt_sgn_num -> '-' INTNUM                                                                       : list_to_binary(["-",unwrap_bin('$2')]).

@@ -143,17 +143,6 @@ Old: create_index_spec_items -> JSON                                            
      create_index_spec_items -> JSON '|' create_index_spec_items                                     : [jpparse('$1') | '$3'].
 ```
 
-- **data_type**
-
-```
-New: data_type -> NAME '(' opt_sgn_num ')'                                                           : {unwrap_bin('$1'), "(", '$3'}.
-     data_type -> NAME '(' opt_sgn_num ',' opt_sgn_num ')'                                           : {unwrap_bin('$1'), "(", '$3', '$5'}.
- 
-Old: data_type -> NAME '(' opt_sgn_num ')'                                                           : {unwrap_bin('$1'), '$3'}.
-     data_type -> NAME '(' opt_sgn_num ',' opt_sgn_num ')'                                           : {unwrap_bin('$1'), '$3', '$5'}.
-
-```
-
 - **drop_table_def**
 
 ```

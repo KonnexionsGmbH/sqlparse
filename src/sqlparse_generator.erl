@@ -530,26 +530,26 @@ create_code(approxnum = Rule) ->
         [
             "0.5",
             "0.5d",
-            "0.5e",
-            "0.5ed",
+            "0.5e1",
+            "0.5e2d",
             "05d",
             "1.0",
             "1.1D",
             "1D",
-            "1e",
-            "1eD",
+            "1e3",
+            "1e4D",
             "2.5",
             "2.5e-03",
             "2.5f",
             "2.5F",
-            "25e",
+            "25e5",
             "25e-03",
             "25e-03d",
-            "25ef",
+            "25e6f",
             "25f",
             "6.34",
-            "6.34e",
-            "6.34eF",
+            "6.34e7",
+            "6.34e8F",
             "6.34F",
             "63.4f",
             "634F"
@@ -3199,7 +3199,7 @@ create_code(query_exp = Rule) ->
     store_code(Rule, Code, ?MAX_STATEMENT_COMPLEX, false),
     store_code(fun_arg, Code, ?MAX_BASIC, false),
     store_code(scalar_sub_exp, Code, ?MAX_BASIC, false),
-    store_code(select_statement, Code, ?MAX_STATEMENT_COMPLEX, false),
+    store_code(select_statement, Code, ?MAX_STATEMENT_COMPLEX, true),
     store_code(subquery, Code, ?MAX_STATEMENT_COMPLEX, false),
     ?CREATE_CODE_END;
 
@@ -3257,7 +3257,7 @@ create_code(query_spec = Rule) ->
     store_code(query_exp, Code, ?MAX_STATEMENT_COMPLEX, false),
     store_code(query_term, Code, ?MAX_STATEMENT_COMPLEX, false),
     store_code(scalar_sub_exp, Code, ?MAX_BASIC, false),
-    store_code(select_statement, Code, ?MAX_STATEMENT_COMPLEX, false),
+    store_code(select_statement, Code, ?MAX_STATEMENT_COMPLEX, true),
     store_code(subquery, Code, ?MAX_STATEMENT_COMPLEX, false),
     ?CREATE_CODE_END;
 
@@ -3284,7 +3284,7 @@ create_code(query_term = Rule) ->
     store_code(fun_arg, Code, ?MAX_BASIC, false),
     store_code(query_exp, Code, ?MAX_STATEMENT_COMPLEX, false),
     store_code(scalar_sub_exp, Code, ?MAX_BASIC, false),
-    store_code(select_statement, Code, ?MAX_STATEMENT_COMPLEX, false),
+    store_code(select_statement, Code, ?MAX_STATEMENT_COMPLEX, true),
     store_code(subquery, Code, ?MAX_STATEMENT_COMPLEX, false),
     ?CREATE_CODE_END;
 
@@ -3808,7 +3808,6 @@ create_code(select_field_commalist = Rule) ->
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
     store_code(Rule, Code, ?MAX_BASIC, false),
-    store_code(select_field_commalist, Code, ?MAX_BASIC, false),
     store_code(selection, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 

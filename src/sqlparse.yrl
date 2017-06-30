@@ -593,8 +593,8 @@ column_commalist -> column                                                      
 column_commalist -> column ',' column_commalist                                                 : ['$1' | '$3'].
 
 view_def -> CREATE VIEW table opt_column_commalist                                              : {'create view', '$3', '$4'}.
-view_def -> AS query_spec                                                                       : {as, '$2', [],                   "as "}.
-view_def -> AS query_spec WITH CHECK OPTION                                                     : {as, '$2', " with check option", "as "}.
+view_def -> AS query_spec                                                                       : {as, '$2', [],                }.
+view_def -> AS query_spec WITH CHECK OPTION                                                     : {as, '$2', "with check option"}.
 
 opt_column_commalist -> '$empty'                                                                : [].
 opt_column_commalist -> '(' column_commalist ')'                                                : '$2'.
@@ -782,7 +782,7 @@ returning -> RETURNING selection INTO selection                                 
 returning -> RETURN    selection INTO selection                                                 : {return,    '$2', '$4'}.
 
 query_term -> query_spec                                                                        : '$1'.
-query_term -> '(' query_exp ')'                                                                 : {'$2', "("}.
+query_term -> '(' query_exp ')'                                                                 : '$2'.
 
 query_spec -> SELECT opt_hint opt_all_distinct selection opt_into table_exp                     : {select,
                                                                                                    if '$2' == {} -> []; true -> ['$2'] end ++
@@ -805,10 +805,10 @@ select_field_commalist ->                            select_field               
 select_field_commalist -> select_field_commalist ',' select_field                               : '$1' ++ '$3'.
 
 case_when_opt_as_exp -> case_when_exp                                                           : '$1'.
-case_when_opt_as_exp -> case_when_exp    NAME                                                   : {as, '$1', unwrap_bin('$2'), " "}.
-case_when_opt_as_exp -> case_when_exp AS NAME                                                   : {as, '$1', unwrap_bin('$3'), " as "}.
+case_when_opt_as_exp -> case_when_exp    NAME                                                   : {as, '$1', unwrap_bin('$2')}.
+case_when_opt_as_exp -> case_when_exp AS NAME                                                   : {as, '$1', unwrap_bin('$3')}.
 
-case_when_exp -> '(' case_when_exp ')'                                                          : {'$2', "("}.
+case_when_exp -> '(' case_when_exp ')'                                                          : '$2'.
 case_when_exp -> CASE                   case_when_then_list opt_else END                        : {'case', <<>>, '$2', '$3'}.
 case_when_exp -> CASE scalar_opt_as_exp case_when_then_list opt_else END                        : {'case', '$2', '$3', '$4'}.
 
@@ -829,7 +829,7 @@ table_exp -> from_clause opt_where_clause
 from_clause -> FROM from_column_commalist                                                       : {from, '$2'}.
 
 from_column -> table_ref                                                                        : ['$1'].
-from_column -> '(' join_clause ')'                                                              : [{'$2', "("}].
+from_column -> '(' join_clause ')'                                                              : ['$2'].
 from_column ->     join_clause                                                                  : ['$1'].
 
 from_column_commalist ->                           from_column                                  :        '$1'.
@@ -874,8 +874,8 @@ outer_join -> query_partition_clause NATURAL outer_join_type JOIN join_ref query
                                                                                                 : {{'$3', '$1', natural}, '$5', '$6', '$7'}.
 % -----------------------------------------------------------------------------------------------
 
-query_partition_clause -> PARTITION BY     scalar_exp_commalist                                 : {partition_by, '$3', []} .
-query_partition_clause -> PARTITION BY '(' scalar_exp_commalist ')'                             : {partition_by, '$4', "("}.
+query_partition_clause -> PARTITION BY     scalar_exp_commalist                                 : {partition_by, '$3'} .
+query_partition_clause -> PARTITION BY '(' scalar_exp_commalist ')'                             : {partition_by, '$4'}.
 
 outer_join_type -> FULL                                                                         : full.
 outer_join_type -> FULL  OUTER                                                                  : full_outer.
@@ -886,14 +886,14 @@ outer_join_type -> RIGHT OUTER                                                  
 
 table_ref -> table                                                                              : '$1'.
 table_ref -> table range_variable                                                               : {'$1', '$2'}.
-table_ref -> '(' query_exp ')'                                                                  : {'$2', "("}.
-table_ref -> '(' query_exp ')'    NAME                                                          : {as, {'$2', "("}, unwrap_bin('$4'), " "}.
-table_ref -> '(' query_exp ')' AS NAME                                                          : {as, {'$2', "("}, unwrap_bin('$5'), " as "}.
+table_ref -> '(' query_exp ')'                                                                  : '$2'.
+table_ref -> '(' query_exp ')'    NAME                                                          : {as, '$2', unwrap_bin('$4')}.
+table_ref -> '(' query_exp ')' AS NAME                                                          : {as, '$2', unwrap_bin('$5')}.
 
 join_ref -> table                                                                               : '$1'.
-join_ref -> '(' query_exp ')'                                                                   : {'$2', "("}.
-join_ref -> '(' query_exp ')'    NAME                                                           : {as, {'$2', "("}, unwrap_bin('$4'), " "}.
-join_ref -> '(' query_exp ')' AS NAME                                                           : {as, {'$2', "("}, unwrap_bin('$5'), " as "}.
+join_ref -> '(' query_exp ')'                                                                   : '$2'.
+join_ref -> '(' query_exp ')'    NAME                                                           : {as, '$2', unwrap_bin('$4')}.
+join_ref -> '(' query_exp ')' AS NAME                                                           : {as, '$2', unwrap_bin('$5')}.
 
 hierarchical_query_clause -> START WITH search_condition CONNECT BY opt_nocycle search_condition: {'hierarchical query', {{'start with', '$3'}, {'connect by', '$6', '$7'}}}.
 hierarchical_query_clause -> CONNECT BY opt_nocycle search_condition START WITH search_condition: {'hierarchical query', {{'connect by', '$3', '$4'}, {'start with', '$7'}}}.
@@ -921,7 +921,7 @@ opt_having_clause -> HAVING search_condition                                    
 search_condition -> search_condition OR search_condition                                        : {'or', '$1', '$3'}.
 search_condition -> search_condition AND search_condition                                       : {'and', '$1', '$3'}.
 search_condition -> NOT search_condition                                                        : {'not', '$2'}.
-search_condition -> '(' search_condition ')'                                                    : {'$2', "("}.
+search_condition -> '(' search_condition ')'                                                    : '$2'.
 search_condition -> predicate                                                                   : '$1'.
 
 predicate -> comparison_predicate                                                               : '$1'.
@@ -936,30 +936,30 @@ comparison_predicate -> scalar_opt_as_exp                                       
 comparison_predicate -> PRIOR scalar_exp COMPARISON scalar_exp                                  : {unwrap('$3'), {prior, '$2'}, '$4'}.
 comparison_predicate -> scalar_exp COMPARISON PRIOR scalar_exp                                  : {unwrap('$2'), '$1', {prior, '$4'}}.
 
-between_predicate -> scalar_exp not_between scalar_exp AND scalar_exp                           : {'not between', '$1', '$3', '$5'}.
-between_predicate -> scalar_exp     BETWEEN scalar_exp AND scalar_exp                           : {between,       '$1', '$3', '$5'}.
+between_predicate -> scalar_exp not_between scalar_exp AND scalar_exp                           : {'not', {between, '$1', '$4', '$6'}}.
+between_predicate -> scalar_exp     BETWEEN scalar_exp AND scalar_exp                           :         {between, '$1', '$3', '$5'}.
 
 not_between -> NOT BETWEEN                                                                      : 'not between'.
 
-like_predicate -> scalar_exp not_like scalar_exp opt_escape                                     : {'not like', '$1', '$3', '$4'}.
-like_predicate -> scalar_exp     LIKE scalar_exp opt_escape                                     : {like,       '$1', '$3', '$4'}.
+like_predicate -> scalar_exp not_like scalar_exp opt_escape                                     : {'not', {like, '$1', '$4', '$5'}}.
+like_predicate -> scalar_exp     LIKE scalar_exp opt_escape                                     :         {like, '$1', '$3', '$4'}.
 
 not_like -> NOT LIKE                                                                            : 'not like'.
 
 opt_escape  -> '$empty'                                                                         : <<>>.
 opt_escape  -> ESCAPE atom                                                                      : '$2'.
 
-test_for_null -> scalar_exp is_not_null                                                         : {'is not', '$1', <<"null">>}.
-test_for_null -> scalar_exp is_null                                                             : {'is',     '$1', <<"null">>}.
+test_for_null -> scalar_exp is_not_null                                                         : {'not', {'is', '$1', <<"null">>}}.
+test_for_null -> scalar_exp is_null                                                             :         {'is', '$1', <<"null">>}.
 
 is_not_null -> IS NOT NULLX                                                                     : 'is not'.
 
 is_null -> IS NULLX                                                                             : is.
 
-in_predicate -> scalar_exp not_in '(' subquery ')'                                              : {'not in', '$1', '$4'}.
-in_predicate -> scalar_exp     IN '(' subquery ')'                                              : {in,       '$1', '$4'}.
-in_predicate -> scalar_exp not_in '(' scalar_exp_commalist ')'                                  : {'not in', '$1', {list, '$4'}}.
-in_predicate -> scalar_exp     IN '(' scalar_exp_commalist ')'                                  : {in,       '$1', {list, '$4'}}.
+in_predicate -> scalar_exp not_in '(' subquery ')'                                              : {'not', {in, '$1', '$5'}}.
+in_predicate -> scalar_exp     IN '(' subquery ')'                                              :         {in, '$1', '$4'}.
+in_predicate -> scalar_exp not_in '(' scalar_exp_commalist ')'                                  : {'not', {in, '$1', {list, '$5'}}}.
+in_predicate -> scalar_exp     IN '(' scalar_exp_commalist ')'                                  :         {in, '$1', {list, '$4'}}.
 
 not_in -> NOT IN                                                                                : 'not in'.
 
@@ -979,8 +979,8 @@ subquery -> query_exp                                                           
 
 scalar_opt_as_exp -> scalar_exp                                                                 : '$1'.
 scalar_opt_as_exp -> scalar_exp COMPARISON scalar_exp                                           : {unwrap('$2'), '$1', '$3'}.
-scalar_opt_as_exp -> scalar_exp    NAME                                                         : {as, '$1', unwrap_bin('$2'), " "}.
-scalar_opt_as_exp -> scalar_exp AS NAME                                                         : {as, '$1', unwrap_bin('$3'), " as "}.
+scalar_opt_as_exp -> scalar_exp    NAME                                                         : {as, '$1', unwrap_bin('$2')}.
+scalar_opt_as_exp -> scalar_exp AS NAME                                                         : {as, '$1', unwrap_bin('$3')}.
 
 scalar_exp -> scalar_sub_exp '||' scalar_exp                                                    : {'||','$1','$3'}.
 scalar_exp -> scalar_sub_exp                                                                    : '$1'.
@@ -1049,15 +1049,15 @@ literal -> APPROXNUM                                                            
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 table -> NAME                                                                                   : unwrap_bin('$1').
-table -> NAME AS NAME                                                                           : {as, unwrap_bin('$1'), unwrap_bin('$3'), " as "}.
-table -> NAME    NAME                                                                           : {as, unwrap_bin('$1'), unwrap_bin('$2'), " "}.
+table -> NAME AS NAME                                                                           : {as, unwrap_bin('$1'), unwrap_bin('$3')}.
+table -> NAME    NAME                                                                           : {as, unwrap_bin('$1'), unwrap_bin('$2')}.
 table -> STRING                                                                                 : unwrap_bin('$1').
 table -> NAME '.' NAME                                                                          : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
-table -> NAME '.' NAME AS NAME                                                                  : {as, list_to_binary([unwrap('$1'),".",unwrap('$3')]), unwrap_bin('$5'), " as "}.
-table -> NAME '.' NAME    NAME                                                                  : {as, list_to_binary([unwrap('$1'),".",unwrap('$3')]), unwrap_bin('$4'), " "}.
+table -> NAME '.' NAME AS NAME                                                                  : {as, list_to_binary([unwrap('$1'),".",unwrap('$3')]), unwrap_bin('$5')}.
+table -> NAME '.' NAME    NAME                                                                  : {as, list_to_binary([unwrap('$1'),".",unwrap('$3')]), unwrap_bin('$4')}.
 table -> parameter                                                                              : '$1'.
-table -> parameter    NAME                                                                      : {as, '$1', unwrap_bin('$2'), " "}.
-table -> parameter AS NAME                                                                      : {as, '$1', unwrap_bin('$3'), " as "}.
+table -> parameter    NAME                                                                      : {as, '$1', unwrap_bin('$2')}.
+table -> parameter AS NAME                                                                      : {as, '$1', unwrap_bin('$3')}.
 
 column_ref -> JSON                                                                              : {jp, jpparse('$1')}.
 column_ref -> NAME     JSON                                                                     : {jp, list_to_binary(unwrap('$1')), jpparse('$2')}.

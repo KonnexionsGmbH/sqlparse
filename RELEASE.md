@@ -56,13 +56,9 @@ Old: db_user_proxy -> '$empty'
 - **fun_arg**
 
 ```
-New: fun_arg -> unary_add_or_subtract fun_arg
-                unary_add_or_subtract -> '+' 
-                unary_add_or_subtract -> '-'
+New: fun_arg -> fun_arg -> fun_arg    NAME 
  
-Old: fun_arg -> '+' fun_arg
-     fun_arg -> '-' fun_arg
-     fun_arg -> '+' literal
+Old: fun_arg -> '+' literal
      fun_arg -> '-' literal
 ```
 
@@ -90,6 +86,24 @@ New: n/a
  
 Old: scalar_sub_exp -> '+' literal
      scalar_sub_exp -> '-' literal
+```
+
+- **table**
+
+```
+New: n/a
+ 
+Old: table -> NAME AS NAME
+     table -> NAME '.' NAME AS NAME
+     table -> parameter AS NAME
+```
+
+- **table_ref**
+
+```
+New: n/a
+ 
+Old: table_ref -> '(' query_exp ')' AS NAME
 ```
 
 ### Parse tree changes

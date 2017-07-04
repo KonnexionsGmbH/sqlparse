@@ -85,6 +85,8 @@ Nonterminals
  grant_def
  grantee
  grantee_commalist
+ group_by_clause
+ having_clause
  hierarchical_query_clause
  identified
  in_predicate
@@ -113,9 +115,6 @@ Nonterminals
  opt_else
  opt_escape
  opt_exists
- opt_group_by_clause
- opt_having_clause
- opt_hierarchical_query_clause
  opt_hint
  opt_index_name
  opt_into
@@ -123,15 +122,14 @@ Nonterminals
  opt_materialized
  opt_nocycle
  opt_on_obj_clause
- opt_order_by_clause
  opt_restrict_cascade
  opt_schema_element_list
  opt_sgn_num
  opt_storage
  opt_user_opts_list
- opt_where_clause
  opt_with_grant_option
  opt_with_revoke_option
+ order_by_clause
  ordering_spec
  ordering_spec_commalist
  outer_join
@@ -383,12 +381,21 @@ Left        700 '*' '/' 'div'.
 Nonassoc    800 PRIOR.
 Left        800 unary_add_or_subtract.
 
+% Nonassoc    900 query_term.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 sql_list ->          sql ';' extra                                                              :         [{'$1','$3'}].
 sql_list -> sql_list sql ';' extra                                                              : '$1' ++ [{'$2','$4'}].
 
-% sql_list -> from_column_commalist ';'                                                           : '$1'.
+% sql_list -> from_clause ';'                                                                     : '$1'.
+% sql_list -> group_by_clause ';'                                                                 : '$1'.
+% sql_list -> having_clause ';'                                                                   : '$1'.
+% sql_list -> hierarchical_query_clause ';'                                                       : '$1'.
+% sql_list -> order_by_clause ';'                                                                 : '$1'.
+% sql_list -> where_clause ';'                                                                    : '$1'.
+% sql_list -> table_exp ';'                                                                       : '$1'.
+% sql_list -> table_ref ';'                                                                       : '$1'.
 
 extra -> '$empty'                                                                               : {extra, <<>>}.
 extra -> NAME  ';'                                                                              : {extra, unwrap_bin('$1')}.
@@ -593,7 +600,7 @@ column_commalist -> column                                                      
 column_commalist -> column ',' column_commalist                                                 : ['$1' | '$3'].
 
 view_def -> CREATE VIEW table opt_column_commalist                                              : {'create view', '$3', '$4'}.
-view_def -> AS query_spec                                                                       : {as, '$2', [],                }.
+view_def -> AS query_spec                                                                       : {as, '$2', []                 }.
 view_def -> AS query_spec WITH CHECK OPTION                                                     : {as, '$2', "with check option"}.
 
 opt_column_commalist -> '$empty'                                                                : [].
@@ -650,10 +657,10 @@ grantee -> NAME IDENTIFIED BY NAME                                              
 
 sql -> cursor_def                                                                               : '$1'.
 
-cursor_def -> DECLARE cursor CURSOR FOR query_exp opt_order_by_clause                           : {declare, '$2', {cur_for, '$5'}, '$6'}.
+cursor_def -> DECLARE cursor CURSOR FOR query_exp                                               : {declare, '$2', {cur_for, '$5'}, {'order by', []}}.
+cursor_def -> DECLARE cursor CURSOR FOR query_exp order_by_clause                               : {declare, '$2', {cur_for, '$5'}, '$6'}.
 
-opt_order_by_clause -> '$empty'                                                                 : {'order by', []}.
-opt_order_by_clause -> ORDER BY ordering_spec_commalist                                         : {'order by', '$3'}.
+order_by_clause -> ORDER BY ordering_spec_commalist                                             : {'order by', '$3'}.
 
 ordering_spec_commalist ->                             ordering_spec                            :         ['$1'].
 ordering_spec_commalist -> ordering_spec_commalist ',' ordering_spec                            : '$1' ++ ['$3'].
@@ -716,7 +723,8 @@ commit_statement -> COMMIT WORK                                                 
 
 delete_statement_positioned -> DELETE FROM table WHERE CURRENT OF cursor returning              : {delete, '$3',{where_current_of, '$7'}, '$8'}.
 
-delete_statement_searched -> DELETE FROM table opt_where_clause returning                       : {delete, '$3', '$4', '$5'}.
+delete_statement_searched -> DELETE FROM table              returning                           : {delete, '$3', [],   '$4'}.
+delete_statement_searched -> DELETE FROM table where_clause returning                           : {delete, '$3', '$4', '$5'}.
 
 fetch_statement -> FETCH cursor INTO target_commalist                                           : {fetch, '$2', {into, '$4'}}.
 
@@ -753,19 +761,14 @@ assignment_commalist -> assignment_commalist ',' assignment                     
 
 assignment -> column COMPARISON scalar_opt_as_exp                                               : {'=', '$1', '$3'}.
 
-update_statement_searched -> UPDATE table SET assignment_commalist opt_where_clause returning   : {update, '$2', {set, '$4'}, '$5', '$6'}.
+update_statement_searched -> UPDATE table SET assignment_commalist              returning       : {update, '$2', {set, '$4'}, [],   '$5'}.
+update_statement_searched -> UPDATE table SET assignment_commalist where_clause returning       : {update, '$2', {set, '$4'}, '$5', '$6'}.
 
 target_commalist ->                      target                                                 :         ['$1'].
 target_commalist -> target_commalist ',' target                                                 : '$1' ++ ['$3'].
 
 target -> NAME                                                                                  : unwrap_bin('$1').
 target -> parameter_ref                                                                         : '$1'.
-
-opt_where_clause -> '$empty'                                                                    : {where, {}}.
-opt_where_clause -> where_clause                                                                : '$1'.
-
-opt_hierarchical_query_clause -> '$empty'                                                       : {'hierarchical query', {}}.
-opt_hierarchical_query_clause -> hierarchical_query_clause                                      : '$1'.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% query expressions
@@ -820,11 +823,54 @@ case_when_then -> WHEN search_condition THEN scalar_opt_as_exp                  
 opt_else -> '$empty'                                                                            : {}.
 opt_else -> ELSE scalar_opt_as_exp                                                              : '$2'.
 
-table_exp -> from_clause opt_where_clause
-                         opt_hierarchical_query_clause
-                         opt_group_by_clause
-                         opt_having_clause
-                         opt_order_by_clause                                                    : ['$1', '$2', '$3', '$4', '$5', '$6'].
+table_exp -> from_clause                                                                        : ['$1', {where, {}}, {'hierarchical query', {}}, {'group by', []},  {having, {}}, {'order by', []}].
+table_exp -> from_clause                                                                      order_by_clause
+                                                                                                : ['$1', {where, {}}, {'hierarchical query', {}}, {'group by', []},  {having, {}}, '$2'].
+table_exp -> from_clause                                                        having_clause   : ['$1', {where, {}}, {'hierarchical query', {}}, {'group by', []},  '$2',         {'order by', []}].
+table_exp -> from_clause                                                        having_clause order_by_clause
+                                                                                                : ['$1', {where, {}}, {'hierarchical query', {}}, {'group by', []},  '$2',         '$3'].
+table_exp -> from_clause                                        group_by_clause                 : ['$1', {where, {}}, {'hierarchical query', {}}, '$2',              {having, {}}, {'order by', []}].
+table_exp -> from_clause                                        group_by_clause               order_by_clause
+                                                                                                : ['$1', {where, {}}, {'hierarchical query', {}}, '$2',              {having, {}}, '$3'].
+table_exp -> from_clause                                        group_by_clause having_clause   : ['$1', {where, {}}, {'hierarchical query', {}}, '$2',              '$3',         {'order by', []}].
+table_exp -> from_clause                                        group_by_clause having_clause order_by_clause
+                                                                                                : ['$1', {where, {}}, {'hierarchical query', {}}, '$2',              '$3',         '$4'].
+table_exp -> from_clause              hierarchical_query_clause                                 : ['$1', {where, {}}, '$2',                       {'group by', []},  {having, {}}, {'order by', []}].
+table_exp -> from_clause              hierarchical_query_clause                               order_by_clause
+                                                                                                : ['$1', {where, {}}, '$2',                       {'group by', []},  {having, {}}, '$3'].
+table_exp -> from_clause              hierarchical_query_clause                 having_clause   : ['$1', {where, {}}, '$2',                       {'group by', []},  '$3',         {'order by', []}].
+table_exp -> from_clause              hierarchical_query_clause                 having_clause order_by_clause
+                                                                                                : ['$1', {where, {}}, '$2',                       {'group by', []},  '$3',         '$4'].
+table_exp -> from_clause              hierarchical_query_clause group_by_clause                 : ['$1', {where, {}}, '$2',                       '$3',              {having, {}}, {'order by', []}].
+table_exp -> from_clause              hierarchical_query_clause group_by_clause               order_by_clause
+                                                                                                : ['$1', {where, {}}, '$2',                       '$3',              {having, {}}, '$4'].
+table_exp -> from_clause              hierarchical_query_clause group_by_clause having_clause   : ['$1', {where, {}}, '$2',                       '$3',              '$4',         {'order by', []}].
+table_exp -> from_clause              hierarchical_query_clause group_by_clause having_clause order_by_clause
+                                                                                                : ['$1', {where, {}}, '$2',                       '$3',              '$4',         '$5'].
+table_exp -> from_clause where_clause                                                           : ['$1', '$2',        {'hierarchical query', {}}, {'group by', []},  {having, {}}, {'order by', []}].
+table_exp -> from_clause where_clause                                                         order_by_clause
+                                                                                                : ['$1', '$2',        {'hierarchical query', {}}, {'group by', []},  {having, {}}, '$3'].
+table_exp -> from_clause where_clause                                           having_clause   : ['$1', '$2',        {'hierarchical query', {}}, {'group by', []},  '$3', {'order by', []}].
+table_exp -> from_clause where_clause                                           having_clause order_by_clause
+                                                                                                : ['$1', '$2',        {'hierarchical query', {}}, {'group by', []},  '$3',         '$4'].
+table_exp -> from_clause where_clause                           group_by_clause                 : ['$1', '$2',        {'hierarchical query', {}}, '$3',              {having, {}}, {'order by', []}].
+table_exp -> from_clause where_clause                           group_by_clause               order_by_clause
+                                                                                                : ['$1', '$2',        {'hierarchical query', {}}, '$3',              {having, {}}, '$4'].
+table_exp -> from_clause where_clause                           group_by_clause having_clause   : ['$1', '$2',        {'hierarchical query', {}}, '$3',              '$4',         {'order by', []}].
+table_exp -> from_clause where_clause                           group_by_clause having_clause order_by_clause
+                                                                                                : ['$1', '$2',        {'hierarchical query', {}}, '$3',              '$4',         '$5'].
+table_exp -> from_clause where_clause hierarchical_query_clause                                 : ['$1', '$2',        '$3',                       {'group by', []},  {having, {}}, {'order by', []}].
+table_exp -> from_clause where_clause hierarchical_query_clause                               order_by_clause
+                                                                                                : ['$1', '$2',        '$3',                       {'group by', []},  {having, {}}, '$4'].
+table_exp -> from_clause where_clause hierarchical_query_clause                 having_clause   : ['$1', '$2',        '$3',                       {'group by', []},  '$4', {'order by', []}].
+table_exp -> from_clause where_clause hierarchical_query_clause                 having_clause order_by_clause
+                                                                                                : ['$1', '$2',        '$3',                       {'group by', []},  '$4',         '$5'].
+table_exp -> from_clause where_clause hierarchical_query_clause group_by_clause                 : ['$1', '$2',        '$3',                       '$4',              {having, {}}, {'order by', []}].
+table_exp -> from_clause where_clause hierarchical_query_clause group_by_clause               order_by_clause
+                                                                                                : ['$1', '$2',        '$3',                       '$4',              {having, {}}, '$5'].
+table_exp -> from_clause where_clause hierarchical_query_clause group_by_clause having_clause   : ['$1', '$2',        '$3',                       '$4',              '$5',         {'order by', []}].
+table_exp -> from_clause where_clause hierarchical_query_clause group_by_clause having_clause order_by_clause
+                                                                                                : ['$1', '$2',        '$3',                       '$4',              '$5',         '$6'].
 
 from_clause -> FROM from_column_commalist                                                       : {from, '$2'}.
 
@@ -887,8 +933,7 @@ outer_join_type -> RIGHT OUTER                                                  
 table_ref -> table                                                                              : '$1'.
 table_ref -> table range_variable                                                               : {'$1', '$2'}.
 table_ref -> '(' query_exp ')'                                                                  : '$2'.
-table_ref -> '(' query_exp ')'    NAME                                                          : {as, '$2', unwrap_bin('$4')}.
-table_ref -> '(' query_exp ')' AS NAME                                                          : {as, '$2', unwrap_bin('$5')}.
+table_ref -> '(' query_exp ')' NAME                                                             : {as, '$2', unwrap_bin('$4')}.
 
 join_ref -> table                                                                               : '$1'.
 join_ref -> '(' query_exp ')'                                                                   : '$2'.
@@ -903,22 +948,20 @@ opt_nocycle -> NOCYCLE                                                          
 
 where_clause -> WHERE search_condition                                                          : {where, '$2'}.
 
-opt_group_by_clause  -> '$empty'                                                                : {'group by', []}.
-opt_group_by_clause  -> GROUP BY column_ref_commalist                                           : {'group by', '$3'}.
+group_by_clause  -> GROUP BY column_ref_commalist                                               : {'group by', '$3'}.
 
 column_ref_commalist ->                          column_ref                                     :         ['$1'].
 column_ref_commalist ->                          function_ref                                   :         ['$1'].
 column_ref_commalist -> column_ref_commalist ',' column_ref                                     : '$1' ++ ['$3'].
 column_ref_commalist -> column_ref_commalist ',' function_ref                                   : '$1' ++ ['$3'].
 
-opt_having_clause -> '$empty'                                                                   : {having, {}}.
-opt_having_clause -> HAVING search_condition                                                    : {having, '$2'}.
+having_clause -> HAVING search_condition                                                        : {having, '$2'}.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% search conditions
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-search_condition -> search_condition OR search_condition                                        : {'or', '$1', '$3'}.
+search_condition -> search_condition OR search_condition                                        : {'or',  '$1', '$3'}.
 search_condition -> search_condition AND search_condition                                       : {'and', '$1', '$3'}.
 search_condition -> NOT search_condition                                                        : {'not', '$2'}.
 search_condition -> '(' search_condition ')'                                                    : '$2'.
@@ -936,12 +979,12 @@ comparison_predicate -> scalar_opt_as_exp                                       
 comparison_predicate -> PRIOR scalar_exp COMPARISON scalar_exp                                  : {unwrap('$3'), {prior, '$2'}, '$4'}.
 comparison_predicate -> scalar_exp COMPARISON PRIOR scalar_exp                                  : {unwrap('$2'), '$1', {prior, '$4'}}.
 
-between_predicate -> scalar_exp not_between scalar_exp AND scalar_exp                           : {'not', {between, '$1', '$4', '$6'}}.
+between_predicate -> scalar_exp not_between scalar_exp AND scalar_exp                           : {'not', {between, '$1', '$3', '$5'}}.
 between_predicate -> scalar_exp     BETWEEN scalar_exp AND scalar_exp                           :         {between, '$1', '$3', '$5'}.
 
 not_between -> NOT BETWEEN                                                                      : 'not between'.
 
-like_predicate -> scalar_exp not_like scalar_exp opt_escape                                     : {'not', {like, '$1', '$4', '$5'}}.
+like_predicate -> scalar_exp not_like scalar_exp opt_escape                                     : {'not', {like, '$1', '$3', '$4'}}.
 like_predicate -> scalar_exp     LIKE scalar_exp opt_escape                                     :         {like, '$1', '$3', '$4'}.
 
 not_like -> NOT LIKE                                                                            : 'not like'.
@@ -956,9 +999,9 @@ is_not_null -> IS NOT NULLX                                                     
 
 is_null -> IS NULLX                                                                             : is.
 
-in_predicate -> scalar_exp not_in '(' subquery ')'                                              : {'not', {in, '$1', '$5'}}.
+in_predicate -> scalar_exp not_in '(' subquery ')'                                              : {'not', {in, '$1', '$4'}}.
 in_predicate -> scalar_exp     IN '(' subquery ')'                                              :         {in, '$1', '$4'}.
-in_predicate -> scalar_exp not_in '(' scalar_exp_commalist ')'                                  : {'not', {in, '$1', {list, '$5'}}}.
+in_predicate -> scalar_exp not_in '(' scalar_exp_commalist ')'                                  : {'not', {in, '$1', {list, '$4'}}}.
 in_predicate -> scalar_exp     IN '(' scalar_exp_commalist ')'                                  :         {in, '$1', {list, '$4'}}.
 
 not_in -> NOT IN                                                                                : 'not in'.
@@ -996,7 +1039,7 @@ scalar_sub_exp -> atom                                                          
 scalar_sub_exp -> subquery                                                                      : '$1'.
 scalar_sub_exp -> column_ref                                                                    : '$1'.
 scalar_sub_exp -> function_ref                                                                  : '$1'.
-scalar_sub_exp -> '(' scalar_sub_exp ')'                                                        : {'$2', "("}.
+scalar_sub_exp -> '(' scalar_sub_exp ')'                                                        : '$2'.
 
 unary_add_or_subtract -> '+'                                                                    : '+'.
 unary_add_or_subtract -> '-'                                                                    : '-'.
@@ -1016,15 +1059,15 @@ function_ref -> NAME '.' NAME '.' NAME '(' fun_args ')'                         
 function_ref -> NAME '.' NAME '(' fun_args ')'                                                  : {'fun', list_to_binary([unwrap('$1'),".",unwrap('$3')]),make_list('$5')}.
 function_ref -> NAME '(' fun_args ')'                                                           : {'fun', unwrap_bin('$1'), make_list('$3')}.
 function_ref -> FUNS                                                                            : {'fun', unwrap_bin('$1'), []}.
-function_ref -> FUNS  '(' fun_args ')'                                                          : {'fun', unwrap_bin('$1'), make_list('$3')}.
-function_ref -> FUNS   '(' '*' ')'                                                              : {'fun', unwrap_bin('$1'), [<<"*">>]}.
-function_ref -> FUNS    '(' DISTINCT column_ref ')'                                             : {'fun', unwrap_bin('$1'), [{distinct, '$4'}]}.
-function_ref -> FUNS     '(' ALL scalar_exp ')'                                                 : {'fun', unwrap_bin('$1'), [{all, '$4'}]}.
+function_ref -> FUNS '(' fun_args ')'                                                           : {'fun', unwrap_bin('$1'), make_list('$3')}.
+function_ref -> FUNS '(' '*' ')'                                                                : {'fun', unwrap_bin('$1'), [<<"*">>]}.
+function_ref -> FUNS '(' DISTINCT column_ref ')'                                                : {'fun', unwrap_bin('$1'), [{distinct, '$4'}]}.
+function_ref -> FUNS '(' ALL      scalar_exp ')'                                                : {'fun', unwrap_bin('$1'), [{all,      '$4'}]}.
 
 fun_args -> fun_arg                                                                             : ['$1'].
 fun_args -> fun_arg ',' fun_args                                                                : ['$1' | '$3'].
 
-fun_arg -> '(' fun_arg ')'                                                                      : {'$2', "("}.
+fun_arg -> '(' fun_arg ')'                                                                      : '$2'.
 fun_arg -> function_ref                                                                         : '$1'.
 fun_arg -> column_ref                                                                           : '$1'.
 fun_arg -> fun_arg '+' fun_arg                                                                  : {'+',  '$1','$3'}.
@@ -1037,6 +1080,7 @@ fun_arg -> unary_add_or_subtract fun_arg                                        
 fun_arg -> NULLX                                                                                : <<"NULL">>.
 fun_arg -> atom                                                                                 : '$1'.
 fun_arg -> subquery                                                                             : '$1'.
+fun_arg -> fun_arg    NAME                                                                      : {as, '$1', unwrap_bin('$2')}.
 fun_arg -> fun_arg AS NAME                                                                      : {as, '$1', unwrap_bin('$3')}.
 fun_arg -> fun_arg COMPARISON fun_arg                                                           : {unwrap('$2'), '$1', '$3'}.
 
@@ -1049,15 +1093,12 @@ literal -> APPROXNUM                                                            
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 table -> NAME                                                                                   : unwrap_bin('$1').
-table -> NAME AS NAME                                                                           : {as, unwrap_bin('$1'), unwrap_bin('$3')}.
-table -> NAME    NAME                                                                           : {as, unwrap_bin('$1'), unwrap_bin('$2')}.
+table -> NAME NAME                                                                              : {as, unwrap_bin('$1'), unwrap_bin('$2')}.
 table -> STRING                                                                                 : unwrap_bin('$1').
 table -> NAME '.' NAME                                                                          : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
-table -> NAME '.' NAME AS NAME                                                                  : {as, list_to_binary([unwrap('$1'),".",unwrap('$3')]), unwrap_bin('$5')}.
-table -> NAME '.' NAME    NAME                                                                  : {as, list_to_binary([unwrap('$1'),".",unwrap('$3')]), unwrap_bin('$4')}.
+table -> NAME '.' NAME NAME                                                                     : {as, list_to_binary([unwrap('$1'),".",unwrap('$3')]), unwrap_bin('$4')}.
 table -> parameter                                                                              : '$1'.
-table -> parameter    NAME                                                                      : {as, '$1', unwrap_bin('$2')}.
-table -> parameter AS NAME                                                                      : {as, '$1', unwrap_bin('$3')}.
+table -> parameter NAME                                                                         : {as, '$1', unwrap_bin('$2')}.
 
 column_ref -> JSON                                                                              : {jp, jpparse('$1')}.
 column_ref -> NAME     JSON                                                                     : {jp, list_to_binary(unwrap('$1')), jpparse('$2')}.

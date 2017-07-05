@@ -21,10 +21,10 @@ SELECT column_a|:f()|, column_b
 
 ```erlang
 1> {ok, {ParseTree, Tokens}} = sqlparse:parsetree_with_tokens("SELECT column_a|:f()|, column_b FROM table_a WHERE column_b = 'test' ORDER BY 2 DESC, 1;").
-{ok,{[{{select,[{fields,[[{jp,<<"column_a">>,
-                              {':',{'fun',<<"f">>,[]},empty}}],
-                         [<<"column_b">>]]},
-                {from,[[<<"table_a">>]]},
+{ok,{[{{select,[{fields,[{jp,<<"column_a">>,
+                             {':',{'fun',<<"f">>,[]},empty}},
+                         <<"column_b">>]},
+                {from,[<<"table_a">>]},
                 {where,{'=',<<"column_b">>,<<"'test'">>}},
                 {'hierarchical query',{}},
                 {'group by',[]},
@@ -55,10 +55,10 @@ SELECT column_a|:f()|, column_b
 
 ```erlang
 2> ParseTree.
-[{{select,[{fields,[[{jp,<<"column_a">>,
-                         {':',{'fun',<<"f">>,[]},empty}}],
-                    [<<"column_b">>]]},
-           {from,[[<<"table_a">>]]},
+[{{select,[{fields,[{jp,<<"column_a">>,
+                        {':',{'fun',<<"f">>,[]},empty}},
+                    <<"column_b">>]},
+           {from,[<<"table_a">>]},
            {where,{'=',<<"column_b">>,<<"'test'">>}},
            {'hierarchical query',{}},
            {'group by',[]},

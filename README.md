@@ -102,17 +102,7 @@ SELECT column_a|:f()|, column_b
 
 The documentation for **sqlparse** is available here: [Wiki](https://github.com/walter-weinmann/sqlparse/wiki).
 
-## 3. Known issues
-
-### from_column
-
-The following grammar rule is not supported by the test data generator:
-
-```ebnf
-from_column -> join_clause
-```
-
-## 4. Contributing
+## 3. Contributing
 
 1. Fork it
 2. Create your feature branch (`git checkout -b my-new-feature`)

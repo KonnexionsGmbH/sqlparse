@@ -18,6 +18,8 @@ New: ((([\.][0-9]+)|([0-9]+[\.]?[0-9]*))([eE][+-]?[0-9]+)?[fFdD]?)
 Old: (([0-9]+\.[0-9]+([eE][\+\-]?[0-9]+)*))
 ```
 
+Remark: The new rule covers the Oracle definition of `NUMBER and Floating-Point Literals`.
+
 - **column_ref**
 
 ```
@@ -36,6 +38,8 @@ New: n/a
 Old: comparison_predicate -> scalar_exp COMPARISON subquery
 ```
 
+Remark: The subquery must be surrounded by parentheses.
+
 - **drop_table_def**
 
 ```
@@ -45,6 +49,8 @@ New: drop_table_def -> DROP      TABLE opt_exists table_list opt_restrict_cascad
 Old: drop_table_def -> DROP tbl_type TABLE opt_exists table_list opt_restrict_cascade
 ```
 
+Remark: Any Oracle identifier can be used as a table type in the `DROP TABLE` statement.
+
 - **db_user_proxy**
 
 ```
@@ -52,6 +58,8 @@ New: n/a
  
 Old: db_user_proxy -> '$empty'
 ```
+
+Remark: The old rule incorrectly allowed the definition of "REVOKE CONNECT THROUGH" without an argument.
 
 - **fun_arg**
 
@@ -62,6 +70,8 @@ Old: fun_arg -> '+' literal
      fun_arg -> '-' literal
 ```
 
+Remark: This rule is redundant since literals are contained in atoms.
+
 - **in_predicate**
 
 ```
@@ -71,6 +81,8 @@ Old: in_predicate -> scalar_exp NOT IN scalar_exp_commalist
      in_predicate -> scalar_exp     IN scalar_exp_commalist
 ```
 
+Remark: The candidate set of values must be surrounded by parentheses.
+
 - **JSON**
 
 ```
@@ -78,6 +90,8 @@ New: (\|[:{\[#]([^\|]*)+\|)
  
 Old: ([A-Za-z0-9_\.]+([:#\[\{]+|([\s\t\n\r]*[#\[\{]+))[A-Za-z0-9_\.\:\(\)\[\]\{\}\#\,\|\-\+\*\/\\%\s\t\n\r]*)
 ```
+
+Remark: JSONPath expressions are now delimited by a pair of vertical bars.
 
 - **scalar_sub_exp**
 
@@ -87,6 +101,8 @@ New: n/a
 Old: scalar_sub_exp -> '+' literal
      scalar_sub_exp -> '-' literal
 ```
+
+Remark: This rule is redundant since literals are contained in atoms.
 
 - **table**
 
@@ -98,13 +114,18 @@ Old: table -> NAME AS NAME
      table -> parameter AS NAME
 ```
 
+Remark: A table alias may not contain the `AS` token.
+
 - **table_ref**
 
 ```
 New: n/a
  
-Old: table_ref -> '(' query_exp ')' AS NAME
+Old: table_ref -> table range_variable
+     table_ref -> '(' query_exp ')' AS NAME
 ```
+
+Remark: A table alias may not contain the `AS` token.
 
 ### Parse tree changes
 

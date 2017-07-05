@@ -147,7 +147,6 @@ Nonterminals
  query_term
  quota
  quota_list
- range_variable
  returning
  revoke_def
  role_list
@@ -710,7 +709,7 @@ table_name -> NAME '.' NAME '.' NAME                                            
 
 opt_materialized -> '$empty'                                                                    : {}.
 opt_materialized -> PRESERVE MATERIALIZED VIEW LOG                                              : {'materialized view log', preserve}.
-opt_materialized -> PURGE MATERIALIZED VIEW LOG                                                 : {'materialized view log', purge}.
+opt_materialized -> PURGE    MATERIALIZED VIEW LOG                                              : {'materialized view log', purge}.
 
 opt_storage ->  '$empty'                                                                        : {}.
 opt_storage ->  DROP  STORAGE                                                                   : {storage, drop}.
@@ -721,14 +720,19 @@ close_statement -> CLOSE cursor                                                 
 commit_statement -> COMMIT                                                                      : 'commit'.
 commit_statement -> COMMIT WORK                                                                 : 'commit work'.
 
+delete_statement_positioned -> DELETE FROM table WHERE CURRENT OF cursor                        : {delete, '$3',{where_current_of, '$7'}, {returning, {}}}.
 delete_statement_positioned -> DELETE FROM table WHERE CURRENT OF cursor returning              : {delete, '$3',{where_current_of, '$7'}, '$8'}.
 
+delete_statement_searched -> DELETE FROM table                                                  : {delete, '$3', [],   {returning, {}}}.
 delete_statement_searched -> DELETE FROM table              returning                           : {delete, '$3', [],   '$4'}.
+delete_statement_searched -> DELETE FROM table where_clause                                     : {delete, '$3', '$4', {returning, {}}}.
 delete_statement_searched -> DELETE FROM table where_clause returning                           : {delete, '$3', '$4', '$5'}.
 
 fetch_statement -> FETCH cursor INTO target_commalist                                           : {fetch, '$2', {into, '$4'}}.
 
-insert_statement -> INSERT INTO table                                                           : {insert, '$3', {}, {}, {}}.
+insert_statement -> INSERT INTO table                                                           : {insert, '$3', {},           {},   {returning, {}}}.
+insert_statement -> INSERT INTO table                                           returning       : {insert, '$3', {},           {},   '$4'}.
+insert_statement -> INSERT INTO table opt_column_commalist values_or_query_spec                 : {insert, '$3', {cols, '$4'}, '$5', {returning, {}}}.
 insert_statement -> INSERT INTO table opt_column_commalist values_or_query_spec returning       : {insert, '$3', {cols, '$4'}, '$5', '$6'}.
 
 values_or_query_spec -> VALUES '(' insert_atom_commalist ')'                                    : {values, '$3'}.
@@ -753,6 +757,7 @@ opt_all_distinct -> '$empty'                                                    
 opt_all_distinct -> ALL                                                                         : {opt, <<"all">>}.
 opt_all_distinct -> DISTINCT                                                                    : {opt, <<"distinct">>}.
 
+update_statement_positioned -> UPDATE table SET assignment_commalist WHERE CURRENT OF cursor    : {update, '$2', {set, '$4'}, {where_current_of, '$8'}, {returning, {}}}.
 update_statement_positioned -> UPDATE table SET assignment_commalist WHERE CURRENT OF cursor returning
                                                                                                 : {update, '$2', {set, '$4'}, {where_current_of, '$8'}, '$9'}.
 
@@ -761,7 +766,9 @@ assignment_commalist -> assignment_commalist ',' assignment                     
 
 assignment -> column COMPARISON scalar_opt_as_exp                                               : {'=', '$1', '$3'}.
 
+update_statement_searched -> UPDATE table SET assignment_commalist                              : {update, '$2', {set, '$4'}, [],   {returning, {}}}.
 update_statement_searched -> UPDATE table SET assignment_commalist              returning       : {update, '$2', {set, '$4'}, [],   '$5'}.
+update_statement_searched -> UPDATE table SET assignment_commalist where_clause                 : {update, '$2', {set, '$4'}, '$5', {returning, {}}}.
 update_statement_searched -> UPDATE table SET assignment_commalist where_clause returning       : {update, '$2', {set, '$4'}, '$5', '$6'}.
 
 target_commalist ->                      target                                                 :         ['$1'].
@@ -780,7 +787,6 @@ query_exp -> query_exp UNION ALL query_term                                     
 query_exp -> query_exp INTERSECT query_term                                                     : {intersect,   '$1', '$3'}.
 query_exp -> query_exp MINUS     query_term                                                     : {minus,       '$1', '$3'}.
 
-returning -> '$empty'                                                                           : {returning, {}}.
 returning -> RETURNING selection INTO selection                                                 : {returning, '$2', '$4'}.
 returning -> RETURN    selection INTO selection                                                 : {return,    '$2', '$4'}.
 
@@ -931,14 +937,12 @@ outer_join_type -> RIGHT                                                        
 outer_join_type -> RIGHT OUTER                                                                  : right_outer.
 
 table_ref -> table                                                                              : '$1'.
-table_ref -> table range_variable                                                               : {'$1', '$2'}.
 table_ref -> '(' query_exp ')'                                                                  : '$2'.
 table_ref -> '(' query_exp ')' NAME                                                             : {as, '$2', unwrap_bin('$4')}.
 
 join_ref -> table                                                                               : '$1'.
 join_ref -> '(' query_exp ')'                                                                   : '$2'.
-join_ref -> '(' query_exp ')'    NAME                                                           : {as, '$2', unwrap_bin('$4')}.
-join_ref -> '(' query_exp ')' AS NAME                                                           : {as, '$2', unwrap_bin('$5')}.
+join_ref -> '(' query_exp ')' NAME                                                              : {as, '$2', unwrap_bin('$4')}.
 
 hierarchical_query_clause -> START WITH search_condition CONNECT BY opt_nocycle search_condition: {'hierarchical query', {{'start with', '$3'}, {'connect by', '$6', '$7'}}}.
 hierarchical_query_clause -> CONNECT BY opt_nocycle search_condition START WITH search_condition: {'hierarchical query', {{'connect by', '$3', '$4'}, {'start with', '$7'}}}.
@@ -961,7 +965,7 @@ having_clause -> HAVING search_condition                                        
 %% search conditions
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-search_condition -> search_condition OR search_condition                                        : {'or',  '$1', '$3'}.
+search_condition -> search_condition OR  search_condition                                       : {'or',  '$1', '$3'}.
 search_condition -> search_condition AND search_condition                                       : {'and', '$1', '$3'}.
 search_condition -> NOT search_condition                                                        : {'not', '$2'}.
 search_condition -> '(' search_condition ')'                                                    : '$2'.
@@ -1134,8 +1138,6 @@ column -> STRING                                                                
 cursor -> NAME                                                                                  : {cur, unwrap('$1')}.
 
 parameter -> PARAMETER                                                                          : {param, unwrap_bin('$1')}.
-
-range_variable -> NAME                                                                          : unwrap_bin('$1').
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% embedded condition things

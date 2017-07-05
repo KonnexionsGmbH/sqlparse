@@ -176,7 +176,6 @@ create_code() ->
     create_code(opt_sgn_num),
     create_code(parameter_ref),
     create_code(quota),
-    create_code(range_variable),
     create_code(role_list),
     create_code(system_privilege),
     create_code(table),
@@ -2703,7 +2702,7 @@ create_code(join_on_or_using_clause = Rule) ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% join_ref ::= table
-%%            | ( '(' query_exp ')' ( ( 'AS' )? NAME )? )
+%%            | ( '(' query_exp ')' ( NAME )? )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(join_ref = Rule) ->
@@ -2720,14 +2719,7 @@ create_code(join_ref = Rule) ->
                 lists:nth(rand:uniform(Query_Exp_Length), Query_Exp),
                 ")",
                 case rand:uniform(2) rem 2 of
-                    1 -> lists:append([
-                        case rand:uniform(2) rem 2 of
-                            1 -> " As";
-                            _ -> []
-                        end,
-                        " ",
-                        lists:nth(rand:uniform(Name_Length), Name)
-                    ]);
+                    1 -> " " ++ lists:nth(rand:uniform(Name_Length), Name);
                     _ -> []
                 end
             ])
@@ -3591,26 +3583,6 @@ create_code(quota = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% range_variable ::= NAME
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-create_code(range_variable = Rule) ->
-    ?CREATE_CODE_START,
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
-
-    Code_1 =
-        [
-            re:replace(N, "ident", "range_variable", [{return, list}]) || N <- Name
-        ],
-
-    Code =
-        [
-            re:replace(N, "IDENT", "RANGE_VARIABLE", [{return, list}]) || N <- Code_1
-        ],
-    store_code(Rule, Code, ?MAX_BASIC, false),
-    ?CREATE_CODE_END;
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% returning ::= ( 'RETURNING' | 'RETURN' ) selection 'INTO' selection
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -3655,15 +3627,15 @@ create_code(revoke_def = Rule) ->
         [
             lists:append([
                 "Revoke",
-                case rand:uniform(2) rem 2 of
-                    1 ->
-                        " " ++ lists:nth(rand:uniform(System_Privilege_List_Length), System_Privilege_List);
-                    _ -> []
+                case rand:uniform(3) rem 3 of
+                    1 -> [];
+                    _ ->
+                        " " ++ lists:nth(rand:uniform(System_Privilege_List_Length), System_Privilege_List)
                 end,
-                case rand:uniform(2) rem 2 of
-                    1 ->
-                        " " ++ lists:nth(rand:uniform(On_Obj_Clause_Length), On_Obj_Clause);
-                    _ -> []
+                case rand:uniform(3) rem 3 of
+                    1 -> [];
+                    _ ->
+                        " " ++ lists:nth(rand:uniform(On_Obj_Clause_Length), On_Obj_Clause)
                 end,
                 " From ",
                 case rand:uniform(3) rem 3 of
@@ -3683,10 +3655,10 @@ create_code(revoke_def = Rule) ->
                     ]);
                     _ -> " " ++ lists:nth(rand:uniform(Grantee_Length), Grantee)
                 end,
-                case rand:uniform(2) rem 2 of
-                    1 ->
-                        " " ++ lists:nth(rand:uniform(With_Revoke_Option_Length), With_Revoke_Option);
-                    _ -> []
+                case rand:uniform(3) rem 3 of
+                    1 -> [];
+                    _ ->
+                        " " ++ lists:nth(rand:uniform(With_Revoke_Option_Length), With_Revoke_Option)
                 end
             ])
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
@@ -4152,6 +4124,37 @@ create_code(special = Rule) ->
     ?CREATE_CODE_START,
     Code = [
         %% ---------------------------------------------------------------------
+        %% Boolean and arithmetic binary operators handled with precedence
+        %% ---------------------------------------------------------------------
+        "Select 5 + 7 From dual",
+        "Select 5 - 7 From dual",
+        "Select 5 * 7 From dual",
+        "Select 5 / 7 From dual",
+        "Select 2 + 3 * 3 + 4 From dual",
+        "Select 2 - 3 * 3 - 4 From dual",
+        "Select 2 + 3 / 3 + 4 From dual",
+        "Select 2 - 3 / 3 - 4 From dual",
+        "Select 2 * 3 + 3 * 4 From dual",
+        "Select 2 * 3 - 3 * 4 From dual",
+        "Select 2 / 3 + 3 / 4 From dual",
+        "Select 2 / 3 - 3 / 4 From dual",
+        "Select (2 + 3) * (3 - 4) From dual",
+        "Select (2 + 3) / (3 - 4) From dual",
+        "Select (2 * 3) - (3 / 4) From dual",
+        "Select (2 / 3) + (3 * 4) From dual",
+        "Select (Select * From Dual) * (3 - 4) From dual",
+        "Select (Select * From Dual) / (3 - 4) From dual",
+        "Select (Select * From Dual) - (3 / 4) From dual",
+        "Select (Select * From Dual) + (3 * 4) From dual",
+        "Select (2 + 3) * (Select * From Dual) From dual",
+        "Select (2 + 3) / (Select * From Dual) From dual",
+        "Select (2 - 3) * (Select * From Dual) From dual",
+        "Select (2 - 3) / (Select * From Dual) From dual",
+        "Select (2 * 3) + (Select * From Dual) From dual",
+        "Select (2 / 3) + (Select * From Dual) From dual",
+        "Select (2 * 3) - (Select * From Dual) From dual",
+        "Select (2 / 3) - (Select * From Dual) From dual",
+        %% ---------------------------------------------------------------------
         %% chenged: JSON
         %% ---------------------------------------------------------------------
         %% create_index_spec_items -> JSON
@@ -4217,7 +4220,13 @@ create_code(special = Rule) ->
         %% returning -> RETURNING selection INTO selection
         %% returning -> RETURN    selection INTO selection
         %% ---------------------------------------------------------------------
-        "Insert Into table_name (column_name) Values (1) Return result_column Into show_column"
+        "Insert Into table_name (column_name) Values (1) Return result_column Into show_column",
+        %% ---------------------------------------------------------------------
+        %% Problem: subquery as select_field
+        %% ---------------------------------------------------------------------
+        %% select_field -> scalar_opt_as_exp
+        %% ---------------------------------------------------------------------
+        "Select (Select * From dual) From dual"
     ],
     dets:insert(?CODE_TEMPLATES, {Rule, Code}),
     ?CREATE_CODE_END;
@@ -4723,7 +4732,7 @@ create_code(table_name = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% table_ref ::= ( table ( range_variable )? )
+%% table_ref ::= table
 %%             | ( '(' query_exp ')' ( NAME )? )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -4752,24 +4761,18 @@ create_code(table_ref = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% table_ref ::= ( table ( range_variable )? )
+%% table_ref ::= ( table )
 %%             | ( '(' query_exp ')' ( NAME )? )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(table_ref_1 = _Rule) ->
     ?CREATE_CODE_START,
-    [{range_variable, Range_Variable}] = dets:lookup(?CODE_TEMPLATES, range_variable),
-    Range_Variable_Length = length(Range_Variable),
     [{table, Table}] = dets:lookup(?CODE_TEMPLATES, table),
     Table_Length = length(Table),
 
     Code =
         [
-            lists:append([
-                lists:nth(rand:uniform(Table_Length), Table),
-                " ",
-                lists:nth(rand:uniform(Range_Variable_Length), Range_Variable)
-            ])
+            lists:nth(rand:uniform(Table_Length), Table)
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
     store_code(table_ref, Code, ?MAX_BASIC, false),

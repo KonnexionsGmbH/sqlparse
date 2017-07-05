@@ -13,10 +13,12 @@ Release Date: dd.mm.2017
 - **APPROXNUM**
 
 ```
-New: ([-]?(([\.][0-9]+)|([0-9]+[\.]?[0-9]*))([eE][+-]?[0-9]+)?[fFdD]?)
+New: ((([\.][0-9]+)|([0-9]+[\.]?[0-9]*))([eE][+-]?[0-9]+)?[fFdD]?)
  
 Old: (([0-9]+\.[0-9]+([eE][\+\-]?[0-9]+)*))
 ```
+
+Remark: The new rule covers the Oracle definition of `NUMBER and Floating-Point Literals`.
 
 - **column_ref**
 
@@ -36,6 +38,8 @@ New: n/a
 Old: comparison_predicate -> scalar_exp COMPARISON subquery
 ```
 
+Remark: The subquery must be surrounded by parentheses.
+
 - **drop_table_def**
 
 ```
@@ -45,6 +49,8 @@ New: drop_table_def -> DROP      TABLE opt_exists table_list opt_restrict_cascad
 Old: drop_table_def -> DROP tbl_type TABLE opt_exists table_list opt_restrict_cascade
 ```
 
+Remark: Any Oracle identifier can be used as a table type in the `DROP TABLE` statement.
+
 - **db_user_proxy**
 
 ```
@@ -53,18 +59,18 @@ New: n/a
 Old: db_user_proxy -> '$empty'
 ```
 
+Remark: The old rule incorrectly allowed the definition of "REVOKE CONNECT THROUGH" without an argument.
+
 - **fun_arg**
 
 ```
-New: fun_arg -> unary_add_or_subtract fun_arg
-                unary_add_or_subtract -> '+' 
-                unary_add_or_subtract -> '-'
+New: fun_arg -> fun_arg -> fun_arg    NAME 
  
-Old: fun_arg -> '+' fun_arg
-     fun_arg -> '-' fun_arg
-     fun_arg -> '+' literal
+Old: fun_arg -> '+' literal
      fun_arg -> '-' literal
 ```
+
+Remark: This rule is redundant since literals are contained in atoms.
 
 - **in_predicate**
 
@@ -75,6 +81,8 @@ Old: in_predicate -> scalar_exp NOT IN scalar_exp_commalist
      in_predicate -> scalar_exp     IN scalar_exp_commalist
 ```
 
+Remark: The candidate set of values must be surrounded by parentheses.
+
 - **JSON**
 
 ```
@@ -82,6 +90,8 @@ New: (\|[:{\[#]([^\|]*)+\|)
  
 Old: ([A-Za-z0-9_\.]+([:#\[\{]+|([\s\t\n\r]*[#\[\{]+))[A-Za-z0-9_\.\:\(\)\[\]\{\}\#\,\|\-\+\*\/\\%\s\t\n\r]*)
 ```
+
+Remark: JSONPath expressions are now delimited by a pair of vertical bars.
 
 - **scalar_sub_exp**
 
@@ -92,33 +102,32 @@ Old: scalar_sub_exp -> '+' literal
      scalar_sub_exp -> '-' literal
 ```
 
+Remark: This rule is redundant since literals are contained in atoms.
+
+- **table**
+
+```
+New: n/a
+ 
+Old: table -> NAME AS NAME
+     table -> NAME '.' NAME AS NAME
+     table -> parameter AS NAME
+```
+
+Remark: A table alias may not contain the `AS` token.
+
+- **table_ref**
+
+```
+New: n/a
+ 
+Old: table_ref -> table range_variable
+     table_ref -> '(' query_exp ')' AS NAME
+```
+
+Remark: A table alias may not contain the `AS` token.
+
 ### Parse tree changes
-
-- **between_predicate**
-
-```
-New: between_predicate -> scalar_exp not_between scalar_exp AND scalar_exp                           : {'not between', '$1', '$3', '$5'}.
- 
-Old: between_predicate -> scalar_exp NOT BETWEEN scalar_exp AND scalar_exp                           : {'not', {'between', '$1', '$4', '$6'}}.
-```
-
-- **case_when_exp**
-
-```
-New: case_when_exp -> '(' case_when_exp ')'                                                          : {'$2', "("}.
- 
-Old: case_when_exp -> '(' case_when_exp ')'                                                          : '$2'.
-```
-
-- **case_when_opt_as_exp**
-
-```
-New: case_when_opt_as_exp -> case_when_exp    NAME                                                   : {as, '$1', unwrap_bin('$2'), " "}.
-     case_when_opt_as_exp -> case_when_exp AS NAME                                                   : {as, '$1', unwrap_bin('$3'), " as "}.
- 
-Old: case_when_opt_as_exp -> case_when_exp NAME                                                      : {as, '$1', unwrap_bin('$2')}.
-     case_when_opt_as_exp -> case_when_exp AS NAME                                                   : {as, '$1', unwrap_bin('$3')}. 
-```
 
 - **column_ref**
 
@@ -152,44 +161,6 @@ New: drop_table_def -> DROP      TABLE opt_exists table_list opt_restrict_cascad
 Old: drop_table_def -> DROP tbl_type TABLE opt_exists table_list opt_restrict_cascade                : {'drop table', {'tables', '$5'}, '$4', '$6', '$2'}.
 ```
 
-- **from_column_commalist**
-
-```
-New: from_column -> '(' join_clause ')'                                                              : [{'$2', "("}].
- 
-Old: from_commalist -> '(' join_clause ')'                                                           : ['$2'].
-```
-
-- **in_predicate**
-
-```
-New: in_predicate -> scalar_exp not_in '(' subquery ')'                                              : {'not in', '$1', '$4'}.
-     in_predicate -> scalar_exp not_in '(' scalar_exp_commalist ')'                                  : {'not in', '$1', {list, '$4'}}.
- 
-Old: in_predicate -> scalar_exp NOT IN '(' subquery ')'                                              : {'not', {'in', '$1', '$5'}}.
-     in_predicate -> scalar_exp NOT IN '(' scalar_exp_commalist ')'                                  : {'not', {'in', '$1', {'list', '$5'}}}.
-```
-
-- **join_ref**
-
-```
-New: join_ref -> '(' query_exp ')'                                                                   : {'$2', "("}.
-     join_ref -> '(' query_exp ')' AS NAME                                                           : {as, {'$2', "("}, unwrap_bin('$5'), " as "}.
-     join_ref -> '(' query_exp ')'    NAME                                                           : {as, {'$2', "("}, unwrap_bin('$4'), " "}.
- 
-Old: join_ref -> '(' query_exp ')'                                                                   : '$2'.
-     join_ref -> '(' query_exp ')' AS NAME                                                           : {as,'$2',unwrap_bin('$5')}.
-     join_ref -> '(' query_exp ')' NAME                                                              : {as,'$2',unwrap_bin('$4')}.
-```
-
-- **like_predicate**
-
-```
-New: like_predicate -> scalar_exp not_like scalar_exp opt_escape                                     : {'not like', '$1', '$3', '$4'}.
-
-Old: like_predicate -> scalar_exp NOT LIKE scalar_exp opt_escape                                     : {'not', {'like', '$1', '$4', '$5'}}.
-```
-
 - **opt_on_obj_clause**
 
 ```
@@ -200,98 +171,12 @@ Old: opt_on_obj_clause -> ON JAVA SOURCE table                                  
      opt_on_obj_clause -> ON JAVA RESOURCE table                                                     : {'on java resource', unwrap_bin('$4')}.
 ```
 
-- **query_partition_clause**
-
-```
-New: query_partition_clause -> PARTITION BY '(' scalar_exp_commalist ')'                             : {partition_by, '$4', "("}.
-     query_partition_clause -> PARTITION BY     scalar_exp_commalist                                 : {partition_by, '$3', []} .
- 
-Old: query_partition_clause -> PARTITION BY '(' scalar_exp_commalist ')'                             : {partition_by, '$4'}.
-     query_partition_clause -> PARTITION BY scalar_exp_commalist                                     : {partition_by, '$3'}.
-```
-
-- **query_term**
-
-```
-New: query_term -> '(' query_exp ')'                                                                 : {'$2', "("}.
- 
-Old: query_term -> '(' query_exp ')'                                                                 : '$2'.
-```
-
-- **scalar_opt_as_exp**
-
-```
-New: scalar_opt_as_exp -> scalar_exp    NAME                                                         : {as, '$1', unwrap_bin('$2'), " "}.
-     scalar_opt_as_exp -> scalar_exp AS NAME                                                         : {as, '$1', unwrap_bin('$3'), " as "}.
- 
-Old: scalar_opt_as_exp -> scalar_exp NAME                                                            : {as, '$1', unwrap_bin('$2')}.
-     scalar_opt_as_exp -> scalar_exp AS NAME                                                         : {as, '$1', unwrap_bin('$3')}. 
-```
-
 - **schema**
 
 ```
 New: schema -> CREATE SCHEMA AUTHORIZATION NAME opt_schema_element_list                              : {'create schema authorization', unwrap('$4'), '$5'}.
 
 Old: schema -> CREATE SCHEMA AUTHORIZATION user opt_schema_element_list                              : {'create schema authorization', '$4', '$5'}.
-```
-
-- **search_condition**
-
-```
-New: search_condition -> '(' search_condition ')'                                                    : {'$2', "("}.
- 
-Old: search_condition -> '(' search_condition ')'                                                    : '$2'.
-```
-
-- **table**
-
-```
-New: table -> NAME AS NAME                                                                           : {as, unwrap_bin('$1'), unwrap_bin('$3'), " as "}.
-     table -> NAME    NAME                                                                           : {as, unwrap_bin('$1'), unwrap_bin('$2'), " "}.
-     table -> NAME '.' NAME AS NAME                                                                  : {as, list_to_binary([unwrap('$1'),".",unwrap('$3')]), unwrap_bin('$5'), " as "}.
-     table -> NAME '.' NAME    NAME                                                                  : {as, list_to_binary([unwrap('$1'),".",unwrap('$3')]), unwrap_bin('$4'), " "}.
-     table -> parameter    NAME                                                                      : {as, '$1', unwrap_bin('$2'), " "}.
-     table -> parameter AS NAME                                                                      : {as, '$1', unwrap_bin('$3'), " as "}.
- 
-Old: table -> NAME AS NAME                                                                           : {as, unwrap_bin('$1'), unwrap_bin('$3')}.
-     table -> NAME NAME                                                                              : {as, unwrap_bin('$1'), unwrap_bin('$2')}.
-     table -> NAME '.' NAME AS NAME                                                                  : {as, list_to_binary([unwrap('$1'),".",unwrap('$3')]), unwrap_bin('$5')}.
-     table -> NAME '.' NAME NAME                                                                     : {as, list_to_binary([unwrap('$1'),".",unwrap('$3')]), unwrap_bin('$4')}.
-     table -> parameter NAME                                                                         : {as, '$1', unwrap_bin('$2')}.
-     table -> parameter AS NAME                                                                      : {as, '$1', unwrap_bin('$3')}.
-```
-
-- **table_ref**
-
-```
-New: table_ref -> '(' query_exp ')'                                                                  : {'$2', "("}.
-     table_ref -> '(' query_exp ')' AS NAME                                                          : {as, {'$2', "("}, unwrap_bin('$5'), " as "}.
-     table_ref -> '(' query_exp ')'    NAME                                                          : {as, {'$2', "("}, unwrap_bin('$4'), " "}.
-  
-Old: table_ref -> '(' query_exp ')'                                                                  : '$2'.
-     table_ref -> '(' query_exp ')' AS NAME                                                          : {as,'$2',unwrap_bin('$5')}.
-     table_ref -> '(' query_exp ')' NAME                                                             : {as,'$2',unwrap_bin('$4')}.
-```
-
-- **test_for_null**
-
-```
-New: test_for_null -> scalar_exp is_not_null                                                         : {'is not', '$1', <<"null">>}.
- 
-Old: test_for_null -> scalar_exp IS NOT NULLX                                                        : {'not', {'is', '$1', <<"null">>}}.
-```
-
-- **view_def**
-
-```
-New: view_def -> AS query_spec                                                                       : {as, '$2', [],                   "as "}.
-     view_def -> AS query_spec WITH CHECK OPTION                                                     : {as, '$2', " with check option", "as "}.
- 
-Old: view_def -> AS query_spec opt_with_check_option                                                 : {'as', '$2', '$3'}.
-        
-     opt_with_check_option -> '$empty'                                                               : [].
-     opt_with_check_option -> WITH CHECK OPTION                                                      : 'with check option'.
 ```
 
 ### New features

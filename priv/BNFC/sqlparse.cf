@@ -176,13 +176,13 @@ ColumnDef01.                      ColumnDef ::= Column DataType ColumnDefOptList
 ColumnDefOptList01.               ColumnDefOptList ::= "$empty"                      ;
 ColumnDefOptList02.               ColumnDefOptList ::= ColumnDefOptList ColumnDefOpt ;
 
-ColumnDefOpt01.                   ColumnDefOpt ::= "NOT" "NULLX"                              ;
-ColumnDefOpt02.                   ColumnDefOpt ::= "NOT" "NULLX" "UNIQUE"                     ;
-ColumnDefOpt03.                   ColumnDefOpt ::= "NOT" "NULLX" "PRIMARY" "KEY"              ;
+ColumnDefOpt01.                   ColumnDefOpt ::= "NOT" "NULL"                               ;
+ColumnDefOpt02.                   ColumnDefOpt ::= "NOT" "NULL" "UNIQUE"                      ;
+ColumnDefOpt03.                   ColumnDefOpt ::= "NOT" "NULL" "PRIMARY" "KEY"               ;
 ColumnDefOpt04.                   ColumnDefOpt ::= "DEFAULT" FunctionRef                      ;
 ColumnDefOpt05.                   ColumnDefOpt ::= "DEFAULT" Literal                          ;
 ColumnDefOpt06.                   ColumnDefOpt ::= "DEFAULT" "NAME"                           ;
-ColumnDefOpt07.                   ColumnDefOpt ::= "DEFAULT" "NULLX"                          ;
+ColumnDefOpt07.                   ColumnDefOpt ::= "DEFAULT" "NULL"                           ;
 ColumnDefOpt08.                   ColumnDefOpt ::= "DEFAULT" "USER"                           ;
 ColumnDefOpt09.                   ColumnDefOpt ::= "CHECK" "(" SearchCondition ")"            ;
 ColumnDefOpt10.                   ColumnDefOpt ::= "REFERENCES" Table                         ;
@@ -253,10 +253,10 @@ Grantee03.                        Grantee ::= "NAME"   "IDENTIFIED" "BY" "NAME" 
 
 Sql03.                            Sql ::= Cursordef ;
 
-Cursordef01.                      Cursordef ::= "DECLARE" Cursor "CURSOR" "FOR" QueryExp OptOrderByClause ;
+Cursordef01.                      Cursordef ::= "DECLARE" Cursor "CURSOR" "FOR" QueryExp               ;
+Cursordef02.                      Cursordef ::= "DECLARE" Cursor "CURSOR" "FOR" QueryExp OrderByClause ;
 
-OptOrderByClause01.               OptOrderByClause ::= "$empty"                           ;
-OptOrderByClause02.               OptOrderByClause ::= "ORDER" "BY" OrderingSpecCommalist ;
+OrderByClause01.                  OrderByClause ::= "ORDER" "BY" OrderingSpecCommalist ;
 
 OrderingSpecCommalist01.          OrderingSpecCommalist ::=                           OrderingSpec ;
 OrderingSpecCommalist02.          OrderingSpecCommalist ::= OrderingSpecCommalist "," OrderingSpec ;
@@ -304,11 +304,11 @@ Tablename01.                      Tablename ::= "NAME"                       ;
 Tablename02.                      Tablename ::= "NAME" "." "NAME"            ;
 Tablename03.                      Tablename ::= "NAME" "." "NAME" "." "NAME" ;
 
-OptMaterialized01.                OptMaterialized ::= "$empty"                         ;
+OptMaterialized01.                OptMaterialized ::= "$empty"                               ;
 OptMaterialized02.                OptMaterialized ::= "PRESERVE" "MATERIALIZED" "VIEW" "LOG" ;
 OptMaterialized03.                OptMaterialized ::= "PURGE"    "MATERIALIZED" "VIEW" "LOG" ;
 
-OptStorage01.                     OptStorage ::=  "$empty"      ;
+OptStorage01.                     OptStorage ::=  "$empty"          ;
 OptStorage02.                     OptStorage ::=  "DROP"  "STORAGE" ;
 OptStorage03.                     OptStorage ::=  "REUSE" "STORAGE" ;
 
@@ -317,14 +317,20 @@ CloseStatement01.                 CloseStatement ::= "CLOSE" Cursor ;
 CommitStatement01.                CommitStatement ::= "COMMIT"        ;
 CommitStatement02.                CommitStatement ::= "COMMIT" "WORK" ;
 
-DeleteStatementPositioned01.      DeleteStatementPositioned ::= "DELETE" "FROM" Table "WHERE" "CURRENT" "OF" Cursor Returning ;
+DeleteStatementPositioned01.      DeleteStatementPositioned ::= "DELETE" "FROM" Table "WHERE" "CURRENT" "OF" Cursor           ;
+DeleteStatementPositioned02.      DeleteStatementPositioned ::= "DELETE" "FROM" Table "WHERE" "CURRENT" "OF" Cursor Returning ;
 
-DeleteStatementSearched01.        DeleteStatementSearched ::= "DELETE" "FROM" Table OptWhereClause Returning ;
+DeleteStatementSearched01.        DeleteStatementSearched ::= "DELETE" "FROM" Table                       ;
+DeleteStatementSearched02.        DeleteStatementSearched ::= "DELETE" "FROM" Table WhereClause           ;
+DeleteStatementSearched03.        DeleteStatementSearched ::= "DELETE" "FROM" Table             Returning ;
+DeleteStatementSearched04.        DeleteStatementSearched ::= "DELETE" "FROM" Table WhereClause Returning ;
 
 FetchStatement01.                 FetchStatement ::= "FETCH" Cursor "INTO" TargetCommalist ;
 
 InsertStatement01.                InsertStatement ::= "INSERT" "INTO" Table                                                ;
-InsertStatement02.                InsertStatement ::= "INSERT" "INTO" Table OptColumnCommalist ValuesOrQuerySpec Returning ;
+InsertStatement02.                InsertStatement ::= "INSERT" "INTO" Table                                      Returning ;
+InsertStatement03.                InsertStatement ::= "INSERT" "INTO" Table OptColumnCommalist ValuesOrQuerySpec           ;
+InsertStatement04.                InsertStatement ::= "INSERT" "INTO" Table OptColumnCommalist ValuesOrQuerySpec Returning ;
 
 ValuesOrQuerySpec01.              ValuesOrQuerySpec ::= "VALUES" "(" InsertAtomCommalist ")" ;
 ValuesOrQuerySpec02.              ValuesOrQuerySpec ::= QuerySpec                            ;
@@ -348,26 +354,24 @@ OptAllDistinct01.                 OptAllDistinct ::= "$empty"   ;
 OptAllDistinct02.                 OptAllDistinct ::= "ALL"      ;
 OptAllDistinct03.                 OptAllDistinct ::= "DISTINCT" ;
 
-UpdateStatementPositioned01.      UpdateStatementPositioned ::= "UPDATE" Table "SET" AssignmentCommalist "WHERE" "CURRENT" "OF" Cursor Returning ;
+UpdateStatementPositioned01.      UpdateStatementPositioned ::= "UPDATE" Table "SET" AssignmentCommalist "WHERE" "CURRENT" "OF" Cursor           ;
+UpdateStatementPositioned02.      UpdateStatementPositioned ::= "UPDATE" Table "SET" AssignmentCommalist "WHERE" "CURRENT" "OF" Cursor Returning ;
 
 AssignmentCommalist01.            AssignmentCommalist ::=                         Assignment ;
 AssignmentCommalist02.            AssignmentCommalist ::= AssignmentCommalist "," Assignment ;
 
 Assignment01.                     Assignment ::= Column "COMPARISON" ScalarOptAsExp ;
 
-UpdateStatementSearched01.        UpdateStatementSearched ::= "UPDATE" Table "SET" AssignmentCommalist OptWhereClause Returning ;
+UpdateStatementSearched01.        UpdateStatementSearched ::= "UPDATE" Table "SET" AssignmentCommalist                       ;
+UpdateStatementSearched02.        UpdateStatementSearched ::= "UPDATE" Table "SET" AssignmentCommalist WhereClause           ;
+UpdateStatementSearched03.        UpdateStatementSearched ::= "UPDATE" Table "SET" AssignmentCommalist             Returning ;
+UpdateStatementSearched04.        UpdateStatementSearched ::= "UPDATE" Table "SET" AssignmentCommalist WhereClause Returning ;
 
 TargetCommalist01.                TargetCommalist ::=                     Target ;
 TargetCommalist02.                TargetCommalist ::= TargetCommalist "," Target ;
 
 Target01.                         Target ::= "NAME"       ;
 Target02.                         Target ::= ParameterRef ;
-
-OptWhereClause01.                 OptWhereClause ::= "$empty"    ;
-OptWhereClause02.                 OptWhereClause ::= WhereClause ;
-
-OptHierarchicalQueryClause01.     OptHierarchicalQueryClause ::= "$empty"                ;
-OptHierarchicalQueryClause02.     OptHierarchicalQueryClause ::= HierarchicalQueryClause ;
 
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 -- query expressions
@@ -379,14 +383,13 @@ QueryExp03.                       QueryExp ::= QueryExp "UNION" "ALL" QueryTerm 
 QueryExp04.                       QueryExp ::= QueryExp "INTERSECT"   QueryTerm ;
 QueryExp05.                       QueryExp ::= QueryExp "MINUS"       QueryTerm ;
 
-Returning01.                      Returning ::= "$empty"                               ;
-Returning02.                      Returning ::= "RETURNING" Selection "INTO" Selection ;
-Returning03.                      Returning ::= "RETURN"    Selection "INTO" Selection ;
+Returning01.                      Returning ::= "RETURNING" Selection "INTO" Selection ;
+Returning02.                      Returning ::= "RETURN"    Selection "INTO" Selection ;
 
 QueryTerm01.                      QueryTerm ::= QuerySpec        ;
 QueryTerm02.                      QueryTerm ::= "(" QueryExp ")" ;
 
-QuerySpec01.                      QuerySpec ::= "SELECT" OptHint OptAllDistinct Selection OptInto Tableexp  ;
+QuerySpec01.                      QuerySpec ::= "SELECT" OptHint OptAllDistinct Selection OptInto TableExp  ;
 
 OptInto01.                        OptInto ::= "$empty"                           ;
 OptInto02.                        OptInto ::= "INTO" TargetCommalist             ;
@@ -417,7 +420,38 @@ CaseWhenThen01.                   CaseWhenThen ::= "WHEN" SearchCondition "THEN"
 OptElse01.                        OptElse ::= "$empty"              ;
 OptElse02.                        OptElse ::= "ELSE" ScalarOptAsExp ;
 
-Tableexp01.                       Tableexp ::= FromClause OptWhereClause OptHierarchicalQueryClause OptGroupByClause OptHavingClause OptOrderByClause ;
+TableExp01.                       TableExp ::= FromClause                                                                              ;
+TableExp02.                       TableExp ::= FromClause                                                                OrderByClause ;
+TableExp03.                       TableExp ::= FromClause                                                   HavingClause               ;
+TableExp04.                       TableExp ::= FromClause                                                   HavingClause OrderByClause ;
+TableExp05.                       TableExp ::= FromClause                                     GroupByClause                            ;
+TableExp06.                       TableExp ::= FromClause                                     GroupByClause              OrderByClause ;
+TableExp07.                       TableExp ::= FromClause                                     GroupByClause HavingClause               ;
+TableExp08.                       TableExp ::= FromClause                                     GroupByClause HavingClause OrderByClause ;
+TableExp09.                       TableExp ::= FromClause             HierarchicalQueryClause                                          ;
+TableExp10.                       TableExp ::= FromClause             HierarchicalQueryClause                            OrderByClause ;
+TableExp11.                       TableExp ::= FromClause             HierarchicalQueryClause               HavingClause               ;
+TableExp12.                       TableExp ::= FromClause             HierarchicalQueryClause               HavingClause OrderByClause ;
+TableExp13.                       TableExp ::= FromClause             HierarchicalQueryClause GroupByClause                            ;
+TableExp14.                       TableExp ::= FromClause             HierarchicalQueryClause GroupByClause              OrderByClause ;
+TableExp15.                       TableExp ::= FromClause             HierarchicalQueryClause GroupByClause HavingClause               ;
+TableExp16.                       TableExp ::= FromClause             HierarchicalQueryClause GroupByClause HavingClause OrderByClause ;
+TableExp17.                       TableExp ::= FromClause WhereClause                                                                  ;
+TableExp18.                       TableExp ::= FromClause WhereClause                                                    OrderByClause ;
+TableExp19.                       TableExp ::= FromClause WhereClause                                       HavingClause               ;
+TableExp20.                       TableExp ::= FromClause WhereClause                                       HavingClause OrderByClause ;
+TableExp21.                       TableExp ::= FromClause WhereClause                         GroupByClause                            ;
+TableExp22.                       TableExp ::= FromClause WhereClause                         GroupByClause              OrderByClause ;
+TableExp23.                       TableExp ::= FromClause WhereClause                         GroupByClause HavingClause               ;
+TableExp24.                       TableExp ::= FromClause WhereClause                         GroupByClause HavingClause OrderByClause ;
+TableExp25.                       TableExp ::= FromClause WhereClause HierarchicalQueryClause                                          ;
+TableExp26.                       TableExp ::= FromClause WhereClause HierarchicalQueryClause                            OrderByClause ;
+TableExp27.                       TableExp ::= FromClause WhereClause HierarchicalQueryClause               HavingClause               ;
+TableExp28.                       TableExp ::= FromClause WhereClause HierarchicalQueryClause               HavingClause OrderByClause ;
+TableExp29.                       TableExp ::= FromClause WhereClause HierarchicalQueryClause GroupByClause                            ;
+TableExp30.                       TableExp ::= FromClause WhereClause HierarchicalQueryClause GroupByClause              OrderByClause ;
+TableExp31.                       TableExp ::= FromClause WhereClause HierarchicalQueryClause GroupByClause HavingClause               ;
+TableExp32.                       TableExp ::= FromClause WhereClause HierarchicalQueryClause GroupByClause HavingClause OrderByClause ;
 
 FromClause01.                     FromClause ::= "FROM" FromColumnCommalist ;
 
@@ -469,16 +503,14 @@ OuterJoinType04.                  OuterJoinType ::= "LEFT"  "OUTER" ;
 OuterJoinType05.                  OuterJoinType ::= "RIGHT"         ;
 OuterJoinType06.                  OuterJoinType ::= "RIGHT" "OUTER" ;
 
-TableRef01.                       TableRef ::= Table                        ;
-TableRef02.                       TableRef ::= Table RangeVariable          ;
-TableRef03.                       TableRef ::= "(" QueryExp ")"             ;
-TableRef04.                       TableRef ::= "(" QueryExp ")"      "NAME" ;
-TableRef05.                       TableRef ::= "(" QueryExp ")" "AS" "NAME" ;
+TableRef01.                       TableRef ::= Table                   ;
+TableRef02.                       TableRef ::= Table RangeVariable     ;
+TableRef03.                       TableRef ::= "(" QueryExp ")"        ;
+TableRef04.                       TableRef ::= "(" QueryExp ")" "NAME" ;
 
-JoinRef01.                        JoinRef ::= Table                        ;
-JoinRef02.                        JoinRef ::= "(" QueryExp ")"             ;
-JoinRef03.                        JoinRef ::= "(" QueryExp ")"      "NAME" ;
-JoinRef04.                        JoinRef ::= "(" QueryExp ")" "AS" "NAME" ;
+JoinRef01.                        JoinRef ::= Table                   ;
+JoinRef02.                        JoinRef ::= "(" QueryExp ")"        ;
+JoinRef03.                        JoinRef ::= "(" QueryExp ")" "NAME" ;
 
 HierarchicalQueryClause01.        HierarchicalQueryClause ::= "START" "WITH" SearchCondition "CONNECT" "BY" OptNocycle SearchCondition ;
 HierarchicalQueryClause02.        HierarchicalQueryClause ::= "CONNECT" "BY" OptNocycle SearchCondition "START" "WITH" SearchCondition ;
@@ -488,16 +520,14 @@ OptNocycle02.                     OptNocycle ::= "NOCYCLE" ;
 
 WhereClause01.                    WhereClause ::= "WHERE" SearchCondition ;
 
-OptGroupByClause01.               OptGroupByClause  ::= "$empty"                        ;
-OptGroupByClause02.               OptGroupByClause  ::= "GROUP" "BY" ColumnRefCommalist ;
+GroupByClause01.                  GroupByClause  ::= "GROUP" "BY" ColumnRefCommalist ;
 
 ColumnRefCommalist01.             ColumnRefCommalist ::=                        ColumnRef   ;
 ColumnRefCommalist02.             ColumnRefCommalist ::=                        FunctionRef ;
 ColumnRefCommalist03.             ColumnRefCommalist ::= ColumnRefCommalist "," ColumnRef   ;
 ColumnRefCommalist04.             ColumnRefCommalist ::= ColumnRefCommalist "," FunctionRef ;
 
-OptHavingClause01.                OptHavingClause ::= "$empty"                 ;
-OptHavingClause02.                OptHavingClause ::= "HAVING" SearchCondition ;
+HavingClause02.                   HavingClause ::= "HAVING" SearchCondition ;
 
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 -- search conditions
@@ -529,8 +559,8 @@ LikePredicate02.                  LikePredicate ::= ScalarExp "NOT" "LIKE" Scala
 LikePredicate03.                  LikePredicate ::= ScalarExp       "LIKE" ScalarExp "ESCAPE" Atom ;
 LikePredicate04.                  LikePredicate ::= ScalarExp       "LIKE" ScalarExp               ;
 
-TestForNull01.                    TestForNull ::= ScalarExp "IS" "NOT" "NULLX" ;
-TestForNull02.                    TestForNull ::= ScalarExp "IS"       "NULLX" ;
+TestForNull01.                    TestForNull ::= ScalarExp "IS" "NOT" "NULL" ;
+TestForNull02.                    TestForNull ::= ScalarExp "IS"       "NULL" ;
 
 InPredicate01.                    InPredicate ::= ScalarExp "NOT" "IN" "(" Subquery ")"           ;
 InPredicate02.                    InPredicate ::= ScalarExp       "IN" "(" Subquery ")"           ;
@@ -565,7 +595,7 @@ ScalarSubExp03.                   ScalarSubExp ::= ScalarSubExp "*"   ScalarSubE
 ScalarSubExp04.                   ScalarSubExp ::= ScalarSubExp "/"   ScalarSubExp ;
 ScalarSubExp05.                   ScalarSubExp ::= ScalarSubExp "div" ScalarSubExp ;
 ScalarSubExp06.                   ScalarSubExp ::= UnaryAddOrSubtract ScalarSubExp ;
-ScalarSubExp10.                   ScalarSubExp ::= "NULLX"                         ;
+ScalarSubExp10.                   ScalarSubExp ::= "NULL"                          ;
 ScalarSubExp11.                   ScalarSubExp ::= Atom                            ;
 ScalarSubExp12.                   ScalarSubExp ::= Subquery                        ;
 ScalarSubExp13.                   ScalarSubExp ::= ColumnRef                       ;
@@ -610,7 +640,7 @@ FunArg08.                         FunArg ::= FunArg "div" FunArg        ;
 FunArg09.                         FunArg ::= FunArg "||"  FunArg        ;
 FunArg10.                         FunArg ::= "+" FunArg                 ;
 FunArg11.                         FunArg ::= "-" FunArg                 ;
-FunArg14.                         FunArg ::= "NULLX"                    ;
+FunArg14.                         FunArg ::= "NULL"                     ;
 FunArg15.                         FunArg ::= Atom                       ;
 FunArg16.                         FunArg ::= Subquery                   ;
 FunArg17.                         FunArg ::= FunArg "AS" "NAME"         ;
@@ -624,16 +654,13 @@ Literal03.                        Literal ::= "APPROXNUM" ;
 -- miscellaneous
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Table01.                          Table ::= "NAME"                        ;
-Table02.                          Table ::= "NAME" "AS" "NAME"            ;
-Table03.                          Table ::= "NAME"      "NAME"            ;
-Table04.                          Table ::= "STRING"                      ;
-Table05.                          Table ::= "NAME" "." "NAME"             ;
-Table06.                          Table ::= "NAME" "." "NAME" "AS" "NAME" ;
-Table07.                          Table ::= "NAME" "." "NAME"      "NAME" ;
-Table08.                          Table ::= Parameter                     ;
-Table09.                          Table ::= Parameter      "NAME"         ;
-Table10.                          Table ::= Parameter "AS" "NAME"         ;
+Table01.                          Table ::= "NAME"                   ;
+Table02.                          Table ::= "NAME"            "NAME" ;
+Table03.                          Table ::= "STRING"                 ;
+Table04.                          Table ::= "NAME" "."        "NAME" ;
+Table05.                          Table ::= "NAME" "." "NAME" "NAME" ;
+Table06.                          Table ::= Parameter                ;
+Table07.                          Table ::= Parameter         "NAME" ;
 
 ColumnRef01.                      ColumnRef ::=                       "JSON"             ;
 ColumnRef02.                      ColumnRef ::=            "NAME"     "JSON"             ;

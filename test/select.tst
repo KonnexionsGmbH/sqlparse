@@ -14,7 +14,7 @@
 
 "select * from :t".
 "select * from :t tst1".
-"select * from :t as tst2".
+"select * from :t tst2".
 
 <<"select a < 0, f(a+2 as d), f2(a < 3 as f) from abc">>.
 
@@ -131,8 +131,8 @@ UNION ALL
 
 "SELECT DISTINCT * FROM name_table_1 JOIN name_table_2 name_alias ON name_column_1 = name_column_2".
 "SELECT DISTINCT * FROM name_table_1 JOIN name_table_2 name_alias USING (name_column_1)".
-"SELECT DISTINCT * FROM name_table_1 JOIN name_table_2 AS name_alias ON name_column_1 = name_column_2".
-"SELECT DISTINCT * FROM name_table_1 JOIN name_table_2 AS name_alias USING (name_column_1)".
+"SELECT DISTINCT * FROM name_table_1 JOIN name_table_2 name_alias ON name_column_1 = name_column_2".
+"SELECT DISTINCT * FROM name_table_1 JOIN name_table_2 name_alias USING (name_column_1)".
 
 "SELECT DISTINCT * FROM name_table_1 INNER JOIN name_table_2 ON name_column_1 = name_column_2".
 "SELECT DISTINCT * FROM name_table_1 INNER JOIN name_table_2 ON name_column_1 = name_column_2 AND name_column_3 = name_column_4".
@@ -169,19 +169,19 @@ UNION ALL
 "SELECT DISTINCT * FROM name_table_1 PARTITION BY (1), 2 NATURAL FULL JOIN name_table_2".
 "SELECT DISTINCT * FROM name_table_1 PARTITION BY 1, (2) NATURAL FULL JOIN name_table_2".
 
-"SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2 AS name_alias".
+"SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2 name_alias".
 
 "SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2 ON name_column_1 = name_column_2".
 "SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2 name_alias ON name_column_1 = name_column_2".
-"SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2 AS name_alias ON name_column_1 = name_column_2".
+"SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2 name_alias ON name_column_1 = name_column_2".
 "SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2 ON name_column_1 = name_column_2 AND name_column_3 = name_column_4".
 "SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2 name_alias ON name_column_1 = name_column_2 AND name_column_3 = name_column_4".
-"SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2 AS name_alias ON name_column_1 = name_column_2 AND name_column_3 = name_column_4".
+"SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2 name_alias ON name_column_1 = name_column_2 AND name_column_3 = name_column_4".
 
 "SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2 USING (name_column_1)".
 "SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2 USING (name_column_1, name_column_2)".
 "SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2 name_alias USING (name_column_1, name_column_2)".
-"SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2 AS name_alias USING (name_column_1, name_column_2)".
+"SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2 name_alias USING (name_column_1, name_column_2)".
 
 % where ------------------------------------------------------------------------
 

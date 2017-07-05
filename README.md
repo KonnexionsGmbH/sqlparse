@@ -111,6 +111,7 @@ The following grammar rule is not supported by the test data generator:
 ```ebnf
 from_column -> join_clause
 ```
+
 ## 4. Contributing
 
 1. Fork it

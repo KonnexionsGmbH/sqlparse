@@ -349,7 +349,8 @@ group_gen(TestFiles, Logs) ->
                                          {I1, _} ->
                                              <<Head:I1/binary, _/binary>> = TestFileBin,
                                              case re:run(Head, ".*[\r\n]", [global]) of
-                                                 {match, Matches} -> length(Matches) + 1;
+                                                 {match, Matches} ->
+                                                     length(Matches) + 1;
                                                  nomatch ->
                                                      io:format(user,
                                                          "~p~n"

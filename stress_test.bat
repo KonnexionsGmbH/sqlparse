@@ -33,9 +33,10 @@ IF "%1" == "" (
     ECHO =======================================================================
     ECHO !TIME! Start run - in total %NO_RUNS%
 
+    DEL _build\test\lib\sqlparse\test\reliability_*.*
     RD _build\test\logs /Q /S
     MD _build\test\logs
-    RD \tmp\backup /Q /S
+    RD tmp\backup /Q /S
 
     FOR /L %%G IN (1,1,%NO_RUNS%) DO (
        ECHO -----------------------------------------------------------------------

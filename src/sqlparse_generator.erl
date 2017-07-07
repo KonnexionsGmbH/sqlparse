@@ -4219,8 +4219,8 @@ create_code(special = Rule) ->
         %% ---------------------------------------------------------------------
         %% insert_statement -> INSERT INTO table opt_column_commalist values_or_query_spec returning
         %% ---------------------------------------------------------------------
-        "Insert Into table_name  Return column_name",
-        "Insert Into table_name  Values (1)",
+        "Insert Into table_name Return column_name_a Into column_name_b",
+        "Insert Into table_name Values (1)",
         "Insert Into table_name Select source_column From source_table",
         "Insert Into table_name (column_name) Values (1)",
         "Insert Into table_name ('column_string') Values (1)",
@@ -5228,7 +5228,7 @@ file_create_ct(Type, CompleteSemicolon, CompactedDetailed, Rule) ->
         _ -> io:format(File, "~s~n", ["    suite/0,"]),
             case CompactedDetailed of
                 "compacted" ->
-                    io:format(File, "~s~n", [lists:append(["    test/1"])]);
+                    io:format(File, "~s~n", [lists:append(["    test_compacted/1"])]);
                 _ -> file_write_ct_export(1, File, CodeLength)
             end
     end,
@@ -5264,7 +5264,7 @@ file_create_ct(Type, CompleteSemicolon, CompactedDetailed, Rule) ->
         0 -> ok;
         _ -> case CompactedDetailed of
                  "compacted" ->
-                     io:format(File, "~s~n", [lists:append(["        test"])]);
+                     io:format(File, "~s~n", [lists:append(["        test_compacted"])]);
                  _ -> file_write_ct_all(1, File, CodeLength)
              end
     end,
@@ -5280,7 +5280,7 @@ file_create_ct(Type, CompleteSemicolon, CompactedDetailed, Rule) ->
         0 -> ok;
         _ -> case CompactedDetailed of
                  "compacted" ->
-                     io:format(File, "~s~n", [lists:append(["test(_Config) ->"])]);
+                     io:format(File, "~s~n", [lists:append(["test_compacted(_Config) ->"])]);
                  _ -> ok
              end,
             file_write_ct(1, Type, CompleteSemicolon, CompactedDetailed, File, Code)

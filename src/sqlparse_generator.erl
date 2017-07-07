@@ -53,11 +53,13 @@
     rollback_statement,
     schema,
     select_statement,
-    special,
     truncate_table,
     update_statement,
     view_def,
     whenever
+]).
+-define(ALL_CLAUSE_CT_RELIABILITY_SQL_DETAILED, [
+    special
 ]).
 
 -define(ALL_CLAUSE_EUNIT_RELIABILITY, [
@@ -116,20 +118,23 @@ generate() ->
 
     create_code(),
 
-    % performance common tests
-    ok = file_create_ct_all(performance, ?ALL_CLAUSE_CT_PERFORMANCE),
+    % performance common tests with compacted test cases
+    ok = file_create_ct_all("performance", "complete_", "compacted", ?ALL_CLAUSE_CT_PERFORMANCE),
 
-    % reliability common tests
-    ok = file_create_ct_all(reliability, ?ALL_CLAUSE_CT_RELIABILITY),
+    % reliability common tests with compacted test cases
+    ok = file_create_ct_all("reliability", "complete_", "compacted", ?ALL_CLAUSE_CT_RELIABILITY),
 
-    % reliability common tests from sql
-    ok = file_create_ct_all(reliability_sql, ?ALL_CLAUSE_CT_RELIABILITY_SQL),
+    % reliability common tests with semicolon completion and compacted test cases
+    ok = file_create_ct_all("reliability", "semicolon", "compacted", ?ALL_CLAUSE_CT_RELIABILITY_SQL),
 
-    % reliability eunit tests
-    ok = file_create_eunit_all(reliability, ?ALL_CLAUSE_EUNIT_RELIABILITY),
+    % reliability common tests with semicolon completion and detailed test cases
+    ok = file_create_ct_all("reliability", "semicolon", "detailed_", ?ALL_CLAUSE_CT_RELIABILITY_SQL_DETAILED),
 
-    % reliability common tests from contractPart
-    ok = file_create_eunit_all(reliability_sql, ?ALL_CLAUSE_EUNIT_RELIABILITY_SQL),
+    % reliability eunit tests with compacted test cases
+    ok = file_create_eunit_all("reliability", "complete_", ?ALL_CLAUSE_EUNIT_RELIABILITY),
+
+    % reliability common tests with semicolon completion and "compacted" test cases
+    ok = file_create_eunit_all("reliability", "semicolon", ?ALL_CLAUSE_EUNIT_RELIABILITY_SQL),
 
     dets:close(?CODE_TEMPLATES).
 
@@ -4167,7 +4172,7 @@ create_code(special = Rule) ->
         "Select (2 * 3) - (Select * From Dual) From dual",
         "Select (2 / 3) - (Select * From Dual) From dual",
         %% ---------------------------------------------------------------------
-        %% chenged: JSON
+        %% changed: JSON
         %% ---------------------------------------------------------------------
         %% create_index_spec_items -> JSON
         %% create_index_spec_items -> JSON '|' create_index_spec_items
@@ -4214,6 +4219,7 @@ create_code(special = Rule) ->
         %% ---------------------------------------------------------------------
         %% insert_statement -> INSERT INTO table opt_column_commalist values_or_query_spec returning
         %% ---------------------------------------------------------------------
+        "Insert Into table_name  Return column_name",
         "Insert Into table_name  Values (1)",
         "Insert Into table_name Select source_column From source_table",
         "Insert Into table_name (column_name) Values (1)",
@@ -5185,24 +5191,28 @@ create_code(with_revoke_option = Rule) ->
 %% Creating Common Test data files.
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-file_create_ct_all(_Type, []) ->
+file_create_ct_all(_Type, _CompleteSQL, _CompactedDetailed, []) ->
     ok;
-file_create_ct_all(Type, [Rule | Rules]) ->
-    file_create_ct(Type, Rule),
-    file_create_ct_all(Type, Rules).
+file_create_ct_all(Type, CompleteSemicolon, CompactedDetailed, [Rule | Rules]) ->
+    file_create_ct(Type, CompleteSemicolon, CompactedDetailed, Rule),
+    file_create_ct_all(Type, CompleteSemicolon, CompactedDetailed, Rules).
 
-file_create_ct(Type, Rule) ->
+file_create_ct(Type, CompleteSemicolon, CompactedDetailed, Rule) ->
     [{Rule, Code}] = dets:lookup(?CODE_TEMPLATES, Rule),
-    erlang:display(io:format("final common tests ===> ~12.. B type: ~s rule: ~s ~n", [length(Code), atom_to_list(Type), atom_to_list(Rule)])),
 
-    FileName = lists:append([atom_to_list(Type), "_", atom_to_list(Rule), "_SUITE"]),
+    CodeLength = length(Code),
+    RuleString = atom_to_list(Rule),
+
+    FileName = lists:append([Type, "_", CompleteSemicolon, "_", CompactedDetailed, "_", RuleString, "_SUITE"]),
     {ok, File, _} = file:path_open([?PATH_CT], FileName ++ ".erl", [write]),
+
+    erlang:display(io:format("final common tests ===> ~12.. B file_name: ~s ~n", [CodeLength, FileName ++ ".erl"])),
 
     {{Current_Year, Current_Month, Current_Day}, _} = calendar:local_time(),
 
     io:format(File, "~s~n", ["%%%-------------------------------------------------------------------"]),
     io:format(File, "~s~n", [lists:append(["%%% File        : ", FileName, ".erl"])]),
-    io:format(File, "~s~n", [lists:append(["%%% Description : Test Suite for rule: ", atom_to_list(Rule), "."])]),
+    io:format(File, "~s~n", [lists:append(["%%% Description : Test Suite for rule: ", RuleString, "."])]),
     io:format(File, "~s~n", ["%%%"]),
     io:format(File, "~s~n", ["%%% Created     : " ++ lists:flatten(io_lib:format("~2..0w.~2..0w.~4..0w", [Current_Day, Current_Month, Current_Year]))]),
     io:format(File, "~s~n", ["%%%-------------------------------------------------------------------"]),
@@ -5212,8 +5222,17 @@ file_create_ct(Type, Rule) ->
     io:format(File, "~s~n", ["    all/0,"]),
     io:format(File, "~s~n", ["    end_per_suite/1,"]),
     io:format(File, "~s~n", ["    init_per_suite/1,"]),
-    io:format(File, "~s~n", ["    suite/0,"]),
-    io:format(File, "~s~n", [lists:append(["    test_", atom_to_list(Rule), "/1"])]),
+
+    case CodeLength of
+        0 -> io:format(File, "~s~n", ["    suite/0"]);
+        _ -> io:format(File, "~s~n", ["    suite/0,"]),
+            case CompactedDetailed of
+                "compacted" ->
+                    io:format(File, "~s~n", [lists:append(["    test/1"])]);
+                _ -> file_write_ct_export(1, File, CodeLength)
+            end
+    end,
+
     io:format(File, "~s~n", ["])."]),
     io:format(File, "~s~n", [""]),
     io:format(File, "~s~n", ["-include_lib(\"common_test/include/ct.hrl\")."]),
@@ -5239,55 +5258,111 @@ file_create_ct(Type, Rule) ->
     io:format(File, "~s~n", ["%%--------------------------------------------------------------------"]),
     io:format(File, "~s~n", [""]),
     io:format(File, "~s~n", ["all() ->"]),
-    io:format(File, "~s~n", [lists:append(["    [test_", atom_to_list(Rule), "]."])]),
+    io:format(File, "~s~n", ["    ["]),
+
+    case CodeLength of
+        0 -> ok;
+        _ -> case CompactedDetailed of
+                 "compacted" ->
+                     io:format(File, "~s~n", [lists:append(["        test"])]);
+                 _ -> file_write_ct_all(1, File, CodeLength)
+             end
+    end,
+
+    io:format(File, "~s~n", ["    ]."]),
     io:format(File, "~s~n", [""]),
     io:format(File, "~s~n", ["%%--------------------------------------------------------------------"]),
     io:format(File, "~s~n", ["%% TEST CASES"]),
     io:format(File, "~s~n", ["%%--------------------------------------------------------------------"]),
     io:format(File, "~s~n", [""]),
 
-    io:format(File, "~s~n", [lists:append(["test_", atom_to_list(Rule), "(_Config) ->"])]),
+    case CodeLength of
+        0 -> ok;
+        _ -> case CompactedDetailed of
+                 "compacted" ->
+                     io:format(File, "~s~n", [lists:append(["test(_Config) ->"])]);
+                 _ -> ok
+             end,
+            file_write_ct(1, Type, CompleteSemicolon, CompactedDetailed, File, Code)
+    end.
 
-    file_write_ct(Type, File, Code).
-
-file_write_ct(_Type, File, []) ->
-    io:format(File, "~s~n", ["    ok."]),
+file_write_ct(_Current, _Type, _CompleteSQL, CompactedDetailed, File, []) ->
+    case CompactedDetailed of
+        "compacted" -> io:format(File, "~s~n", ["    ok."]);
+        _ -> ok
+    end,
     file:close(File);
-file_write_ct(Type, File, [H | T]) ->
-    io:format(File, "~s~n", [lists:append([
-        "    ",
-        case Type of
-            performance ->
-                "{ok, _} = sqlparse:parsetree_with_tokens";
-            _ ->
-                "sqlparse_test:common_test_source"
-        end,
-        "(\"",
-        case Type of
-            reliability_sql ->
-                H ++ ";";
-            _ ->
-                H
-        end,
-        "\"),"
-    ])]),
-    file_write_ct(Type, File, T).
+file_write_ct(Current, Type, CompleteSemicolon, CompactedDetailed, File, [H | T]) ->
+    case CompactedDetailed of
+        "compacted" -> io:format(File, "~s~n", [lists:append([
+            "    ",
+            case Type of
+                performance ->
+                    "{ok, _} = sqlparse:parsetree_with_tokens";
+                _ ->
+                    "sqlparse_test:common_test_source"
+            end,
+            "(\"",
+            case Type of
+                reliability_sql ->
+                    H ++ ";";
+                _ ->
+                    H
+            end,
+            "\"),"
+        ])]);
+        _ ->
+            io:format(File, "~s~n", [lists:append(["test_", integer_to_list(Current), "(_Config) ->"])]),
+            io:format(File, "~s~n", [lists:append([
+                "    ",
+                case Type of
+                    "performance" -> "{ok, _} = sqlparse:parsetree_with_tokens";
+                    _ -> "sqlparse_test:common_test_source"
+                end,
+                "(\"",
+                case CompleteSemicolon of
+                    "semicolon" -> H ++ ";";
+                    _ -> H
+                end,
+                "\")."
+            ])]),
+            io:format(File, "~s~n", [""])
+    end,
+    file_write_ct(Current + 1, Type, CompleteSemicolon, CompactedDetailed, File, T).
+
+file_write_ct_all(Current, File, Target)
+    when Current == Target ->
+    io:format(File, "~s~n", [lists:append(["        test_", integer_to_list(Current)])]);
+file_write_ct_all(Current, File, Target) ->
+    io:format(File, "~s~n", [lists:append(["        test_", integer_to_list(Current), ","])]),
+    file_write_ct_all(Current + 1, File, Target).
+
+file_write_ct_export(Current, File, Target)
+    when Current == Target ->
+    io:format(File, "~s~n", [lists:append(["    test_", integer_to_list(Current), "/1"])]);
+file_write_ct_export(Current, File, Target) ->
+    io:format(File, "~s~n", [lists:append(["    test_", integer_to_list(Current), "/1,"])]),
+    file_write_ct_export(Current + 1, File, Target).
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Creating EUnit data files.
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-file_create_eunit_all(_Type, []) ->
+file_create_eunit_all(_Type, _CompleteSQL, []) ->
     ok;
-file_create_eunit_all(Type, [Rule | Rules]) ->
-    file_create_eunit(Type, Rule),
-    file_create_eunit_all(Type, Rules).
+file_create_eunit_all(Type, CompleteSemicolon, [Rule | Rules]) ->
+    file_create_eunit(Type, CompleteSemicolon, Rule),
+    file_create_eunit_all(Type, CompleteSemicolon, Rules).
 
-file_create_eunit(Type, Rule) ->
+file_create_eunit(Type, CompleteSemicolon, Rule) ->
     [{Rule, Code}] = dets:lookup(?CODE_TEMPLATES, Rule),
-    erlang:display(io:format("final eunit  tests ===> ~12.. B type: ~s rule: ~s ~n", [length(Code), atom_to_list(Type), atom_to_list(Rule)])),
-    FileName = lists:append([atom_to_list(Type), "_", atom_to_list(Rule), ".tst"]),
+
+    RuleStrimg = atom_to_list(Rule),
+
+    FileName = lists:append([Type, "_", CompleteSemicolon, " ", RuleStrimg, ".tst"]),
     {ok, File, _} = file:path_open([?PATH_EUNIT], FileName, [write]),
+
+    erlang:display(io:format("final eunit  tests ===> ~12.. B file_name: ~s ~n", [length(Code), FileName])),
 
     io:format(File, "~s~n", ["%%-*- mode: erlang -*-"]),
     io:format(File, "~s~n", ["%%-*- coding: utf-8 -*-"]),
@@ -5296,24 +5371,24 @@ file_create_eunit(Type, Rule) ->
     io:format(File, "~s~n", ["[{tests, []}]."]),
     io:format(File, "~s~n", [""]),
     io:format(File, "~s~n", ["%%"]),
-    io:format(File, "~s~n", ["%% Tests for rule: " ++ atom_to_list(Rule)]),
+    io:format(File, "~s~n", ["%% Tests for rule: " ++ RuleStrimg]),
     io:format(File, "~s~n", ["%%"]),
     io:format(File, "~s~n", [""]),
 
-    file_write_eunit(Type, File, Code).
+    file_write_eunit(CompleteSemicolon, File, Code).
 
-file_write_eunit(_Type, File, []) ->
+file_write_eunit(_CompleteSQL, File, []) ->
     file:close(File);
-file_write_eunit(Type, File, [H | T]) ->
+file_write_eunit(CompleteSemicolon, File, [H | T]) ->
     io:format(File, "~s~n", ["\"" ++
-        case Type of
-            reliability_sql ->
+        case CompleteSemicolon of
+            "semicolon" ->
                 H ++ ";";
             _ ->
                 H
         end ++
         "\"."]),
-    file_write_eunit(Type, File, T).
+    file_write_eunit(CompleteSemicolon, File, T).
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Store generated code in helper table.

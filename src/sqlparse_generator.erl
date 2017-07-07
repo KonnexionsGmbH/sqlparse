@@ -88,6 +88,8 @@
     _Start = erlang:monotonic_time(1000)
 ).
 
+-define(F_RANDOM, fun(X, Y) -> erlang:phash2(X) < erlang:phash2(Y) end).
+
 -define(MAX_BASIC, 250).
 -define(MAX_SQL, ?MAX_BASIC * 16).
 -define(MAX_STATEMENT_COMPLEX, ?MAX_BASIC * 8).
@@ -397,6 +399,7 @@ create_code_layer() ->
 %% Level 11
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+    create_code(join),
     create_code(join_list),
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1792,11 +1795,15 @@ create_code(from_column = Rule) ->
     ?CREATE_CODE_START,
     [{join_clause, Join_Clause}] = dets:lookup(?CODE_TEMPLATES, join_clause),
     Join_Clause_Length = length(Join_Clause),
+    [{table_ref, Table_Ref}] = dets:lookup(?CODE_TEMPLATES, table_ref),
+    Table_Ref_Length = length(Table_Ref),
 
     Code =
         [
-            case rand:uniform(2) rem 2 of
-                1 -> lists:append([
+            case rand:uniform(3) rem 3 of
+                1 ->
+                    lists:nth(rand:uniform(Table_Ref_Length), Table_Ref);
+                2 -> lists:append([
                     "(",
                     lists:nth(rand:uniform(Join_Clause_Length), Join_Clause),
                     ")"
@@ -2440,31 +2447,22 @@ create_code(inner_cross_join = Rule) ->
             case rand:uniform(2) rem 2 of
                 1 -> lists:append([
                     case rand:uniform(2) rem 2 of
-                        1 -> "Inner ";
-                        _ -> []
+                        1 -> "Join ";
+                        _ -> "Inner Join "
                     end,
-                    "Join ",
                     lists:nth(rand:uniform(Join_Ref_Length), Join_Ref),
                     " ",
                     lists:nth(rand:uniform(Join_On_Or_Using_Clause_Length), Join_On_Or_Using_Clause)
                 ]);
-                _ -> lists:append([
-                    case rand:uniform(2) rem 2 of
-                        1 -> "Cross ";
-                        _ -> "Natural " ++
-                        case rand:uniform(2) rem 2 of
-                            1 -> "Inner ";
-                            _ -> []
-                        end
-                    end,
-                    "Join ",
-                    lists:nth(rand:uniform(Join_Ref_Length), Join_Ref)
-                ])
+                _ -> case rand:uniform(3) rem 3 of
+                         1 -> "Cross Join ";
+                         2 -> "Natural Join ";
+                         _ -> "Natural Inner Join "
+                     end ++ lists:nth(rand:uniform(Join_Ref_Length), Join_Ref)
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, 0, false),
-    store_code(join, Code, ?MAX_BASIC, false),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2489,7 +2487,7 @@ create_code(insert_statement = Rule) ->
             lists:append([
                 "Insert Into ",
                 lists:nth(rand:uniform(Table_Length), Table),
-                case rand:uniform(100) rem 100 of
+                case rand:uniform(50) rem 50 of
                     1 -> [];
                     _ -> lists:append([
                         " (",
@@ -2608,6 +2606,30 @@ create_code(into = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% join ::= inner_cross_join
+%%        | outer_join
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(join = Rule) ->
+    ?CREATE_CODE_START,
+    [{inner_cross_join, Inner_Cross_Join}] = dets:lookup(?CODE_TEMPLATES, inner_cross_join),
+    Inner_Cross_Join_Length = length(Inner_Cross_Join),
+    [{outer_join, Outer_Join}] = dets:lookup(?CODE_TEMPLATES, outer_join),
+    Outer_Join_Length = length(Outer_Join),
+
+    Code =
+        [
+            case rand:uniform(2) rem 2 of
+                1 ->
+                    lists:nth(rand:uniform(Inner_Cross_Join_Length), Inner_Cross_Join);
+                _ -> lists:nth(rand:uniform(Outer_Join_Length), Outer_Join)
+            end
+            || _ <- lists:seq(1, ?MAX_BASIC * 2)
+        ],
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% join_clause ::= table_ref join ( join )*
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -2642,10 +2664,8 @@ create_code(join_list = Rule) ->
     Code =
         Join ++
         [
-            case rand:uniform(4) rem 4 of
+            case rand:uniform(3) rem 3 of
                 1 -> lists:append([
-                    lists:nth(rand:uniform(Join_Length), Join),
-                    " ",
                     lists:nth(rand:uniform(Join_Length), Join),
                     " ",
                     lists:nth(rand:uniform(Join_Length), Join),
@@ -2653,13 +2673,6 @@ create_code(join_list = Rule) ->
                     lists:nth(rand:uniform(Join_Length), Join)
                 ]);
                 2 -> lists:append([
-                    lists:nth(rand:uniform(Join_Length), Join),
-                    " ",
-                    lists:nth(rand:uniform(Join_Length), Join),
-                    " ",
-                    lists:nth(rand:uniform(Join_Length), Join)
-                ]);
-                3 -> lists:append([
                     lists:nth(rand:uniform(Join_Length), Join),
                     " ",
                     lists:nth(rand:uniform(Join_Length), Join)
@@ -3161,8 +3174,7 @@ create_code(outer_join = Rule) ->
             ])
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
-    store_code(Rule, Code, 0, false),
-    store_code(join, Code, ?MAX_BASIC, false),
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -5309,7 +5321,6 @@ file_write_eunit(Type, File, [H | T]) ->
 
 store_code(Rule, Code, Max, Strict) ->
 %   erlang:display(io:format("store Code         ===> ~12.. B rule: ~s ~n", [length(Code), atom_to_list(Rule)])),
-    FRandom = fun(X, Y) -> erlang:phash2(X) < erlang:phash2(Y) end,
 
     case Max == 0 of
         true ->
@@ -5318,21 +5329,21 @@ store_code(Rule, Code, Max, Strict) ->
         _ ->
             CodeUnique = ordsets:to_list(ordsets:from_list(Code)),
             CodeUnique_Length = length(CodeUnique),
+            CodeUniqueSorted = lists:sort(?F_RANDOM, CodeUnique),
             CodeUniqueLimited = case CodeUnique_Length > Max of
                                     true ->
-                                        lists:sublist(lists:sort(FRandom, CodeUnique), 1, Max);
+                                        lists:sublist(CodeUniqueSorted, 1, Max);
                                     _ -> CodeUnique
                                 end,
             CodeTotal = case dets:lookup(?CODE_TEMPLATES, Rule) of
                             [{Rule, CodeOld}] ->
-                                ordsets:to_list(ordsets:from_list(lists:append([CodeOld, CodeUniqueLimited])));
+                                lists:sort(?F_RANDOM, ordsets:to_list(ordsets:from_list(lists:append([CodeOld, CodeUniqueLimited]))));
                             _ -> CodeUniqueLimited
                         end,
             CodeTotal_Length = length(CodeTotal),
             CodeNew = case Strict andalso CodeTotal_Length > Max of
                           true ->
-                              CodeTotalSorted = lists:sort(FRandom, CodeTotal),
-                              [lists:nth(rand:uniform(CodeTotal_Length), CodeTotalSorted) || _ <- lists:seq(1, Max)];
+                              [lists:nth(rand:uniform(CodeTotal_Length), CodeTotal) || _ <- lists:seq(1, Max)];
                           _ -> CodeTotal
                       end,
             dets:insert(?CODE_TEMPLATES, {Rule, CodeNew}),

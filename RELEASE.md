@@ -190,6 +190,6 @@ Old: schema -> CREATE SCHEMA AUTHORIZATION user opt_schema_element_list         
 
 - **Code coverage:** 100% code coverage in folder module sqlparse_fold.erl 
 - **Debugging refined:** eunit debugging messages at the start and the end of every fold function 
-- **Grammar cleanup:** removing dead grammar rules and reduce/reduce conflicts; reducing the number of shift/reduce conflicts 
+- **Grammar cleanup:** removing dead grammar rules and reduce/reduce conflicts 
 - **JSONPath:** embedding JSONPath expressions in SQL grammar rules between two vertical bars 
 - **Test driver:** adding common test support and refactoring the eunit support

@@ -118,7 +118,6 @@ Nonterminals
  opt_hint
  opt_index_name
  opt_into
- opt_join_on_or_using_clause
  opt_materialized
  opt_nocycle
  opt_on_obj_clause
@@ -904,25 +903,34 @@ inner_cross_join -> NATURAL INNER JOIN join_ref                                 
 join_on_or_using_clause -> ON search_condition                                                  : {on, '$2'}.
 join_on_or_using_clause -> USING '(' select_field_commalist ')'                                 : {using, '$3'}.
 
-opt_join_on_or_using_clause -> '$empty'                                                         : {}.
-opt_join_on_or_using_clause -> join_on_or_using_clause                                          : '$1'.
-
 % ----------------------------------------------------------------------------------------------- {{join_type, partition, opt_natural} ... }
-outer_join ->                                outer_join_type JOIN join_ref                        opt_join_on_or_using_clause
+outer_join ->                                outer_join_type JOIN join_ref                        join_on_or_using_clause
                                                                                                 : {{'$1', {}, {}}, '$3', {}, '$4'}.
-outer_join ->                                outer_join_type JOIN join_ref query_partition_clause opt_join_on_or_using_clause
+outer_join ->                                outer_join_type JOIN join_ref                      : {{'$1', {},   {}},      '$3', {},   {}}.
+outer_join ->                                outer_join_type JOIN join_ref query_partition_clause
+                                                                                                : {{'$1', {},   {}},      '$3', '$4', {}}.
+outer_join ->                                outer_join_type JOIN join_ref query_partition_clause join_on_or_using_clause
                                                                                                 : {{'$1', {}, {}}, '$3', '$4', '$5'}.
-outer_join -> NATURAL                        outer_join_type JOIN join_ref                        opt_join_on_or_using_clause
+outer_join -> NATURAL                        outer_join_type JOIN join_ref                        join_on_or_using_clause
                                                                                                 : {{'$2', {}, natural}, '$4', {}, '$5'}.
-outer_join -> NATURAL                        outer_join_type JOIN join_ref query_partition_clause opt_join_on_or_using_clause
+outer_join -> NATURAL                        outer_join_type JOIN join_ref                      : {{'$2', {},   natural}, '$4', {},   {}}.
+outer_join -> NATURAL                        outer_join_type JOIN join_ref query_partition_clause
+                                                                                                 : {{'$2', {},   natural}, '$4', '$5', {}}.
+outer_join -> NATURAL                        outer_join_type JOIN join_ref query_partition_clause join_on_or_using_clause
                                                                                                 : {{'$2', {}, natural}, '$4', '$5', '$6'}.
-outer_join -> query_partition_clause         outer_join_type JOIN join_ref                        opt_join_on_or_using_clause
+outer_join -> query_partition_clause         outer_join_type JOIN join_ref                        join_on_or_using_clause
                                                                                                 : {{'$2', '$1', {}}, '$4', {}, '$5'}.
-outer_join -> query_partition_clause         outer_join_type JOIN join_ref query_partition_clause opt_join_on_or_using_clause
+outer_join -> query_partition_clause         outer_join_type JOIN join_ref                      : {{'$2', '$1', {}},      '$4', {},   {}}.
+outer_join -> query_partition_clause         outer_join_type JOIN join_ref query_partition_clause
+                                                                                                 : {{'$2', '$1', {}},      '$4', '$5', {}}.
+outer_join -> query_partition_clause         outer_join_type JOIN join_ref query_partition_clause join_on_or_using_clause
                                                                                                 : {{'$2', '$1', {}}, '$4', '$5', '$6'}.
-outer_join -> query_partition_clause NATURAL outer_join_type JOIN join_ref                        opt_join_on_or_using_clause
+outer_join -> query_partition_clause NATURAL outer_join_type JOIN join_ref                        join_on_or_using_clause
                                                                                                 : {{'$3', '$1', natural}, '$5', {}, '$6'}.
-outer_join -> query_partition_clause NATURAL outer_join_type JOIN join_ref query_partition_clause opt_join_on_or_using_clause
+outer_join -> query_partition_clause NATURAL outer_join_type JOIN join_ref                      : {{'$3', '$1', natural}, '$5', {},   {}}.
+outer_join -> query_partition_clause NATURAL outer_join_type JOIN join_ref query_partition_clause
+                                                                                                 : {{'$3', '$1', natural}, '$5', '$6', {}}.
+outer_join -> query_partition_clause NATURAL outer_join_type JOIN join_ref query_partition_clause join_on_or_using_clause
                                                                                                 : {{'$3', '$1', natural}, '$5', '$6', '$7'}.
 % -----------------------------------------------------------------------------------------------
 

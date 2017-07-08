@@ -5191,7 +5191,7 @@ create_code(with_revoke_option = Rule) ->
 %% Creating Common Test data files.
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-file_create_ct_all(_Type, _CompleteSQL, _CompactedDetailed, []) ->
+file_create_ct_all(_Type, _CompleteSemicolon, _CompactedDetailed, []) ->
     ok;
 file_create_ct_all(Type, CompleteSemicolon, CompactedDetailed, [Rule | Rules]) ->
     file_create_ct(Type, CompleteSemicolon, CompactedDetailed, Rule),
@@ -5206,7 +5206,7 @@ file_create_ct(Type, CompleteSemicolon, CompactedDetailed, Rule) ->
     FileName = lists:append([Type, "_", CompleteSemicolon, "_", CompactedDetailed, "_", RuleString, "_SUITE"]),
     {ok, File, _} = file:path_open([?PATH_CT], FileName ++ ".erl", [write]),
 
-    erlang:display(io:format("final common tests ===> ~12.. B file_name: ~s ~n", [CodeLength, FileName ++ ".erl"])),
+    erlang:display(io:format("final common tests ===> ~12.. B file_name: ~s ", [CodeLength, FileName ++ ".erl"])),
 
     {{Current_Year, Current_Month, Current_Day}, _} = calendar:local_time(),
 
@@ -5286,7 +5286,7 @@ file_create_ct(Type, CompleteSemicolon, CompactedDetailed, Rule) ->
             file_write_ct(1, Type, CompleteSemicolon, CompactedDetailed, File, Code)
     end.
 
-file_write_ct(_Current, _Type, _CompleteSQL, CompactedDetailed, File, []) ->
+file_write_ct(_Current, _Type, _CompleteSemicolon, CompactedDetailed, File, []) ->
     case CompactedDetailed of
         "compacted" -> io:format(File, "~s~n", ["    ok."]);
         _ -> ok
@@ -5297,17 +5297,13 @@ file_write_ct(Current, Type, CompleteSemicolon, CompactedDetailed, File, [H | T]
         "compacted" -> io:format(File, "~s~n", [lists:append([
             "    ",
             case Type of
-                performance ->
-                    "{ok, _} = sqlparse:parsetree_with_tokens";
-                _ ->
-                    "sqlparse_test:common_test_source"
+                "performance" -> "{ok, _} = sqlparse:parsetree_with_tokens";
+                _ -> "sqlparse_test:common_test_source"
             end,
             "(\"",
-            case Type of
-                reliability_sql ->
-                    H ++ ";";
-                _ ->
-                    H
+            case CompleteSemicolon of
+                "semicolon" -> H ++ ";";
+                _ -> H
             end,
             "\"),"
         ])]);
@@ -5348,7 +5344,7 @@ file_write_ct_export(Current, File, Target) ->
 %% Creating EUnit data files.
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-file_create_eunit_all(_Type, _CompleteSQL, []) ->
+file_create_eunit_all(_Type, _CompleteSemicolon, []) ->
     ok;
 file_create_eunit_all(Type, CompleteSemicolon, [Rule | Rules]) ->
     file_create_eunit(Type, CompleteSemicolon, Rule),
@@ -5362,7 +5358,7 @@ file_create_eunit(Type, CompleteSemicolon, Rule) ->
     FileName = lists:append([Type, "_", CompleteSemicolon, " ", RuleStrimg, ".tst"]),
     {ok, File, _} = file:path_open([?PATH_EUNIT], FileName, [write]),
 
-    erlang:display(io:format("final eunit  tests ===> ~12.. B file_name: ~s ~n", [length(Code), FileName])),
+    erlang:display(io:format("final eunit  tests ===> ~12.. B file_name: ~s ", [length(Code), FileName])),
 
     io:format(File, "~s~n", ["%%-*- mode: erlang -*-"]),
     io:format(File, "~s~n", ["%%-*- coding: utf-8 -*-"]),
@@ -5377,7 +5373,7 @@ file_create_eunit(Type, CompleteSemicolon, Rule) ->
 
     file_write_eunit(CompleteSemicolon, File, Code).
 
-file_write_eunit(_CompleteSQL, File, []) ->
+file_write_eunit(_CompleteSemicolon, File, []) ->
     file:close(File);
 file_write_eunit(CompleteSemicolon, File, [H | T]) ->
     io:format(File, "~s~n", ["\"" ++
@@ -5395,11 +5391,11 @@ file_write_eunit(CompleteSemicolon, File, [H | T]) ->
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 store_code(Rule, Code, Max, Strict) ->
-%   erlang:display(io:format("store Code         ===> ~12.. B rule: ~s ~n", [length(Code), atom_to_list(Rule)])),
+%   erlang:display(io:format("store Code         ===> ~12.. B rule: ~s ", [length(Code), atom_to_list(Rule)])),
 
     case Max == 0 of
         true ->
-%           erlang:display(io:format("store CodeNew      ===> ~12.. B rule: ~s ~n", [0, atom_to_list(Rule)])),
+%           erlang:display(io:format("store CodeNew      ===> ~12.. B rule: ~s ", [0, atom_to_list(Rule)])),
             ?debugFmt("~ncode lines         ===> ~12.. B rule: ~s ~n", [0, atom_to_list(Rule)]);
         _ ->
             CodeUnique = ordsets:to_list(ordsets:from_list(Code)),
@@ -5422,6 +5418,6 @@ store_code(Rule, Code, Max, Strict) ->
                           _ -> CodeTotal
                       end,
             dets:insert(?CODE_TEMPLATES, {Rule, CodeNew}),
-%           erlang:display(io:format("store CodeNew      ===> ~12.. B rule: ~s ~n", [length(CodeNew), atom_to_list(Rule)])),
+%           erlang:display(io:format("store CodeNew      ===> ~12.. B rule: ~s ", [length(CodeNew), atom_to_list(Rule)])),
             ?debugFmt("~ncode lines         ===> ~12.. B rule: ~s ~n", [length(CodeNew), atom_to_list(Rule)])
     end.

@@ -5297,17 +5297,13 @@ file_write_ct(Current, Type, CompleteSemicolon, CompactedDetailed, File, [H | T]
         "compacted" -> io:format(File, "~s~n", [lists:append([
             "    ",
             case Type of
-                performance ->
-                    "{ok, _} = sqlparse:parsetree_with_tokens";
-                _ ->
-                    "sqlparse_test:common_test_source"
+                "performance" -> "{ok, _} = sqlparse:parsetree_with_tokens";
+                _ -> "sqlparse_test:common_test_source"
             end,
             "(\"",
-            case Type of
-                reliability_sql ->
-                    H ++ ";";
-                _ ->
-                    H
+            case CompleteSemicolon of
+                "semicolon" -> H ++ ";";
+                _ -> H
             end,
             "\"),"
         ])]);

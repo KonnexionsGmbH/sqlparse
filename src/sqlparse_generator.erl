@@ -5206,7 +5206,7 @@ file_create_ct(Type, CompleteSemicolon, CompactedDetailed, Rule) ->
     FileName = lists:append([Type, "_", CompleteSemicolon, "_", CompactedDetailed, "_", RuleString, "_SUITE"]),
     {ok, File, _} = file:path_open([?PATH_CT], FileName ++ ".erl", [write]),
 
-    erlang:display(io:format("final common tests ===> ~12.. B file_name: ~s ~n", [CodeLength, FileName ++ ".erl"])),
+    erlang:display(io:format("final common tests ===> ~12.. B file_name: ~s ", [CodeLength, FileName ++ ".erl"])),
 
     {{Current_Year, Current_Month, Current_Day}, _} = calendar:local_time(),
 
@@ -5362,7 +5362,7 @@ file_create_eunit(Type, CompleteSemicolon, Rule) ->
     FileName = lists:append([Type, "_", CompleteSemicolon, " ", RuleStrimg, ".tst"]),
     {ok, File, _} = file:path_open([?PATH_EUNIT], FileName, [write]),
 
-    erlang:display(io:format("final eunit  tests ===> ~12.. B file_name: ~s ~n", [length(Code), FileName])),
+    erlang:display(io:format("final eunit  tests ===> ~12.. B file_name: ~s ", [length(Code), FileName])),
 
     io:format(File, "~s~n", ["%%-*- mode: erlang -*-"]),
     io:format(File, "~s~n", ["%%-*- coding: utf-8 -*-"]),
@@ -5395,11 +5395,11 @@ file_write_eunit(CompleteSemicolon, File, [H | T]) ->
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 store_code(Rule, Code, Max, Strict) ->
-%   erlang:display(io:format("store Code         ===> ~12.. B rule: ~s ~n", [length(Code), atom_to_list(Rule)])),
+%   erlang:display(io:format("store Code         ===> ~12.. B rule: ~s ", [length(Code), atom_to_list(Rule)])),
 
     case Max == 0 of
         true ->
-%           erlang:display(io:format("store CodeNew      ===> ~12.. B rule: ~s ~n", [0, atom_to_list(Rule)])),
+%           erlang:display(io:format("store CodeNew      ===> ~12.. B rule: ~s ", [0, atom_to_list(Rule)])),
             ?debugFmt("~ncode lines         ===> ~12.. B rule: ~s ~n", [0, atom_to_list(Rule)]);
         _ ->
             CodeUnique = ordsets:to_list(ordsets:from_list(Code)),
@@ -5422,6 +5422,6 @@ store_code(Rule, Code, Max, Strict) ->
                           _ -> CodeTotal
                       end,
             dets:insert(?CODE_TEMPLATES, {Rule, CodeNew}),
-%           erlang:display(io:format("store CodeNew      ===> ~12.. B rule: ~s ~n", [length(CodeNew), atom_to_list(Rule)])),
+%           erlang:display(io:format("store CodeNew      ===> ~12.. B rule: ~s ", [length(CodeNew), atom_to_list(Rule)])),
             ?debugFmt("~ncode lines         ===> ~12.. B rule: ~s ~n", [length(CodeNew), atom_to_list(Rule)])
     end.

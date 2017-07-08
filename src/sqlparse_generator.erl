@@ -5191,7 +5191,7 @@ create_code(with_revoke_option = Rule) ->
 %% Creating Common Test data files.
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-file_create_ct_all(_Type, _CompleteSQL, _CompactedDetailed, []) ->
+file_create_ct_all(_Type, _CompleteSemicolon, _CompactedDetailed, []) ->
     ok;
 file_create_ct_all(Type, CompleteSemicolon, CompactedDetailed, [Rule | Rules]) ->
     file_create_ct(Type, CompleteSemicolon, CompactedDetailed, Rule),
@@ -5286,7 +5286,7 @@ file_create_ct(Type, CompleteSemicolon, CompactedDetailed, Rule) ->
             file_write_ct(1, Type, CompleteSemicolon, CompactedDetailed, File, Code)
     end.
 
-file_write_ct(_Current, _Type, _CompleteSQL, CompactedDetailed, File, []) ->
+file_write_ct(_Current, _Type, _CompleteSemicolon, CompactedDetailed, File, []) ->
     case CompactedDetailed of
         "compacted" -> io:format(File, "~s~n", ["    ok."]);
         _ -> ok
@@ -5344,7 +5344,7 @@ file_write_ct_export(Current, File, Target) ->
 %% Creating EUnit data files.
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-file_create_eunit_all(_Type, _CompleteSQL, []) ->
+file_create_eunit_all(_Type, _CompleteSemicolon, []) ->
     ok;
 file_create_eunit_all(Type, CompleteSemicolon, [Rule | Rules]) ->
     file_create_eunit(Type, CompleteSemicolon, Rule),
@@ -5373,7 +5373,7 @@ file_create_eunit(Type, CompleteSemicolon, Rule) ->
 
     file_write_eunit(CompleteSemicolon, File, Code).
 
-file_write_eunit(_CompleteSQL, File, []) ->
+file_write_eunit(_CompleteSemicolon, File, []) ->
     file:close(File);
 file_write_eunit(CompleteSemicolon, File, [H | T]) ->
     io:format(File, "~s~n", ["\"" ++

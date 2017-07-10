@@ -100,7 +100,7 @@
 -define(PATH_CT, "test").
 -define(PATH_EUNIT, "test").
 
--define(TIMETRAP_MINUTES, 30).
+-define(TIMETRAP_MINUTES, 15).
 
 -define(NODEBUG, true).
 -include_lib("eunit/include/eunit.hrl").
@@ -4143,6 +4143,10 @@ create_code(special = Rule) ->
         %% ---------------------------------------------------------------------
         %% Boolean and arithmetic binary operators handled with precedence
         %% ---------------------------------------------------------------------
+        "Select - 10 * -5 From dual",
+        "Select - 10 / -5 From dual",
+        "Select - 10 + -5 From dual",
+        "Select - 10 - -5 From dual",
         "Select 5 + 7 From dual",
         "Select 5 - 7 From dual",
         "Select 5 * 7 From dual",

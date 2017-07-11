@@ -29,9 +29,11 @@ Header "%% Copyright (C) K2 Informatics GmbH"
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Nonterminals
+ all_distinct
  all_or_any_predicate
  alter_user_def
  any_all_some
+ asc_desc
  assignment
  assignment_commalist
  atom
@@ -47,14 +49,14 @@ Nonterminals
  column_commalist
  column_def
  column_def_opt
- column_def_opt_list
+ column_def_list
  column_ref
  column_ref_commalist
  commit_statement
  comparison_predicate
  create_index_def
- create_index_opt_filter
- create_index_opt_norm
+ create_index_filter
+ create_index_norm
  create_index_opts
  create_index_spec
  create_index_spec_items
@@ -72,7 +74,10 @@ Nonterminals
  drop_role_def
  drop_table_def
  drop_user_def
+ else
+ escape
  existence_test
+ exists
  extra
  fetch_statement
  from_clause
@@ -88,6 +93,7 @@ Nonterminals
  group_by_clause
  having_clause
  hierarchical_query_clause
+ hint
  identified
  in_predicate
  index_name
@@ -95,6 +101,7 @@ Nonterminals
  insert_atom
  insert_atom_commalist
  insert_statement
+ into
  is_not_null
  is_null
  join
@@ -105,29 +112,13 @@ Nonterminals
  like_predicate
  literal
  manipulative_statement
+ materialized
+ nocycle
  not_between
  not_in
  not_like
+ on_obj_clause
  open_statement
- opt_all_distinct
- opt_asc_desc
- opt_column_commalist
- opt_else
- opt_escape
- opt_exists
- opt_hint
- opt_index_name
- opt_into
- opt_materialized
- opt_nocycle
- opt_on_obj_clause
- opt_restrict_cascade
- opt_schema_element_list
- opt_sgn_num
- opt_storage
- opt_user_opts_list
- opt_with_grant_option
- opt_with_revoke_option
  order_by_clause
  ordering_spec
  ordering_spec_commalist
@@ -146,6 +137,7 @@ Nonterminals
  query_term
  quota
  quota_list
+ restrict_cascade
  returning
  revoke_def
  role_list
@@ -162,10 +154,12 @@ Nonterminals
  select_field_commalist
  select_statement
  selection
+ sgn_num
  spec_item
  spec_list
  sql
  sql_list
+ storage
  subquery
  system_privilege
  system_privilege_list
@@ -186,11 +180,14 @@ Nonterminals
  update_statement_searched
  user_list
  user_opt
+ user_opts_list
  user_role
  values_or_query_spec
  view_def
  when_action
  where_clause
+ with_grant_option
+ with_revoke_option
 .
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -372,30 +369,20 @@ Rootsymbol sql_list.
 Left        100 OR.
 Left        200 AND.
 Left        300 NOT.
-Nonassoc    400 BETWEEN EXISTS IN is_not_null is_null LIKE not_between not_in.
+% wwe Nonassoc    400 BETWEEN EXISTS IN is_not_null is_null LIKE not_between not_in.
 Nonassoc    500 COMPARISON.
 Left        600 '+' '-' '||'.
 Left        700 '*' '/' 'div'.
 Nonassoc    800 PRIOR.
 Left        800 unary_add_or_subtract.
 
-% Nonassoc    900 query_term.
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+sql_list ->          sql ';'                                                                    :         [{'$1',{extra, <<>>}}].
 sql_list ->          sql ';' extra                                                              :         [{'$1','$3'}].
+sql_list -> sql_list sql ';'                                                                    : '$1' ++ [{'$2',{extra, <<>>}}].
 sql_list -> sql_list sql ';' extra                                                              : '$1' ++ [{'$2','$4'}].
 
-% sql_list -> from_clause ';'                                                                     : '$1'.
-% sql_list -> group_by_clause ';'                                                                 : '$1'.
-% sql_list -> having_clause ';'                                                                   : '$1'.
-% sql_list -> hierarchical_query_clause ';'                                                       : '$1'.
-% sql_list -> order_by_clause ';'                                                                 : '$1'.
-% sql_list -> where_clause ';'                                                                    : '$1'.
-% sql_list -> table_exp ';'                                                                       : '$1'.
-% sql_list -> table_ref ';'                                                                       : '$1'.
-
-extra -> '$empty'                                                                               : {extra, <<>>}.
 extra -> NAME  ';'                                                                              : {extra, unwrap_bin('$1')}.
 
 sql -> procedure_call                                                                           : '$1'.
@@ -415,10 +402,8 @@ function_ref_list -> function_ref ';' function_ref_list                         
 
 sql -> schema                                                                                   : '$1'.
 
-schema -> CREATE SCHEMA AUTHORIZATION NAME opt_schema_element_list                              : {'create schema authorization', unwrap('$4'), '$5'}.
-
-opt_schema_element_list -> '$empty'                                                             : [].
-opt_schema_element_list -> schema_element_list                                                  : '$1'.
+schema -> CREATE SCHEMA AUTHORIZATION NAME                                                      : {'create schema authorization', unwrap('$4'), []}.
+schema -> CREATE SCHEMA AUTHORIZATION NAME schema_element_list                                  : {'create schema authorization', unwrap('$4'), '$5'}.
 
 schema_element_list ->                     schema_element                                       :         ['$1'].
 schema_element_list -> schema_element_list schema_element                                       : '$1' ++ ['$2'].
@@ -431,23 +416,85 @@ schema_element -> view_def                                                      
 
 create_role_def -> CREATE ROLE NAME                                                             : {'create role', unwrap_bin('$3')}.
 
+create_table_def -> CREATE             TABLE table '('                              ')'         : {'create table', '$3', [],   []}.
+create_table_def -> CREATE             TABLE table '(' base_table_element_commalist ')'         : {'create table', '$3', '$5', []}.
+create_table_def -> CREATE create_opts TABLE table '('                              ')'         : {'create table', '$4', [],   '$2'}.
 create_table_def -> CREATE create_opts TABLE table '(' base_table_element_commalist ')'         : {'create table', '$4', '$6', '$2'}.
 
-create_user_def -> CREATE USER NAME identified opt_user_opts_list                               : {'create user', unwrap_bin('$3'), '$4', '$5'}.
+create_user_def -> CREATE USER NAME identified                                                  : {'create user', unwrap_bin('$3'), '$4', []}.
+create_user_def -> CREATE USER NAME identified user_opts_list                                   : {'create user', unwrap_bin('$3'), '$4', '$5'}.
 
-drop_table_def -> DROP      TABLE opt_exists table_list opt_restrict_cascade                    : {'drop table', {'tables', '$4'}, '$3', '$5', []}.
-drop_table_def -> DROP NAME TABLE opt_exists table_list opt_restrict_cascade                    : {'drop table', {'tables', '$5'}, '$4', '$6', unwrap('$2')}.
+drop_table_def -> DROP      TABLE        table_list                                             : {'drop table', {'tables', '$3'}, {},   {},   []}.
+drop_table_def -> DROP      TABLE        table_list restrict_cascade                            : {'drop table', {'tables', '$3'}, {},   '$4', []}.
+drop_table_def -> DROP      TABLE exists table_list                                             : {'drop table', {'tables', '$4'}, '$3', {},   []}.
+drop_table_def -> DROP      TABLE exists table_list restrict_cascade                            : {'drop table', {'tables', '$4'}, '$3', '$5', []}.
+drop_table_def -> DROP NAME TABLE        table_list                                             : {'drop table', {'tables', '$4'}, {},   {},   unwrap('$2')}.
+drop_table_def -> DROP NAME TABLE        table_list restrict_cascade                            : {'drop table', {'tables', '$4'}, {},   '$5', unwrap('$2')}.
+drop_table_def -> DROP NAME TABLE exists table_list                                             : {'drop table', {'tables', '$5'}, '$4', {},   unwrap('$2')}.
+drop_table_def -> DROP NAME TABLE exists table_list restrict_cascade                            : {'drop table', {'tables', '$5'}, '$4', '$6', unwrap('$2')}.
 
 drop_role_def -> DROP ROLE NAME                                                                 : {'drop role', unwrap_bin('$3')}.
-drop_index_def -> DROP INDEX opt_index_name FROM table                                          : {'drop index', '$3', '$5'}.
 
-opt_index_name -> '$empty'                                                                      : {}.
-opt_index_name -> index_name                                                                    : '$1'.
+drop_index_def -> DROP INDEX            FROM table                                              : {'drop index', {},   '$4'}.
+drop_index_def -> DROP INDEX index_name FROM table                                              : {'drop index', '$3', '$5'}.
 
-create_index_def -> CREATE create_index_opts INDEX opt_index_name ON table create_index_spec create_index_opt_norm create_index_opt_filter
+create_index_def -> CREATE                   INDEX            ON table                          : {'create index', {},   {},   '$4', [],   {},   {}}.
+create_index_def -> CREATE                   INDEX            ON table                                     create_index_filter
+                                                                                                : {'create index', {},   {},   '$4', [],   {},   '$5'}.
+create_index_def -> CREATE                   INDEX            ON table                   create_index_norm
+                                                                                                : {'create index', {},   {},   '$4', [],   '$5', {}}.
+create_index_def -> CREATE                   INDEX            ON table                   create_index_norm create_index_filter
+                                                                                                : {'create index', {},   {},   '$4', [],   '$5', '$6'}.
+create_index_def -> CREATE                   INDEX            ON table create_index_spec        : {'create index', {},   {},   '$4', '$5', {},   {}}.
+create_index_def -> CREATE                   INDEX            ON table create_index_spec                   create_index_filter
+                                                                                                : {'create index', {},   {},   '$4', '$5', {},   '$6'}.
+create_index_def -> CREATE                   INDEX            ON table create_index_spec create_index_norm
+                                                                                                : {'create index', {},   {},   '$4', '$5', '$6', {}}.
+create_index_def -> CREATE                   INDEX            ON table create_index_spec create_index_norm create_index_filter
+                                                                                                : {'create index', {},   {},   '$4', '$5', '$6', '$7'}.
+create_index_def -> CREATE                   INDEX index_name ON table                          : {'create index', {},   '$3', '$5', [],   {},   {}}.
+create_index_def -> CREATE                   INDEX index_name ON table                                     create_index_filter
+                                                                                                : {'create index', {},   '$3', '$5', [],   {},   '$6'}.
+create_index_def -> CREATE                   INDEX index_name ON table                   create_index_norm
+                                                                                                : {'create index', {},   '$3', '$5', [],   '$6', {}}.
+create_index_def -> CREATE                   INDEX index_name ON table                   create_index_norm create_index_filter
+                                                                                                : {'create index', {},   '$3', '$5', [],   '$6', '$7'}.
+create_index_def -> CREATE                   INDEX index_name ON table create_index_spec        : {'create index', {},   '$3', '$5', '$6', {},   {}}.
+create_index_def -> CREATE                   INDEX index_name ON table create_index_spec                   create_index_filter
+                                                                                                : {'create index', {},   '$3', '$5', '$6', {},   '$7'}.
+create_index_def -> CREATE                   INDEX index_name ON table create_index_spec create_index_norm create_index_filter
+                                                                                                : {'create index', {},   '$3', '$5', '$6', '$7', '$8'}.
+create_index_def -> CREATE                   INDEX index_name ON table create_index_spec create_index_norm
+                                                                                                : {'create index', {},   '$3', '$5', '$6', '$7', {}}.
+create_index_def -> CREATE create_index_opts INDEX            ON table                          : {'create index', '$2', {},   '$5', [],   {},   {}}.
+create_index_def -> CREATE create_index_opts INDEX            ON table                                     create_index_filter
+                                                                                                : {'create index', '$2', {},   '$5', [],   {},   '$6'}.
+create_index_def -> CREATE create_index_opts INDEX            ON table                   create_index_norm
+                                                                                                : {'create index', '$2', {},   '$5', [],   '$6', {}}.
+create_index_def -> CREATE create_index_opts INDEX            ON table                   create_index_norm create_index_filter
+                                                                                                : {'create index', '$2', {},   '$5', [],   '$6', '$7'}.
+create_index_def -> CREATE create_index_opts INDEX            ON table create_index_spec        : {'create index', '$2', {},   '$5', '$6', {},   {}}.
+create_index_def -> CREATE create_index_opts INDEX            ON table create_index_spec                   create_index_filter
+                                                                                                : {'create index', '$2', {},   '$5', '$6', {},   '$7'}.
+create_index_def -> CREATE create_index_opts INDEX            ON table create_index_spec create_index_norm
+                                                                                                : {'create index', '$2', {},   '$5', '$6', '$7', {}}.
+create_index_def -> CREATE create_index_opts INDEX            ON table create_index_spec create_index_norm create_index_filter
+                                                                                                : {'create index', '$2', {},   '$5', '$6', '$7', '$8'}.
+create_index_def -> CREATE create_index_opts INDEX index_name ON table                          : {'create index', '$2', '$4', '$6', [],   {},   {}}.
+create_index_def -> CREATE create_index_opts INDEX index_name ON table                                     create_index_filter
+                                                                                                : {'create index', '$2', '$4', '$6', [],   {},   '$7'}.
+create_index_def -> CREATE create_index_opts INDEX index_name ON table                   create_index_norm
+                                                                                                : {'create index', '$2', '$4', '$6', [],   '$7', {}}.
+create_index_def -> CREATE create_index_opts INDEX index_name ON table                   create_index_norm create_index_filter
+                                                                                                : {'create index', '$2', '$4', '$6', [],   '$7', '$8'}.
+create_index_def -> CREATE create_index_opts INDEX index_name ON table create_index_spec        : {'create index', '$2', '$4', '$6', '$7', {},   {}}.
+create_index_def -> CREATE create_index_opts INDEX index_name ON table create_index_spec                   create_index_filter
+                                                                                                : {'create index', '$2', '$4', '$6', '$7', {},   '$8'}.
+create_index_def -> CREATE create_index_opts INDEX index_name ON table create_index_spec create_index_norm
+                                                                                                : {'create index', '$2', '$4', '$6', '$7', '$8', {}}.
+create_index_def -> CREATE create_index_opts INDEX index_name ON table create_index_spec create_index_norm create_index_filter
                                                                                                 : {'create index', '$2', '$4', '$6', '$7', '$8', '$9'}.
 
-create_index_opts -> '$empty'                                                                   : {}.
 create_index_opts -> BITMAP                                                                     : bitmap.
 create_index_opts -> KEYLIST                                                                    : keylist.
 create_index_opts -> HASHMAP                                                                    : hashmap.
@@ -456,7 +503,6 @@ create_index_opts -> UNIQUE                                                     
 index_name -> NAME                                                                              : unwrap_bin('$1').
 index_name -> NAME '.' NAME                                                                     : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
 
-create_index_spec -> '$empty'                                                                   : [].
 create_index_spec -> '(' create_index_spec_items ')'                                            : '$2'.
 
 create_index_spec_items -> NAME                                                                 : [unwrap_bin('$1')].
@@ -464,20 +510,18 @@ create_index_spec_items -> NAME '|' create_index_spec_items                     
 create_index_spec_items -> JSON                                                                 : [{jp, jpparse('$1')}].
 create_index_spec_items -> JSON '|' create_index_spec_items                                     : [{jp, jpparse('$1')} | '$3'].
 
-create_index_opt_norm -> '$empty'                                                               : {}.
-create_index_opt_norm -> NORM_WITH STRING                                                       : {norm, unwrap_bin('$2')}.
+create_index_norm -> NORM_WITH STRING                                                           : {norm, unwrap_bin('$2')}.
 
-create_index_opt_filter -> '$empty'                                                             : {}.
-create_index_opt_filter -> FILTER_WITH STRING                                                   : {filter, unwrap_bin('$2')}.
+create_index_filter -> FILTER_WITH STRING                                                       : {filter, unwrap_bin('$2')}.
 
+create_opts ->           tbl_type                                                               : '$1'.
+create_opts -> tbl_scope                                                                        : '$1'.
 create_opts -> tbl_scope tbl_type                                                               : '$1' ++ '$2'.
 
-tbl_scope -> '$empty'                                                                           : [].
 tbl_scope -> LOCAL                                                                              : [{scope, <<"local">>}].
 tbl_scope -> CLUSTER                                                                            : [{scope, <<"cluster">>}].
 tbl_scope -> SCHEMA                                                                             : [{scope, <<"schema">>}].
 
-tbl_type -> '$empty'                                                                            : [].
 tbl_type -> SET                                                                                 : [{type, <<"set">>}].
 tbl_type -> ORDERED_SET                                                                         : [{type, <<"ordered_set">>}].
 tbl_type -> BAG                                                                                 : [{type, <<"bag">>}].
@@ -508,11 +552,11 @@ proxy_clause -> REVOKE CONNECT THROUGH ENTERPRISE USERS                         
 proxy_clause -> REVOKE CONNECT THROUGH db_user_proxy                                            : {'revoke connect', '$4'}.
 
 db_user_proxy -> proxy_with                                                                     : '$1'.
-db_user_proxy -> proxy_auth_req                                                                 : '$1'.
+db_user_proxy ->            proxy_auth_req                                                      : '$1'.
 db_user_proxy -> proxy_with proxy_auth_req                                                      : {'$1', '$2'}.
 
 proxy_with -> WITH NO ROLES                                                                     : 'with no roles'.
-proxy_with -> WITH ROLE role_list                                                               : {'with role', '$3'}.
+proxy_with -> WITH ROLE            role_list                                                    : {'with role', '$3'}.
 proxy_with -> WITH ROLE ALL EXCEPT role_list                                                    : {'with role all except', '$5'}.
 
 proxy_auth_req -> AUTHENTICATION REQUIRED                                                       : 'authentication required'.
@@ -527,7 +571,7 @@ spec_item -> user_role                                                          
 user_role -> DEFAULT ROLE ALL                                                                   : 'default role all'.
 user_role -> DEFAULT ROLE ALL EXCEPT role_list                                                  : {'default role all except', '$5'}.
 user_role -> DEFAULT ROLE NONE                                                                  : 'default role none'.
-user_role -> DEFAULT ROLE role_list                                                             : {'default role', '$3'}.
+user_role -> DEFAULT ROLE            role_list                                                  : {'default role', '$3'}.
 
 role_list -> NAME                                                                               : [unwrap_bin('$1')].
 role_list -> NAME ',' role_list                                                                 : [unwrap_bin('$1') | '$3'].
@@ -538,10 +582,10 @@ identified -> IDENTIFIED EXTERNALLY AS NAME                                     
 identified -> IDENTIFIED GLOBALLY                                                               : {'identified globally', {}}.
 identified -> IDENTIFIED GLOBALLY   AS NAME                                                     : {'identified globally', unwrap_bin('$4')}.
 
-opt_user_opts_list -> '$empty'                                                                  : [].
-opt_user_opts_list -> user_opt opt_user_opts_list                                               : '$1' ++ '$2'.
+user_opts_list -> user_opt                                                                      : ['$1'].
+user_opts_list -> user_opt user_opts_list                                                       : ['$1'] ++ '$2'.
 
-user_opt -> DEFAULT TABLESPACE NAME                                                             : [{'default tablespace', unwrap_bin('$3')}].
+user_opt -> DEFAULT   TABLESPACE NAME                                                           : [{'default tablespace', unwrap_bin('$3')}].
 user_opt -> TEMPORARY TABLESPACE NAME                                                           : [{'temporary tablespace', unwrap_bin('$3')}].
 user_opt -> quota_list                                                                          : [{quotas, '$1'}].
 user_opt -> PROFILE NAME                                                                        : [{profile, unwrap_bin('$2')}].
@@ -556,24 +600,22 @@ quota -> QUOTA INTNUM NAME ON NAME                                              
 table_list ->                table                                                              :         ['$1'].
 table_list -> table_list ',' table                                                              : '$1' ++ ['$3'].
 
-opt_exists -> '$empty'                                                                          : {}.
-opt_exists -> IF EXISTS                                                                         : 'exists'.
+exists -> IF EXISTS                                                                             : 'exists'.
 
-opt_restrict_cascade -> '$empty'                                                                : {}.
-opt_restrict_cascade -> RESTRICT                                                                : 'restrict'.
-opt_restrict_cascade -> CASCADE                                                                 : 'cascade'.
+restrict_cascade -> RESTRICT                                                                    : 'restrict'.
+restrict_cascade -> CASCADE                                                                     : 'cascade'.
 
-base_table_element_commalist -> '$empty'                                                        : [].
 base_table_element_commalist ->                                  base_table_element             :         ['$1'].
 base_table_element_commalist -> base_table_element_commalist ',' base_table_element             : '$1' ++ ['$3'].
 
 base_table_element -> column_def                                                                : '$1'.
 base_table_element -> table_constraint_def                                                      : '$1'.
 
-column_def -> column data_type column_def_opt_list                                              : {'$1', '$2', '$3'}.
+column_def -> column data_type                                                                  : {'$1', '$2', []}.
+column_def -> column data_type column_def_list                                                  : {'$1', '$2', '$3'}.
 
-column_def_opt_list -> '$empty'                                                                 : [].
-column_def_opt_list -> column_def_opt_list column_def_opt                                       : '$1' ++ ['$2'].
+column_def_list ->                 column_def_opt                                               : ['$1'].
+column_def_list -> column_def_list column_def_opt                                               : '$1' ++ ['$2'].
 
 column_def_opt -> NOT NULLX                                                                     : 'not null'.
 column_def_opt -> NOT NULLX UNIQUE                                                              : 'not null unique'.
@@ -597,30 +639,42 @@ table_constraint_def -> CHECK '(' search_condition ')'                          
 column_commalist -> column                                                                      : ['$1'].
 column_commalist -> column ',' column_commalist                                                 : ['$1' | '$3'].
 
-view_def -> CREATE VIEW table opt_column_commalist                                              : {'create view', '$3', '$4'}.
+view_def -> CREATE VIEW table                                                                   : {'create view', '$3', []}.
+view_def -> CREATE VIEW table '(' column_commalist ')'                                          : {'create view', '$3', '$5'}.
 view_def -> AS query_spec                                                                       : {as, '$2', []                 }.
 view_def -> AS query_spec WITH CHECK OPTION                                                     : {as, '$2', "with check option"}.
 
-opt_column_commalist -> '$empty'                                                                : [].
-opt_column_commalist -> '(' column_commalist ')'                                                : '$2'.
+grant_def -> GRANT                                     TO grantee_commalist                     : {grant, [],   {on, <<"">>}, {to, '$3'}, ''}.
+grant_def -> GRANT                                     TO grantee_commalist with_grant_option   : {grant, [],   {on, <<"">>}, {to, '$3'}, '$4'}.
+grant_def -> GRANT                       on_obj_clause TO grantee_commalist                     : {grant, [],   '$2',         {to, '$4'}, ''}.
+grant_def -> GRANT                       on_obj_clause TO grantee_commalist with_grant_option   : {grant, [],   '$2',         {to, '$4'}, '$5'}.
+grant_def -> GRANT system_privilege_list               TO grantee_commalist                     : {grant, '$2', {on, <<"">>}, {to, '$4'}, ''}.
+grant_def -> GRANT system_privilege_list               TO grantee_commalist with_grant_option   : {grant, '$2', {on, <<"">>}, {to, '$4'}, '$5'}.
+grant_def -> GRANT system_privilege_list on_obj_clause TO grantee_commalist                     : {grant, '$2', '$3',         {to, '$5'}, ''}.
+grant_def -> GRANT system_privilege_list on_obj_clause TO grantee_commalist with_grant_option   : {grant, '$2', '$3',         {to, '$5'}, '$6'}.
 
-grant_def -> GRANT system_privilege_list opt_on_obj_clause TO grantee_commalist opt_with_grant_option
-                                                                                                : {grant, '$2', '$3', {to, '$5'}, '$6'}.
+revoke_def -> REVOKE                                     FROM grantee_commalist                 : {revoke, [],   {on, <<"">>}, {from, '$3'}, ''}.
+revoke_def -> REVOKE                                     FROM grantee_commalist with_revoke_option
+                                                                                                : {revoke, [],   {on, <<"">>}, {from, '$3'}, '$4'}.
+revoke_def -> REVOKE                       on_obj_clause FROM grantee_commalist                 : {revoke, [],   '$2',         {from, '$4'}, ''}.
+revoke_def -> REVOKE                       on_obj_clause FROM grantee_commalist with_revoke_option
+                                                                                                : {revoke, [],   '$2',         {from, '$4'}, '$5'}.
+revoke_def -> REVOKE system_privilege_list               FROM grantee_commalist                 : {revoke, '$2', {on, <<"">>}, {from, '$4'}, ''}.
+revoke_def -> REVOKE system_privilege_list               FROM grantee_commalist with_revoke_option
+                                                                                                : {revoke, '$2', {on, <<"">>}, {from, '$4'}, '$5'}.
+revoke_def -> REVOKE system_privilege_list on_obj_clause FROM grantee_commalist                 : {revoke, '$2', '$3',         {from, '$5'}, ''}.
+revoke_def -> REVOKE system_privilege_list on_obj_clause FROM grantee_commalist with_revoke_option
+                                                                                                : {revoke, '$2', '$3',         {from, '$5'}, '$6'}.
 
-revoke_def -> REVOKE system_privilege_list opt_on_obj_clause FROM grantee_commalist opt_with_revoke_option
-                                                                                                : {revoke, '$2', '$3', {from, '$5'}, '$6'}.
+on_obj_clause -> ON DIRECTORY NAME                                                              : {'on directory',     unwrap_bin('$3')}.
+on_obj_clause -> ON JAVA SOURCE   table                                                         : {'on java source',   '$4'}.
+on_obj_clause -> ON JAVA RESOURCE table                                                         : {'on java resource', '$4'}.
+on_obj_clause -> ON table                                                                       : {on, '$2'}.
 
-opt_on_obj_clause -> '$empty'                                                                   : {on, <<"">>}.
-opt_on_obj_clause -> ON table                                                                   : {on, '$2'}.
-opt_on_obj_clause -> ON DIRECTORY NAME                                                          : {'on directory',     unwrap_bin('$3')}.
-opt_on_obj_clause -> ON JAVA SOURCE   table                                                     : {'on java source',   '$4'}.
-opt_on_obj_clause -> ON JAVA RESOURCE table                                                     : {'on java resource', '$4'}.
-
-system_privilege_list -> '$empty'                                                               : [].
-system_privilege_list -> system_privilege                                                       : ['$1'].
-system_privilege_list -> system_privilege ',' system_privilege_list                             : ['$1'|'$3'].
 system_privilege_list -> ALL                                                                    : ['all'].
 system_privilege_list -> ALL PRIVILEGES                                                         : ['all privileges'].
+system_privilege_list -> system_privilege                                                       : ['$1'].
+system_privilege_list -> system_privilege ',' system_privilege_list                             : ['$1'|'$3'].
 
 system_privilege -> SELECT                                                                      : 'select'.
 system_privilege -> UPDATE                                                                      : 'update'.
@@ -633,21 +687,19 @@ system_privilege -> NAME NAME NAME                                              
 system_privilege -> NAME NAME NAME NAME                                                         : strl2atom(['$1', '$2', '$3', '$4']).
 system_privilege -> NAME NAME NAME NAME NAME                                                    : strl2atom(['$1', '$2', '$3', '$4', '$5']).
 
-opt_with_grant_option -> '$empty'                                                               : ''.
-opt_with_grant_option -> WITH GRANT OPTION                                                      : 'with grant option'.
-opt_with_grant_option -> WITH NAME OPTION                                                       : strl2atom(["with", '$2', "option"]).
-opt_with_grant_option -> WITH HIERARCHY OPTION                                                  : 'with hierarchy option'.
+with_grant_option -> WITH GRANT     OPTION                                                      : 'with grant option'.
+with_grant_option -> WITH HIERARCHY OPTION                                                      : 'with hierarchy option'.
+with_grant_option -> WITH NAME      OPTION                                                      : strl2atom(["with", '$2', "option"]).
 
-opt_with_revoke_option -> '$empty'                                                              : ''.
-opt_with_revoke_option -> CASCADE CONSTRAINTS                                                   : 'cascade constraints'.
-opt_with_revoke_option -> FORCE                                                                 : 'force'.
+with_revoke_option -> CASCADE CONSTRAINTS                                                       : 'cascade constraints'.
+with_revoke_option -> FORCE                                                                     : 'force'.
 
 grantee_commalist ->                       grantee                                              :         ['$1'].
 grantee_commalist -> grantee_commalist ',' grantee                                              : '$1' ++ ['$3'].
 
-grantee -> PUBLIC                                                                               : 'public'.
 grantee -> NAME                                                                                 : unwrap_bin('$1').
 grantee -> NAME IDENTIFIED BY NAME                                                              : {'identified by', unwrap_bin('$1'), unwrap_bin('$4')}.
+grantee -> PUBLIC                                                                               : 'public'.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% cursor definition
@@ -663,11 +715,11 @@ order_by_clause -> ORDER BY ordering_spec_commalist                             
 ordering_spec_commalist ->                             ordering_spec                            :         ['$1'].
 ordering_spec_commalist -> ordering_spec_commalist ',' ordering_spec                            : '$1' ++ ['$3'].
 
-ordering_spec -> scalar_exp opt_asc_desc                                                        : {'$1', '$2'}.
+ordering_spec -> scalar_exp                                                                     : {'$1', <<>>}.
+ordering_spec -> scalar_exp asc_desc                                                            : {'$1', '$2'}.
 
-opt_asc_desc -> '$empty'                                                                        : <<>>.
-opt_asc_desc -> ASC                                                                             : <<"asc">>.
-opt_asc_desc -> DESC                                                                            : <<"desc">>.
+asc_desc -> ASC                                                                                 : <<"asc">>.
+asc_desc -> DESC                                                                                : <<"desc">>.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% manipulative statements
@@ -700,19 +752,20 @@ manipulative_statement -> truncate_table                                        
 manipulative_statement -> grant_def                                                             : '$1'.
 manipulative_statement -> revoke_def                                                            : '$1'.
 
-truncate_table -> TRUNCATE TABLE table_name opt_materialized opt_storage                        : {'truncate table', '$3', '$4', '$5'}.
+truncate_table -> TRUNCATE TABLE table_name                                                     : {'truncate table', '$3', {},   {}}.
+truncate_table -> TRUNCATE TABLE table_name              storage                                : {'truncate table', '$3', {},   '$4'}.
+truncate_table -> TRUNCATE TABLE table_name materialized                                        : {'truncate table', '$3', '$4', {}}.
+truncate_table -> TRUNCATE TABLE table_name materialized storage                                : {'truncate table', '$3', '$4', '$5'}.
 
 table_name -> NAME                                                                              : unwrap_bin('$1').
 table_name -> NAME '.' NAME                                                                     : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
 table_name -> NAME '.' NAME '.' NAME                                                            : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).
 
-opt_materialized -> '$empty'                                                                    : {}.
-opt_materialized -> PRESERVE MATERIALIZED VIEW LOG                                              : {'materialized view log', preserve}.
-opt_materialized -> PURGE    MATERIALIZED VIEW LOG                                              : {'materialized view log', purge}.
+materialized -> PRESERVE MATERIALIZED VIEW LOG                                                  : {'materialized view log', preserve}.
+materialized -> PURGE    MATERIALIZED VIEW LOG                                                  : {'materialized view log', purge}.
 
-opt_storage ->  '$empty'                                                                        : {}.
-opt_storage ->  DROP  STORAGE                                                                   : {storage, drop}.
-opt_storage ->  REUSE STORAGE                                                                   : {storage, reuse}.
+storage ->  DROP  STORAGE                                                                       : {storage, drop}.
+storage ->  REUSE STORAGE                                                                       : {storage, reuse}.
 
 close_statement -> CLOSE cursor                                                                 : {close, '$2'}.
 
@@ -730,9 +783,11 @@ delete_statement_searched -> DELETE FROM table where_clause returning           
 fetch_statement -> FETCH cursor INTO target_commalist                                           : {fetch, '$2', {into, '$4'}}.
 
 insert_statement -> INSERT INTO table                                                           : {insert, '$3', {},           {},   {returning, {}}}.
-insert_statement -> INSERT INTO table                                           returning       : {insert, '$3', {},           {},   '$4'}.
-insert_statement -> INSERT INTO table opt_column_commalist values_or_query_spec                 : {insert, '$3', {cols, '$4'}, '$5', {returning, {}}}.
-insert_statement -> INSERT INTO table opt_column_commalist values_or_query_spec returning       : {insert, '$3', {cols, '$4'}, '$5', '$6'}.
+insert_statement -> INSERT INTO table                                               returning   : {insert, '$3', {},           {},   '$4'}.
+insert_statement -> INSERT INTO table                          values_or_query_spec             : {insert, '$3', {cols, []},   '$4', {returning, {}}}.
+insert_statement -> INSERT INTO table                          values_or_query_spec returning   : {insert, '$3', {cols, []},   '$4', '$5'}.
+insert_statement -> INSERT INTO table '(' column_commalist ')' values_or_query_spec             : {insert, '$3', {cols, '$5'}, '$7', {returning, {}}}.
+insert_statement -> INSERT INTO table '(' column_commalist ')' values_or_query_spec returning   : {insert, '$3', {cols, '$5'}, '$7', '$8'}.
 
 values_or_query_spec -> VALUES '(' insert_atom_commalist ')'                                    : {values, '$3'}.
 values_or_query_spec -> query_spec                                                              : '$1'.
@@ -749,12 +804,10 @@ rollback_statement -> ROLLBACK WORK                                             
 
 select_statement -> query_exp                                                                   : '$1'.
 
-opt_hint -> '$empty'                                                                            : {}.
-opt_hint -> HINT                                                                                : {hints, unwrap_bin('$1')}.
+hint -> HINT                                                                                    : {hints, unwrap_bin('$1')}.
 
-opt_all_distinct -> '$empty'                                                                    : {}.
-opt_all_distinct -> ALL                                                                         : {opt, <<"all">>}.
-opt_all_distinct -> DISTINCT                                                                    : {opt, <<"distinct">>}.
+all_distinct -> ALL                                                                             : {opt, <<"all">>}.
+all_distinct -> DISTINCT                                                                        : {opt, <<"distinct">>}.
 
 update_statement_positioned -> UPDATE table SET assignment_commalist WHERE CURRENT OF cursor    : {update, '$2', {set, '$4'}, {where_current_of, '$8'}, {returning, {}}}.
 update_statement_positioned -> UPDATE table SET assignment_commalist WHERE CURRENT OF cursor returning
@@ -792,16 +845,45 @@ returning -> RETURN    selection INTO selection                                 
 query_term -> query_spec                                                                        : '$1'.
 query_term -> '(' query_exp ')'                                                                 : '$2'.
 
-query_spec -> SELECT opt_hint opt_all_distinct selection opt_into table_exp                     : {select,
+query_spec -> SELECT                   selection      table_exp                                 : {select,
+                                                                                                   [{fields, '$2'}] ++
+                                                                                                   '$3'}.
+query_spec -> SELECT                   selection into table_exp                                 : {select,
+                                                                                                   [{fields, '$2'}] ++
+                                                                                                   if '$3' == {} -> []; true -> [{into, '$3'}] end ++
+                                                                                                   '$4'}.
+query_spec -> SELECT      all_distinct selection      table_exp                                 : {select,
+                                                                                                   if '$2' == {} -> []; true -> ['$2'] end ++
+                                                                                                   [{fields, '$3'}] ++
+                                                                                                   '$4'}.
+query_spec -> SELECT      all_distinct selection into table_exp                                 : {select,
+                                                                                                   if '$2' == {} -> []; true -> ['$2'] end ++
+                                                                                                   [{fields, '$3'}] ++
+                                                                                                   if '$4' == {} -> []; true -> [{into, '$4'}] end ++
+                                                                                                   '$5'}.
+query_spec -> SELECT hint              selection      table_exp                                 : {select,
+                                                                                                   if '$2' == {} -> []; true -> ['$2'] end ++
+                                                                                                   [{fields, '$3'}] ++
+                                                                                                   '$4'}.
+query_spec -> SELECT hint              selection into table_exp                                 : {select,
+                                                                                                   if '$2' == {} -> []; true -> ['$2'] end ++
+                                                                                                   [{fields, '$3'}] ++
+                                                                                                   if '$4' == {} -> []; true -> [{into, '$4'}] end ++
+                                                                                                   '$5'}.
+query_spec -> SELECT hint all_distinct selection      table_exp                                 : {select,
+                                                                                                   if '$2' == {} -> []; true -> ['$2'] end ++
+                                                                                                   if '$3' == {} -> []; true -> ['$3'] end ++
+                                                                                                   [{fields, '$4'}] ++
+                                                                                                   '$5'}.
+query_spec -> SELECT hint all_distinct selection into table_exp                                 : {select,
                                                                                                    if '$2' == {} -> []; true -> ['$2'] end ++
                                                                                                    if '$3' == {} -> []; true -> ['$3'] end ++
                                                                                                    [{fields, '$4'}] ++
                                                                                                    if '$5' == {} -> []; true -> [{into, '$5'}] end ++
                                                                                                    '$6'}.
 
-opt_into -> '$empty'                                                                            : {}.
-opt_into -> INTO target_commalist                                                               : '$2'.
-opt_into -> INTO target_commalist IN NAME                                                       : {'$2', {in, unwrap_bin('$4')}}.
+into -> INTO target_commalist                                                                   : '$2'.
+into -> INTO target_commalist IN NAME                                                           : {'$2', {in, unwrap_bin('$4')}}.
 
 selection -> select_field_commalist                                                             : '$1'.
 
@@ -816,17 +898,18 @@ case_when_opt_as_exp -> case_when_exp                                           
 case_when_opt_as_exp -> case_when_exp    NAME                                                   : {as, '$1', unwrap_bin('$2')}.
 case_when_opt_as_exp -> case_when_exp AS NAME                                                   : {as, '$1', unwrap_bin('$3')}.
 
+case_when_exp -> CASE                   case_when_then_list      END                            : {'case', <<>>, '$2', {}}.
+case_when_exp -> CASE                   case_when_then_list else END                            : {'case', <<>>, '$2', '$3'}.
+case_when_exp -> CASE scalar_opt_as_exp case_when_then_list      END                            : {'case', '$2', '$3', {}}.
+case_when_exp -> CASE scalar_opt_as_exp case_when_then_list else END                            : {'case', '$2', '$3', '$4'}.
 case_when_exp -> '(' case_when_exp ')'                                                          : '$2'.
-case_when_exp -> CASE                   case_when_then_list opt_else END                        : {'case', <<>>, '$2', '$3'}.
-case_when_exp -> CASE scalar_opt_as_exp case_when_then_list opt_else END                        : {'case', '$2', '$3', '$4'}.
 
 case_when_then_list -> case_when_then                                                           : ['$1'].
 case_when_then_list -> case_when_then case_when_then_list                                       : ['$1'|'$2'].
 
 case_when_then -> WHEN search_condition THEN scalar_opt_as_exp                                  : {'$2', '$4'}.
 
-opt_else -> '$empty'                                                                            : {}.
-opt_else -> ELSE scalar_opt_as_exp                                                              : '$2'.
+else -> ELSE scalar_opt_as_exp                                                                  : '$2'.
 
 table_exp -> from_clause                                                                        : ['$1', {where, {}}, {'hierarchical query', {}}, {'group by', []},  {having, {}}, {'order by', []}].
 table_exp -> from_clause                                                                      order_by_clause
@@ -952,11 +1035,12 @@ join_ref -> table                                                               
 join_ref -> '(' query_exp ')'                                                                   : '$2'.
 join_ref -> '(' query_exp ')' NAME                                                              : {as, '$2', unwrap_bin('$4')}.
 
-hierarchical_query_clause -> START WITH search_condition CONNECT BY opt_nocycle search_condition: {'hierarchical query', {{'start with', '$3'}, {'connect by', '$6', '$7'}}}.
-hierarchical_query_clause -> CONNECT BY opt_nocycle search_condition START WITH search_condition: {'hierarchical query', {{'connect by', '$3', '$4'}, {'start with', '$7'}}}.
+hierarchical_query_clause -> START WITH search_condition CONNECT BY         search_condition    : {'hierarchical query', {{'start with', '$3'}, {'connect by', <<>>, '$6'}}}.
+hierarchical_query_clause -> START WITH search_condition CONNECT BY nocycle search_condition    : {'hierarchical query', {{'start with', '$3'}, {'connect by', '$6', '$7'}}}.
+hierarchical_query_clause -> CONNECT BY         search_condition START WITH search_condition    : {'hierarchical query', {{'connect by', <<>>, '$3'}, {'start with', '$6'}}}.
+hierarchical_query_clause -> CONNECT BY nocycle search_condition START WITH search_condition    : {'hierarchical query', {{'connect by', '$3', '$4'}, {'start with', '$7'}}}.
 
-opt_nocycle -> '$empty'                                                                         : <<>>.
-opt_nocycle -> NOCYCLE                                                                          : <<"nocycle">>.
+nocycle -> NOCYCLE                                                                              : <<"nocycle">>.
 
 where_clause -> WHERE search_condition                                                          : {where, '$2'}.
 
@@ -988,33 +1072,34 @@ predicate -> all_or_any_predicate                                               
 predicate -> existence_test                                                                     : '$1'.
 
 comparison_predicate -> scalar_opt_as_exp                                                       : '$1'.
-comparison_predicate -> PRIOR scalar_exp COMPARISON scalar_exp                                  : {unwrap('$3'), {prior, '$2'}, '$4'}.
-comparison_predicate -> scalar_exp COMPARISON PRIOR scalar_exp                                  : {unwrap('$2'), '$1', {prior, '$4'}}.
+comparison_predicate -> PRIOR scalar_exp COMPARISON       scalar_exp                            : {unwrap('$3'), {prior, '$2'}, '$4'}.
+comparison_predicate ->       scalar_exp COMPARISON PRIOR scalar_exp                            : {unwrap('$2'), '$1', {prior, '$4'}}.
 
-between_predicate -> scalar_exp not_between scalar_exp AND scalar_exp                           : {'not', {between, '$1', '$3', '$5'}}.
 between_predicate -> scalar_exp     BETWEEN scalar_exp AND scalar_exp                           :         {between, '$1', '$3', '$5'}.
+between_predicate -> scalar_exp not_between scalar_exp AND scalar_exp                           : {'not', {between, '$1', '$3', '$5'}}.
 
 not_between -> NOT BETWEEN                                                                      : 'not between'.
 
-like_predicate -> scalar_exp not_like scalar_exp opt_escape                                     : {'not', {like, '$1', '$3', '$4'}}.
-like_predicate -> scalar_exp     LIKE scalar_exp opt_escape                                     :         {like, '$1', '$3', '$4'}.
+like_predicate -> scalar_exp     LIKE scalar_exp                                                :         {like, '$1', '$3', <<>>}.
+like_predicate -> scalar_exp     LIKE scalar_exp escape                                         :         {like, '$1', '$3', '$4'}.
+like_predicate -> scalar_exp not_like scalar_exp                                                : {'not', {like, '$1', '$3', <<>>}}.
+like_predicate -> scalar_exp not_like scalar_exp escape                                         : {'not', {like, '$1', '$3', '$4'}}.
 
 not_like -> NOT LIKE                                                                            : 'not like'.
 
-opt_escape  -> '$empty'                                                                         : <<>>.
-opt_escape  -> ESCAPE atom                                                                      : '$2'.
+escape -> ESCAPE atom                                                                           : '$2'.
 
-test_for_null -> scalar_exp is_not_null                                                         : {'not', {'is', '$1', <<"null">>}}.
 test_for_null -> scalar_exp is_null                                                             :         {'is', '$1', <<"null">>}.
+test_for_null -> scalar_exp is_not_null                                                         : {'not', {'is', '$1', <<"null">>}}.
 
 is_not_null -> IS NOT NULLX                                                                     : 'is not'.
 
 is_null -> IS NULLX                                                                             : is.
 
-in_predicate -> scalar_exp not_in '(' subquery ')'                                              : {'not', {in, '$1', '$4'}}.
+in_predicate -> scalar_exp     IN '(' scalar_exp_commalist ')'                                  :         {in, '$1', {list, '$4'}}.
 in_predicate -> scalar_exp     IN '(' subquery ')'                                              :         {in, '$1', '$4'}.
 in_predicate -> scalar_exp not_in '(' scalar_exp_commalist ')'                                  : {'not', {in, '$1', {list, '$4'}}}.
-in_predicate -> scalar_exp     IN '(' scalar_exp_commalist ')'                                  :         {in, '$1', {list, '$4'}}.
+in_predicate -> scalar_exp not_in '(' subquery ')'                                              : {'not', {in, '$1', '$4'}}.
 
 not_in -> NOT IN                                                                                : 'not in'.
 
@@ -1064,7 +1149,7 @@ atom -> literal                                                                 
 atom -> USER                                                                                    : <<"user">>.
 
 parameter_ref -> parameter                                                                      : '$1'.
-parameter_ref -> parameter parameter                                                            : {'$1', '$2'}.
+parameter_ref -> parameter           parameter                                                  : {'$1', '$2'}.
 parameter_ref -> parameter INDICATOR parameter                                                  : {indicator, '$1', '$3'}.
 
 function_ref -> NAME '.' NAME '.' NAME '(' fun_args ')'                                         : {'fun', list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]), make_list('$7')}.
@@ -1130,11 +1215,11 @@ column_ref -> NAME '.' NAME '.' '*'                                             
 
 data_type -> STRING                                                                             : unwrap_bin('$1').
 data_type -> NAME                                                                               : unwrap_bin('$1').
-data_type -> NAME '(' opt_sgn_num ')'                                                           : {unwrap_bin('$1'), '$3'}.
-data_type -> NAME '(' opt_sgn_num ',' opt_sgn_num ')'                                           : {unwrap_bin('$1'), '$3', '$5'}.
+data_type -> NAME '(' sgn_num ')'                                                               : {unwrap_bin('$1'), '$3'}.
+data_type -> NAME '(' sgn_num ',' sgn_num ')'                                                   : {unwrap_bin('$1'), '$3', '$5'}.
 
-opt_sgn_num ->     INTNUM                                                                       : unwrap_bin('$1').
-opt_sgn_num -> '-' INTNUM                                                                       : list_to_binary(["-",unwrap_bin('$2')]).
+sgn_num ->     INTNUM                                                                           : unwrap_bin('$1').
+sgn_num -> '-' INTNUM                                                                           : list_to_binary(["-",unwrap_bin('$2')]).
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% the various things you can name

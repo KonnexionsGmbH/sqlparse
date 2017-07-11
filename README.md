@@ -100,7 +100,7 @@ SELECT column_a|:f()|, column_b
 
 ## 2. Documentation
 
-The documentation for **sqlparse** is available here: [Wiki](https://github.com/walter-weinmann/sqlparse/wiki).
+The documentation for **sqlparse** is available here: [Wiki](https://github.com/K2InformaticsGmbH/sqlparse/wiki).
 
 ## 3. Contributing
 

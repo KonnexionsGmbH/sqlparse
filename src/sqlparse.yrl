@@ -369,12 +369,10 @@ Rootsymbol sql_list.
 Left        100 OR.
 Left        200 AND.
 Left        300 NOT.
-% wwe Nonassoc    400 BETWEEN EXISTS IN is_not_null is_null LIKE not_between not_in.
-Nonassoc    500 COMPARISON.
-Left        600 '+' '-' '||'.
-Left        700 '*' '/' 'div'.
-Nonassoc    800 PRIOR.
-Left        800 unary_add_or_subtract.
+Nonassoc    400 COMPARISON.
+Left        500 '+' '-' '||'.
+Left        600 '*' '/' 'div'.
+Left        700 unary_add_or_subtract.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -388,10 +386,10 @@ extra -> NAME  ';'                                                              
 sql -> procedure_call                                                                           : '$1'.
 
 procedure_call -> DECLARE BEGIN function_ref_list END                                           : {'declare begin procedure', '$3'}.
-procedure_call -> DECLARE BEGIN sql_list END                                                    : {'declare begin procedure', '$3'}.
-procedure_call -> BEGIN function_ref_list END                                                   : {'begin procedure', '$2'}.
-procedure_call -> BEGIN sql_list END                                                            : {'begin procedure', '$2'}.
-procedure_call -> CALL function_ref                                                             : {'call procedure', '$2'}.
+procedure_call -> DECLARE BEGIN sql_list          END                                           : {'declare begin procedure', '$3'}.
+procedure_call ->         BEGIN function_ref_list END                                           : {'begin procedure', '$2'}.
+procedure_call ->         BEGIN sql_list          END                                           : {'begin procedure', '$2'}.
+procedure_call ->         CALL  function_ref                                                    : {'call procedure', '$2'}.
 
 function_ref_list -> function_ref ';'                                                           : ['$1'].
 function_ref_list -> function_ref ';' function_ref_list                                         : ['$1' | '$3'].

@@ -1339,7 +1339,7 @@ fold(_FType, Fun, Ctx, _Lvl, {R, {}})
 fold(_FType, _Fun, Ctx, _Lvl, {Op, _, _} = ST)
   when Op =:= ':'; Op =:= '::'; Op =:= '#';
        Op =:= '{}'; Op =:= '[]' ->
-    {ok, JPPath} = jpparse:string(ST),
+    {ok, JPPath} = jpparse_fold:string(ST),
     {binary_to_list(JPPath), Ctx};
 
 % Boolean and arithmetic binary operators handled with precedence

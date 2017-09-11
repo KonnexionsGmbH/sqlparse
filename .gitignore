@@ -1,3 +1,6 @@
+.eunit
+*.swp
+.rebar
 _build
 erl_crash.dump
 rebar.lock

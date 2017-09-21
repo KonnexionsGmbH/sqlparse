@@ -41,7 +41,7 @@ IF "%1" == "" (
     FOR /L %%G IN (1,1,%NO_RUNS%) DO (
        ECHO -----------------------------------------------------------------------
        ECHO !TIME! %%G. Step: gen_tests.bat
-       CALL gen_tests.bat
+       CALL test\gen_tests.bat
        DEL test\reliability_*_SUITE.erl
        MD tmp\backup\%%G
        COPY test\*_SUITE.erl tmp\backup\%%G

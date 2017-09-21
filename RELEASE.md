@@ -4,7 +4,7 @@
 
 # Release Notes
 
-## Version 3.0.0
+## Version 4.0.0
 
 Release Date: dd.mm.2017
 

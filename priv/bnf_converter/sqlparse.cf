@@ -1540,6 +1540,7 @@ Table07.                          Table ::= Parameter         "NAME" ;
 -- column_ref -> JSON                                                                              : {jp, jpparse('$1')}.
 -- column_ref -> NAME     JSON                                                                     : {jp, list_to_binary(unwrap('$1')), jpparse('$2')}.
 -- column_ref -> NAME '.' NAME     JSON                                                            : {jp, list_to_binary([unwrap('$1'),".",unwrap('$3')]), jpparse('$4')}.
+-- column_ref -> NAME '.' NAME '.' NAME     JSON                                                   : {jp, list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]), jpparse('$6')}.
 -- column_ref -> NAME                                                                              : unwrap_bin('$1').
 -- column_ref -> NAME '.' NAME                                                                     : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
 -- column_ref -> NAME '.' NAME '.' NAME                                                            : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).
@@ -1549,17 +1550,18 @@ Table07.                          Table ::= Parameter         "NAME" ;
 -- column_ref -> NAME '.' '*'                                                                      : list_to_binary([unwrap('$1'),".*"]).
 -- column_ref -> NAME '.' NAME '.' '*'                                                             : list_to_binary([unwrap('$1'),".",unwrap('$3'),".*"]).
 
-ColumnRef01.                      ColumnRef ::=                       "JSON"             ;
-ColumnRef02.                      ColumnRef ::=            "NAME"     "JSON"             ;
-ColumnRef03.                      ColumnRef ::= "NAME" "." "NAME"     "JSON"             ;
-ColumnRef04.                      ColumnRef ::=                       "NAME"             ;
-ColumnRef05.                      ColumnRef ::=            "NAME" "." "NAME"             ;
-ColumnRef06.                      ColumnRef ::= "NAME" "." "NAME" "." "NAME"             ;
-ColumnRef07.                      ColumnRef ::= "NAME"                       "(" "+" ")" ;
-ColumnRef08.                      ColumnRef ::= "NAME"            "." "NAME" "(" "+" ")" ;
-ColumnRef09.                      ColumnRef ::= "NAME" "." "NAME" "." "NAME" "(" "+" ")" ;
-ColumnRef10.                      ColumnRef ::= "NAME"            "." "*"                ;
-ColumnRef11.                      ColumnRef ::= "NAME" "." "NAME" "." "*"                ;
+ColumnRef01.                      ColumnRef ::=                                  "JSON"  ;
+ColumnRef02.                      ColumnRef ::=            "NAME"                "JSON"  ;
+ColumnRef03.                      ColumnRef ::= "NAME" "." "NAME"                "JSON"  ;
+ColumnRef04.                      ColumnRef ::= "NAME" "." "NAME" "." "NAME"     "JSON"  ;
+ColumnRef05.                      ColumnRef ::=                       "NAME"             ;
+ColumnRef06.                      ColumnRef ::=            "NAME" "." "NAME"             ;
+ColumnRef07.                      ColumnRef ::= "NAME" "." "NAME" "." "NAME"             ;
+ColumnRef08.                      ColumnRef ::= "NAME"                       "(" "+" ")" ;
+ColumnRef09.                      ColumnRef ::= "NAME"            "." "NAME" "(" "+" ")" ;
+ColumnRef10.                      ColumnRef ::= "NAME" "." "NAME" "." "NAME" "(" "+" ")" ;
+ColumnRef11.                      ColumnRef ::= "NAME"            "." "*"                ;
+ColumnRef12.                      ColumnRef ::= "NAME" "." "NAME" "." "*"                ;
 
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 -- data types

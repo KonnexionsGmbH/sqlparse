@@ -993,7 +993,7 @@ create_code(column_ref = Rule) ->
 
     Code =
         [
-            case rand:uniform(9) rem 9 of
+            case rand:uniform(10) rem 10 of
                 1 -> lists:append([
                     lists:nth(rand:uniform(Name_Length), Name),
                     ".",
@@ -1010,28 +1010,36 @@ create_code(column_ref = Rule) ->
                     lists:nth(rand:uniform(Name_Length), Name),
                     ".",
                     lists:nth(rand:uniform(Name_Length), Name),
+                    ".",
+                    lists:nth(rand:uniform(Name_Length), Name),
                     lists:nth(rand:uniform(Json_Length), Json)
                 ]);
                 4 -> lists:append([
+                    lists:nth(rand:uniform(Name_Length), Name),
+                    ".",
                     lists:nth(rand:uniform(Name_Length), Name),
                     lists:nth(rand:uniform(Json_Length), Json)
                 ]);
                 5 -> lists:append([
                     lists:nth(rand:uniform(Name_Length), Name),
-                    ".",
-                    lists:nth(rand:uniform(Name_Length), Name),
-                    ".",
-                    lists:nth(rand:uniform(Name_Length), Name),
-                    "(+)"
+                    lists:nth(rand:uniform(Json_Length), Json)
                 ]);
                 6 -> lists:append([
                     lists:nth(rand:uniform(Name_Length), Name),
                     ".",
                     lists:nth(rand:uniform(Name_Length), Name),
+                    ".",
+                    lists:nth(rand:uniform(Name_Length), Name),
                     "(+)"
                 ]);
-                7 -> lists:nth(rand:uniform(Name_Length), Name) ++ "(+)";
-                8 -> lists:append([
+                7 -> lists:append([
+                    lists:nth(rand:uniform(Name_Length), Name),
+                    ".",
+                    lists:nth(rand:uniform(Name_Length), Name),
+                    "(+)"
+                ]);
+                8 -> lists:nth(rand:uniform(Name_Length), Name) ++ "(+)";
+                9 -> lists:append([
                     lists:nth(rand:uniform(Name_Length), Name),
                     ".",
                     lists:nth(rand:uniform(Name_Length), Name),

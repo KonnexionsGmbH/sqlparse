@@ -1301,7 +1301,6 @@ unwrap(X) -> X.
 unwrap_bin({_, _, X}) when is_list(X) -> list_to_binary([X]);
 unwrap_bin({_, _, X}) when is_atom(X) -> atom_to_binary(X, unicode).
 
-strl2atom([]) -> '';
 strl2atom(Strs) ->
     list_to_atom(lists:flatten(string:join([string:to_lower(unwrap(S)) || S <- Strs], " "))).
 
@@ -1361,7 +1360,6 @@ pt_to_string(PTree) -> foldtd(fun(_, _) -> null_fun end, null_fun, PTree).
 -spec foldtd(fun(), term(), tuple() | list()) -> {error, term()} | binary().
 foldtd(Fun, Ctx, PTree) when is_function(Fun, 2) ->
     try sqlparse_fold:fold(top_down, Fun, Ctx, 0, PTree) of
-        {error, _} = Error -> Error;
         {Sql, null_fun = Ctx} -> list_to_binary(string:strip(Sql));
         {_Output, NewCtx} -> NewCtx
     catch
@@ -1374,7 +1372,6 @@ pt_to_string_bu(PTree) -> foldbu(fun(_, _) -> null_fun end, null_fun, PTree).
 -spec foldbu(fun(), term(), tuple()) -> {error, term()} | binary().
 foldbu(Fun, Ctx, PTree) when is_function(Fun, 2) ->
     try sqlparse_fold:fold(bottom_up, Fun, Ctx, 0, PTree) of
-        {error, _} = Error -> Error;
         {Sql, null_fun = Ctx} -> list_to_binary(string:strip(Sql));
         {_Output, NewCtx} -> NewCtx
     catch

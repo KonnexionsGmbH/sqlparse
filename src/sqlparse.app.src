@@ -23,7 +23,7 @@
 {application, sqlparse,
     [
         {description, "A LALR SQL parser and compiler"},
-        {vsn, "4.0.0"},
+        {vsn, "3.0.0"},
         {applications, [
             kernel,
             stdlib,

@@ -23,7 +23,11 @@ rem ----------------------------------------------------------------------------
 
 > gen_tests_and_run.log (
 
-    CALL gen_tests.bat
+    SETLOCAL enableDelayedExpansion
+    ECHO !DATE!_!TIME!
+    CALL rebar3 compile
+    erl -noshell -pa _build\test\lib\sqlparse\test -s sqlparse_generator generate -s init stop
+    ECHO !DATE!_!TIME!
 
     SET SOURCEFILES_OLD=SOURCEFILES
     SET SOURCEFILES=

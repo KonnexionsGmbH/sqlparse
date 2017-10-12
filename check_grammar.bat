@@ -29,7 +29,7 @@ rem ----------------------------------------------------------------------------
 
     DEL /Q tmp\*
 
-    bnfc -o tmp --haskell priv\BNF_Converter\sqlparse.cf
+    bnfc -o tmp --haskell priv\bnf_converter\sqlparse.cf
 
     happy -i tmp\ParSqlparse.y
 

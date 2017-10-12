@@ -26,7 +26,9 @@ rem ----------------------------------------------------------------------------
     SETLOCAL enableDelayedExpansion
     ECHO !DATE!_!TIME!
     CALL rebar3 compile
-    erl -noshell -pa _build\test\lib\sqlparse\test -s sqlparse_generator generate -s init stop
+    erl -noshell -pa _build\default\lib\sqlparse\ebin -s sqlparse_generator generate -s init stop
+    dir code_templates
+    del /Q code_templates
     ECHO !DATE!_!TIME!
 
     SET SOURCEFILES_OLD=SOURCEFILES

@@ -1,5 +1,4 @@
 _build
-code_templates
 erl_crash.dump
 *.log
 rebar.lock

@@ -1367,7 +1367,9 @@ foldtd(Fun, Ctx, PTree) when is_function(Fun, 2) ->
         {Sql, null_fun = Ctx} -> list_to_binary(string:strip(Sql));
         {_Output, NewCtx} -> NewCtx
     catch
-        _:Error -> {error, Error}
+        _:Error ->
+            ?debugFmt(?MODULE_STRING ++ ":foldtd ===>~nPTree = ~p~n Error = ~p~n", [PTree, Error]),
+            {error, Error}
     end.
 
 -spec pt_to_string_bu(tuple()| list()) -> {error, term()} | binary().

@@ -1279,7 +1279,7 @@ Erlang code.
     pt_to_string_bu/1
 ]).
 
--define(NODEBUG, true).
+% -define(NODEBUG, true).
 -include_lib("eunit/include/eunit.hrl").
 
 -define(Dbg(__Rule, __Production),
@@ -1317,7 +1317,9 @@ make_list(L) -> [L].
 parsetree(Sql) ->
     case parsetree_with_tokens(Sql) of
         {ok, {ParseTree, _Tokens}} -> {ok, ParseTree};
-        Error -> Error
+        Error ->
+            ?debugFmt(?MODULE_STRING ++ ":parsetree ===>~nSQL = ~p~n Error = ~p~n", [Sql, Error]),
+            Error
     end.
 
 -spec parsetree_with_tokens(binary()|list()) ->

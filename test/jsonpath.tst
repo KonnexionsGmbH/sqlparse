@@ -16,3 +16,11 @@
 "select a|:b[f(p:q)]| from x".
 "select a.g|:b.f[f(p.r:q)]| from x".
 "select a.g|:b.f\n[\tf(p.r:q)]| from x".
+
+"select |:x| from dual".
+"select |:x:y| from dual".
+"select col1|:x:y| from dual".
+"select col1.col2|:x:y| from dual".
+"select col1.col2.col3|:x:y| from dual".
+
+"select |:a_obj:x|,|:b_obj:y| from x where |:a_obj:x| = 1 and |:b_obj:y| = 0 and |:rw_obj1:a| > 0".

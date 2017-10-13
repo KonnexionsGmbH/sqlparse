@@ -1196,11 +1196,9 @@ table -> parameter                                                              
 table -> parameter NAME                                                                         : {as, '$1', unwrap_bin('$2')}.
 
 column_ref -> JSON                                                                              : {jp, jpparse('$1')}.
-
-column_ref -> NAME     JSON                                                                     : {jp, list_to_binary([unwrap('$1'),"."]),                                   jpparse(list_to_binary([unwrap('$1'),".",unwrap('$2')]))}.
-column_ref -> NAME '.' NAME     JSON                                                            : {jp, list_to_binary([unwrap('$1'),".",unwrap('$3'),"."]),                  jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$4')]))}.
-column_ref -> NAME '.' NAME '.' NAME     JSON                                                   : {jp, list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5'),"."]), jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5'),".",unwrap('$6')]))}.
-
+column_ref -> NAME                   JSON                                                       : {jp, list_to_binary(unwrap('$1')),                                     jpparse(list_to_binary([unwrap('$1'),".",unwrap('$2')]))}.
+column_ref -> NAME '.' NAME          JSON                                                       : {jp, list_to_binary([unwrap('$1'),".",unwrap('$3')]),                  jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$4')]))}.
+column_ref -> NAME '.' NAME '.' NAME JSON                                                       : {jp, list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]), jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5'),".",unwrap('$6')]))}.
 column_ref -> NAME                                                                              : unwrap_bin('$1').
 column_ref -> NAME '.' NAME                                                                     : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
 column_ref -> NAME '.' NAME '.' NAME                                                            : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).
@@ -1279,7 +1277,7 @@ Erlang code.
     pt_to_string_bu/1
 ]).
 
-% -define(NODEBUG, true).
+-define(NODEBUG, true).
 -include_lib("eunit/include/eunit.hrl").
 
 -define(Dbg(__Rule, __Production),
@@ -1317,9 +1315,7 @@ make_list(L) -> [L].
 parsetree(Sql) ->
     case parsetree_with_tokens(Sql) of
         {ok, {ParseTree, _Tokens}} -> {ok, ParseTree};
-        Error ->
-            ?debugFmt(?MODULE_STRING ++ ":parsetree ===>~nSQL = ~p~n Error = ~p~n", [Sql, Error]),
-            Error
+        Error -> Error
     end.
 
 -spec parsetree_with_tokens(binary()|list()) ->
@@ -1367,9 +1363,7 @@ foldtd(Fun, Ctx, PTree) when is_function(Fun, 2) ->
         {Sql, null_fun = Ctx} -> list_to_binary(string:strip(Sql));
         {_Output, NewCtx} -> NewCtx
     catch
-        _:Error ->
-            ?debugFmt(?MODULE_STRING ++ ":foldtd ===>~nPTree = ~p~n Error = ~p~n", [PTree, Error]),
-            {error, Error}
+        _:Error -> {error, Error}
     end.
 
 -spec pt_to_string_bu(tuple()| list()) -> {error, term()} | binary().

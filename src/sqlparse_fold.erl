@@ -1801,9 +1801,9 @@ fold(FType, Fun, Ctx, _Lvl, {jp, Name, Value} = ST)
     NameLen = length(NameStr),
     ValueStr = binary_to_list(ValueBin),
     RT = {lists:append([
-        string:slice(NameStr, 0, NameLen - 1),
+        string:slice(NameStr, 0, NameLen),
         "|",
-        string:slice(ValueStr, NameLen),
+        string:slice(ValueStr, NameLen + 1),
         "|"
     ]), NewCtx1},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),

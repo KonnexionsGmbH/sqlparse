@@ -1792,12 +1792,20 @@ fold(FType, Fun, Ctx, _Lvl, {jp, Name, Value} = ST)
                  top_down -> Fun(ST, Ctx);
                  bottom_up -> Ctx
              end,
-    {ok, ValueStr} = jpparse_fold:string(Value),
+    {ok, ValueBin} = jpparse_fold:string(Value),
     NewCtx1 = case FType of
                   top_down -> NewCtx;
                   bottom_up -> Fun(ST, NewCtx)
               end,
-    RT = {lists:append([binary_to_list(Name), "|", binary_to_list(ValueStr), "|"]), NewCtx1},
+    NameStr = binary_to_list(Name),
+    NameLen = length(NameStr),
+    ValueStr = binary_to_list(ValueBin),
+    RT = {lists:append([
+        string:slice(NameStr, 0, NameLen - 1),
+        "|",
+        string:slice(ValueStr, NameLen),
+        "|"
+    ]), NewCtx1},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
 

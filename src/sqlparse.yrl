@@ -505,8 +505,8 @@ create_index_spec -> '(' create_index_spec_items ')'                            
 
 create_index_spec_items -> NAME                                                                 : [unwrap_bin('$1')].
 create_index_spec_items -> NAME '|' create_index_spec_items                                     : [unwrap_bin('$1') | '$3'].
-create_index_spec_items -> JSON                                                                 : [{jp, jpparse('$1')}].
-create_index_spec_items -> JSON '|' create_index_spec_items                                     : [{jp, jpparse('$1')} | '$3'].
+create_index_spec_items -> JSON                                                                 : [jpparse('$1')].
+create_index_spec_items -> JSON '|' create_index_spec_items                                     : [jpparse('$1') | '$3'].
 
 create_index_norm -> NORM_WITH STRING                                                           : {norm, unwrap_bin('$2')}.
 
@@ -1195,10 +1195,10 @@ table -> NAME '.' NAME NAME                                                     
 table -> parameter                                                                              : '$1'.
 table -> parameter NAME                                                                         : {as, '$1', unwrap_bin('$2')}.
 
-column_ref -> JSON                                                                              : {jp, jpparse('$1')}.
-column_ref -> NAME                   JSON                                                       : {jp, list_to_binary(unwrap('$1')),                                     jpparse(list_to_binary([unwrap('$1'),".",unwrap('$2')]))}.
-column_ref -> NAME '.' NAME          JSON                                                       : {jp, list_to_binary([unwrap('$1'),".",unwrap('$3')]),                  jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$4')]))}.
-column_ref -> NAME '.' NAME '.' NAME JSON                                                       : {jp, list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]), jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5'),".",unwrap('$6')]))}.
+column_ref ->                        JSON                                                       : jpparse('$1').
+column_ref -> NAME                   JSON                                                       : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$2')])).
+column_ref -> NAME '.' NAME          JSON                                                       : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$4')])).
+column_ref -> NAME '.' NAME '.' NAME JSON                                                       : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5'),".",unwrap('$6')])).
 column_ref -> NAME                                                                              : unwrap_bin('$1').
 column_ref -> NAME '.' NAME                                                                     : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
 column_ref -> NAME '.' NAME '.' NAME                                                            : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).
@@ -1292,7 +1292,9 @@ Erlang code.
 
 jpparse({_, _, X}) -> jpparse(X);
 jpparse(X) ->
+    ?debugFmt(?MODULE_STRING ++ ":jpparse ===> ~nX: ~p~n", [X]),
     {ok, Pt} = jpparse:parsetree(X),
+    ?debugFmt(?MODULE_STRING ++ ":jpparse ===> ~nPt: ~p~n", [Pt]),
     Pt.
 
 unwrap({_, _, X}) -> X;

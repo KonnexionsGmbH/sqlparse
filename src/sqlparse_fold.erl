@@ -1014,7 +1014,7 @@ fold(FType, Fun, Ctx, Lvl, {fields, Fields} = ST) ->
     {FieldsStr, NewCtx1} = lists:foldl(fun(F, {Acc, CtxAcc}) ->
         case F of
             F when is_binary(F) -> {Acc ++ [binary_to_list(F)], Fun(F, CtxAcc)};
-            {'select', _} = F ->
+            {'select', _} ->
                 {SubAcc, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, F),
                 {Acc ++ [lists:flatten(["(", SubAcc, ")"])], CtxAcc1};
             Other ->
@@ -1764,48 +1764,6 @@ fold(FType, Fun, Ctx, Lvl, {JoinType, Tab, OnOrUsing} = ST)
         " ",
         OnOrUsingStr
     ]), NewCtx4},
-    ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
-    RT;
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% JSON
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-fold(FType, Fun, Ctx, _Lvl, {jp, Value} = ST) ->
-    ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [_Lvl, ST]),
-    NewCtx = case FType of
-                 top_down -> Fun(ST, Ctx);
-                 bottom_up -> Ctx
-             end,
-    {ok, ValueStr} = jpparse_fold:string(Value),
-    NewCtx1 = case FType of
-                  top_down -> NewCtx;
-                  bottom_up -> Fun(ST, NewCtx)
-              end,
-    RT = {lists:append(["|", binary_to_list(ValueStr), "|"]), NewCtx1},
-    ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
-    RT;
-fold(FType, Fun, Ctx, _Lvl, {jp, Name, Value} = ST)
-    when is_binary(Name) ->
-    ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [_Lvl, ST]),
-    NewCtx = case FType of
-                 top_down -> Fun(ST, Ctx);
-                 bottom_up -> Ctx
-             end,
-    {ok, ValueBin} = jpparse_fold:string(Value),
-    NewCtx1 = case FType of
-                  top_down -> NewCtx;
-                  bottom_up -> Fun(ST, NewCtx)
-              end,
-    NameStr = binary_to_list(Name),
-    NameLen = length(NameStr),
-    ValueStr = binary_to_list(ValueBin),
-    RT = {lists:append([
-        string:slice(NameStr, 0, NameLen),
-        "|",
-        string:slice(ValueStr, NameLen + 1),
-        "|"
-    ]), NewCtx1},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
 
@@ -2713,6 +2671,39 @@ fold(_FType, _Fun, Ctx, _Lvl, X = _ST)
     RT;
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% JSON parser hooking
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(_FType, _Fun, Ctx, _Lvl, {Op, Columns, _} = ST)
+    when Op =:= '{}';Op =:= '[]' ->
+    ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [_Lvl, ST]),
+    {ok, JPPath} = jpparse_fold:string(ST),
+    JPPathList = binary_to_list(JPPath),
+    RT = {case Columns of
+              empty -> lists:append(["|", JPPathList, "|"]);
+              _ when is_tuple(Columns) ->
+                  ColumnsList = string:strip(decompose_tuple(Columns), right, $.),
+                  lists:append([ColumnsList, "|", string:sub_string(JPPathList, length(ColumnsList) + 2), "|"]);
+              _ ->
+                  ColumnsList = string:strip(binary_to_list(Columns), right, $.),
+                  lists:append([ColumnsList, "|", string:sub_string(JPPathList, length(ColumnsList) + 2), "|"])
+          end, Ctx},
+    ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
+    RT;
+fold(_FType, _Fun, Ctx, _Lvl, {Op, _, _} = ST)
+    when Op =:= ':'; Op =:= '::'; Op =:= '#' ->
+    ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [_Lvl, ST]),
+    {ok, JPPath} = jpparse_fold:string(ST),
+    JPPathList = binary_to_list(JPPath),
+    RT = {case decompose_tuple(ST) of
+              empty -> lists:append(["|", JPPathList, "|"]);
+              Others ->
+                  lists:append([string:strip(Others, right, $.), "|", string:sub_string(JPPathList, length(Others) + 1), "|"])
+          end, Ctx},
+    ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
+    RT;
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Boolean and arithmetic binary operators handled with precedence
 % *,/ > +,- > and > or
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2785,6 +2776,7 @@ fold(FType, Fun, Ctx, Lvl, {Op, L, R} = ST)
                             {Rs, NC} = fold(FType, Fun, NewCtx2, Lvl + 1, R),
                             {lists:flatten(["(", Rs, ")"]), NC};
                         _ -> {Rs, NC} = fold(FType, Fun, NewCtx2, Lvl + 1, R),
+                            ?debugFmt(?MODULE_STRING ++ ":fold ===>~nRs ~p~nNC: ~p~n", [Rs, NC]),
                             case R of
                                 {select, _} ->
                                     {lists:append(["(", Rs, ")"]), NC};
@@ -2874,3 +2866,14 @@ fold(_FType, Fun, Ctx, _Lvl, PTree) ->
     ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [_Lvl, PTree]),
     Fun(PTree, Ctx),
     throw({"Parse tree not supported", PTree}).
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Helper functions
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+decompose_tuple({_, _, X}) when is_tuple(X) ->
+    decompose_tuple(X);
+decompose_tuple({_, _, X}) when is_atom(X) ->
+    X;
+decompose_tuple({_, _, X}) ->
+    binary_to_list(X).

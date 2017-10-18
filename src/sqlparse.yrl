@@ -1196,9 +1196,9 @@ table -> parameter                                                              
 table -> parameter NAME                                                                         : {as, '$1', unwrap_bin('$2')}.
 
 column_ref ->                        JSON                                                       : jpparse('$1').
-column_ref -> NAME                   JSON                                                       : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$2')])).
-column_ref -> NAME '.' NAME          JSON                                                       : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$4')])).
-column_ref -> NAME '.' NAME '.' NAME JSON                                                       : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5'),".",unwrap('$6')])).
+column_ref -> NAME                   JSON                                                       : jpparse(list_to_binary([unwrap('$1'),unwrap('$2')])).
+column_ref -> NAME '.' NAME          JSON                                                       : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),unwrap('$4')])).
+column_ref -> NAME '.' NAME '.' NAME JSON                                                       : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5'),unwrap('$6')])).
 column_ref -> NAME                                                                              : unwrap_bin('$1').
 column_ref -> NAME '.' NAME                                                                     : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
 column_ref -> NAME '.' NAME '.' NAME                                                            : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).

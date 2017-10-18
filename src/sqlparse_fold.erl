@@ -2683,10 +2683,10 @@ fold(_FType, _Fun, Ctx, _Lvl, {Op, Columns, _} = ST)
               empty -> lists:append(["|", JPPathList, "|"]);
               _ when is_tuple(Columns) ->
                   ColumnsList = string:strip(decompose_tuple(Columns), right, $.),
-                  lists:append([ColumnsList, "|", string:sub_string(JPPathList, length(ColumnsList) + 2), "|"]);
+                  lists:append([ColumnsList, "|", string:sub_string(JPPathList, length(ColumnsList) + 1), "|"]);
               _ ->
                   ColumnsList = string:strip(binary_to_list(Columns), right, $.),
-                  lists:append([ColumnsList, "|", string:sub_string(JPPathList, length(ColumnsList) + 2), "|"])
+                  lists:append([ColumnsList, "|", string:sub_string(JPPathList, length(ColumnsList) + 1), "|"])
           end, Ctx},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;

@@ -355,6 +355,7 @@ Terminals
  '.'
  '/'
  ';'
+ '='
  'div'
  '|'
  '||'
@@ -369,7 +370,7 @@ Rootsymbol sql_list.
 Left        100 OR.
 Left        200 AND.
 Left        300 NOT.
-Nonassoc    400 COMPARISON.
+Nonassoc    400 '=' COMPARISON.
 Left        500 '+' '-' '||'.
 Left        600 '*' '/' 'div'.
 Left        700 unary_add_or_subtract.
@@ -382,6 +383,12 @@ sql_list -> sql_list sql ';'                                                    
 sql_list -> sql_list sql ';' extra                                                              : '$1' ++ [{'$2','$4'}].
 
 extra -> NAME  ';'                                                                              : {extra, unwrap_bin('$1')}.
+
+%% =============================================================================
+%% Helper definitions - test purposes.
+%% -----------------------------------------------------------------------------
+% sql -> from_column                                                                              : '$1'.
+%% =============================================================================
 
 sql -> procedure_call                                                                           : '$1'.
 
@@ -627,7 +634,7 @@ column_def_opt -> CHECK '(' search_condition ')'                                
 column_def_opt -> REFERENCES table                                                              : {ref, '$2'}.
 column_def_opt -> REFERENCES table '(' column_commalist ')'                                     : {ref, {'$2', '$4'}}.
 
-table_constraint_def -> UNIQUE '(' column_commalist ')'                                         : {unique, '$3'}.
+table_constraint_def -> UNIQUE      '(' column_commalist ')'                                    : {unique, '$3'}.
 table_constraint_def -> PRIMARY KEY '(' column_commalist ')'                                    : {'primary key', '$4'}.
 table_constraint_def -> FOREIGN KEY '(' column_commalist ')' REFERENCES table                   : {'foreign key', '$4', {'ref', '$7'}}.
 table_constraint_def -> FOREIGN KEY '(' column_commalist ')' REFERENCES table '(' column_commalist ')'
@@ -814,7 +821,7 @@ update_statement_positioned -> UPDATE table SET assignment_commalist WHERE CURRE
 assignment_commalist ->                          assignment                                     :         ['$1'].
 assignment_commalist -> assignment_commalist ',' assignment                                     : '$1' ++ ['$3'].
 
-assignment -> column COMPARISON scalar_opt_as_exp                                               : {'=', '$1', '$3'}.
+assignment -> column '=' scalar_opt_as_exp                                                      : {'=', '$1', '$3'}.
 
 update_statement_searched -> UPDATE table SET assignment_commalist                              : {update, '$2', {set, '$4'}, [],   {returning, {}}}.
 update_statement_searched -> UPDATE table SET assignment_commalist              returning       : {update, '$2', {set, '$4'}, [],   '$5'}.
@@ -1026,12 +1033,12 @@ outer_join_type -> RIGHT                                                        
 outer_join_type -> RIGHT OUTER                                                                  : right_outer.
 
 table_ref -> table                                                                              : '$1'.
-table_ref -> '(' query_exp ')'                                                                  : '$2'.
-table_ref -> '(' query_exp ')' NAME                                                             : {as, '$2', unwrap_bin('$4')}.
+table_ref -> query_term                                                                         : '$1'.
+table_ref -> query_term NAME                                                                    : {as, '$1', unwrap_bin('$2')}.
 
 join_ref -> table                                                                               : '$1'.
-join_ref -> '(' query_exp ')'                                                                   : '$2'.
-join_ref -> '(' query_exp ')' NAME                                                              : {as, '$2', unwrap_bin('$4')}.
+join_ref -> query_term                                                                          : '$1'.
+join_ref -> query_term NAME                                                                     : {as, '$1', unwrap_bin('$2')}.
 
 hierarchical_query_clause -> START WITH search_condition CONNECT BY         search_condition    : {'hierarchical query', {{'start with', '$3'}, {'connect by', <<>>, '$6'}}}.
 hierarchical_query_clause -> START WITH search_condition CONNECT BY nocycle search_condition    : {'hierarchical query', {{'start with', '$3'}, {'connect by', '$6', '$7'}}}.
@@ -1070,8 +1077,10 @@ predicate -> all_or_any_predicate                                               
 predicate -> existence_test                                                                     : '$1'.
 
 comparison_predicate -> scalar_opt_as_exp                                                       : '$1'.
+comparison_predicate ->       scalar_exp '='        PRIOR scalar_exp                            : {'=',          '$1',          {prior, '$4'}}.
+comparison_predicate ->       scalar_exp COMPARISON PRIOR scalar_exp                            : {unwrap('$2'), '$1',          {prior, '$4'}}.
+comparison_predicate -> PRIOR scalar_exp '='              scalar_exp                            : {'=',          {prior, '$2'}, '$4'}.
 comparison_predicate -> PRIOR scalar_exp COMPARISON       scalar_exp                            : {unwrap('$3'), {prior, '$2'}, '$4'}.
-comparison_predicate ->       scalar_exp COMPARISON PRIOR scalar_exp                            : {unwrap('$2'), '$1', {prior, '$4'}}.
 
 between_predicate -> scalar_exp     BETWEEN scalar_exp AND scalar_exp                           :         {between, '$1', '$3', '$5'}.
 between_predicate -> scalar_exp not_between scalar_exp AND scalar_exp                           : {'not', {between, '$1', '$3', '$5'}}.
@@ -1101,6 +1110,7 @@ in_predicate -> scalar_exp not_in '(' subquery ')'                              
 
 not_in -> NOT IN                                                                                : 'not in'.
 
+all_or_any_predicate -> scalar_exp '='        any_all_some subquery                             : {'=',          '$1', {'$3', ['$4']}}.
 all_or_any_predicate -> scalar_exp COMPARISON any_all_some subquery                             : {unwrap('$2'), '$1', {'$3', ['$4']}}.
 
 any_all_some -> ANY                                                                             : any.
@@ -1116,6 +1126,7 @@ subquery -> query_exp                                                           
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 scalar_opt_as_exp -> scalar_exp                                                                 : '$1'.
+scalar_opt_as_exp -> scalar_exp '='        scalar_exp                                           : {'=',          '$1', '$3'}.
 scalar_opt_as_exp -> scalar_exp COMPARISON scalar_exp                                           : {unwrap('$2'), '$1', '$3'}.
 scalar_opt_as_exp -> scalar_exp    NAME                                                         : {as, '$1', unwrap_bin('$2')}.
 scalar_opt_as_exp -> scalar_exp AS NAME                                                         : {as, '$1', unwrap_bin('$3')}.
@@ -1177,6 +1188,7 @@ fun_arg -> atom                                                                 
 fun_arg -> subquery                                                                             : '$1'.
 fun_arg -> fun_arg    NAME                                                                      : {as, '$1', unwrap_bin('$2')}.
 fun_arg -> fun_arg AS NAME                                                                      : {as, '$1', unwrap_bin('$3')}.
+fun_arg -> fun_arg '='        fun_arg                                                           : {'=',          '$1', '$3'}.
 fun_arg -> fun_arg COMPARISON fun_arg                                                           : {unwrap('$2'), '$1', '$3'}.
 
 literal -> STRING                                                                               : unwrap_bin('$1').

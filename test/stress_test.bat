@@ -37,6 +37,8 @@ IF "%1" == "" (
     RD _build\test\logs /Q /S
     MD _build\test\logs
     RD tmp\backup /Q /S
+    DEL test\reliability_*.*
+    RD tmp\backup /Q /S
 
     FOR /L %%G IN (1,1,%NO_RUNS%) DO (
        ECHO -----------------------------------------------------------------------

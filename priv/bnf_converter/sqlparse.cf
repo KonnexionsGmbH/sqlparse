@@ -849,9 +849,9 @@ UpdateStatementPositioned02.      UpdateStatementPositioned ::= "UPDATE" Table "
 AssignmentCommalist01.            AssignmentCommalist ::=                         Assignment ;
 AssignmentCommalist02.            AssignmentCommalist ::= AssignmentCommalist "," Assignment ;
 
--- assignment -> column COMPARISON scalar_opt_as_exp                                               : {'=', '$1', '$3'}.
+-- assignment -> column '=' scalar_opt_as_exp                                                      : {'=', '$1', '$3'}.
 
-Assignment01.                     Assignment ::= Column "COMPARISON" ScalarOptAsExp ;
+Assignment01.                     Assignment ::= Column "=" ScalarOptAsExp ;
 
 -- update_statement_searched -> UPDATE table SET assignment_commalist                              : {update, '$2', {set, '$4'}, [],   {returning, {}}}.
 -- update_statement_searched -> UPDATE table SET assignment_commalist              returning       : {update, '$2', {set, '$4'}, [],   '$5'}.
@@ -1210,20 +1210,20 @@ OuterJoinType05.                  OuterJoinType ::= "RIGHT"         ;
 OuterJoinType06.                  OuterJoinType ::= "RIGHT" "OUTER" ;
 
 -- table_ref -> table                                                                              : '$1'.
--- table_ref -> '(' query_exp ')'                                                                  : '$2'.
--- table_ref -> '(' query_exp ')' NAME                                                             : {as, '$2', unwrap_bin('$4')}.
+-- table_ref -> query_term                                                                         : '$1'.
+-- table_ref -> query_term NAME                                                                    : {as, '$1', unwrap_bin('$2')}.
 
-TableRef01.                       TableRef ::= Table                   ;
-TableRef02.                       TableRef ::= "(" QueryExp ")"        ;
-TableRef03.                       TableRef ::= "(" QueryExp ")" "NAME" ;
+TableRef01.                       TableRef ::= Table            ;
+TableRef02.                       TableRef ::= QueryTerm        ;
+TableRef03.                       TableRef ::= QueryTerm "NAME" ;
 
 -- join_ref -> table                                                                               : '$1'.
--- join_ref -> '(' query_exp ')'                                                                   : '$2'.
--- join_ref -> '(' query_exp ')' NAME                                                              : {as, '$2', unwrap_bin('$4')}.
+-- join_ref -> query_term                                                                          : '$1'.
+-- join_ref -> query_term NAME                                                                     : {as, '$1', unwrap_bin('$2')}.
 
-JoinRef01.                        JoinRef ::= Table                   ;
-JoinRef02.                        JoinRef ::= "(" QueryExp ")"        ;
-JoinRef03.                        JoinRef ::= "(" QueryExp ")" "NAME" ;
+JoinRef01.                        JoinRef ::= Table            ;
+JoinRef02.                        JoinRef ::= QueryTerm        ;
+JoinRef03.                        JoinRef ::= QueryTerm "NAME" ;
 
 -- hierarchical_query_clause -> START WITH search_condition CONNECT BY         search_condition    : {'hierarchical query', {{'start with', '$3'}, {'connect by', <<>>, '$6'}}}.
 -- hierarchical_query_clause -> START WITH search_condition CONNECT BY nocycle search_condition    : {'hierarchical query', {{'start with', '$3'}, {'connect by', '$6', '$7'}}}.
@@ -1294,12 +1294,16 @@ Predicate06.                      Predicate ::= AllOrAnyPredicate   ;
 Predicate07.                      Predicate ::= ExistenceTest       ;
 
 -- comparison_predicate -> scalar_opt_as_exp                                                       : '$1'.
+-- comparison_predicate ->       scalar_exp '='        PRIOR scalar_exp                            : {'=',          '$1',          {prior, '$4'}}.
+-- comparison_predicate ->       scalar_exp COMPARISON PRIOR scalar_exp                            : {unwrap('$2'), '$1',          {prior, '$4'}}.
+-- comparison_predicate -> PRIOR scalar_exp '='              scalar_exp                            : {'=',          {prior, '$2'}, '$4'}.
 -- comparison_predicate -> PRIOR scalar_exp COMPARISON       scalar_exp                            : {unwrap('$3'), {prior, '$2'}, '$4'}.
--- comparison_predicate ->       scalar_exp COMPARISON PRIOR scalar_exp                            : {unwrap('$2'), '$1', {prior, '$4'}}.
 
 ComparisonPredicate01.            ComparisonPredicate ::= ScalarOptAsExp                                   ;
-ComparisonPredicate02.            ComparisonPredicate ::= "PRIOR" ScalarExp "COMPARISON"         ScalarExp ;
+ComparisonPredicate02.            ComparisonPredicate ::=         ScalarExp "="          "PRIOR" ScalarExp ;
 ComparisonPredicate03.            ComparisonPredicate ::=         ScalarExp "COMPARISON" "PRIOR" ScalarExp ;
+ComparisonPredicate04.            ComparisonPredicate ::= "PRIOR" ScalarExp "="                  ScalarExp ;
+ComparisonPredicate05.            ComparisonPredicate ::= "PRIOR" ScalarExp "COMPARISON"         ScalarExp ;
 
 -- between_predicate -> scalar_exp     BETWEEN scalar_exp AND scalar_exp                           :         {between, '$1', '$3', '$5'}.
 -- between_predicate -> scalar_exp not_between scalar_exp AND scalar_exp                           : {'not', {between, '$1', '$3', '$5'}}.
@@ -1357,9 +1361,11 @@ InPredicate01.                    InPredicate ::= ScalarExp NotIn "(" Subquery "
 
 NotIn01.                          NotIn ::= "NOT" "IN" ;
 
+-- all_or_any_predicate -> scalar_exp '='        any_all_some subquery                             : {'=',          '$1', {'$3', ['$4']}}.
 -- all_or_any_predicate -> scalar_exp COMPARISON any_all_some subquery                             : {unwrap('$2'), '$1', {'$3', ['$4']}}.
 
-AllOrAnyPredicate01.              AllOrAnyPredicate ::= ScalarExp "COMPARISON" AnyAllSome Subquery ;
+AllOrAnyPredicate01.              AllOrAnyPredicate ::= ScalarExp "="          AnyAllSome Subquery ;
+AllOrAnyPredicate02.              AllOrAnyPredicate ::= ScalarExp "COMPARISON" AnyAllSome Subquery ;
 
 -- any_all_some -> ANY                                                                             : any.
 -- any_all_some -> ALL                                                                             : all.
@@ -1382,20 +1388,22 @@ Subquery01.                       Subquery ::= QueryExp ;
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 -- scalar_opt_as_exp -> scalar_exp                                                                 : '$1'.
+-- scalar_opt_as_exp -> scalar_exp '='        scalar_exp                                           : {'=',          '$1', '$3'}.
 -- scalar_opt_as_exp -> scalar_exp COMPARISON scalar_exp                                           : {unwrap('$2'), '$1', '$3'}.
 -- scalar_opt_as_exp -> scalar_exp    NAME                                                         : {as, '$1', unwrap_bin('$2')}.
 -- scalar_opt_as_exp -> scalar_exp AS NAME                                                         : {as, '$1', unwrap_bin('$3')}.
 
 ScalarOptAsExp01.                 ScalarOptAsExp ::= ScalarExp                        ;
-ScalarOptAsExp02.                 ScalarOptAsExp ::= ScalarExp "COMPARISON" ScalarExp ;
-ScalarOptAsExp03.                 ScalarOptAsExp ::= ScalarExp      "NAME"            ;
-ScalarOptAsExp04.                 ScalarOptAsExp ::= ScalarExp "AS" "NAME"            ;
+ScalarOptAsExp02.                 ScalarOptAsExp ::= ScalarExp "="          ScalarExp ;
+ScalarOptAsExp03.                 ScalarOptAsExp ::= ScalarExp "COMPARISON" ScalarExp ;
+ScalarOptAsExp04.                 ScalarOptAsExp ::= ScalarExp      "NAME"            ;
+ScalarOptAsExp05.                 ScalarOptAsExp ::= ScalarExp "AS" "NAME"            ;
 
 -- scalar_exp -> scalar_sub_exp '||' scalar_exp                                                    : {'||','$1','$3'}.
 -- scalar_exp -> scalar_sub_exp                                                                    : '$1'.
 
 ScalarExp01.                      ScalarExp ::= ScalarSubExp "||" ScalarExp ;
-ScalarExp02.                      ScalarExp ::= ScalarSubExp                 ;
+ScalarExp02.                      ScalarExp ::= ScalarSubExp                ;
 
 -- scalar_sub_exp -> scalar_sub_exp '+'    scalar_sub_exp                                          : {'+','$1','$3'}.
 -- scalar_sub_exp -> scalar_sub_exp '-'    scalar_sub_exp                                          : {'-','$1','$3'}.
@@ -1490,6 +1498,7 @@ FunArgs02.                        FunArgs ::= FunArg "," FunArgs ;
 -- fun_arg -> subquery                                                                             : '$1'.
 -- fun_arg -> fun_arg    NAME                                                                      : {as, '$1', unwrap_bin('$2')}.
 -- fun_arg -> fun_arg AS NAME                                                                      : {as, '$1', unwrap_bin('$3')}.
+-- fun_arg -> fun_arg '='        fun_arg                                                           : {'=',          '$1', '$3'}.
 -- fun_arg -> fun_arg COMPARISON fun_arg                                                           : {unwrap('$2'), '$1', '$3'}.
 
 FunArg01.                         FunArg ::= "(" FunArg ")"             ;
@@ -1507,7 +1516,8 @@ FunArg14.                         FunArg ::= "NULL"                     ;
 FunArg15.                         FunArg ::= Atom                       ;
 FunArg16.                         FunArg ::= Subquery                   ;
 FunArg17.                         FunArg ::= FunArg "AS" "NAME"         ;
-FunArg18.                         FunArg ::= FunArg "COMPARISON" FunArg ;
+FunArg18.                         FunArg ::= FunArg "="          FunArg ;
+FunArg19.                         FunArg ::= FunArg "COMPARISON" FunArg ;
 
 -- literal -> STRING                                                                               : unwrap_bin('$1').
 -- literal -> INTNUM                                                                               : unwrap_bin('$1').

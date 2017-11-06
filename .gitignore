@@ -3,9 +3,8 @@ erl_crash.dump
 *.log
 rebar.lock
 rebar3.crashdump
-reliability_*
 src/*.dot
 src/sql_lex.erl
 src/sqlparse.erl
-*.swp
+tsst/reliability_*
 tmp

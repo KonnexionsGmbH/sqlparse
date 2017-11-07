@@ -42,12 +42,14 @@ fold(FType, Fun, Ctx, Lvl, [{_, {extra, _}} | _] = STs)
         = lists:foldl(
         fun(ST, {Sql, AccCtx}) ->
             {NewSql, NewAccCtx} = fold(FType, Fun, AccCtx, Lvl, ST),
-            {Sql ++
-                if length(Sql) > 0
-                    -> "; " ++ NewSql;
-                    true -> NewSql
+            {lists:append([
+                Sql,
+                case length(Sql) > 0 of
+                    true -> "; ";
+                    _ -> []
                 end,
-                NewAccCtx}
+                NewSql
+            ]), NewAccCtx}
         end, {"", NewCtx}, STs),
     NewCtx2 = case FType of
                   top_down -> NewCtx1;
@@ -72,12 +74,14 @@ fold(FType, Fun, Ctx, Lvl, {stmtList, STs})
         = lists:foldl(
         fun(ST, {Sql, AccCtx}) ->
             {NewSql, NewAccCtx} = fold(FType, Fun, AccCtx, Lvl, ST),
-            {Sql ++
-                if length(Sql) > 0 andalso length(NewSql) > 0
-                    -> ";" ++ NewSql;
-                    true -> NewSql
+            {lists:append([
+                Sql,
+                case length(Sql) > 0 andalso length(NewSql) > 0 of
+                    true -> ";";
+                    _ -> []
                 end,
-                NewAccCtx}
+                NewSql
+            ]), NewAccCtx}
         end, {"", NewCtx}, STs),
     NewCtx2 = case FType of
                   top_down -> NewCtx1;
@@ -90,7 +94,6 @@ fold(FType, Fun, Ctx, Lvl, {stmtList, STs})
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Other lists
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 fold(FType, Fun, Ctx, Lvl, STs)
     when is_list(STs) ->
     ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, STs]),
@@ -102,12 +105,14 @@ fold(FType, Fun, Ctx, Lvl, STs)
         = lists:foldl(
         fun(ST, {Sql, AccCtx}) ->
             {NewSql, NewAccCtx} = fold(FType, Fun, AccCtx, Lvl, ST),
-            {Sql ++
-                if length(Sql) > 0 andalso length(NewSql) > 0
-                    -> " " ++ NewSql;
-                    true -> NewSql
+            {lists:append([
+                Sql,
+                case length(Sql) > 0 andalso length(NewSql) > 0 of
+                    true -> " ";
+                    _ -> []
                 end,
-                NewAccCtx}
+                NewSql
+            ]), NewAccCtx}
         end, {"", NewCtx}, STs),
     NewCtx2 = case FType of
                   top_down -> NewCtx1;
@@ -240,8 +245,9 @@ fold(FType, Fun, Ctx, _Lvl, {'alter user', [Usr | _] = Users, {Grant, GrantArg}}
                  bottom_up -> Ctx
              end,
     GrantStr = [atom_to_list(Grant), " ", "through", " ",
-        if is_atom(GrantArg) -> atom_to_list(GrantArg);
-            true ->
+        case is_atom(GrantArg) of
+            true -> atom_to_list(GrantArg);
+            _ ->
                 case GrantArg of
                     {W, A} when is_atom(W), is_atom(A) ->
                         [atom_to_list(W), " ", atom_to_list(A)];
@@ -333,32 +339,38 @@ fold(FType, Fun, Ctx, Lvl, {Type, A, B, C} = ST)
                  top_down -> Fun(ST, Ctx);
                  bottom_up -> Ctx
              end,
-    {A1, NewCtx1} = if is_binary(A) -> {binary_to_list(A), NewCtx}; true ->
-        {A1Int, NewCtx1Int} = fold(FType, Fun, NewCtx, Lvl + 1, A),
-        case lists:prefix("select ", A1Int) of
-            true ->
-                {lists:append(["(", A1Int, ")"]), NewCtx1Int};
-            _ ->
-                {A1Int, NewCtx1Int}
-        end
+    {A1, NewCtx1} = case is_binary(A) of
+                        true -> {binary_to_list(A), NewCtx};
+                        _ ->
+                            {A1Int, NewCtx1Int} = fold(FType, Fun, NewCtx, Lvl + 1, A),
+                            case lists:prefix("select ", A1Int) of
+                                true ->
+                                    {lists:append(["(", A1Int, ")"]), NewCtx1Int};
+                                _ ->
+                                    {A1Int, NewCtx1Int}
+                            end
                     end,
-    {B1, NewCtx2} = if is_binary(B) -> {binary_to_list(B), NewCtx1}; true ->
-        {B1Int, NewCtx2Int} = fold(FType, Fun, NewCtx1, Lvl + 1, B),
-        case lists:prefix("select ", B1Int) of
-            true ->
-                {lists:append(["(", B1Int, ")"]), NewCtx2Int};
-            _ ->
-                {B1Int, NewCtx2Int}
-        end
+    {B1, NewCtx2} = case is_binary(B) of
+                        true -> {binary_to_list(B), NewCtx1};
+                        _ ->
+                            {B1Int, NewCtx2Int} = fold(FType, Fun, NewCtx1, Lvl + 1, B),
+                            case lists:prefix("select ", B1Int) of
+                                true ->
+                                    {lists:append(["(", B1Int, ")"]), NewCtx2Int};
+                                _ ->
+                                    {B1Int, NewCtx2Int}
+                            end
                     end,
-    {C1, NewCtx3} = if is_binary(C) -> {binary_to_list(C), NewCtx2}; true ->
-        {C1Int, NewCtx3Int} = fold(FType, Fun, NewCtx2, Lvl + 1, C),
-        case lists:prefix("select ", C1Int) of
-            true ->
-                {lists:append(["(", C1Int, ")"]), NewCtx3Int};
-            _ ->
-                {C1Int, NewCtx3Int}
-        end
+    {C1, NewCtx3} = case is_binary(C) of
+                        true -> {binary_to_list(C), NewCtx2};
+                        _ ->
+                            {C1Int, NewCtx3Int} = fold(FType, Fun, NewCtx2, Lvl + 1, C),
+                            case lists:prefix("select ", C1Int) of
+                                true ->
+                                    {lists:append(["(", C1Int, ")"]), NewCtx3Int};
+                                _ ->
+                                    {C1Int, NewCtx3Int}
+                            end
                     end,
     NewCtx4 = case FType of
                   top_down -> NewCtx3;
@@ -480,7 +492,10 @@ fold(FType, Fun, Ctx, Lvl, {'connect by', NoCycle, ConnectBy} = ST) ->
               end,
     RT = {lists:flatten([
         "connect by ",
-        if byte_size(NoCycle) > 0 -> NoCycleStr ++ " "; true -> [] end,
+        case byte_size(NoCycle) > 0 of
+            true -> NoCycleStr ++ " ";
+            _ -> []
+        end,
         ConnectByStr
     ]), NewCtx3},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
@@ -513,28 +528,34 @@ fold(FType, Fun, Ctx, Lvl, {'create index', Opts, Idx, Table, Spec, Norm, Filter
               end,
     RT = {lists:append([
         "create ",
-        if length(OptsStr) > 0
-            -> OptsStr ++ " ";
-            true -> []
+        OptsStr,
+        case length(OptsStr) > 0 of
+            true -> " ";
+            _ -> []
         end,
         "index ",
-        if length(IdxStr) > 0
-            -> IdxStr ++ " ";
-            true -> []
+        IdxStr,
+        case length(IdxStr) > 0 of
+            true -> " ";
+            _ -> []
         end,
-        "on ", TableStr,
-        if length(Specs) > 0 ->
-            lists:append([" (", string:join(Specs, " | "), ")"]);
-            true -> ""
+        "on ",
+        TableStr,
+        case length(Specs) > 0 of
+            true ->
+                lists:append([" (", string:join(Specs, " | "), ")"]);
+            _ -> []
         end,
-        if NormStr =/= []
-            -> " " ++ NormStr;
-            true -> []
+        case NormStr =/= [] of
+            true -> " ";
+            _ -> []
         end,
-        if FilterStr =/= []
-            -> " " ++ FilterStr;
-            true -> []
-        end
+        NormStr,
+        case FilterStr =/= [] of
+            true -> " ";
+            _ -> []
+        end,
+        FilterStr
     ]), NewCtx7},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
@@ -659,9 +680,10 @@ fold(FType, Fun, Ctx, Lvl, {'create table', Tab, Fields, Opts} = ST) ->
               end,
     RT = {lists:append([
         "create ",
-        if length(OptsStr) > 0
-            -> OptsStr ++ " ";
-            true -> []
+        OptsStr,
+        case length(OptsStr) > 0 of
+            true -> " ";
+            _ -> []
         end,
         "table ",
         TabStr,
@@ -895,9 +917,10 @@ fold(FType, Fun, Ctx, Lvl, {'drop index', Indx, Tbl} = ST) ->
               end,
     RT = {lists:append([
         "drop index ",
-        if Indx == {}
-            -> "from ";
-            true -> binary_to_list(Indx) ++ " from "
+        case Indx == {} of
+            true -> "from ";
+            _ ->
+                binary_to_list(Indx) ++ " from "
         end,
         TblStr
     ]), NewCtx2},
@@ -953,19 +976,20 @@ fold(FType, Fun, Ctx, Lvl, {'drop table', {tables, Ts}, E, RC, Types} = ST)
               end,
     RT = {lists:append([
         "drop ",
-        if length(Types) > 0
-            -> Types ++ " ";
-            true -> []
+        Types,
+        case length(Types) > 0 of
+            true -> " ";
+            _ -> []
         end,
         "table ",
-        if E =:= exists
-            -> "if exists ";
-            true -> []
+        case E =:= exists of
+            true -> "if exists ";
+            _ -> []
         end,
         string:join(Tables, ", "),
-        if is_atom(RC)
-            -> " " ++ atom_to_list(RC);
-            true -> []
+        case is_atom(RC) of
+            true -> " " ++ atom_to_list(RC);
+            _ -> []
         end
     ]), NewCtx3},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
@@ -1027,9 +1051,9 @@ fold(FType, Fun, Ctx, Lvl, {Pt, {extra, Bin}} = ST) ->
                   bottom_up -> Fun(ST, NewCtx1)
               end,
     RT = {SqlStr ++
-        if Bin /= <<>>
-            -> ";" ++ binary_to_list(Bin);
-            true -> ""
+        case Bin /= <<>> of
+            true -> ";" ++ binary_to_list(Bin);
+            _ -> ""
         end, NewCtx2},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
@@ -1325,9 +1349,9 @@ fold(FType, Fun, Ctx, Lvl, {grant, Objs, {OnTyp, On}, {'to', Tos}, Opts} = ST)
             true -> [];
             _ -> string:join(ObjsStr, ",") ++ " "
         end,
-        if On =/= <<"">>
-            -> lists:append([OnTypNew, " ", OnNew, " "]);
-            true -> []
+        case On =/= <<"">> of
+            true -> lists:append([OnTypNew, " ", OnNew, " "]);
+            _ -> []
         end,
         lists:append(["to ", string:join(TosStr, ","), " "]),
         atom_to_list(Opts)
@@ -1355,9 +1379,10 @@ fold(FType, Fun, Ctx, Lvl, {'group by', GroupBy} = ST) ->
                   top_down -> NewCtx1;
                   bottom_up -> Fun(ST, NewCtx1)
               end,
-    RT = {if length(GroupByStr) > 0
-        -> "group by " ++ string:join(GroupByStr, ", ");
-              true -> []
+    RT = {case length(GroupByStr) > 0 of
+              true ->
+                  "group by " ++ string:join(GroupByStr, ", ");
+              _ -> []
           end, NewCtx2},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
@@ -1377,9 +1402,10 @@ fold(FType, Fun, Ctx, Lvl, {having, Having} = ST) ->
                   top_down -> NewCtx1;
                   bottom_up -> Fun(ST, NewCtx1)
               end,
-    RT = {if length(HavingStr) > 0
-        -> "having " ++ HavingStr;
-              true -> ""
+    RT = {case length(HavingStr) > 0 of
+              true ->
+                  "having " ++ HavingStr;
+              _ -> ""
           end, NewCtx2},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
@@ -1425,7 +1451,10 @@ fold(FType, Fun, Ctx, _Lvl, {hints, Hints} = ST) ->
                   top_down -> NewCtx1;
                   bottom_up -> Fun(ST, NewCtx1)
               end,
-    RT = {if Size > 0 -> binary_to_list(Hints); true -> [] end, NewCtx2},
+    RT = {case Size > 0 of
+              true -> binary_to_list(Hints);
+              _ -> []
+          end, NewCtx2},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
 
@@ -2058,8 +2087,9 @@ fold(FType, Fun, Ctx, Lvl, {'order by', OrderBy} = ST) ->
                   top_down -> NewCtx1;
                   bottom_up -> Fun(ST, NewCtx1)
               end,
-    RT = {if Size > 0 -> "order by " ++ string:join(OrderByStr, ", ");
-              true -> []
+    RT = {case Size > 0 of
+              true -> "order by " ++ string:join(OrderByStr, ", ");
+              _ -> []
           end, NewCtx2},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
@@ -2369,12 +2399,13 @@ fold(FType, Fun, Ctx, Lvl, {revoke, Objs, {OnTyp, On}, {'from', Tos}, Opts} = ST
             true -> [];
             _ -> string:join(ObjsStr, ",") ++ " "
         end,
-        if On =/= <<"">> ->
-            lists:append([OnTypNew, " ", OnNew, " "]);
-            true -> []
+        case On =/= <<"">> of
+            true -> lists:append([OnTypNew, " ", OnNew, " "]);
+            _ -> []
         end,
-        if length(Tos) > 0 ->
-            lists:append(["from ", string:join(TosStr, ","), " "]); true -> []
+        case length(Tos) > 0 of
+            true -> lists:append(["from ", string:join(TosStr, ","), " "]);
+            _ -> []
         end,
         atom_to_list(Opts)
     ]), NewCtx6},
@@ -2450,9 +2481,10 @@ fold(FType, Fun, Ctx, Lvl, {select, Opts} = ST) ->
              end,
     {NewOs, NewCtx1} = lists:foldl(fun(O, {Acc, CtxAcc}) ->
         {SubAcc, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, O),
-        if length(SubAcc) > 0 ->
-            {lists:append([Acc, " ", SubAcc]), CtxAcc1};
+        case length(SubAcc) > 0 of
             true ->
+                {lists:append([Acc, " ", SubAcc]), CtxAcc1};
+            _ ->
                 {Acc, CtxAcc1}
         end
                                    end,

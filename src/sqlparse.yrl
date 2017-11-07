@@ -1304,9 +1304,7 @@ Erlang code.
 
 jpparse({_, _, X}) -> jpparse(X);
 jpparse(X) ->
-    ?debugFmt(?MODULE_STRING ++ ":jpparse ===> ~nX: ~p~n", [X]),
     {ok, Pt} = jpparse:parsetree(X),
-    ?debugFmt(?MODULE_STRING ++ ":jpparse ===> ~nPt: ~p~n", [Pt]),
     Pt.
 
 unwrap({_, _, X}) -> X;

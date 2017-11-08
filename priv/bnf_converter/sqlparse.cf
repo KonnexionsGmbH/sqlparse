@@ -248,17 +248,19 @@ IndexName02.                      IndexName ::= "NAME" "." "NAME" ;
 
 -- create_index_spec -> '(' create_index_spec_items ')'                                            : '$2'.
 
-CreateIndexSpec01.                CreateIndexSpec ::= "(" CreateIndexSpecitems ")" ;
+CreateIndexSpec01.                CreateIndexSpec ::= "(" CreateIndexSpecItems ")" ;
 
--- create_index_spec_items -> NAME                                                                 : [unwrap_bin('$1')].
--- create_index_spec_items -> NAME '|' create_index_spec_items                                     : [unwrap_bin('$1') | '$3'].
--- create_index_spec_items -> JSON                                                                 : [{jp, jpparse('$1')}].
--- create_index_spec_items -> JSON '|' create_index_spec_items                                     : [{jp, jpparse('$1')} | '$3'].
+-- create_index_spec_items -> create_index_spec_column                                             : ['$1'].
+-- create_index_spec_items -> create_index_spec_column ',' create_index_spec_items                 : ['$1' | '$3'].
 
-CreateIndexSpecitems01.           CreateIndexSpecitems ::= "NAME"                          ;
-CreateIndexSpecitems02.           CreateIndexSpecitems ::= "NAME" "|" CreateIndexSpecitems ;
-CreateIndexSpecitems03.           CreateIndexSpecitems ::= "JSON"                          ;
-CreateIndexSpecitems04.           CreateIndexSpecitems ::= "JSON" "|" CreateIndexSpecitems ;
+CreateIndexSpecItems01.           CreateIndexSpecItems ::= CreateIndexSpecColumn                          ;
+CreateIndexSpecItems02.           CreateIndexSpecItems ::= CreateIndexSpecColumn "," CreateIndexSpecItems ;
+
+-- create_index_spec_column -> NAME                                                                : unwrap_bin('$1').
+-- create_index_spec_column -> NAME JSON                                                           : jpparse(list_to_binary([unwrap('$1'),unwrap('$2')])).
+
+CreateIndexSpecColumn01.          CreateIndexSpecColumn ::= "NAME"        ;
+CreateIndexSpecColumn02.          CreateIndexSpecColumn ::= "NAME" "JSON" ;
 
 -- create_index_norm -> NORM_WITH STRING                                                           : {norm, unwrap_bin('$2')}.
 

@@ -17,12 +17,12 @@
 "select a.g|:b.f[f(p.r:q)]| from x".
 "select a.g|:b.f\n[\tf(p.r:q)]| from x".
 
-"select |:x| from dual".
-"select |:x:y| from dual".
+"select col1|:x| from dual".
+"select col1|:x:y| from dual".
 "select col1|:x:y| from dual".
 "select col1.col2|:x:y| from dual".
 "select col1.col2.col3|:x:y| from dual".
 
-"select |:a_obj:x|,|:b_obj:y| from x where |:a_obj:x| = 1 and |:b_obj:y| = 0 and |:rw_obj1:a| > 0".
+"select column_1|:a_obj:x|,column_2|:b_obj:y| from x where column_3|:a_obj:x| = 1 and column_4|:b_obj:y| = 0 and column_5|:rw_obj1:a| > 0".
 
 "SELECT column~1|:x:y|, column~2|[]| FROM table_~_1, table_0000_2 WHERE column_3 IS NULL".

@@ -283,6 +283,7 @@ create_code() ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Level 01
+%% -----------------------------------------------------------------------------
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     ?debugFmt("~n~n======================================================> create_code: Level 01   <===================~n", []),
@@ -1363,7 +1364,7 @@ create_code(comparison_predicate = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% create_index_def ::= 'CREATE' ( 'BITMAP' | 'KEYLIST' | 'HASHMAP' | 'UNIQUE' )? 'INDEX' ( index_name )? 'ON' table ( '(' ( NAME | JSON ) ( '|' NAME | JSON )* ')' )?
+%% create_index_def ::= 'CREATE' ( 'BITMAP' | 'KEYLIST' | 'HASHMAP' | 'UNIQUE' )? 'INDEX' ( index_name )? 'ON' table ( '(' ( NAME JSON? ) ( ',' NAME JSON? )* ')' )?
 %%                      ( 'NORM_WITH' STRING )?  ( 'FILTER_WITH' STRING )?
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1404,17 +1405,29 @@ create_code(create_index_def = Rule) ->
                     1 -> lists:append([
                         "( ",
                         case rand:uniform(2) rem 2 of
-                            1 -> lists:nth(rand:uniform(Json_Length), Json);
+                            1 -> lists:append([
+                                lists:nth(rand:uniform(Name_Length), Name),
+                                " ",
+                                lists:nth(rand:uniform(Json_Length), Json)
+                            ]);
                             _ -> lists:nth(rand:uniform(Name_Length), Name)
                         end,
-                        " | ",
+                        ", ",
                         case rand:uniform(2) rem 2 of
-                            1 -> lists:nth(rand:uniform(Json_Length), Json);
+                            1 -> lists:append([
+                                lists:nth(rand:uniform(Name_Length), Name),
+                                " ",
+                                lists:nth(rand:uniform(Json_Length), Json)
+                            ]);
                             _ -> lists:nth(rand:uniform(Name_Length), Name)
                         end,
-                        " | ",
+                        ", ",
                         case rand:uniform(2) rem 2 of
-                            1 -> lists:nth(rand:uniform(Json_Length), Json);
+                            1 -> lists:append([
+                                lists:nth(rand:uniform(Name_Length), Name),
+                                " ",
+                                lists:nth(rand:uniform(Json_Length), Json)
+                            ]);
                             _ -> lists:nth(rand:uniform(Name_Length), Name)
                         end,
                         ") "
@@ -1422,12 +1435,20 @@ create_code(create_index_def = Rule) ->
                     2 -> lists:append([
                         "( ",
                         case rand:uniform(2) rem 2 of
-                            1 -> lists:nth(rand:uniform(Json_Length), Json);
+                            1 -> lists:append([
+                                lists:nth(rand:uniform(Name_Length), Name),
+                                " ",
+                                lists:nth(rand:uniform(Json_Length), Json)
+                            ]);
                             _ -> lists:nth(rand:uniform(Name_Length), Name)
                         end,
-                        " | ",
+                        ", ",
                         case rand:uniform(2) rem 2 of
-                            1 -> lists:nth(rand:uniform(Json_Length), Json);
+                            1 -> lists:append([
+                                lists:nth(rand:uniform(Name_Length), Name),
+                                " ",
+                                lists:nth(rand:uniform(Json_Length), Json)
+                            ]);
                             _ -> lists:nth(rand:uniform(Name_Length), Name)
                         end,
                         ") "
@@ -1435,7 +1456,11 @@ create_code(create_index_def = Rule) ->
                     3 -> lists:append([
                         "( ",
                         case rand:uniform(2) rem 2 of
-                            1 -> lists:nth(rand:uniform(Json_Length), Json);
+                            1 -> lists:append([
+                                lists:nth(rand:uniform(Name_Length), Name),
+                                " ",
+                                lists:nth(rand:uniform(Json_Length), Json)
+                            ]);
                             _ -> lists:nth(rand:uniform(Name_Length), Name)
                         end,
                         ") "
@@ -2761,10 +2786,6 @@ create_code(json = Rule) ->
             "|{}|"
         ],
     store_code(Rule, Code, ?MAX_BASIC, false),
-    store_code(column_ref, Code, ?MAX_BASIC, false),
-    store_code(fun_arg, Code, ?MAX_BASIC, false),
-    store_code(scalar_exp, Code, ?MAX_BASIC, false),
-    store_code(scalar_sub_exp, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2850,14 +2871,14 @@ create_code(name = Rule) ->
             "I@IDENT_9",
             "L1astName_ident",
             "L@astName_ident",
-            "m1oney666tree_ident",
-            "m@oney$$$tree_ident",
+            "m1oney~66tree_ident",
+            "m@oney~~$tree_ident",
             "o1racle6number_ident",
             "o@racle$number_ident",
             "p1hone5_ident",
             "p@hone$_ident",
-            "S1N55_ident",
-            "S@N$$_ident",
+            "S1N~5_ident",
+            "S@N~$_ident",
             "t12_ident",
             "t1ry_again__ident",
             "t@2_ident",
@@ -4002,17 +4023,16 @@ create_code(special = Rule) ->
         %% ---------------------------------------------------------------------
         %% changed: JSON
         %% ---------------------------------------------------------------------
-        %% create_index_spec_items -> JSON
-        %% create_index_spec_items -> JSON '|' create_index_spec_items
+        %% create_index_spec_items -> NAME JSON?
+        %% create_index_spec_items -> NAME JSON? ',' create_index_spec_items
         %% ---------------------------------------------------------------------
-        "Create Index a On b (|:d{}|)",
-        "Create Index a On b (c | |:d{}|)",
+        "Create Index a On b (c|:d{}|)",
+        "Create Index a On b (c, d|:d{}|)",
         %% ---------------------------------------------------------------------
-        %% column_ref -> JSON
         %% column_ref -> NAME     JSON
         %% column_ref -> NAME '.' NAME     JSON
         %% ---------------------------------------------------------------------
-        "Select |:a:b| From x",
+        "Select col|:a:b| From x",
         "Select column_name|:a:b| From x",
         "Select table_name.column_name|:a:b| From x",
         "Select column_name From x",
@@ -4026,7 +4046,7 @@ create_code(special = Rule) ->
         "Call Upper (All Null)",
         "Call Upper (All 5)",
         "Call Upper (All 'text')",
-        "Call Upper (All |:_a1:f()|)",
+        "Call Upper (All name|:_a1:f()|)",
         "Call Upper (All name|:_a1:f()|)",
         "Call Upper (All name1.name2|:_a1:f()|)",
         "Call Upper (All name)",

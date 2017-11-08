@@ -227,18 +227,20 @@ index_name ::= ( NAME '.' )? NAME
 /* =============================================================================
 create_index_spec -> '(' create_index_spec_items ')'                                            : '$2'.
 
-create_index_spec_items -> NAME                                                                 : [unwrap_bin('$1')].
-create_index_spec_items -> NAME '|' create_index_spec_items                                     : [unwrap_bin('$1') | '$3'].
-create_index_spec_items -> JSON                                                                 : [{jp, jpparse('$1')}].
-create_index_spec_items -> JSON '|' create_index_spec_items                                     : [{jp, jpparse('$1')} | '$3'].
+create_index_spec_items -> create_index_spec_column                                             : ['$1'].
+create_index_spec_items -> create_index_spec_column ',' create_index_spec_items                 : ['$1' | '$3'].
+
+create_index_spec_column -> NAME                                                                : unwrap_bin('$1').
+create_index_spec_column -> NAME JSON                                                           : jpparse(list_to_binary([unwrap('$1'),unwrap('$2')])).
 
 create_index_norm -> NORM_WITH STRING                                                           : {norm, unwrap_bin('$2')}.
 
 create_index_filter -> FILTER_WITH STRING                                                       : {filter, unwrap_bin('$2')}.
 ============================================================================= */
 
-create_index_def ::= 'CREATE' ( 'BITMAP' | 'KEYLIST' | 'HASHMAP' | 'UNIQUE' )? 'INDEX' ( index_name )? 'ON' table ( '(' ( NAME | JSON ) ( '|' NAME | JSON )* ')' )?
-                    ( 'NORM_WITH' STRING )?  ( 'FILTER_WITH' STRING )?
+create_index_def ::= 'CREATE' ( 'BITMAP' | 'KEYLIST' | 'HASHMAP' | 'UNIQUE' )? 'INDEX' ( index_name )?
+                     'ON' table ( '(' ( NAME  JSON? ) ( ',' NAME JSON? )* ')' )?
+                     ( 'NORM_WITH' STRING )?  ( 'FILTER_WITH' STRING )?
 
 JSON ::= ([|] [:{\[#] [^|]+ [|])
 

@@ -543,7 +543,7 @@ fold(FType, Fun, Ctx, Lvl, {'create index', Opts, Idx, Table, Spec, Norm, Filter
         TableStr,
         case length(Specs) > 0 of
             true ->
-                lists:append([" (", string:join(Specs, " | "), ")"]);
+                lists:append([" (", string:join(Specs, ", "), ")"]);
             _ -> []
         end,
         case NormStr =/= [] of

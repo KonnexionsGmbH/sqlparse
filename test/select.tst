@@ -36,7 +36,7 @@
     fun(arg1-arg2, a.b.fun1(arg3)) \"alias1\",
     (SELECT c FROM d UNION SELECT id FROM b),
     NVL((SELECT * FROM tableinner),'some string') alias
-   FROM account@1234@_no#de:@nohost,
+   FROM account@1234@_no_de_@nohost,
         account,
         schm.account INNER JOIN tab2 on a = b INNER JOIN tab3 on c = d,
         tab1 PARTITION BY col1 NATURAL FULL outer join tab2 PARTITION BY col2 using (a),

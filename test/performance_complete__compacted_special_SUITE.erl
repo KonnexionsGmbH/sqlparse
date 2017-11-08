@@ -2,7 +2,7 @@
 %%% File        : performance_complete__compacted_special_SUITE.erl
 %%% Description : Test Suite for rule: special.
 %%%
-%%% Created     : 07.11.2017
+%%% Created     : 08.11.2017
 %%%-------------------------------------------------------------------
 -module(performance_complete__compacted_special_SUITE).
 
@@ -78,9 +78,9 @@ test_compacted(_Config) ->
     {ok, _} = sqlparse:parsetree_with_tokens("Select (2 / 3) + (Select * From Dual) From dual"),
     {ok, _} = sqlparse:parsetree_with_tokens("Select (2 * 3) - (Select * From Dual) From dual"),
     {ok, _} = sqlparse:parsetree_with_tokens("Select (2 / 3) - (Select * From Dual) From dual"),
-    {ok, _} = sqlparse:parsetree_with_tokens("Create Index a On b (|:d{}|)"),
-    {ok, _} = sqlparse:parsetree_with_tokens("Create Index a On b (c | |:d{}|)"),
-    {ok, _} = sqlparse:parsetree_with_tokens("Select |:a:b| From x"),
+    {ok, _} = sqlparse:parsetree_with_tokens("Create Index a On b (c|:d{}|)"),
+    {ok, _} = sqlparse:parsetree_with_tokens("Create Index a On b (c, d|:d{}|)"),
+    {ok, _} = sqlparse:parsetree_with_tokens("Select col|:a:b| From x"),
     {ok, _} = sqlparse:parsetree_with_tokens("Select column_name|:a:b| From x"),
     {ok, _} = sqlparse:parsetree_with_tokens("Select table_name.column_name|:a:b| From x"),
     {ok, _} = sqlparse:parsetree_with_tokens("Select column_name From x"),
@@ -89,7 +89,7 @@ test_compacted(_Config) ->
     {ok, _} = sqlparse:parsetree_with_tokens("Call Upper (All Null)"),
     {ok, _} = sqlparse:parsetree_with_tokens("Call Upper (All 5)"),
     {ok, _} = sqlparse:parsetree_with_tokens("Call Upper (All 'text')"),
-    {ok, _} = sqlparse:parsetree_with_tokens("Call Upper (All |:_a1:f()|)"),
+    {ok, _} = sqlparse:parsetree_with_tokens("Call Upper (All name|:_a1:f()|)"),
     {ok, _} = sqlparse:parsetree_with_tokens("Call Upper (All name|:_a1:f()|)"),
     {ok, _} = sqlparse:parsetree_with_tokens("Call Upper (All name1.name2|:_a1:f()|)"),
     {ok, _} = sqlparse:parsetree_with_tokens("Call Upper (All name)"),

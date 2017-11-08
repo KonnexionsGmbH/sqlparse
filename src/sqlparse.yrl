@@ -59,6 +59,7 @@ Nonterminals
  create_index_norm
  create_index_opts
  create_index_spec
+ create_index_spec_column
  create_index_spec_items
  create_opts
  create_role_def
@@ -510,10 +511,11 @@ index_name -> NAME '.' NAME                                                     
 
 create_index_spec -> '(' create_index_spec_items ')'                                            : '$2'.
 
-create_index_spec_items -> NAME                                                                 : [unwrap_bin('$1')].
-create_index_spec_items -> NAME '|' create_index_spec_items                                     : [unwrap_bin('$1') | '$3'].
-create_index_spec_items -> JSON                                                                 : [jpparse('$1')].
-create_index_spec_items -> JSON '|' create_index_spec_items                                     : [jpparse('$1') | '$3'].
+create_index_spec_items -> create_index_spec_column                                             : ['$1'].
+create_index_spec_items -> create_index_spec_column ',' create_index_spec_items                 : ['$1' | '$3'].
+
+create_index_spec_column -> NAME                                                                : unwrap_bin('$1').
+create_index_spec_column -> NAME JSON                                                           : jpparse(list_to_binary([unwrap('$1'),unwrap('$2')])).
 
 create_index_norm -> NORM_WITH STRING                                                           : {norm, unwrap_bin('$2')}.
 
@@ -1207,7 +1209,6 @@ table -> NAME '.' NAME NAME                                                     
 table -> parameter                                                                              : '$1'.
 table -> parameter NAME                                                                         : {as, '$1', unwrap_bin('$2')}.
 
-column_ref ->                        JSON                                                       : jpparse('$1').
 column_ref -> NAME                   JSON                                                       : jpparse(list_to_binary([unwrap('$1'),unwrap('$2')])).
 column_ref -> NAME '.' NAME          JSON                                                       : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),unwrap('$4')])).
 column_ref -> NAME '.' NAME '.' NAME JSON                                                       : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5'),unwrap('$6')])).

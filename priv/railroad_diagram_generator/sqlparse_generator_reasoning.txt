@@ -246,8 +246,9 @@ user_role ::= 'DEFAULT' 'ROLE' ( ( 'ALL' ( 'EXCEPT' role_list )? ) | NONE | role
 Level 04
 --------------------------------------------------------------------------------
 
-create_index_def ::= 'CREATE' ( 'BITMAP' | 'KEYLIST' | 'HASHMAP' | 'UNIQUE' )? 'INDEX' ( index_name )? 'ON' table ( '(' ( NAME | JSON ) ( '|' NAME | JSON )* ')' )?
-                    ( 'NORM_WITH' STRING )?  ( 'FILTER_WITH' STRING )?
+create_index_def ::= 'CREATE' ( 'BITMAP' | 'KEYLIST' | 'HASHMAP' | 'UNIQUE' )? 'INDEX' ( index_name )?
+                     'ON' table ( '(' ( NAME  JSON? ) ( ',' NAME JSON? )* ')' )?
+                     ( 'NORM_WITH' STRING )?  ( 'FILTER_WITH' STRING )?
 
 ==> manipulative_statement              == manipulative_statement = ... create_index_def ...
 ==> schema_element                      == schema_element = ... create_index_def ...

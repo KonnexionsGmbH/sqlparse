@@ -24,3 +24,5 @@
 "select col1.col2.col3|:x:y| from dual".
 
 "select |:a_obj:x|,|:b_obj:y| from x where |:a_obj:x| = 1 and |:b_obj:y| = 0 and |:rw_obj1:a| > 0".
+
+"SELECT column~1|:x:y|, column~2|[]| FROM table_~_1, table_0000_2 WHERE column_3 IS NULL".

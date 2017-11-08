@@ -44,7 +44,7 @@ Rules.
 (\|[:{\[#]([^\|]*)+\|)                              : parse_json(TokenLine, TokenChars).
 
 % names
-[A-Za-z][A-Za-z0-9_@:#\$]*                          : match_any(TokenChars, TokenLen, TokenLine, ?TokenPatters).
+[A-Za-z][A-Za-z0-9_@\$~]*                           : match_any(TokenChars, TokenLen, TokenLine, ?TokenPatters).
 
 % parameters
 (\:[A-Za-z0-9_\.][A-Za-z0-9_\.]*)                   : {token, {'PARAMETER', TokenLine, TokenChars}}.

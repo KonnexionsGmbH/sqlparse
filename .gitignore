@@ -1,11 +1,10 @@
-.eunit
-*.swp
-.rebar
 _build
 erl_crash.dump
+*.log
 rebar.lock
 rebar3.crashdump
 src/*.dot
 src/sql_lex.erl
 src/sqlparse.erl
-test/*.beam
+test/reliability_*
+tmp

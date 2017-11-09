@@ -4,14 +4,14 @@
 % Test control options
 [{tests, []}].
 
-%% 
+%%
 %% TESTS
 %%
 
 "REVOKE FROM name_user_1".
 "REVOKE FROM name_user_1, name_user_2".
 
-"REVOKE FROM name_user_1 CASCADE CONSTRAINS".
+"REVOKE FROM name_user_1 CASCADE CONSTRAINTS".
 "REVOKE FROM name_user_1 FORCE".
 
 "REVOKE ON name_table FROM name_user_1".

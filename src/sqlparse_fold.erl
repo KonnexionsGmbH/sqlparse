@@ -2812,10 +2812,10 @@ fold(_FType, _Fun, Ctx, _Lvl, {Op, Columns, _} = ST)
               _ ->
                   Target = string:strip(binary_to_list(Columns), right, $.),
                   lists:append([case Target of
-                                    empty -> [];
+                                    "empty" -> [];
                                     _ -> Target
                                 end, "|", string:sub_string(JPPathList, case Target of
-                                                                            empty -> 0;
+                                                                            "empty" -> 0;
                                                                             _ -> length(Target)
                                                                         end + 1), "|"])
           end, Ctx},

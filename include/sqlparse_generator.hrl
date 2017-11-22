@@ -208,12 +208,13 @@
 
 -define(F_RANDOM, fun(X, Y) -> erlang:phash2(X) < erlang:phash2(Y) end).
 
--define(GENERATE_COMPACTED, true).                         % true: compacted / false: detailed.
--define(GENERATE_CT, true).
--define(GENERATE_EUNIT, true).
--define(GENERATE_PERFORMANCE, true).
+-define(GENERATE_COMPACTED, list_to_atom(string:to_lower(os:getenv("GENERATE_COMPACTED", "true")))).          % TRUE: compacted / FALSE: detailed.
+-define(GENERATE_CT, list_to_atom(string:to_lower(os:getenv("GENERATE_CT", "true")))).
+-define(GENERATE_EUNIT, list_to_atom(string:to_lower(os:getenv("GENERATE_EUNIT", "true")))).
+-define(GENERATE_PERFORMANCE, list_to_atom(string:to_lower(os:getenv("GENERATE_PERFORMANCE", "true")))).
+-define(GENERATE_RELIABILITY, list_to_atom(string:to_lower(os:getenv("GENERATE_RELIABILITY", "true")))).
 
--define(MAX_BASIC, 250).
+-define(MAX_BASIC, list_to_integer(string:to_lower(os:getenv("MAX_BASIC", "250")))).
 -define(MAX_SQL, ?MAX_BASIC * 16).
 -define(MAX_STATEMENT_COMPLEX, ?MAX_BASIC * 8).
 -define(MAX_STATEMENT_SIMPLE, ?MAX_BASIC * 2).

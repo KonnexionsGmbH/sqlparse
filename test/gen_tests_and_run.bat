@@ -25,22 +25,31 @@ rem ----------------------------------------------------------------------------
 
     SETLOCAL enableDelayedExpansion
     ECHO !DATE!_!TIME!
-    CALL rebar3 compile
-    erl -noshell -pa _build\default\lib\sqlparse\ebin -s sqlparse_generator generate -s init stop
-    dir code_templates
-    del /Q code_templates
-    ECHO !DATE!_!TIME!
+
+    REM Setting sqlparse options ...............................................
+    REM true: compacted / false: detailed.
+    SET GENERATE_COMPACTED=true
+    SET GENERATE_CT=true
+    SET GENERATE_EUNIT=false
+    SET GENERATE_PERFORMANCE=true
+    SET GENERATE_RELIABILITY=false
+    SET MAX_BASIC=250
+    CALL test\gen_tests
 
     SET SOURCEFILES_OLD=SOURCEFILES
     SET SOURCEFILES=
     CALL rebar3 eunit
+
     SET SOURCEFILES=SOURCEFILES_OLD
     ECHO !DATE!_!TIME!
     CALL rebar3 ct
+
     ECHO !DATE!_!TIME!
     CALL rebar3 cover
+
     ECHO !DATE!_!TIME!
     CALL rebar3 dialyzer
+
     ECHO !DATE!_!TIME!
 
 )

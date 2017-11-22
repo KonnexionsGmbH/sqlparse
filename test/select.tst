@@ -86,6 +86,9 @@ UNION ALL
 
 % hint, all, distinct ----------------------------------------------------------
 
+"SELECT /**/ DISTINCT * FROM name_table".
+"SELECT /* */ DISTINCT * FROM name_table".
+
 "SELECT /*hint*/ * FROM name_table".
 "SELECT /*hint*/ name_column_1 FROM name_table".
 "SELECT /*hint*/ name_column_1, name_column_2 FROM name_table".

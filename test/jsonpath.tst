@@ -8,6 +8,8 @@
 %% TESTS
 %%
 
+"select a|:| from x".
+
 "select a|:b| from x".
 "select a|::b| from x".
 "select a|[]| from x".

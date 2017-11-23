@@ -2,8 +2,14 @@
 
 [![Build Status](https://travis-ci.org/K2InformaticsGmbH/sqlparse.svg?branch=master)](https://travis-ci.org/K2InformaticsGmbH/sqlparse)
 
+[travis]: https://travis-ci.org/K2InformaticsGmbH/sqlparse
+[travis badge]: https://img.shields.io/travis/K2InformaticsGmbH/sqlparse/master.svg?style=flat-square
+[coveralls]: https://coveralls.io/github/K2InformaticsGmbH/sqlparse
+[coveralls badge]: https://img.shields.io/coveralls/K2InformaticsGmbH/sqlparse/master.svg?style=flat-square
+[erlang version badge]: https://img.shields.io/badge/erlang-20.0%20to%2020.1-blue.svg?style=flat-square
+
 **sqlparse** is a production-ready SQL parser written in pure Erlang. 
-**sqlparse** is aligned to the Oracle SQL language and enriched with [imem](https://github.com/K2InformaticsGmbH/imem) and [JSONPath](https://github.com/K2InformaticsGmbH/jpparse) specific feartures.
+**sqlparse** is aligned to the Oracle SQL language and enriched with [imem](https://github.com/K2InformaticsGmbH/imem) and [JSONPath](https://github.com/K2InformaticsGmbH/jpparse) specific features.
 
 ## 1. Usage
 

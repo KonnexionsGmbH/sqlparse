@@ -24,7 +24,7 @@ REM ----------------------------------------------------------------------------
 > gen_tests.log (
 
     SETLOCAL enableDelayedExpansion
-    ECHO !DATE!_!TIME! Start Test Data Generation
+    ECHO %time% Start Test Data Generation
 
     IF EXIST _build\test\lib\sqlparse\test\performance_*.* (
         DEL /Q _build\test\lib\sqlparse\test\performance_*.*
@@ -62,6 +62,6 @@ REM ----------------------------------------------------------------------------
         DEL /Q code_templates
     )
 
-    ECHO !DATE!_!TIME! End  Test Data Generation
+    ECHO %time% End  Test Data Generation
 
 )

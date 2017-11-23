@@ -4,9 +4,13 @@ install:
 language: erlang
 otp_release:
   - 20.1
+  - 20.0
   - 19.3
   - 18.3
 script:
   - ./rebar3 compile
+  - ./test/gen_tests.sh
   - ./rebar3 eunit
   - ./rebar3 ct
+  - ./rebar3 cover
+# - ./rebar3 dialyzer

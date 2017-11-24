@@ -1,6 +1,6 @@
 # sqlparse - LALR grammar based SQL parser
 
-[![Build Status](https://travis-ci.org/walter-weinmann/sqlparse.svg?branch=wwe_3.1.0_travis)](https://travis-ci.org/walter-weinmann/sqlparse) [![Coverage Status](https://coveralls.io/repos/github/walter-weinmann/sqlparse/badge.svg?branch=master)](https://coveralls.io/github/walter-weinmann/sqlparse?branch=wwe_3.1.0_travis)
+[![Build Status](https://travis-ci.org/walter-weinmann/sqlparse.svg?branch=wwe_3.1.0_travis)](https://travis-ci.org/walter-weinmann/sqlparse) [![Coverage Status](https://coveralls.io/repos/github/walter-weinmann/sqlparse/badge.svg?branch=wwe_3.1.0_travis)](https://coveralls.io/github/walter-weinmann/sqlparse?branch=wwe_3.1.0_travis)
 
 
 **sqlparse** is a production-ready SQL parser written in pure Erlang. 

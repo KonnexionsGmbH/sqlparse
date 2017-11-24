@@ -337,3 +337,9 @@ UNION ALL
 
 "SELECT column_1, column_2 FROM table_~_1, table_0000_2 WHERE column_3 IS NULL".
 "SELECT column~1, column~2 FROM table_~_1, table_0000_2 WHERE column_3 IS NULL".
+
+% round brackets --------------------------------------------------------------
+
+"Select Case When a or (b and c) Then d End From tab".
+"Select a From tab Where a or (b and c)".
+"Select a From tab Having a or (b and c)".

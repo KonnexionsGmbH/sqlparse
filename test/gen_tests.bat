@@ -1,30 +1,30 @@
 @echo off
-rem ----------------------------------------------------------------------------
-rem
-rem gen_tests.bat: SQL - generating test data.
-rem
-rem Copyright (c) 2012-17 K2 Informatics GmbH.  All Rights Reserved.
-rem
-rem This file is provided to you under the Apache License,
-rem Version 2.0 (the "License"); you may not use this file
-rem except in compliance with the License.  You may obtain
-rem a copy of the License at
-rem
-rem   http://www.apache.org/licenses/LICENSE-2.0
-rem
-rem Unless required by applicable law or agreed to in writing,
-rem software distributed under the License is distributed on an
-rem "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-rem KIND, either express or implied.  See the License for the
-rem specific language governing permissions and limitations
-rem under the License.
-rem
-rem ----------------------------------------------------------------------------
+REM ----------------------------------------------------------------------------
+REM
+REM gen_tests.bat: SQL - generating test data.
+REM
+REM Copyright (c) 2012-17 K2 Informatics GmbH.  All Rights Reserved.
+REM
+REM This file is provided to you under the Apache License,
+REM Version 2.0 (the "License"); you may not use this file
+REM except in compliance with the License.  You may obtain
+REM a copy of the License at
+REM
+REM   http://www.apache.org/licenses/LICENSE-2.0
+REM
+REM Unless required by applicable law or agreed to in writing,
+REM software distributed under the License is distributed on an
+REM "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+REM KIND, either express or implied.  See the License for the
+REM specific language governing permissions and limitations
+REM under the License.
+REM
+REM ----------------------------------------------------------------------------
 
 > gen_tests.log (
 
     SETLOCAL enableDelayedExpansion
-    ECHO !DATE!_!TIME!
+    ECHO %time% Start Test Data Generation
 
     IF EXIST _build\test\lib\sqlparse\test\performance_*.* (
         DEL /Q _build\test\lib\sqlparse\test\performance_*.*
@@ -58,10 +58,10 @@ rem ----------------------------------------------------------------------------
     erl -noshell -pa _build\test\lib\sqlparse\test %HEAP_SIZE% -s sqlparse_generator generate -s init stop
 
     IF EXIST code_templates (
-        dir code_templates
-        del /Q code_templates
+        DIR code_templates
+        DEL /Q code_templates
     )
 
-    ECHO !DATE!_!TIME!
+    ECHO %time% End  Test Data Generation
 
 )

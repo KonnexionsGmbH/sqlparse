@@ -9,9 +9,11 @@ otp_release:
   - 18.3
 script:
   - ./rebar3 compile
-  - ./test/gen_tests.sh
-  - ./rebar3 eunit
   - ./rebar3 ct
+  - ./rebar3 eunit
+  - ./test/gen_tests.sh
+  - ./rebar3 ct
+  - ./rebar3 eunit
   - ./rebar3 cover
 # - ./rebar3 dialyzer
   - ./rebar3 as test geas

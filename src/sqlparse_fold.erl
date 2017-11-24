@@ -2833,6 +2833,9 @@ fold(FType, Fun, Ctx, Lvl, {Op, L, R} = ST)
                         {'/', Ol} when Ol =:= '-'; Ol =:= '+' ->
                             {Ls, NC1} = fold(FType, Fun, NewCtx, Lvl + 1, L),
                             {lists:flatten(["(", Ls, ")"]), NC1};
+                        {'and', 'or'} ->
+                            {Ls, NC1} = fold(FType, Fun, NewCtx, Lvl + 1, L),
+                            {lists:flatten(["(", Ls, ")"]), NC1};
                         _ -> {Ls, NC1} = fold(FType, Fun, NewCtx, Lvl + 1, L),
                             case L of
                                 {select, _} ->
@@ -2847,6 +2850,9 @@ fold(FType, Fun, Ctx, Lvl, {Op, L, R} = ST)
                             {Rs, NC2} = fold(FType, Fun, NewCtx2, Lvl + 1, R),
                             {lists:flatten(["(", Rs, ")"]), NC2};
                         {'/', Or} when Or =:= '-'; Or =:= '+' ->
+                            {Rs, NC2} = fold(FType, Fun, NewCtx2, Lvl + 1, R),
+                            {lists:flatten(["(", Rs, ")"]), NC2};
+                        {'and', 'or'} ->
                             {Rs, NC2} = fold(FType, Fun, NewCtx2, Lvl + 1, R),
                             {lists:flatten(["(", Rs, ")"]), NC2};
                         _ -> {Rs, NC2} = fold(FType, Fun, NewCtx2, Lvl + 1, R),

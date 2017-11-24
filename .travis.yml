@@ -14,3 +14,4 @@ script:
   - ./rebar3 ct
   - ./rebar3 cover
 # - ./rebar3 dialyzer
+  - ./rebar3 as test geas

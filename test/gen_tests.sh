@@ -56,7 +56,7 @@ if [ "$GENERATE_COMPACTED" == "" ]; then
     export GENERATE_RELIABILITY="true"
     export HEAP_SIZE="+hms 100663296"
     export LOGGING="false"
-    export MAX_BASIC=250
+    export MAX_BASIC=10
 fi
 
 # Starting test data generator ...........................................

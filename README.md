@@ -1,6 +1,6 @@
 # sqlparse - LALR grammar based SQL parser
 
-[![Build Status](https://travis-ci.org/K2InformaticsGmbH/sqlparse.svg?branch=master)](https://travis-ci.org/K2InformaticsGmbH/sqlparse) [![Coverage Status](https://img.shields.io/coveralls/K2InformaticsGmbH/sqlparse.svg)](https://coveralls.io/r/K2InformaticsGmbH/sqlparse?branch=master) [![Erlang Version](https://img.shields.io/github/release/K2InformaticsGmbH/sqlparse.svg)](https://github.com/K2InformaticsGmbH/sqlparse/releases)
+[![Build Status](https://travis-ci.org/walter-weinmann/sqlparse.svg?branch=master)](https://travis-ci.org/walter-weinmann/sqlparse) [![Coverage Status](https://img.shields.io/coveralls/walter-weinmann/sqlparse.svg)](https://coveralls.io/r/walter-weinmann/sqlparse?branch=master) [![Erlang Version](https://img.shields.io/github/release/walter-weinmann/sqlparse.svg)](https://github.com/walter-weinmann/sqlparse/releases)
 
 **sqlparse** is a production-ready SQL parser written in pure Erlang. 
 **sqlparse** is aligned to the Oracle SQL language and enriched with [imem](https://github.com/K2InformaticsGmbH/imem) and [JSONPath](https://github.com/K2InformaticsGmbH/jpparse) specific features.

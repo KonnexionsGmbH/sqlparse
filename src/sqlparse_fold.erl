@@ -3003,7 +3003,5 @@ columns_join([Head | Tail], Separator, Result) ->
 
 decompose_tuple({_, _, X}) when is_tuple(X) ->
     decompose_tuple(X);
-decompose_tuple({_, _, X}) when is_atom(X) ->
-    X;
-decompose_tuple({_, _, X}) ->
+decompose_tuple({_, _, X}) when is_binary(X) ->
     binary_to_list(X).

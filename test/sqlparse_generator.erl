@@ -1114,6 +1114,7 @@ create_code(alter_user_def = Rule) ->
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
     store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1391,6 +1392,7 @@ create_code(close_statement = Rule) ->
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
     store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1724,6 +1726,7 @@ create_code(commit_statement = Rule) ->
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
     store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1913,6 +1916,7 @@ create_code(create_index_def = Rule) ->
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
     store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
     store_code(schema_element, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1988,6 +1992,7 @@ create_code(create_table_def = Rule) ->
     store_code(Rule, Code, ?MAX_STATEMENT_COMPLEX, true),
     store_code(manipulative_statement, Code, ?MAX_STATEMENT_COMPLEX, true),
     store_code(schema_element, Code, ?MAX_STATEMENT_COMPLEX, true),
+    store_code(sql, Code, ?MAX_STATEMENT_COMPLEX, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2035,6 +2040,7 @@ create_code(create_user_def = Rule) ->
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
     store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
     store_code(schema_element, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2086,6 +2092,7 @@ create_code(cursor_def = Rule) ->
             || _ <- lists:seq(1, ?MAX_STATEMENT_COMPLEX * 2)
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_COMPLEX, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2185,7 +2192,8 @@ create_code(delete_statement = Rule) ->
             || _ <- lists:seq(1, ?MAX_STATEMENT_COMPLEX * 4)
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_COMPLEX, true),
-    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_COMPLEX, true),
+    store_code(sql, Code, ?MAX_STATEMENT_COMPLEX, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2215,6 +2223,7 @@ create_code(drop_index_def = Rule) ->
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
     store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2230,7 +2239,8 @@ create_code(drop_role_def = Rule) ->
                 "Drop Role " ++ N || N <- Name
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
-    store_code(manipulative_statement, Code, ?MAX_STATEMENT_COMPLEX, true),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2285,6 +2295,7 @@ create_code(drop_table_def = Rule) ->
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
     store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2309,7 +2320,8 @@ create_code(drop_user_def = Rule) ->
             || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
-    store_code(manipulative_statement, Code, ?MAX_STATEMENT_COMPLEX, true),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2376,6 +2388,7 @@ create_code(fetch_statement = Rule) ->
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
     store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2724,6 +2737,7 @@ create_code(grant_def = Rule) ->
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
     store_code(manipulative_statement, Code, ?MAX_STATEMENT_COMPLEX, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3035,7 +3049,8 @@ create_code(insert_statement = Rule) ->
             || _ <- lists:seq(1, ?MAX_STATEMENT_COMPLEX * 2)
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_COMPLEX, true),
-    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_COMPLEX, true),
+    store_code(sql, Code, ?MAX_STATEMENT_COMPLEX, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3381,6 +3396,7 @@ create_code(open_statement = Rule) ->
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
     store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3964,7 +3980,8 @@ create_code(revoke_def = Rule) ->
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
-    store_code(manipulative_statement, Code, ?MAX_STATEMENT_COMPLEX, true),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4244,45 +4261,6 @@ create_code(schema = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% schema_element ::= create_role_def
-%%                  | create_table_def
-%%                  | create_index_def
-%%                  | create_user_def
-%%                  | view_def
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-create_code(schema_element = Rule) ->
-    ?CREATE_CODE_START,
-    [{create_index_def, Create_Index_Def}] = ets:lookup(?CODE_TEMPLATES, create_index_def),
-    Create_Index_Def_Length = length(Create_Index_Def),
-    [{create_role_def, Create_Role_Def}] = ets:lookup(?CODE_TEMPLATES, create_role_def),
-    Create_Role_Def_Length = length(Create_Role_Def),
-    [{create_table_def, Create_Table_Def}] = ets:lookup(?CODE_TEMPLATES, create_table_def),
-    Create_Table_Def_Length = length(Create_Table_Def),
-    [{create_user_def, Create_User_Def}] = ets:lookup(?CODE_TEMPLATES, create_user_def),
-    Create_User_Def_Length = length(Create_User_Def),
-    [{view_def, View_Def}] = ets:lookup(?CODE_TEMPLATES, view_def),
-    View_Def_Length = length(View_Def),
-
-    Code =
-        [
-            case rand:uniform(5) rem 5 of
-                1 ->
-                    lists:nth(rand:uniform(Create_Index_Def_Length), Create_Index_Def);
-                2 ->
-                    lists:nth(rand:uniform(Create_Role_Def_Length), Create_Role_Def);
-                3 ->
-                    lists:nth(rand:uniform(Create_Table_Def_Length), Create_Table_Def);
-                4 ->
-                    lists:nth(rand:uniform(Create_User_Def_Length), Create_User_Def);
-                _ -> lists:nth(rand:uniform(View_Def_Length), View_Def)
-            end
-            || _ <- lists:seq(1, ?MAX_STATEMENT_COMPLEX * 2)
-        ],
-    store_code(Rule, Code, ?MAX_STATEMENT_COMPLEX, false),
-    ?CREATE_CODE_END;
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% search_condition ::= ( search_condition ( 'AND' | 'OR' ) search_condition )
 %%                    | ( 'NOT' search_condition )
 %%                    | ( '(' search_condition ')' )
@@ -4525,44 +4503,6 @@ create_code(special = Rule) ->
         "Select (Select * From dual) From dual"
     ],
     ets:insert(?CODE_TEMPLATES, {Rule, Code}),
-    ?CREATE_CODE_END;
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% sql ::= procedure_call
-%%       | schema
-%%       | cursor_def
-%%       | manipulative_statement
-%%       | 'WHENEVER' 'NOT' 'FOUND' when_action
-%%       | 'WHENEVER' 'SQLERROR' when_action
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-create_code(sql = Rule) ->
-    ?CREATE_CODE_START,
-    [{cursor_def, Cursor_Def}] = ets:lookup(?CODE_TEMPLATES, cursor_def),
-    Cursor_Def_Length = length(Cursor_Def),
-    [{manipulative_statement, Manipulative_Statement}] = ets:lookup(?CODE_TEMPLATES, manipulative_statement),
-    Manipulative_Statement_Length = length(Manipulative_Statement),
-    [{procedure_call, Procedure_Call}] = ets:lookup(?CODE_TEMPLATES, procedure_call),
-    Procedure_Call_Length = length(Procedure_Call),
-    [{schema, Schema}] = ets:lookup(?CODE_TEMPLATES, schema),
-    Schema_Length = length(Schema),
-    [{whenever, Whenever}] = ets:lookup(?CODE_TEMPLATES, whenever),
-    Whenever_Length = length(Whenever),
-
-    Code =
-        [
-            case rand:uniform(5) rem 5 of
-                1 -> lists:nth(rand:uniform(Cursor_Def_Length), Cursor_Def);
-                2 ->
-                    lists:nth(rand:uniform(Manipulative_Statement_Length), Manipulative_Statement);
-                3 ->
-                    lists:nth(rand:uniform(Procedure_Call_Length), Procedure_Call);
-                4 -> lists:nth(rand:uniform(Schema_Length), Schema);
-                _ -> lists:nth(rand:uniform(Whenever_Length), Whenever)
-            end
-            || _ <- lists:seq(1, ?MAX_STATEMENT_COMPLEX * 2)
-        ],
-    store_code(Rule, Code, ?MAX_STATEMENT_COMPLEX, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -5186,6 +5126,7 @@ create_code(truncate_table = Rule) ->
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
     store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -5229,7 +5170,8 @@ create_code(update_statement = Rule) ->
             || _ <- lists:seq(1, ?MAX_STATEMENT_COMPLEX * 4)
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_COMPLEX, true),
-    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_COMPLEX, true),
+    store_code(sql, Code, ?MAX_STATEMENT_COMPLEX, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -5350,8 +5292,9 @@ create_code(view_def = Rule) ->
             || _ <- lists:seq(1, ?MAX_STATEMENT_COMPLEX * 2)
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_COMPLEX, true),
-    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
-    store_code(schema_element, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_COMPLEX, true),
+    store_code(schema_element, Code, ?MAX_STATEMENT_COMPLEX, true),
+    store_code(sql, Code, ?MAX_STATEMENT_COMPLEX, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

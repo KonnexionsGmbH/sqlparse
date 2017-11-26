@@ -11,6 +11,7 @@ script:
   - ./rebar3 compile
   - ./rebar3 ct
   - ./rebar3 eunit
+  - chmod +x test/gen_tests.sh
   - ./test/gen_tests.sh
   - ./rebar3 ct
   - ./rebar3 eunit

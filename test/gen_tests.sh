@@ -5,7 +5,7 @@ sleep .1
 
 # ----------------------------------------------------------------------------
 #
-# gen_tests.bat: SQL - generating test data.
+# gen_tests.sh: SQL - generating test data.
 #
 # Copyright (c) 2012-17 K2 Informatics GmbH.  All Rights Reserved.
 #

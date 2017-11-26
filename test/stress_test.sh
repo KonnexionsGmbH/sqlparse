@@ -5,7 +5,7 @@ sleep .1
 
 # ----------------------------------------------------------------------------
 #
-# stress_test.bat: SQL - stress testing.
+# stress_test.sh: SQL - stress testing.
 #
 # Copyright (c) 2012-17 K2 Informatics GmbH.  All Rights Reserved.
 #

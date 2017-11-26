@@ -5,7 +5,7 @@ sleep .1
 
 # ----------------------------------------------------------------------------
 #
-# gen_tests_and_run.bat: SQL - generate and run test data.
+# gen_tests_and_run.sh: SQL - generate and run test data.
 #
 # Copyright (c) 2012-17 K2 Informatics GmbH.  All Rights Reserved.
 #

@@ -7,10 +7,10 @@ sleep .1
 #
 # stress_test.bat: SQL - stress testing.
 #
-# Copyright ]; thenc) 2012-17 K2 Informatics GmbH.  All Rights Reserved.
+# Copyright (c) 2012-17 K2 Informatics GmbH.  All Rights Reserved.
 #
 # This file is provided to you under the Apache License,
-# Version 2.0 ]; thenthe "License"); you may not use this file
+# Version 2.0 (the "License"); you may not use this file
 # except in compliance with the License.  You may obtain
 # a copy of the License at
 #

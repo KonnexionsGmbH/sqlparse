@@ -26,8 +26,6 @@ rem ----------------------------------------------------------------------------
     SETLOCAL enableDelayedExpansion
     ECHO !DATE!_!TIME!
 
-    CALL rebar3 compile
-
     IF EXIST _build\test\lib\sqlparse\test\performance_*.* (
         DEL /Q _build\test\lib\sqlparse\test\performance_*.*
     )
@@ -41,6 +39,8 @@ rem ----------------------------------------------------------------------------
         DEL /Q test\reliability_*.*
     )
 
+    CALL rebar3 as test compile
+
     REM Setting sqlparse options ...............................................
     IF "%GENERATE_COMPACTED%" == "" (
         REM true: compacted / false: detailed.
@@ -53,7 +53,7 @@ rem ----------------------------------------------------------------------------
     )
 
     REM Starting test data generator ...........................................
-    erl -noshell -pa _build\default\lib\sqlparse\ebin -s sqlparse_generator generate -s init stop
+    erl -noshell -pa _build\test\lib\sqlparse\test -s sqlparse_generator generate -s init stop
 
     IF EXIST code_templates (
         dir code_templates

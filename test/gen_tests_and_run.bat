@@ -33,6 +33,8 @@ rem ----------------------------------------------------------------------------
     SET GENERATE_EUNIT=false
     SET GENERATE_PERFORMANCE=true
     SET GENERATE_RELIABILITY=false
+    SET HEAP_SIZE=+hms 100663296
+    SET LOGGING=false
     SET MAX_BASIC=250
     CALL test\gen_tests
 

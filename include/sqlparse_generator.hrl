@@ -214,6 +214,8 @@
 -define(GENERATE_PERFORMANCE, list_to_atom(string:to_lower(os:getenv("GENERATE_PERFORMANCE", "true")))).
 -define(GENERATE_RELIABILITY, list_to_atom(string:to_lower(os:getenv("GENERATE_RELIABILITY", "true")))).
 
+-define(LOGGING, list_to_atom(string:to_lower(os:getenv("LOGGING", "false")))).
+
 -define(MAX_BASIC, list_to_integer(string:to_lower(os:getenv("MAX_BASIC", "250")))).
 -define(MAX_SQL, ?MAX_BASIC * 16).
 -define(MAX_STATEMENT_COMPLEX, ?MAX_BASIC * 8).

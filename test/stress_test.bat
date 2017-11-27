@@ -33,20 +33,34 @@ IF "%1" == "" (
     ECHO =======================================================================
     ECHO !TIME! Start run - in total %NO_RUNS%
 
-    DEL _build\test\lib\sqlparse\test\reliability_*.*
-    RD _build\test\logs /Q /S
+    IF EXIST _build\test\logs (
+        ECHO "Deleting _build\test\logs"
+        RD /Q /S _build\test\logs
+    )
     MD _build\test\logs
-    RD tmp\backup /Q /S
-    DEL test\reliability_*.*
-    RD tmp\backup /Q /S
+    IF EXIST tmp\backup (
+        ECHO "Deleting tmp\backup"
+        RD /Q /S tmp\backup
+    )
+    MD tmp\backup
+
+    REM Setting sqlparse options ...............................................
+    REM true: compacted / false: detailed.
+    SET GENERATE_COMPACTED=true
+    SET GENERATE_CT=true
+    SET GENERATE_EUNIT=false
+    SET GENERATE_PERFORMANCE=true
+    SET GENERATE_RELIABILITY=false
+    SET MAX_BASIC=250
 
     FOR /L %%G IN (1,1,%NO_RUNS%) DO (
        ECHO -----------------------------------------------------------------------
        ECHO !TIME! %%G. Step: gen_tests.bat
        CALL test\gen_tests.bat
-       DEL test\reliability_*_SUITE.erl
+
        MD tmp\backup\%%G
        COPY test\*_SUITE.erl tmp\backup\%%G
+
        ECHO !TIME! %%G. Step: rebar3 ct
        CALL rebar3 ct
     )

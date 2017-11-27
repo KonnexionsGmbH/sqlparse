@@ -50,13 +50,17 @@ generate() ->
                     ok = file_create_ct_all("performance", "complete_", "compacted", ?ALL_CLAUSE_PERFORMANCE);
                 _ -> ok
             end,
-            case ?GENERATE_COMPACTED of
+            case ?GENERATE_RELIABILITY of
                 true ->
-                    ok = file_create_ct_all("reliability", "complete_", "compacted", ?ALL_CLAUSE_RELIABILITY),
-                    ok = file_create_ct_all("reliability", "semicolon", "compacted", ?ALL_CLAUSE_RELIABILITY_SQL);
-                _ ->
-                    ok = file_create_ct_all("reliability", "complete_", "detailed_", ?ALL_CLAUSE_RELIABILITY),
-                    ok = file_create_ct_all("reliability", "semicolon", "detailed_", ?ALL_CLAUSE_RELIABILITY_SQL)
+                    case ?GENERATE_COMPACTED of
+                        true ->
+                            ok = file_create_ct_all("reliability", "complete_", "compacted", ?ALL_CLAUSE_RELIABILITY),
+                            ok = file_create_ct_all("reliability", "semicolon", "compacted", ?ALL_CLAUSE_RELIABILITY_SQL);
+                        _ ->
+                            ok = file_create_ct_all("reliability", "complete_", "detailed_", ?ALL_CLAUSE_RELIABILITY),
+                            ok = file_create_ct_all("reliability", "semicolon", "detailed_", ?ALL_CLAUSE_RELIABILITY_SQL)
+                    end;
+                _ -> ok
             end;
         _ -> ok
     end,
@@ -65,9 +69,13 @@ generate() ->
 
     case ?GENERATE_EUNIT of
         true ->
-            ok = file_create_eunit_all("reliability", "complete_", ?ALL_CLAUSE_RELIABILITY),
-            ok = file_create_eunit_all("reliability", "semicolon", ?ALL_CLAUSE_RELIABILITY_SQL),
-            ok = file_create_eunit_all("reliability", "complete_", ?ALL_CLAUSE_RELIABILITY_SQL_DETAILED);
+            case ?GENERATE_RELIABILITY of
+                true ->
+                    ok = file_create_eunit_all("reliability", "complete_", ?ALL_CLAUSE_RELIABILITY),
+                    ok = file_create_eunit_all("reliability", "semicolon", ?ALL_CLAUSE_RELIABILITY_SQL),
+                    ok = file_create_eunit_all("reliability", "complete_", ?ALL_CLAUSE_RELIABILITY_SQL_DETAILED);
+                _ -> ok
+            end;
         _ -> ok
     end,
 

@@ -38,7 +38,7 @@ export GENERATE_CT="true"
 export GENERATE_EUNIT="false"
 export GENERATE_PERFORMANCE="true"
 export GENERATE_RELIABILITY="true"
-export HEAP_SIZE="+hms 100663296"
+export HEAP_SIZE="+hms 33554432"
 export LOGGING="false"
 export MAX_BASIC=250
 test/gen_tests.sh

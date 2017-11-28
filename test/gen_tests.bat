@@ -32,11 +32,8 @@ REM ----------------------------------------------------------------------------
     IF EXIST _build\test\lib\sqlparse\test\reliability_*.* (
         DEL /Q _build\test\lib\sqlparse\test\reliability_*.*
     )
-    IF EXIST test\performance_*.* (
-        DEL /Q test\performance_*.*
-    )
-    IF EXIST test\reliability_*.* (
-        DEL /Q test\reliability_*.*
+    IF EXIST test\generated (
+        RD /Q /S test\generated
     )
 
     CALL rebar3 as test compile
@@ -49,7 +46,7 @@ REM ----------------------------------------------------------------------------
         SET GENERATE_EUNIT=false
         SET GENERATE_PERFORMANCE=true
         SET GENERATE_RELIABILITY=true
-        SET HEAP_SIZE=+hms 100663296
+        SET HEAP_SIZE=+hms 33554432
         SET LOGGING=false
         SET MAX_BASIC=250
     )

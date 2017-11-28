@@ -34,12 +34,10 @@ IF "%1" == "" (
     ECHO !time! Start run - in total %NO_RUNS%
 
     IF EXIST _build\test\logs (
-        ECHO "Deleting _build\test\logs"
         RD /Q /S _build\test\logs
     )
     MD _build\test\logs
     IF EXIST tmp\backup (
-        ECHO "Deleting tmp\backup"
         RD /Q /S tmp\backup
     )
     MD tmp\backup
@@ -51,7 +49,7 @@ IF "%1" == "" (
     SET GENERATE_EUNIT=false
     SET GENERATE_PERFORMANCE=true
     SET GENERATE_RELIABILITY=false
-    SET HEAP_SIZE=+hms 100663296
+    SET HEAP_SIZE=+hms 33554432
     SET LOGGING=false
     SET MAX_BASIC=250
 
@@ -61,7 +59,12 @@ IF "%1" == "" (
        CALL test\gen_tests.bat
 
        MD tmp\backup\%%G
-       COPY test\*_SUITE.erl tmp\backup\%%G
+       IF EXIST test\generated\ct (
+          COPY test\generated\ct\*_SUITE.erl tmp\backup\%%G
+       )
+       IF EXIST test\generated\eunit (
+          COPY test\generated\eunit\*_SUITE.erl tmp\backup\%%G
+       )
 
        ECHO !time! %%G. Step: rebar3 ct
        CALL rebar3 ct

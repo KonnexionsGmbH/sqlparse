@@ -40,12 +40,10 @@ echo "======================================================================="
 echo "$(timestamp) Start run - in total $NO_RUNS"
 
 if [ -d "_build/test/logs" ]; then
-    echo "Deleting _build/test/logs"
     rm -rf _build/test/logs
 fi
 mkdir  _build/test/logs
 if [ -d "tmp/backup" ]; then
-    echo "Deleting tmp/backup"
     rm -rf tmp/backup
 fi
 mkdir  tmp/backup
@@ -57,7 +55,7 @@ export GENERATE_CT="true"
 export GENERATE_EUNIT="false"
 export GENERATE_PERFORMANCE="true"
 export GENERATE_RELIABILITY="false"
-export HEAP_SIZE="+hms 100663296"
+export HEAP_SIZE="+hms 33554432"
 export LOGGING="false"
 export MAX_BASIC=250
 
@@ -68,7 +66,7 @@ do
    test/gen_tests.sh
 
    mkdir tmp/backup/$i
-   cp test/*_SUITE.erl tmp/backup/$i
+   cp test/generated/*/*_SUITE.erl tmp/backup/$i
 
    echo "$(timestamp) $i. Step: rebar3 ct"
    rebar3 ct

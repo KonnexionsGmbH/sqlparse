@@ -430,10 +430,10 @@ fold(FType, Fun, Ctx, Lvl, {'case', Expr, WhenThenList, Else} = ST) ->
                   top_down -> NewCtx3;
                   bottom_up -> Fun(ST, NewCtx3)
               end,
-    RT = {lists:append(["(case ", ExprStr, case length(ExprStr) == 0 of
-                                               true -> [];
-                                               _ -> " "
-                                           end, WhenThenStr, ElseStr, "end)"]), NewCtx4},
+    RT = {lists:append(["case ", ExprStr, case length(ExprStr) == 0 of
+                                              true -> [];
+                                              _ -> " "
+                                          end, WhenThenStr, ElseStr, "end"]), NewCtx4},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
 
@@ -1104,7 +1104,7 @@ fold(FType, Fun, Ctx, Lvl, {fields, Fields} = ST) ->
                   top_down -> NewCtx1;
                   bottom_up -> Fun(ST, NewCtx1)
               end,
-    RT = {string:join(FieldsStr, ", "), NewCtx2},
+    RT = {columns_join(FieldsStr, ", ", []), NewCtx2},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
 
@@ -1199,7 +1199,7 @@ fold(FType, Fun, Ctx, Lvl, {from, Froms} = ST) ->
              {'as', A, B} -> {'$from_as', A, B};
              _ -> Frm
          end || Frm <- Froms]),
-    {FromStr, NewCtx2} = {string:join(FrmStr, ", "), NewCtx1},
+    {FromStr, NewCtx2} = {columns_join(FrmStr, ", ", []), NewCtx1},
     NewCtx3 = case FType of
                   top_down -> NewCtx2;
                   bottom_up -> Fun(ST, NewCtx2)
@@ -1285,7 +1285,7 @@ fold(FType, Fun, Ctx, Lvl, {'fun', N, Args} = ST)
     RT = {case ArgsStr of
               [] -> binary_to_list(N);
               _ ->
-                  lists:append([binary_to_list(N), "(", string:join(ArgsStr, ", "), ")"])
+                  lists:append([binary_to_list(N), "(", columns_join(ArgsStr, ", ", []), ")"])
           end, NewCtx3},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
@@ -1381,7 +1381,7 @@ fold(FType, Fun, Ctx, Lvl, {'group by', GroupBy} = ST) ->
               end,
     RT = {case length(GroupByStr) > 0 of
               true ->
-                  "group by " ++ string:join(GroupByStr, ", ");
+                  "group by " ++ columns_join(GroupByStr, ", ", []);
               _ -> []
           end, NewCtx2},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
@@ -1445,16 +1445,12 @@ fold(FType, Fun, Ctx, _Lvl, {hints, Hints} = ST) ->
                  top_down -> Fun(ST, Ctx);
                  bottom_up -> Ctx
              end,
-    Size = byte_size(Hints),
     NewCtx1 = Fun(Hints, NewCtx),
     NewCtx2 = case FType of
                   top_down -> NewCtx1;
                   bottom_up -> Fun(ST, NewCtx1)
               end,
-    RT = {case Size > 0 of
-              true -> binary_to_list(Hints);
-              _ -> []
-          end, NewCtx2},
+    RT = {binary_to_list(Hints), NewCtx2},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
 
@@ -1695,14 +1691,10 @@ fold(FType, Fun, Ctx, Lvl, {Type, A, B} = ST)
                  _ -> AStr
              end,
         " ",
-        atom_to_list(Type), " ",
-        case B of
-            {select, _} ->
-                lists:append(["(", BStr, ")"]);
-            _ ->
-                BStr
-        end,
-        ")"
+        atom_to_list(Type),
+        " (",
+        BStr,
+        "))"
     ]), NewCtx3},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
@@ -2088,7 +2080,7 @@ fold(FType, Fun, Ctx, Lvl, {'order by', OrderBy} = ST) ->
                   bottom_up -> Fun(ST, NewCtx1)
               end,
     RT = {case Size > 0 of
-              true -> "order by " ++ string:join(OrderByStr, ", ");
+              true -> "order by " ++ columns_join(OrderByStr, ", ", []);
               _ -> []
           end, NewCtx2},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
@@ -2157,11 +2149,7 @@ fold(FType, Fun, Ctx, Lvl, {partition_by, Fields} = ST) ->
                   top_down -> NewCtx1;
                   bottom_up -> Fun(ST, NewCtx1)
               end,
-    RT = {lists:append([
-        "partition by (",
-        string:join(FieldsStr, ","),
-        ")"
-    ]), NewCtx2},
+    RT = {"partition by " ++ columns_join(FieldsStr, ", ", []), NewCtx2},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
 
@@ -2225,7 +2213,10 @@ fold(FType, Fun, Ctx, Lvl, {prior, Field} = ST) ->
                   top_down -> NewCtx1;
                   bottom_up -> Fun(ST, NewCtx1)
               end,
-    RT = {lists:flatten(["prior ", FieldsStr]), NewCtx2},
+    RT = {lists:flatten(["prior ", case string:sub_string(FieldsStr, 1, 7) == "select " of
+                                       true -> lists:append(["(", FieldsStr, ")"]);
+                                       _ -> FieldsStr
+                                   end]), NewCtx2},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
 
@@ -2403,10 +2394,9 @@ fold(FType, Fun, Ctx, Lvl, {revoke, Objs, {OnTyp, On}, {'from', Tos}, Opts} = ST
             true -> lists:append([OnTypNew, " ", OnNew, " "]);
             _ -> []
         end,
-        case length(Tos) > 0 of
-            true -> lists:append(["from ", string:join(TosStr, ","), " "]);
-            _ -> []
-        end,
+        "from ",
+        string:join(TosStr, ","),
+        " ",
         atom_to_list(Opts)
     ]), NewCtx6},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
@@ -2799,25 +2789,21 @@ fold(_FType, _Fun, Ctx, _Lvl, {Op, Columns, _} = ST)
     {ok, JPPath} = jpparse_fold:string(ST),
     JPPathList = binary_to_list(JPPath),
     RT = {case Columns of
-              empty -> lists:append(["|", JPPathList, "|"]);
               _ when is_tuple(Columns) ->
                   Target = decompose_tuple(Columns),
-                  lists:append([case Target of
-                                    empty -> [];
-                                    _ -> string:strip(decompose_tuple(Columns), right, $.)
-                                end, "|", string:sub_string(JPPathList, case Target of
-                                                                            empty -> 0;
-                                                                            _ -> length(Target)
-                                                                        end + 1), "|"]);
+                  lists:append([
+                      string:strip(decompose_tuple(Columns), right, $.),
+                      "|",
+                      string:sub_string(JPPathList, length(Target) + 1), "|"
+                  ]);
               _ ->
                   Target = string:strip(binary_to_list(Columns), right, $.),
-                  lists:append([case Target of
-                                    empty -> [];
-                                    _ -> Target
-                                end, "|", string:sub_string(JPPathList, case Target of
-                                                                            empty -> 0;
-                                                                            _ -> length(Target)
-                                                                        end + 1), "|"])
+                  lists:append([
+                      Target,
+                      "|",
+                      string:sub_string(JPPathList, length(Target) + 1),
+                      "|"
+                  ])
           end, Ctx},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
@@ -2826,11 +2812,8 @@ fold(_FType, _Fun, Ctx, _Lvl, {Op, _, _} = ST)
     ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [_Lvl, ST]),
     {ok, JPPath} = jpparse_fold:string(ST),
     JPPathList = binary_to_list(JPPath),
-    RT = {case decompose_tuple(ST) of
-              empty -> lists:append(["|", JPPathList, "|"]);
-              Others ->
-                  lists:append([string:strip(Others, right, $.), "|", string:sub_string(JPPathList, length(Others) + 1), "|"])
-          end, Ctx},
+    Others = decompose_tuple(ST),
+    RT = {lists:append([string:strip(Others, right, $.), "|", string:sub_string(JPPathList, length(Others) + 1), "|"]), Ctx},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
 
@@ -2907,7 +2890,6 @@ fold(FType, Fun, Ctx, Lvl, {Op, L, R} = ST)
                             {Rs, NC} = fold(FType, Fun, NewCtx2, Lvl + 1, R),
                             {lists:flatten(["(", Rs, ")"]), NC};
                         _ -> {Rs, NC} = fold(FType, Fun, NewCtx2, Lvl + 1, R),
-                            ?debugFmt(?MODULE_STRING ++ ":fold ===>~nRs ~p~nNC: ~p~n", [Rs, NC]),
                             case R of
                                 {select, _} ->
                                     {lists:append(["(", Rs, ")"]), NC};
@@ -3002,9 +2984,24 @@ fold(_FType, Fun, Ctx, _Lvl, PTree) ->
 % Helper functions
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+columns_join([], _Separator, Result) ->
+    ?debugFmt(?MODULE_STRING ++ ":columns_join ===> Result: ~p~n", [Result]),
+    Result;
+columns_join([Head | Tail], Separator, Result) ->
+    ?debugFmt(?MODULE_STRING ++ ":columns_join ===> Head ~p~n Result: ~p~n", [Head, Result]),
+    columns_join(Tail, Separator, lists:append([
+        Result,
+        case Result of
+            [] -> "";
+            _ -> Separator
+        end,
+        case string:sub_string(Head, 1, 7) == "select " of
+            true -> lists:append(["(", Head, ")"]);
+            _ -> Head
+        end
+    ])).
+
 decompose_tuple({_, _, X}) when is_tuple(X) ->
     decompose_tuple(X);
-decompose_tuple({_, _, X}) when is_atom(X) ->
-    X;
-decompose_tuple({_, _, X}) ->
+decompose_tuple({_, _, X}) when is_binary(X) ->
     binary_to_list(X).

@@ -4426,18 +4426,27 @@ create_code(special = Rule) ->
         "Select - 10                     * col_2                    From dual",
         "Select - 10                     / col_2                    From dual",
         "Select - 10                     + col_2                    From dual",
+        "Select - 10                     * 10 + 5                   From dual",
+        "Select - 10                     / 10 + 5                   From dual",
+        "Select - 10                     + 10 + 5                   From dual",
         "Select - 10                     * (Select col_2 From dual) From dual",
         "Select - 10                     / (Select col_2 From dual) From dual",
         "Select - 10                     + (Select col_2 From dual) From dual",
         "Select col_1                    * -5                       From dual",
         "Select col_1                    / -5                       From dual",
         "Select col_1                    + -5                       From dual",
+        "Select 5 + 10                   * -5                       From dual",
+        "Select 5 + 10                   / -5                       From dual",
+        "Select 5 + 10                   + -5                       From dual",
         "Select (Select col_1 From dual) * -5                       From dual",
         "Select (Select col_1 From dual) / -5                       From dual",
         "Select (Select col_1 From dual) + -5                       From dual",
         "Select col_1                    * col_2                    From dual",
         "Select col_1                    / col_2                    From dual",
         "Select col_1                    + col_2                    From dual",
+        "Select 5 + 10                   * 10 + 5                   From dual",
+        "Select 5 + 10                   / 10 + 5                   From dual",
+        "Select 5 + 10                   + 10 + 5                   From dual",
         "Select (Select col_1 From dual) * (Select col_2 From dual) From dual",
         "Select (Select col_1 From dual) / (Select col_2 From dual) From dual",
         "Select (Select col_1 From dual) + (Select col_2 From dual) From dual",
@@ -5457,6 +5466,11 @@ file_create_ct(Type, CompleteSemicolon, CompactedDetailed, Rule) ->
     CodeLength = length(Code),
     RuleString = atom_to_list(Rule),
 
+    case file:list_dir(?PATH_CT) of
+        {error, enoent} -> file:make_dir(?PATH_CT);
+        _ -> ok
+    end,
+
     FileName = lists:append([Type, "_", CompleteSemicolon, "_", CompactedDetailed, "_", RuleString, "_SUITE"]),
     {ok, File, _} = file:path_open([?PATH_CT], FileName ++ ".erl", [write]),
 
@@ -5608,6 +5622,11 @@ file_create_eunit(Type, CompleteSemicolon, Rule) ->
     [{Rule, Code}] = ets:lookup(?CODE_TEMPLATES, Rule),
 
     RuleStrimg = atom_to_list(Rule),
+
+    case file:list_dir(?PATH_EUNIT) of
+        {error, enoent} -> file:make_dir(?PATH_EUNIT);
+        _ -> ok
+    end,
 
     FileName = lists:append([Type, "_", CompleteSemicolon, "_", RuleStrimg, ".tst"]),
     {ok, File, _} = file:path_open([?PATH_EUNIT], FileName, [write]),

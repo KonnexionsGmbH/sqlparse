@@ -221,7 +221,7 @@
 -define(MAX_STATEMENT_COMPLEX, ?MAX_BASIC * 8).
 -define(MAX_STATEMENT_SIMPLE, ?MAX_BASIC * 2).
 
--define(PATH_CT, "test").
--define(PATH_EUNIT, "test").
+-define(PATH_CT, "test/generated/ct/").
+-define(PATH_EUNIT, "test/generated/eunit/").
 
 -define(TIMETRAP_MINUTES, 15).

@@ -6,5 +6,6 @@ rebar3.crashdump
 src/*.dot
 src/sql_lex.erl
 src/sqlparse.erl
-test/reliability_*
+test/generated/ct/reliability_*
+test/generated/eunit
 tmp

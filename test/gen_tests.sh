@@ -31,6 +31,8 @@ timestamp() {
 
 echo "$(timestamp) Start Test Data Generation"
 
+if [ -d "_build/test/lib/sqlparse/test/generated" ]; then
+    rm -rf _build/test/lib/sqlparse/test/generated
 if ls _build/test/lib/sqlparse/test/performance_*.* 1> /dev/null 2>&1; then
     rm _build/test/lib/sqlparse/test/performance_*.*
 fi

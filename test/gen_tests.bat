@@ -26,6 +26,9 @@ REM ----------------------------------------------------------------------------
     SETLOCAL enableDelayedExpansion
     ECHO !time! Start Test Data Generation
 
+    IF EXIST _build\test\lib\sqlparse\test\generated (
+        RD /Q /S _build\test\lib\sqlparse\test\generated
+    )
     IF EXIST _build\test\lib\sqlparse\test\performance_*.* (
         DEL /Q _build\test\lib\sqlparse\test\performance_*.*
     )

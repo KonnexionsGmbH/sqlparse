@@ -5409,14 +5409,7 @@ file_create_ct(Type, CompleteSemicolon, CompactedDetailed, Rule) ->
     CodeLength = length(Code),
     RuleString = atom_to_list(Rule),
 
-<<<<<<< HEAD:test/sqlparse_generator.erl
-    case file:list_dir(?PATH_CT) of
-        {error, enoent} -> file:make_dir(?PATH_CT);
-        _ -> ok
-    end,
-=======
     filelib:ensure_dir(?PATH_CT),
->>>>>>> master:test/sqlparse_generator.erl
 
     FileName = lists:append([Type, "_", CompleteSemicolon, "_", CompactedDetailed, "_", RuleString, "_SUITE"]),
     {ok, File, _} = file:path_open([?PATH_CT], FileName ++ ".erl", [write]),
@@ -5570,14 +5563,7 @@ file_create_eunit(Type, CompleteSemicolon, Rule) ->
 
     RuleStrimg = atom_to_list(Rule),
 
-<<<<<<< HEAD:test/sqlparse_generator.erl
-    case file:list_dir(?PATH_EUNIT) of
-        {error, enoent} -> file:make_dir(?PATH_EUNIT);
-        _ -> ok
-    end,
-=======
     filelib:ensure_dir(?PATH_EUNIT),
->>>>>>> master:test/sqlparse_generator.erl
 
     FileName = lists:append([Type, "_", CompleteSemicolon, "_", RuleStrimg, ".tst"]),
     {ok, File, _} = file:path_open([?PATH_EUNIT], FileName, [write]),

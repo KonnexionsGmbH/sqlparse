@@ -1302,7 +1302,6 @@ Erlang code.
 %%                          parser helper functions
 %%-----------------------------------------------------------------------------
 
-jpparse({_, _, X}) -> jpparse(X);
 jpparse(X) ->
     {ok, Pt} = jpparse:parsetree(X),
     Pt.

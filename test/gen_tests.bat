@@ -49,11 +49,13 @@ rem ----------------------------------------------------------------------------
         SET GENERATE_EUNIT=false
         SET GENERATE_PERFORMANCE=true
         SET GENERATE_RELIABILITY=true
+        SET HEAP_SIZE=+hms 100663296
+        SET LOGGING=false
         SET MAX_BASIC=250
     )
 
     REM Starting test data generator ...........................................
-    erl -noshell -pa _build\test\lib\sqlparse\test -s sqlparse_generator generate -s init stop
+    erl -noshell -pa _build\test\lib\sqlparse\test %HEAP_SIZE% -s sqlparse_generator generate -s init stop
 
     IF EXIST code_templates (
         dir code_templates

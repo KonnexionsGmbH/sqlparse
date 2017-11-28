@@ -33,10 +33,10 @@
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 generate() ->
-    file:delete(?CODE_TEMPLATES),
-
-    dets:open_file(?CODE_TEMPLATES, [
-        {auto_save, 0}
+    ets:new(?CODE_TEMPLATES, [
+        named_table,
+        private,
+        ordered_set
     ]),
 
     create_code(),
@@ -77,9 +77,7 @@ generate() ->
                 _ -> ok
             end;
         _ -> ok
-    end,
-
-    dets:close(?CODE_TEMPLATES).
+    end.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Creating code base.
@@ -1008,11 +1006,11 @@ bracket_query_spec(Expression) ->
 
 create_code(all_or_any_predicate = Rule) ->
     ?CREATE_CODE_START,
-    [{comparison, Comparison}] = dets:lookup(?CODE_TEMPLATES, comparison),
+    [{comparison, Comparison}] = ets:lookup(?CODE_TEMPLATES, comparison),
     Comparison_Length = length(Comparison),
-    [{scalar_exp, Scalar_Exp}] = dets:lookup(?CODE_TEMPLATES, scalar_exp),
+    [{scalar_exp, Scalar_Exp}] = ets:lookup(?CODE_TEMPLATES, scalar_exp),
     Scalar_Exp_Length = length(Scalar_Exp),
-    [{subquery, Subquery}] = dets:lookup(?CODE_TEMPLATES, subquery),
+    [{subquery, Subquery}] = ets:lookup(?CODE_TEMPLATES, subquery),
     Subquery_Length = length(Subquery),
 
     Code =
@@ -1046,11 +1044,11 @@ create_code(all_or_any_predicate = Rule) ->
 
 create_code(alter_user_def = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
-    [{proxy_clause, Proxy_Clause}] = dets:lookup(?CODE_TEMPLATES, proxy_clause),
+    [{proxy_clause, Proxy_Clause}] = ets:lookup(?CODE_TEMPLATES, proxy_clause),
     Proxy_Clause_Length = length(Proxy_Clause),
-    [{spec_item, Spec_Item}] = dets:lookup(?CODE_TEMPLATES, spec_item),
+    [{spec_item, Spec_Item}] = ets:lookup(?CODE_TEMPLATES, spec_item),
     Spec_Item_Length = length(Spec_Item),
 
     Code =
@@ -1167,9 +1165,9 @@ create_code(approxnum = Rule) ->
 
 create_code(assignment = Rule) ->
     ?CREATE_CODE_START,
-    [{column, Column}] = dets:lookup(?CODE_TEMPLATES, column),
+    [{column, Column}] = ets:lookup(?CODE_TEMPLATES, column),
     Column_Length = length(Column),
-    [{scalar_opt_as_exp, Scalar_Opt_As_Exp}] = dets:lookup(?CODE_TEMPLATES, scalar_opt_as_exp),
+    [{scalar_opt_as_exp, Scalar_Opt_As_Exp}] = ets:lookup(?CODE_TEMPLATES, scalar_opt_as_exp),
     Scalar_Opt_As_Exp_Length = length(Scalar_Opt_As_Exp),
 
     Code =
@@ -1190,7 +1188,7 @@ create_code(assignment = Rule) ->
 
 create_code(assignment_commalist = Rule) ->
     ?CREATE_CODE_START,
-    [{assignment, Assignment}] = dets:lookup(?CODE_TEMPLATES, assignment),
+    [{assignment, Assignment}] = ets:lookup(?CODE_TEMPLATES, assignment),
     Assignment_Length = length(Assignment),
 
     Code =
@@ -1249,7 +1247,7 @@ create_code(atom = Rule) ->
 
 create_code(between_predicate = Rule) ->
     ?CREATE_CODE_START,
-    [{scalar_exp, Scalar_Exp}] = dets:lookup(?CODE_TEMPLATES, scalar_exp),
+    [{scalar_exp, Scalar_Exp}] = ets:lookup(?CODE_TEMPLATES, scalar_exp),
     Scalar_Exp_Length = length(Scalar_Exp),
 
     Code =
@@ -1281,9 +1279,9 @@ create_code(between_predicate = Rule) ->
 
 create_code(case_when_exp = Rule) ->
     ?CREATE_CODE_START,
-    [{case_when_then_list, Case_When_Then_List}] = dets:lookup(?CODE_TEMPLATES, case_when_then_list),
+    [{case_when_then_list, Case_When_Then_List}] = ets:lookup(?CODE_TEMPLATES, case_when_then_list),
     Case_When_Then_List_Length = length(Case_When_Then_List),
-    [{scalar_opt_as_exp, Scalar_Opt_As_Exp}] = dets:lookup(?CODE_TEMPLATES, scalar_opt_as_exp),
+    [{scalar_opt_as_exp, Scalar_Opt_As_Exp}] = ets:lookup(?CODE_TEMPLATES, scalar_opt_as_exp),
     Scalar_Opt_As_Exp_Length = length(Scalar_Opt_As_Exp),
 
     Code_1 =
@@ -1320,9 +1318,9 @@ create_code(case_when_exp = Rule) ->
 
 create_code(case_when_then = Rule) ->
     ?CREATE_CODE_START,
-    [{scalar_opt_as_exp, Scalar_Opt_As_Exp}] = dets:lookup(?CODE_TEMPLATES, scalar_opt_as_exp),
+    [{scalar_opt_as_exp, Scalar_Opt_As_Exp}] = ets:lookup(?CODE_TEMPLATES, scalar_opt_as_exp),
     Scalar_Opt_As_Exp_Length = length(Scalar_Opt_As_Exp),
-    [{search_condition, Search_Condition}] = dets:lookup(?CODE_TEMPLATES, search_condition),
+    [{search_condition, Search_Condition}] = ets:lookup(?CODE_TEMPLATES, search_condition),
     Search_Condition_Length = length(Search_Condition),
 
     Code =
@@ -1344,7 +1342,7 @@ create_code(case_when_then = Rule) ->
 
 create_code(case_when_then_list = Rule) ->
     ?CREATE_CODE_START,
-    [{case_when_then, Case_When_Then}] = dets:lookup(?CODE_TEMPLATES, case_when_then),
+    [{case_when_then, Case_When_Then}] = ets:lookup(?CODE_TEMPLATES, case_when_then),
     Case_When_Then_Length = length(Case_When_Then),
 
     Code =
@@ -1385,7 +1383,7 @@ create_code(case_when_then_list = Rule) ->
 
 create_code(close_statement = Rule) ->
     ?CREATE_CODE_START,
-    [{cursor, Cursor}] = dets:lookup(?CODE_TEMPLATES, cursor),
+    [{cursor, Cursor}] = ets:lookup(?CODE_TEMPLATES, cursor),
 
     Code =
         [
@@ -1401,7 +1399,7 @@ create_code(close_statement = Rule) ->
 
 create_code(column_commalist = Rule) ->
     ?CREATE_CODE_START,
-    [{column, Column}] = dets:lookup(?CODE_TEMPLATES, column),
+    [{column, Column}] = ets:lookup(?CODE_TEMPLATES, column),
     Column_Length = length(Column),
 
     Code =
@@ -1441,11 +1439,11 @@ create_code(column_commalist = Rule) ->
 
 create_code(column_def = Rule) ->
     ?CREATE_CODE_START,
-    [{column, Column}] = dets:lookup(?CODE_TEMPLATES, column),
+    [{column, Column}] = ets:lookup(?CODE_TEMPLATES, column),
     Column_Length = length(Column),
-    [{column_def_opt, Column_Def_Opt}] = dets:lookup(?CODE_TEMPLATES, column_def_opt),
+    [{column_def_opt, Column_Def_Opt}] = ets:lookup(?CODE_TEMPLATES, column_def_opt),
     Column_Def_Opt_Length = length(Column_Def_Opt),
-    [{data_type, Data_Type}] = dets:lookup(?CODE_TEMPLATES, data_type),
+    [{data_type, Data_Type}] = ets:lookup(?CODE_TEMPLATES, data_type),
     Data_Type_Length = length(Data_Type),
 
     Code =
@@ -1487,17 +1485,17 @@ create_code(column_def = Rule) ->
 
 create_code(column_def_opt = Rule) ->
     ?CREATE_CODE_START,
-    [{column_commalist, Column_Commalist}] = dets:lookup(?CODE_TEMPLATES, column_commalist),
+    [{column_commalist, Column_Commalist}] = ets:lookup(?CODE_TEMPLATES, column_commalist),
     Column_Commalist_Length = length(Column_Commalist),
-    [{function_ref, Function_Ref}] = dets:lookup(?CODE_TEMPLATES, function_ref),
+    [{function_ref, Function_Ref}] = ets:lookup(?CODE_TEMPLATES, function_ref),
     Function_Ref_Length = length(Function_Ref),
-    [{literal, Literal}] = dets:lookup(?CODE_TEMPLATES, literal),
+    [{literal, Literal}] = ets:lookup(?CODE_TEMPLATES, literal),
     Literal_Length = length(Literal),
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
-    [{search_condition, Search_Condition}] = dets:lookup(?CODE_TEMPLATES, search_condition),
+    [{search_condition, Search_Condition}] = ets:lookup(?CODE_TEMPLATES, search_condition),
     Search_Condition_Length = length(Search_Condition),
-    [{table, Table}] = dets:lookup(?CODE_TEMPLATES, table),
+    [{table, Table}] = ets:lookup(?CODE_TEMPLATES, table),
     Table_Length = length(Table),
 
     Code =
@@ -1551,9 +1549,9 @@ create_code(column_def_opt = Rule) ->
 
 create_code(column_ref = Rule) ->
     ?CREATE_CODE_START,
-    [{json, Json}] = dets:lookup(?CODE_TEMPLATES, json),
+    [{json, Json}] = ets:lookup(?CODE_TEMPLATES, json),
     Json_Length = length(Json),
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
 
     Code =
@@ -1626,9 +1624,9 @@ create_code(column_ref = Rule) ->
 
 create_code(column_ref_commalist = Rule) ->
     ?CREATE_CODE_START,
-    [{column_ref, Column_Ref}] = dets:lookup(?CODE_TEMPLATES, column_ref),
+    [{column_ref, Column_Ref}] = ets:lookup(?CODE_TEMPLATES, column_ref),
     Column_Ref_Length = length(Column_Ref),
-    [{function_ref, Function_Ref}] = dets:lookup(?CODE_TEMPLATES, function_ref),
+    [{function_ref, Function_Ref}] = ets:lookup(?CODE_TEMPLATES, function_ref),
     Function_Ref_Length = length(Function_Ref),
 
     Code =
@@ -1757,9 +1755,9 @@ create_code(comparison = Rule) ->
 
 create_code(comparison_predicate = Rule) ->
     ?CREATE_CODE_START,
-    [{comparison, Comparison}] = dets:lookup(?CODE_TEMPLATES, comparison),
+    [{comparison, Comparison}] = ets:lookup(?CODE_TEMPLATES, comparison),
     Comparison_Length = length(Comparison),
-    [{scalar_exp, Scalar_Exp}] = dets:lookup(?CODE_TEMPLATES, scalar_exp),
+    [{scalar_exp, Scalar_Exp}] = ets:lookup(?CODE_TEMPLATES, scalar_exp),
     Scalar_Exp_Length = length(Scalar_Exp),
 
     Code =
@@ -1804,15 +1802,15 @@ create_code(comparison_predicate = Rule) ->
 
 create_code(create_index_def = Rule) ->
     ?CREATE_CODE_START,
-    [{index_name, Index_Name}] = dets:lookup(?CODE_TEMPLATES, index_name),
+    [{index_name, Index_Name}] = ets:lookup(?CODE_TEMPLATES, index_name),
     Index_Name_Length = length(Index_Name),
-    [{json, Json}] = dets:lookup(?CODE_TEMPLATES, json),
+    [{json, Json}] = ets:lookup(?CODE_TEMPLATES, json),
     Json_Length = length(Json),
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
-    [{string, String}] = dets:lookup(?CODE_TEMPLATES, string),
+    [{string, String}] = ets:lookup(?CODE_TEMPLATES, string),
     String_Length = length(String),
-    [{table, Table}] = dets:lookup(?CODE_TEMPLATES, table),
+    [{table, Table}] = ets:lookup(?CODE_TEMPLATES, table),
     Table_Length = length(Table),
 
     Code =
@@ -1923,7 +1921,7 @@ create_code(create_index_def = Rule) ->
 
 create_code(create_role_def = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
 
     Code =
         [
@@ -1939,13 +1937,13 @@ create_code(create_role_def = Rule) ->
 
 create_code(create_table_def = Rule) ->
     ?CREATE_CODE_START,
-    [{base_table_element, Base_Table_Element}] = dets:lookup(?CODE_TEMPLATES, base_table_element),
+    [{base_table_element, Base_Table_Element}] = ets:lookup(?CODE_TEMPLATES, base_table_element),
     Base_Table_Element_Length = length(Base_Table_Element),
-    [{table, Table}] = dets:lookup(?CODE_TEMPLATES, table),
+    [{table, Table}] = ets:lookup(?CODE_TEMPLATES, table),
     Table_Length = length(Table),
-    [{tbl_scope, Tbl_Scope}] = dets:lookup(?CODE_TEMPLATES, tbl_scope),
+    [{tbl_scope, Tbl_Scope}] = ets:lookup(?CODE_TEMPLATES, tbl_scope),
     Tbl_Scope_Length = length(Tbl_Scope),
-    [{tbl_type, Tbl_Type}] = dets:lookup(?CODE_TEMPLATES, tbl_type),
+    [{tbl_type, Tbl_Type}] = ets:lookup(?CODE_TEMPLATES, tbl_type),
     Tbl_Type_Length = length(Tbl_Type),
 
     Code =
@@ -1998,11 +1996,11 @@ create_code(create_table_def = Rule) ->
 
 create_code(create_user_def = Rule) ->
     ?CREATE_CODE_START,
-    [{identified, Identified}] = dets:lookup(?CODE_TEMPLATES, identified),
+    [{identified, Identified}] = ets:lookup(?CODE_TEMPLATES, identified),
     Identified_Length = length(Identified),
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
-    [{user_opt, User_Opt}] = dets:lookup(?CODE_TEMPLATES, user_opt),
+    [{user_opt, User_Opt}] = ets:lookup(?CODE_TEMPLATES, user_opt),
     User_Opt_Length = length(User_Opt),
 
     Code =
@@ -2045,7 +2043,7 @@ create_code(create_user_def = Rule) ->
 
 create_code(cursor = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
 
     Code_1 =
         [
@@ -2065,11 +2063,11 @@ create_code(cursor = Rule) ->
 
 create_code(cursor_def = Rule) ->
     ?CREATE_CODE_START,
-    [{cursor, Cursor}] = dets:lookup(?CODE_TEMPLATES, cursor),
+    [{cursor, Cursor}] = ets:lookup(?CODE_TEMPLATES, cursor),
     Cursor_Length = length(Cursor),
-    [{order_by_clause, Order_By_Clause}] = dets:lookup(?CODE_TEMPLATES, order_by_clause),
+    [{order_by_clause, Order_By_Clause}] = ets:lookup(?CODE_TEMPLATES, order_by_clause),
     Order_By_Clause_Length = length(Order_By_Clause),
-    [{query_exp, Query_Exp}] = dets:lookup(?CODE_TEMPLATES, query_exp),
+    [{query_exp, Query_Exp}] = ets:lookup(?CODE_TEMPLATES, query_exp),
     Query_Exp_Length = length(Query_Exp),
 
     Code =
@@ -2098,9 +2096,9 @@ create_code(cursor_def = Rule) ->
 
 create_code(data_type = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
-    [{sgn_num, Sgn_Num}] = dets:lookup(?CODE_TEMPLATES, sgn_num),
+    [{sgn_num, Sgn_Num}] = ets:lookup(?CODE_TEMPLATES, sgn_num),
     Sgn_Num_Length = length(Sgn_Num),
 
     Code =
@@ -2133,7 +2131,7 @@ create_code(data_type = Rule) ->
 
 create_code(db_user_proxy = Rule) ->
     ?CREATE_CODE_START,
-    [{proxy_with, Proxy_With}] = dets:lookup(?CODE_TEMPLATES, proxy_with),
+    [{proxy_with, Proxy_With}] = ets:lookup(?CODE_TEMPLATES, proxy_with),
     Proxy_With_Length = length(Proxy_With),
 
     Code =
@@ -2158,13 +2156,13 @@ create_code(db_user_proxy = Rule) ->
 
 create_code(delete_statement = Rule) ->
     ?CREATE_CODE_START,
-    [{cursor, Cursor}] = dets:lookup(?CODE_TEMPLATES, cursor),
+    [{cursor, Cursor}] = ets:lookup(?CODE_TEMPLATES, cursor),
     Cursor_Length = length(Cursor),
-    [{returning, Returning}] = dets:lookup(?CODE_TEMPLATES, returning),
+    [{returning, Returning}] = ets:lookup(?CODE_TEMPLATES, returning),
     Returning_Length = length(Returning),
-    [{table, Table}] = dets:lookup(?CODE_TEMPLATES, table),
+    [{table, Table}] = ets:lookup(?CODE_TEMPLATES, table),
     Table_Length = length(Table),
-    [{where_clause, Where_Clause}] = dets:lookup(?CODE_TEMPLATES, where_clause),
+    [{where_clause, Where_Clause}] = ets:lookup(?CODE_TEMPLATES, where_clause),
     Where_Clause_Length = length(Where_Clause),
 
     Code =
@@ -2196,9 +2194,9 @@ create_code(delete_statement = Rule) ->
 
 create_code(drop_index_def = Rule) ->
     ?CREATE_CODE_START,
-    [{index_name, Index_Name}] = dets:lookup(?CODE_TEMPLATES, index_name),
+    [{index_name, Index_Name}] = ets:lookup(?CODE_TEMPLATES, index_name),
     Index_Name_Length = length(Index_Name),
-    [{table, Table}] = dets:lookup(?CODE_TEMPLATES, table),
+    [{table, Table}] = ets:lookup(?CODE_TEMPLATES, table),
     Table_Length = length(Table),
 
     Code =
@@ -2225,7 +2223,7 @@ create_code(drop_index_def = Rule) ->
 
 create_code(drop_role_def = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
 
     Code =
         [
@@ -2241,9 +2239,9 @@ create_code(drop_role_def = Rule) ->
 
 create_code(drop_table_def = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
-    [{table, Table}] = dets:lookup(?CODE_TEMPLATES, table),
+    [{table, Table}] = ets:lookup(?CODE_TEMPLATES, table),
     Table_Length = length(Table),
 
     Code =
@@ -2295,7 +2293,7 @@ create_code(drop_table_def = Rule) ->
 
 create_code(drop_user_def = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
 
     Code =
@@ -2320,7 +2318,7 @@ create_code(drop_user_def = Rule) ->
 
 create_code(existence_test = Rule) ->
     ?CREATE_CODE_START,
-    [{subquery, Subquery}] = dets:lookup(?CODE_TEMPLATES, subquery),
+    [{subquery, Subquery}] = ets:lookup(?CODE_TEMPLATES, subquery),
     Subquery_Length = length(Subquery),
 
     Code =
@@ -2341,7 +2339,7 @@ create_code(existence_test = Rule) ->
 
 create_code(extra = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
 
     Code_1 =
         [
@@ -2361,9 +2359,9 @@ create_code(extra = Rule) ->
 
 create_code(fetch_statement = Rule) ->
     ?CREATE_CODE_START,
-    [{cursor, Cursor}] = dets:lookup(?CODE_TEMPLATES, cursor),
+    [{cursor, Cursor}] = ets:lookup(?CODE_TEMPLATES, cursor),
     Cursor_Length = length(Cursor),
-    [{target_commalist, Target_Commalist}] = dets:lookup(?CODE_TEMPLATES, target_commalist),
+    [{target_commalist, Target_Commalist}] = ets:lookup(?CODE_TEMPLATES, target_commalist),
     Target_Commalist_Length = length(Target_Commalist),
 
     Code =
@@ -2396,13 +2394,13 @@ create_code(fetch_statement = Rule) ->
 
 create_code(fun_arg = Rule) ->
     ?CREATE_CODE_START,
-    [{comparison, Comparison}] = dets:lookup(?CODE_TEMPLATES, comparison),
+    [{comparison, Comparison}] = ets:lookup(?CODE_TEMPLATES, comparison),
     Comparison_Length = length(Comparison),
-    [{fun_arg, Fun_Arg}] = dets:lookup(?CODE_TEMPLATES, fun_arg),
+    [{fun_arg, Fun_Arg}] = ets:lookup(?CODE_TEMPLATES, fun_arg),
     Fun_Arg_Length = length(Fun_Arg),
-    [{literal, Literal}] = dets:lookup(?CODE_TEMPLATES, literal),
+    [{literal, Literal}] = ets:lookup(?CODE_TEMPLATES, literal),
     Literal_Length = length(Literal),
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
 
     Code =
@@ -2462,7 +2460,7 @@ create_code(fun_arg = Rule) ->
 
 create_code(fun_args = Rule) ->
     ?CREATE_CODE_START,
-    [{fun_arg, Fun_Arg}] = dets:lookup(?CODE_TEMPLATES, fun_arg),
+    [{fun_arg, Fun_Arg}] = ets:lookup(?CODE_TEMPLATES, fun_arg),
     Fun_Arg_Length = length(Fun_Arg),
 
     Code =
@@ -2504,15 +2502,15 @@ create_code(fun_args = Rule) ->
 
 create_code(function_ref = Rule) ->
     ?CREATE_CODE_START,
-    [{column_ref, Column_Ref}] = dets:lookup(?CODE_TEMPLATES, column_ref),
+    [{column_ref, Column_Ref}] = ets:lookup(?CODE_TEMPLATES, column_ref),
     Column_Ref_Length = length(Column_Ref),
-    [{funs, Funs}] = dets:lookup(?CODE_TEMPLATES, funs),
+    [{funs, Funs}] = ets:lookup(?CODE_TEMPLATES, funs),
     Funs_Length = length(Funs),
-    [{fun_args, Fun_Args}] = dets:lookup(?CODE_TEMPLATES, fun_args),
+    [{fun_args, Fun_Args}] = ets:lookup(?CODE_TEMPLATES, fun_args),
     Fun_Args_Length = length(Fun_Args),
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
-    [{scalar_exp, Scalar_Exp}] = dets:lookup(?CODE_TEMPLATES, scalar_exp),
+    [{scalar_exp, Scalar_Exp}] = ets:lookup(?CODE_TEMPLATES, scalar_exp),
     Scalar_Exp_Length = length(Scalar_Exp),
 
     Code =
@@ -2577,7 +2575,7 @@ create_code(function_ref = Rule) ->
 
 create_code(function_ref_list = Rule) ->
     ?CREATE_CODE_START,
-    [{function_ref, Function_Ref}] = dets:lookup(?CODE_TEMPLATES, function_ref),
+    [{function_ref, Function_Ref}] = ets:lookup(?CODE_TEMPLATES, function_ref),
     Function_Ref_Length = length(Function_Ref),
 
     Code =
@@ -2677,13 +2675,13 @@ create_code(funs = Rule) ->
 
 create_code(grant_def = Rule) ->
     ?CREATE_CODE_START,
-    [{grantee, Grantee}] = dets:lookup(?CODE_TEMPLATES, grantee),
+    [{grantee, Grantee}] = ets:lookup(?CODE_TEMPLATES, grantee),
     Grantee_Length = length(Grantee),
-    [{on_obj_clause, On_Obj_Clause}] = dets:lookup(?CODE_TEMPLATES, on_obj_clause),
+    [{on_obj_clause, On_Obj_Clause}] = ets:lookup(?CODE_TEMPLATES, on_obj_clause),
     On_Obj_Clause_Length = length(On_Obj_Clause),
-    [{system_privilege_list, System_Privilege_List}] = dets:lookup(?CODE_TEMPLATES, system_privilege_list),
+    [{system_privilege_list, System_Privilege_List}] = ets:lookup(?CODE_TEMPLATES, system_privilege_list),
     System_Privilege_List_Length = length(System_Privilege_List),
-    [{with_grant_option, With_Grant_Option}] = dets:lookup(?CODE_TEMPLATES, with_grant_option),
+    [{with_grant_option, With_Grant_Option}] = ets:lookup(?CODE_TEMPLATES, with_grant_option),
     With_Grant_Option_Length = length(With_Grant_Option),
 
     Code =
@@ -2735,7 +2733,7 @@ create_code(grant_def = Rule) ->
 
 create_code(grantee = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
 
     Code =
@@ -2763,7 +2761,7 @@ create_code(grantee = Rule) ->
 
 create_code(hierarchical_query_clause = Rule) ->
     ?CREATE_CODE_START,
-    [{search_condition, Search_Condition}] = dets:lookup(?CODE_TEMPLATES, search_condition),
+    [{search_condition, Search_Condition}] = ets:lookup(?CODE_TEMPLATES, search_condition),
     Search_Condition_Length = length(Search_Condition),
 
     Code =
@@ -2842,7 +2840,7 @@ create_code(hint = Rule) ->
 
 create_code(identified = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
 
     Code =
@@ -2873,11 +2871,11 @@ create_code(identified = Rule) ->
 
 create_code(in_predicate = Rule) ->
     ?CREATE_CODE_START,
-    [{scalar_exp, Scalar_Exp}] = dets:lookup(?CODE_TEMPLATES, scalar_exp),
+    [{scalar_exp, Scalar_Exp}] = ets:lookup(?CODE_TEMPLATES, scalar_exp),
     Scalar_Exp_Length = length(Scalar_Exp),
-    [{scalar_exp_commalist, Scalar_Exp_Commalist}] = dets:lookup(?CODE_TEMPLATES, scalar_exp_commalist),
+    [{scalar_exp_commalist, Scalar_Exp_Commalist}] = ets:lookup(?CODE_TEMPLATES, scalar_exp_commalist),
     Scalar_Exp_Commalist_Length = length(Scalar_Exp_Commalist),
-    [{subquery, Subquery}] = dets:lookup(?CODE_TEMPLATES, subquery),
+    [{subquery, Subquery}] = ets:lookup(?CODE_TEMPLATES, subquery),
     Subquery_Length = length(Subquery),
 
     Code =
@@ -2911,7 +2909,7 @@ create_code(in_predicate = Rule) ->
 
 create_code(index_name = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
 
     Code =
@@ -2936,9 +2934,9 @@ create_code(index_name = Rule) ->
 
 create_code(inner_cross_join = Rule) ->
     ?CREATE_CODE_START,
-    [{join_on_or_using_clause, Join_On_Or_Using_Clause}] = dets:lookup(?CODE_TEMPLATES, join_on_or_using_clause),
+    [{join_on_or_using_clause, Join_On_Or_Using_Clause}] = ets:lookup(?CODE_TEMPLATES, join_on_or_using_clause),
     Join_On_Or_Using_Clause_Length = length(Join_On_Or_Using_Clause),
-    [{join_ref, Join_Ref}] = dets:lookup(?CODE_TEMPLATES, join_ref),
+    [{join_ref, Join_Ref}] = ets:lookup(?CODE_TEMPLATES, join_ref),
     Join_Ref_Length = length(Join_Ref),
 
     Code =
@@ -2971,15 +2969,15 @@ create_code(inner_cross_join = Rule) ->
 
 create_code(insert_statement = Rule) ->
     ?CREATE_CODE_START,
-    [{column_commalist, Column_Commalist}] = dets:lookup(?CODE_TEMPLATES, column_commalist),
+    [{column_commalist, Column_Commalist}] = ets:lookup(?CODE_TEMPLATES, column_commalist),
     Column_Commalist_Length = length(Column_Commalist),
-    [{query_spec, Query_Spec}] = dets:lookup(?CODE_TEMPLATES, query_spec),
+    [{query_spec, Query_Spec}] = ets:lookup(?CODE_TEMPLATES, query_spec),
     Query_Spec_Length = length(Query_Spec),
-    [{returning, Returning}] = dets:lookup(?CODE_TEMPLATES, returning),
+    [{returning, Returning}] = ets:lookup(?CODE_TEMPLATES, returning),
     Returning_Length = length(Returning),
-    [{scalar_opt_as_exp, Scalar_Opt_As_Exp}] = dets:lookup(?CODE_TEMPLATES, scalar_opt_as_exp),
+    [{scalar_opt_as_exp, Scalar_Opt_As_Exp}] = ets:lookup(?CODE_TEMPLATES, scalar_opt_as_exp),
     Scalar_Opt_As_Exp_Length = length(Scalar_Opt_As_Exp),
-    [{table, Table}] = dets:lookup(?CODE_TEMPLATES, table),
+    [{table, Table}] = ets:lookup(?CODE_TEMPLATES, table),
     Table_Length = length(Table),
 
     Code =
@@ -3089,9 +3087,9 @@ create_code(intnum = Rule) ->
 
 create_code(join_clause = Rule) ->
     ?CREATE_CODE_START,
-    [{join, Join}] = dets:lookup(?CODE_TEMPLATES, join),
+    [{join, Join}] = ets:lookup(?CODE_TEMPLATES, join),
     Join_Length = length(Join),
-    [{table_ref, Table_Ref}] = dets:lookup(?CODE_TEMPLATES, table_ref),
+    [{table_ref, Table_Ref}] = ets:lookup(?CODE_TEMPLATES, table_ref),
     Table_Ref_Length = length(Table_Ref),
 
     Code =
@@ -3132,9 +3130,9 @@ create_code(join_clause = Rule) ->
 
 create_code(join_on_or_using_clause = Rule) ->
     ?CREATE_CODE_START,
-    [{search_condition, Search_Condition}] = dets:lookup(?CODE_TEMPLATES, search_condition),
+    [{search_condition, Search_Condition}] = ets:lookup(?CODE_TEMPLATES, search_condition),
     Search_Condition_Length = length(Search_Condition),
-    [{select_field_commalist, Select_Field_Commalist}] = dets:lookup(?CODE_TEMPLATES, select_field_commalist),
+    [{select_field_commalist, Select_Field_Commalist}] = ets:lookup(?CODE_TEMPLATES, select_field_commalist),
     Select_Field_Commalist_Length = length(Select_Field_Commalist),
 
     Code =
@@ -3160,9 +3158,9 @@ create_code(join_on_or_using_clause = Rule) ->
 
 create_code(join_ref = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
-    [{query_exp, Query_Exp}] = dets:lookup(?CODE_TEMPLATES, query_exp),
+    [{query_exp, Query_Exp}] = ets:lookup(?CODE_TEMPLATES, query_exp),
     Query_Exp_Length = length(Query_Exp),
 
     Code =
@@ -3228,9 +3226,9 @@ create_code(json = Rule) ->
 
 create_code(like_predicate = Rule) ->
     ?CREATE_CODE_START,
-    [{atom, Atom}] = dets:lookup(?CODE_TEMPLATES, atom),
+    [{atom, Atom}] = ets:lookup(?CODE_TEMPLATES, atom),
     Atom_Length = length(Atom),
-    [{scalar_exp, Scalar_Exp}] = dets:lookup(?CODE_TEMPLATES, scalar_exp),
+    [{scalar_exp, Scalar_Exp}] = ets:lookup(?CODE_TEMPLATES, scalar_exp),
     Scalar_Exp_Length = length(Scalar_Exp),
 
     Code =
@@ -3342,9 +3340,9 @@ create_code(name = Rule) ->
 
 create_code(on_obj_clause = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
-    [{table, Table}] = dets:lookup(?CODE_TEMPLATES, table),
+    [{table, Table}] = ets:lookup(?CODE_TEMPLATES, table),
     Table_Length = length(Table),
 
     Code =
@@ -3375,7 +3373,7 @@ create_code(on_obj_clause = Rule) ->
 
 create_code(open_statement = Rule) ->
     ?CREATE_CODE_START,
-    [{cursor, Cursor}] = dets:lookup(?CODE_TEMPLATES, cursor),
+    [{cursor, Cursor}] = ets:lookup(?CODE_TEMPLATES, cursor),
 
     Code =
         [
@@ -3391,7 +3389,7 @@ create_code(open_statement = Rule) ->
 
 create_code(order_by_clause = Rule) ->
     ?CREATE_CODE_START,
-    [{ordering_spec, Ordering_Spec}] = dets:lookup(?CODE_TEMPLATES, ordering_spec),
+    [{ordering_spec, Ordering_Spec}] = ets:lookup(?CODE_TEMPLATES, ordering_spec),
     Ordering_Spec_Length = length(Ordering_Spec),
 
     Code =
@@ -3433,7 +3431,7 @@ create_code(order_by_clause = Rule) ->
 
 create_code(ordering_spec = Rule) ->
     ?CREATE_CODE_START,
-    [{scalar_exp, Scalar_Exp}] = dets:lookup(?CODE_TEMPLATES, scalar_exp),
+    [{scalar_exp, Scalar_Exp}] = ets:lookup(?CODE_TEMPLATES, scalar_exp),
     Scalar_Exp_Length = length(Scalar_Exp),
 
     Code =
@@ -3455,13 +3453,13 @@ create_code(ordering_spec = Rule) ->
 
 create_code(outer_join = Rule) ->
     ?CREATE_CODE_START,
-    [{join_on_or_using_clause, Join_On_Or_Using_Clause}] = dets:lookup(?CODE_TEMPLATES, join_on_or_using_clause),
+    [{join_on_or_using_clause, Join_On_Or_Using_Clause}] = ets:lookup(?CODE_TEMPLATES, join_on_or_using_clause),
     Join_On_Or_Using_Clause_Length = length(Join_On_Or_Using_Clause),
-    [{join_ref, Join_Ref}] = dets:lookup(?CODE_TEMPLATES, join_ref),
+    [{join_ref, Join_Ref}] = ets:lookup(?CODE_TEMPLATES, join_ref),
     Join_Ref_Length = length(Join_Ref),
-    [{outer_join_type, Outer_Join_Type}] = dets:lookup(?CODE_TEMPLATES, outer_join_type),
+    [{outer_join_type, Outer_Join_Type}] = ets:lookup(?CODE_TEMPLATES, outer_join_type),
     Outer_Join_Type_Length = length(Outer_Join_Type),
-    [{query_partition_clause, Query_Partition_Clause}] = dets:lookup(?CODE_TEMPLATES, query_partition_clause),
+    [{query_partition_clause, Query_Partition_Clause}] = ets:lookup(?CODE_TEMPLATES, query_partition_clause),
     Query_Partition_Clause_Length = length(Query_Partition_Clause),
 
     Code =
@@ -3563,7 +3561,7 @@ create_code(parameter = Rule) ->
 
 create_code(parameter_ref = Rule) ->
     ?CREATE_CODE_START,
-    [{parameter, Parameter}] = dets:lookup(?CODE_TEMPLATES, parameter),
+    [{parameter, Parameter}] = ets:lookup(?CODE_TEMPLATES, parameter),
     Parameter_Length = length(Parameter),
 
     Code =
@@ -3596,11 +3594,11 @@ create_code(parameter_ref = Rule) ->
 
 create_code(procedure_call = Rule) ->
     ?CREATE_CODE_START,
-    [{function_ref, Function_Ref}] = dets:lookup(?CODE_TEMPLATES, function_ref),
+    [{function_ref, Function_Ref}] = ets:lookup(?CODE_TEMPLATES, function_ref),
     Function_Ref_Length = length(Function_Ref),
-    [{function_ref_list, Function_Ref_List}] = dets:lookup(?CODE_TEMPLATES, function_ref_list),
+    [{function_ref_list, Function_Ref_List}] = ets:lookup(?CODE_TEMPLATES, function_ref_list),
     Function_Ref_List_Length = length(Function_Ref_List),
-    [{sql_list, Sql_List}] = dets:lookup(?CODE_TEMPLATES, sql_list),
+    [{sql_list, Sql_List}] = ets:lookup(?CODE_TEMPLATES, sql_list),
     Sql_List_Length = length(Sql_List),
 
     Code =
@@ -3641,7 +3639,7 @@ create_code(procedure_call = Rule) ->
 
 create_code(proxy_clause = Rule) ->
     ?CREATE_CODE_START,
-    [{db_user_proxy, Db_User_Proxy}] = dets:lookup(?CODE_TEMPLATES, db_user_proxy),
+    [{db_user_proxy, Db_User_Proxy}] = ets:lookup(?CODE_TEMPLATES, db_user_proxy),
     Db_User_Proxy_Length = length(Db_User_Proxy),
 
     Code =
@@ -3671,7 +3669,7 @@ create_code(proxy_clause = Rule) ->
 
 create_code(proxy_with = Rule) ->
     ?CREATE_CODE_START,
-    [{role_list, Role_List}] = dets:lookup(?CODE_TEMPLATES, role_list),
+    [{role_list, Role_List}] = ets:lookup(?CODE_TEMPLATES, role_list),
     Role_List_Length = length(Role_List),
 
     Code =
@@ -3699,7 +3697,7 @@ create_code(proxy_with = Rule) ->
 
 create_code(query_partition_clause = Rule) ->
     ?CREATE_CODE_START,
-    [{scalar_exp_commalist, Scalar_Exp_Commalist}] = dets:lookup(?CODE_TEMPLATES, scalar_exp_commalist),
+    [{scalar_exp_commalist, Scalar_Exp_Commalist}] = ets:lookup(?CODE_TEMPLATES, scalar_exp_commalist),
     Scalar_Exp_Commalist_Length = length(Scalar_Exp_Commalist),
 
     Code =
@@ -3729,9 +3727,9 @@ create_code(query_partition_clause = Rule) ->
 
 create_code(query_exp = Rule) ->
     ?CREATE_CODE_START,
-    [{query_exp, Query_Exp}] = dets:lookup(?CODE_TEMPLATES, query_exp),
+    [{query_exp, Query_Exp}] = ets:lookup(?CODE_TEMPLATES, query_exp),
     Query_Exp_Length = length(Query_Exp),
-    [{query_term, Query_Term}] = dets:lookup(?CODE_TEMPLATES, query_term),
+    [{query_term, Query_Term}] = ets:lookup(?CODE_TEMPLATES, query_term),
     Query_Term_Length = length(Query_Term),
 
     Code =
@@ -3767,15 +3765,15 @@ create_code(query_exp = Rule) ->
 
 create_code(query_spec = Rule) ->
     ?CREATE_CODE_START,
-    [{hint, Hint}] = dets:lookup(?CODE_TEMPLATES, hint),
+    [{hint, Hint}] = ets:lookup(?CODE_TEMPLATES, hint),
     Hint_Length = length(Hint),
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
-    [{selection, Selection}] = dets:lookup(?CODE_TEMPLATES, selection),
+    [{selection, Selection}] = ets:lookup(?CODE_TEMPLATES, selection),
     Selection_Length = length(Selection),
-    [{table_exp, Table_Exp}] = dets:lookup(?CODE_TEMPLATES, table_exp),
+    [{table_exp, Table_Exp}] = ets:lookup(?CODE_TEMPLATES, table_exp),
     Table_Exp_Length = length(Table_Exp),
-    [{target_commalist, Target_Commalist}] = dets:lookup(?CODE_TEMPLATES, target_commalist),
+    [{target_commalist, Target_Commalist}] = ets:lookup(?CODE_TEMPLATES, target_commalist),
     Target_Commalist_Length = length(Target_Commalist),
 
     Code =
@@ -3826,7 +3824,7 @@ create_code(query_spec = Rule) ->
 
 create_code(query_term = Rule) ->
     ?CREATE_CODE_START,
-    [{query_exp, Query_Exp}] = dets:lookup(?CODE_TEMPLATES, query_exp),
+    [{query_exp, Query_Exp}] = ets:lookup(?CODE_TEMPLATES, query_exp),
     Query_Exp_Length = length(Query_Exp),
 
     Code =
@@ -3854,9 +3852,9 @@ create_code(query_term = Rule) ->
 
 create_code(quota = Rule) ->
     ?CREATE_CODE_START,
-    [{intnum, Intnum}] = dets:lookup(?CODE_TEMPLATES, intnum),
+    [{intnum, Intnum}] = ets:lookup(?CODE_TEMPLATES, intnum),
     Intnum_Length = length(Intnum),
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
 
     Code =
@@ -3890,7 +3888,7 @@ create_code(quota = Rule) ->
 
 create_code(returning = Rule) ->
     ?CREATE_CODE_START,
-    [{selection, Selection}] = dets:lookup(?CODE_TEMPLATES, selection),
+    [{selection, Selection}] = ets:lookup(?CODE_TEMPLATES, selection),
     Selection_Length = length(Selection),
 
     Code =
@@ -3916,13 +3914,13 @@ create_code(returning = Rule) ->
 
 create_code(revoke_def = Rule) ->
     ?CREATE_CODE_START,
-    [{grantee, Grantee}] = dets:lookup(?CODE_TEMPLATES, grantee),
+    [{grantee, Grantee}] = ets:lookup(?CODE_TEMPLATES, grantee),
     Grantee_Length = length(Grantee),
-    [{on_obj_clause, On_Obj_Clause}] = dets:lookup(?CODE_TEMPLATES, on_obj_clause),
+    [{on_obj_clause, On_Obj_Clause}] = ets:lookup(?CODE_TEMPLATES, on_obj_clause),
     On_Obj_Clause_Length = length(On_Obj_Clause),
-    [{system_privilege_list, System_Privilege_List}] = dets:lookup(?CODE_TEMPLATES, system_privilege_list),
+    [{system_privilege_list, System_Privilege_List}] = ets:lookup(?CODE_TEMPLATES, system_privilege_list),
     System_Privilege_List_Length = length(System_Privilege_List),
-    [{with_revoke_option, With_Revoke_Option}] = dets:lookup(?CODE_TEMPLATES, with_revoke_option),
+    [{with_revoke_option, With_Revoke_Option}] = ets:lookup(?CODE_TEMPLATES, with_revoke_option),
     With_Revoke_Option_Length = length(With_Revoke_Option),
 
     Code =
@@ -3975,7 +3973,7 @@ create_code(revoke_def = Rule) ->
 
 create_code(role_list = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
 
     Code =
@@ -4032,9 +4030,9 @@ create_code(rollback_statement = Rule) ->
 
 create_code(scalar_exp = Rule) ->
     ?CREATE_CODE_START,
-    [{scalar_exp, Scalar_Exp}] = dets:lookup(?CODE_TEMPLATES, scalar_exp),
+    [{scalar_exp, Scalar_Exp}] = ets:lookup(?CODE_TEMPLATES, scalar_exp),
     Scalar_Exp_Length = length(Scalar_Exp),
-    [{scalar_sub_exp, Scalar_Sub_Exp}] = dets:lookup(?CODE_TEMPLATES, scalar_sub_exp),
+    [{scalar_sub_exp, Scalar_Sub_Exp}] = ets:lookup(?CODE_TEMPLATES, scalar_sub_exp),
     Scalar_Sub_Exp_Length = length(Scalar_Sub_Exp),
 
     Code =
@@ -4058,7 +4056,7 @@ create_code(scalar_exp = Rule) ->
 
 create_code(scalar_exp_commalist = Rule) ->
     ?CREATE_CODE_START,
-    [{scalar_opt_as_exp, Scalar_Opt_As_Exp}] = dets:lookup(?CODE_TEMPLATES, scalar_opt_as_exp),
+    [{scalar_opt_as_exp, Scalar_Opt_As_Exp}] = ets:lookup(?CODE_TEMPLATES, scalar_opt_as_exp),
     Scalar_Opt_As_Exp_Length = length(Scalar_Opt_As_Exp),
 
     Code =
@@ -4101,11 +4099,11 @@ create_code(scalar_exp_commalist = Rule) ->
 
 create_code(scalar_opt_as_exp = Rule) ->
     ?CREATE_CODE_START,
-    [{comparison, Comparison}] = dets:lookup(?CODE_TEMPLATES, comparison),
+    [{comparison, Comparison}] = ets:lookup(?CODE_TEMPLATES, comparison),
     Comparison_Length = length(Comparison),
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
-    [{scalar_exp, Scalar_Exp}] = dets:lookup(?CODE_TEMPLATES, scalar_exp),
+    [{scalar_exp, Scalar_Exp}] = ets:lookup(?CODE_TEMPLATES, scalar_exp),
     Scalar_Exp_Length = length(Scalar_Exp),
 
     Code =
@@ -4147,9 +4145,9 @@ create_code(scalar_opt_as_exp = Rule) ->
 
 create_code(scalar_sub_exp = Rule) ->
     ?CREATE_CODE_START,
-    [{literal, Literal}] = dets:lookup(?CODE_TEMPLATES, literal),
+    [{literal, Literal}] = ets:lookup(?CODE_TEMPLATES, literal),
     Literal_Length = length(Literal),
-    [{scalar_sub_exp, Scalar_Sub_Exp}] = dets:lookup(?CODE_TEMPLATES, scalar_sub_exp),
+    [{scalar_sub_exp, Scalar_Sub_Exp}] = ets:lookup(?CODE_TEMPLATES, scalar_sub_exp),
     Scalar_Sub_Exp_Length = length(Scalar_Sub_Exp),
 
     Code =
@@ -4199,9 +4197,9 @@ create_code(scalar_sub_exp = Rule) ->
 
 create_code(schema = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
-    [{schema_element, Schema_Element}] = dets:lookup(?CODE_TEMPLATES, schema_element),
+    [{schema_element, Schema_Element}] = ets:lookup(?CODE_TEMPLATES, schema_element),
     Schema_Element_Length = length(Schema_Element),
 
     Code =
@@ -4255,15 +4253,15 @@ create_code(schema = Rule) ->
 
 create_code(schema_element = Rule) ->
     ?CREATE_CODE_START,
-    [{create_index_def, Create_Index_Def}] = dets:lookup(?CODE_TEMPLATES, create_index_def),
+    [{create_index_def, Create_Index_Def}] = ets:lookup(?CODE_TEMPLATES, create_index_def),
     Create_Index_Def_Length = length(Create_Index_Def),
-    [{create_role_def, Create_Role_Def}] = dets:lookup(?CODE_TEMPLATES, create_role_def),
+    [{create_role_def, Create_Role_Def}] = ets:lookup(?CODE_TEMPLATES, create_role_def),
     Create_Role_Def_Length = length(Create_Role_Def),
-    [{create_table_def, Create_Table_Def}] = dets:lookup(?CODE_TEMPLATES, create_table_def),
+    [{create_table_def, Create_Table_Def}] = ets:lookup(?CODE_TEMPLATES, create_table_def),
     Create_Table_Def_Length = length(Create_Table_Def),
-    [{create_user_def, Create_User_Def}] = dets:lookup(?CODE_TEMPLATES, create_user_def),
+    [{create_user_def, Create_User_Def}] = ets:lookup(?CODE_TEMPLATES, create_user_def),
     Create_User_Def_Length = length(Create_User_Def),
-    [{view_def, View_Def}] = dets:lookup(?CODE_TEMPLATES, view_def),
+    [{view_def, View_Def}] = ets:lookup(?CODE_TEMPLATES, view_def),
     View_Def_Length = length(View_Def),
 
     Code =
@@ -4293,7 +4291,7 @@ create_code(schema_element = Rule) ->
 
 create_code(search_condition = Rule) ->
     ?CREATE_CODE_START,
-    [{search_condition, Search_Condition}] = dets:lookup(?CODE_TEMPLATES, search_condition),
+    [{search_condition, Search_Condition}] = ets:lookup(?CODE_TEMPLATES, search_condition),
     Search_Condition_Length = length(Search_Condition),
 
     Code_1 =
@@ -4331,9 +4329,9 @@ create_code(search_condition = Rule) ->
 
 create_code(select_field = Rule) ->
     ?CREATE_CODE_START,
-    [{case_when_exp, Case_When_Exp}] = dets:lookup(?CODE_TEMPLATES, case_when_exp),
+    [{case_when_exp, Case_When_Exp}] = ets:lookup(?CODE_TEMPLATES, case_when_exp),
     Case_When_Exp_Length = length(Case_When_Exp),
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
 
     Code =
@@ -4360,7 +4358,7 @@ create_code(select_field = Rule) ->
 
 create_code(select_field_commalist = Rule) ->
     ?CREATE_CODE_START,
-    [{select_field, Select_Field}] = dets:lookup(?CODE_TEMPLATES, select_field),
+    [{select_field, Select_Field}] = ets:lookup(?CODE_TEMPLATES, select_field),
     Select_Field_Length = length(Select_Field),
 
     Code =
@@ -4403,7 +4401,7 @@ create_code(select_field_commalist = Rule) ->
 
 create_code(sgn_num = Rule) ->
     ?CREATE_CODE_START,
-    [{intnum, Intnum}] = dets:lookup(?CODE_TEMPLATES, intnum),
+    [{intnum, Intnum}] = ets:lookup(?CODE_TEMPLATES, intnum),
 
     Code = Intnum ++
         [
@@ -4528,7 +4526,7 @@ create_code(special = Rule) ->
         %% ---------------------------------------------------------------------
         "Select (Select * From dual) From dual"
     ],
-    dets:insert(?CODE_TEMPLATES, {Rule, Code}),
+    ets:insert(?CODE_TEMPLATES, {Rule, Code}),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4542,15 +4540,15 @@ create_code(special = Rule) ->
 
 create_code(sql = Rule) ->
     ?CREATE_CODE_START,
-    [{cursor_def, Cursor_Def}] = dets:lookup(?CODE_TEMPLATES, cursor_def),
+    [{cursor_def, Cursor_Def}] = ets:lookup(?CODE_TEMPLATES, cursor_def),
     Cursor_Def_Length = length(Cursor_Def),
-    [{manipulative_statement, Manipulative_Statement}] = dets:lookup(?CODE_TEMPLATES, manipulative_statement),
+    [{manipulative_statement, Manipulative_Statement}] = ets:lookup(?CODE_TEMPLATES, manipulative_statement),
     Manipulative_Statement_Length = length(Manipulative_Statement),
-    [{procedure_call, Procedure_Call}] = dets:lookup(?CODE_TEMPLATES, procedure_call),
+    [{procedure_call, Procedure_Call}] = ets:lookup(?CODE_TEMPLATES, procedure_call),
     Procedure_Call_Length = length(Procedure_Call),
-    [{schema, Schema}] = dets:lookup(?CODE_TEMPLATES, schema),
+    [{schema, Schema}] = ets:lookup(?CODE_TEMPLATES, schema),
     Schema_Length = length(Schema),
-    [{whenever, Whenever}] = dets:lookup(?CODE_TEMPLATES, whenever),
+    [{whenever, Whenever}] = ets:lookup(?CODE_TEMPLATES, whenever),
     Whenever_Length = length(Whenever),
 
     Code =
@@ -4575,9 +4573,9 @@ create_code(sql = Rule) ->
 
 create_code(sql_list = Rule) ->
     ?CREATE_CODE_START,
-    [{extra, Extra}] = dets:lookup(?CODE_TEMPLATES, extra),
+    [{extra, Extra}] = ets:lookup(?CODE_TEMPLATES, extra),
     Extra_Length = length(Extra),
-    [{sql, Sql}] = dets:lookup(?CODE_TEMPLATES, sql),
+    [{sql, Sql}] = ets:lookup(?CODE_TEMPLATES, sql),
     Sql_Length = length(Sql),
 
     Code =
@@ -4726,7 +4724,7 @@ create_code(string = Rule) ->
 
 create_code(system_privilege = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
 
     Code =
@@ -4774,7 +4772,7 @@ create_code(system_privilege = Rule) ->
 
 create_code(system_privilege_list = Rule) ->
     ?CREATE_CODE_START,
-    [{system_privilege, System_Privilege}] = dets:lookup(?CODE_TEMPLATES, system_privilege),
+    [{system_privilege, System_Privilege}] = ets:lookup(?CODE_TEMPLATES, system_privilege),
     System_Privilege_Length = length(System_Privilege),
 
     Code =
@@ -4821,9 +4819,9 @@ create_code(system_privilege_list = Rule) ->
 
 create_code(table = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
-    [{parameter, Parameter}] = dets:lookup(?CODE_TEMPLATES, parameter),
+    [{parameter, Parameter}] = ets:lookup(?CODE_TEMPLATES, parameter),
     Parameter_Length = length(Parameter),
 
     Code =
@@ -4869,11 +4867,11 @@ create_code(table = Rule) ->
 
 create_code(table_constraint_def = Rule) ->
     ?CREATE_CODE_START,
-    [{column_commalist, Column_Commalist}] = dets:lookup(?CODE_TEMPLATES, column_commalist),
+    [{column_commalist, Column_Commalist}] = ets:lookup(?CODE_TEMPLATES, column_commalist),
     Column_Commalist_Length = length(Column_Commalist),
-    [{search_condition, Search_Condition}] = dets:lookup(?CODE_TEMPLATES, search_condition),
+    [{search_condition, Search_Condition}] = ets:lookup(?CODE_TEMPLATES, search_condition),
     Search_Condition_Length = length(Search_Condition),
-    [{table, Table}] = dets:lookup(?CODE_TEMPLATES, table),
+    [{table, Table}] = ets:lookup(?CODE_TEMPLATES, table),
     Table_Length = length(Table),
 
     Code =
@@ -4922,17 +4920,17 @@ create_code(table_constraint_def = Rule) ->
 
 create_code(table_exp = Rule) ->
     ?CREATE_CODE_START,
-    [{column_ref_commalist, Column_Ref_Commalist}] = dets:lookup(?CODE_TEMPLATES, column_ref_commalist),
+    [{column_ref_commalist, Column_Ref_Commalist}] = ets:lookup(?CODE_TEMPLATES, column_ref_commalist),
     Column_Ref_Commalist_Length = length(Column_Ref_Commalist),
-    [{from_column, From_Column}] = dets:lookup(?CODE_TEMPLATES, from_column),
+    [{from_column, From_Column}] = ets:lookup(?CODE_TEMPLATES, from_column),
     From_Column_Length = length(From_Column),
-    [{hierarchical_query_clause, Hierarchical_Query_Clause}] = dets:lookup(?CODE_TEMPLATES, hierarchical_query_clause),
+    [{hierarchical_query_clause, Hierarchical_Query_Clause}] = ets:lookup(?CODE_TEMPLATES, hierarchical_query_clause),
     Hierarchical_Query_Clause_Length = length(Hierarchical_Query_Clause),
-    [{order_by_clause, Order_By_Clause}] = dets:lookup(?CODE_TEMPLATES, order_by_clause),
+    [{order_by_clause, Order_By_Clause}] = ets:lookup(?CODE_TEMPLATES, order_by_clause),
     Order_By_Clause_Length = length(Order_By_Clause),
-    [{search_condition, Search_Condition}] = dets:lookup(?CODE_TEMPLATES, search_condition),
+    [{search_condition, Search_Condition}] = ets:lookup(?CODE_TEMPLATES, search_condition),
     Search_Condition_Length = length(Search_Condition),
-    [{where_clause, Where_Clause}] = dets:lookup(?CODE_TEMPLATES, where_clause),
+    [{where_clause, Where_Clause}] = ets:lookup(?CODE_TEMPLATES, where_clause),
     Where_Clause_Length = length(Where_Clause),
 
     Code =
@@ -5001,7 +4999,7 @@ create_code(table_exp = Rule) ->
 
 create_code(table_name = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
 
     Code =
@@ -5033,9 +5031,9 @@ create_code(table_name = Rule) ->
 
 create_code(table_ref = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
-    [{query_exp, Query_Exp}] = dets:lookup(?CODE_TEMPLATES, query_exp),
+    [{query_exp, Query_Exp}] = ets:lookup(?CODE_TEMPLATES, query_exp),
     Query_Exp_Length = length(Query_Exp),
 
     Code =
@@ -5061,7 +5059,7 @@ create_code(table_ref = Rule) ->
 
 create_code(target_commalist = Rule) ->
     ?CREATE_CODE_START,
-    [{target, Target}] = dets:lookup(?CODE_TEMPLATES, target),
+    [{target, Target}] = ets:lookup(?CODE_TEMPLATES, target),
     Target_Length = length(Target),
 
     Code =
@@ -5138,7 +5136,7 @@ create_code(tbl_type = Rule) ->
 
 create_code(test_for_null = Rule) ->
     ?CREATE_CODE_START,
-    [{scalar_exp, Scalar_Exp}] = dets:lookup(?CODE_TEMPLATES, scalar_exp),
+    [{scalar_exp, Scalar_Exp}] = ets:lookup(?CODE_TEMPLATES, scalar_exp),
     Scalar_Exp_Length = length(Scalar_Exp),
 
     Code =
@@ -5167,7 +5165,7 @@ create_code(test_for_null = Rule) ->
 
 create_code(truncate_table = Rule) ->
     ?CREATE_CODE_START,
-    [{table_name, Table_Name}] = dets:lookup(?CODE_TEMPLATES, table_name),
+    [{table_name, Table_Name}] = ets:lookup(?CODE_TEMPLATES, table_name),
     Table_Name_Length = length(Table_Name),
 
     Code =
@@ -5199,15 +5197,15 @@ create_code(truncate_table = Rule) ->
 
 create_code(update_statement = Rule) ->
     ?CREATE_CODE_START,
-    [{assignment_commalist, Assignment_Commalist}] = dets:lookup(?CODE_TEMPLATES, assignment_commalist),
+    [{assignment_commalist, Assignment_Commalist}] = ets:lookup(?CODE_TEMPLATES, assignment_commalist),
     Assignment_Commalist_Length = length(Assignment_Commalist),
-    [{cursor, Cursor}] = dets:lookup(?CODE_TEMPLATES, cursor),
+    [{cursor, Cursor}] = ets:lookup(?CODE_TEMPLATES, cursor),
     Cursor_Length = length(Cursor),
-    [{returning, Returning}] = dets:lookup(?CODE_TEMPLATES, returning),
+    [{returning, Returning}] = ets:lookup(?CODE_TEMPLATES, returning),
     Returning_Length = length(Returning),
-    [{table, Table}] = dets:lookup(?CODE_TEMPLATES, table),
+    [{table, Table}] = ets:lookup(?CODE_TEMPLATES, table),
     Table_Length = length(Table),
-    [{where_clause, Where_Clause}] = dets:lookup(?CODE_TEMPLATES, where_clause),
+    [{where_clause, Where_Clause}] = ets:lookup(?CODE_TEMPLATES, where_clause),
     Where_Clause_Length = length(Where_Clause),
 
     Code =
@@ -5244,9 +5242,9 @@ create_code(update_statement = Rule) ->
 
 create_code(user_opt = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
-    [{quota, Quota}] = dets:lookup(?CODE_TEMPLATES, quota),
+    [{quota, Quota}] = ets:lookup(?CODE_TEMPLATES, quota),
     Quota_Length = length(Quota),
 
     Code =
@@ -5289,7 +5287,7 @@ create_code(user_opt = Rule) ->
 
 create_code(user_role = Rule) ->
     ?CREATE_CODE_START,
-    [{role_list, Role_List}] = dets:lookup(?CODE_TEMPLATES, role_list),
+    [{role_list, Role_List}] = ets:lookup(?CODE_TEMPLATES, role_list),
     Role_List_Length = length(Role_List),
 
     Code =
@@ -5320,11 +5318,11 @@ create_code(user_role = Rule) ->
 
 create_code(view_def = Rule) ->
     ?CREATE_CODE_START,
-    [{column_commalist, Column_Commalist}] = dets:lookup(?CODE_TEMPLATES, column_commalist),
+    [{column_commalist, Column_Commalist}] = ets:lookup(?CODE_TEMPLATES, column_commalist),
     Column_Commalist_Length = length(Column_Commalist),
-    [{query_spec, Query_Spec}] = dets:lookup(?CODE_TEMPLATES, query_spec),
+    [{query_spec, Query_Spec}] = ets:lookup(?CODE_TEMPLATES, query_spec),
     Query_Spec_Length = length(Query_Spec),
-    [{table, Table}] = dets:lookup(?CODE_TEMPLATES, table),
+    [{table, Table}] = ets:lookup(?CODE_TEMPLATES, table),
     Table_Length = length(Table),
 
     Code =
@@ -5365,7 +5363,7 @@ create_code(view_def = Rule) ->
 
 create_code(when_action = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = dets:lookup(?CODE_TEMPLATES, name),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
 
     Code =
         [
@@ -5385,7 +5383,7 @@ create_code(when_action = Rule) ->
 
 create_code(whenever = Rule) ->
     ?CREATE_CODE_START,
-    [{when_action, When_Action}] = dets:lookup(?CODE_TEMPLATES, when_action),
+    [{when_action, When_Action}] = ets:lookup(?CODE_TEMPLATES, when_action),
     When_Action_Length = length(When_Action),
 
     Code =
@@ -5411,7 +5409,7 @@ create_code(whenever = Rule) ->
 
 create_code(where_clause = Rule) ->
     ?CREATE_CODE_START,
-    [{search_condition, Search_Condition}] = dets:lookup(?CODE_TEMPLATES, search_condition),
+    [{search_condition, Search_Condition}] = ets:lookup(?CODE_TEMPLATES, search_condition),
     Search_Condition_Length = length(Search_Condition),
 
     Code =
@@ -5465,7 +5463,7 @@ file_create_ct_all(Type, CompleteSemicolon, CompactedDetailed, [Rule | Rules]) -
     file_create_ct_all(Type, CompleteSemicolon, CompactedDetailed, Rules).
 
 file_create_ct(Type, CompleteSemicolon, CompactedDetailed, Rule) ->
-    [{Rule, Code}] = dets:lookup(?CODE_TEMPLATES, Rule),
+    [{Rule, Code}] = ets:lookup(?CODE_TEMPLATES, Rule),
 
     CodeLength = length(Code),
     RuleString = atom_to_list(Rule),
@@ -5618,7 +5616,7 @@ file_create_eunit_all(Type, CompleteSemicolon, [Rule | Rules]) ->
     file_create_eunit_all(Type, CompleteSemicolon, Rules).
 
 file_create_eunit(Type, CompleteSemicolon, Rule) ->
-    [{Rule, Code}] = dets:lookup(?CODE_TEMPLATES, Rule),
+    [{Rule, Code}] = ets:lookup(?CODE_TEMPLATES, Rule),
 
     RuleStrimg = atom_to_list(Rule),
 
@@ -5660,12 +5658,21 @@ file_write_eunit(CompleteSemicolon, File, [H | T]) ->
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 store_code(Rule, Code, Max, Strict) ->
-%   erlang:display(io:format("store Code         ===> ~12.. B rule: ~s ", [length(Code), atom_to_list(Rule)])),
+    case ?LOGGING of
+        true ->
+            {total_heap_size, MSize} = erlang:process_info(whereis(code_server), total_heap_size),
+            erlang:display(io:format("store total_heap   ===> ~12.. B rule: ~s ", [MSize, atom_to_list(Rule)])),
+            erlang:display(io:format("store Code         ===> ~12.. B rule: ~s ", [length(Code), atom_to_list(Rule)]));
+        _ -> ok
+    end,
 
     case Max == 0 of
         true ->
-%           erlang:display(io:format("store CodeNew      ===> ~12.. B rule: ~s ", [0, atom_to_list(Rule)])),
-            ?debugFmt("~ncode lines         ===> ~12.. B rule: ~s ~n", [0, atom_to_list(Rule)]);
+            case ?LOGGING of
+                true ->
+                    erlang:display(io:format("store CodeNew      ===> ~12.. B rule: ~s ", [0, atom_to_list(Rule)]));
+                _ -> ok
+            end;
         _ ->
             CodeUnique = ordsets:to_list(ordsets:from_list(Code)),
             CodeUnique_Length = length(CodeUnique),
@@ -5675,7 +5682,7 @@ store_code(Rule, Code, Max, Strict) ->
                                         lists:sublist(CodeUniqueSorted, 1, Max);
                                     _ -> CodeUnique
                                 end,
-            CodeTotal = case dets:lookup(?CODE_TEMPLATES, Rule) of
+            CodeTotal = case ets:lookup(?CODE_TEMPLATES, Rule) of
                             [{Rule, CodeOld}] ->
                                 lists:sort(?F_RANDOM, ordsets:to_list(ordsets:from_list(lists:append([CodeOld, CodeUniqueLimited]))));
                             _ -> CodeUniqueLimited
@@ -5686,7 +5693,16 @@ store_code(Rule, Code, Max, Strict) ->
                               [lists:nth(rand:uniform(CodeTotal_Length), CodeTotal) || _ <- lists:seq(1, Max)];
                           _ -> CodeTotal
                       end,
-            dets:insert(?CODE_TEMPLATES, {Rule, CodeNew}),
-%           erlang:display(io:format("store CodeNew      ===> ~12.. B rule: ~s ", [length(CodeNew), atom_to_list(Rule)])),
-            ?debugFmt("~ncode lines         ===> ~12.. B rule: ~s ~n", [length(CodeNew), atom_to_list(Rule)])
+            ets:insert(?CODE_TEMPLATES, {Rule, CodeNew}),
+            case ?LOGGING of
+                true ->
+                    erlang:display(io:format("store CodeNew      ===> ~12.. B rule: ~s ", [length(CodeNew), atom_to_list(Rule)]));
+                _ -> ok
+            end
+    end,
+
+    case ?LOGGING of
+        true ->
+            erlang:display(io:format("store table size   ===> ~12.. B rule: ~s ", [ets:info(?CODE_TEMPLATES, memory), atom_to_list(Rule)]));
+        _ -> ok
     end.

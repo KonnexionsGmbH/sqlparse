@@ -186,6 +186,8 @@ UNION ALL
 "SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2 name_alias USING (name_column_1, name_column_2)".
 "SELECT DISTINCT * FROM name_table_1 PARTITION BY 1 NATURAL FULL JOIN name_table_2 name_alias USING (name_column_1, name_column_2)".
 
+"SELECT DISTINCT * FROM name_table_1 PARTITION BY (Select * From dual) NATURAL FULL JOIN name_table_2 name_alias USING (name_column_1, name_column_2)".
+
 % where ------------------------------------------------------------------------
 
 "SELECT * FROM name_table WHERE name_column_1 = name_column_2".

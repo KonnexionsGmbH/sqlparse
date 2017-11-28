@@ -2213,7 +2213,10 @@ fold(FType, Fun, Ctx, Lvl, {prior, Field} = ST) ->
                   top_down -> NewCtx1;
                   bottom_up -> Fun(ST, NewCtx1)
               end,
-    RT = {lists:flatten(["prior ", FieldsStr]), NewCtx2},
+    RT = {lists:flatten(["prior ", case string:sub_string(FieldsStr, 1, 7) == "select " of
+                                       true -> lists:append(["(", FieldsStr, ")"]);
+                                       _ -> FieldsStr
+                                   end]), NewCtx2},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
 
@@ -3000,7 +3003,5 @@ columns_join([Head | Tail], Separator, Result) ->
 
 decompose_tuple({_, _, X}) when is_tuple(X) ->
     decompose_tuple(X);
-decompose_tuple({_, _, X}) when is_atom(X) ->
-    X;
-decompose_tuple({_, _, X}) ->
+decompose_tuple({_, _, X}) when is_binary(X) ->
     binary_to_list(X).

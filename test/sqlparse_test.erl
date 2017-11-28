@@ -173,10 +173,13 @@ eunit_test_() ->
     ?debugFmt(?MODULE_STRING ++ ":eunit_test_ ===>~nCwd: ~p~n", [Cwd]),
     RootPath = lists:reverse(filename:split(Cwd)),
     ?debugFmt(?MODULE_STRING ++ ":eunit_test_ ===>~nRootPath: ~p~n", [RootPath]),
-    TestDir = filename:join(lists:reverse(["test" | RootPath])),
-    ?debugFmt(?MODULE_STRING ++ ":eunit_test_ ===>~nTestDir: ~p~n", [TestDir]),
-    TestFiles = lists:sort([filename:join(TestDir, T)
-        || T <- filelib:wildcard(WCard, TestDir)]),
+    TestDir1 = filename:join(lists:reverse(["test" | RootPath])),
+    ?debugFmt(?MODULE_STRING ++ ":eunit_test_ ===>~nTestDir1: ~p~n", [TestDir1]),
+    TestDir2 = filename:join(lists:reverse(["eunit", "generated", "test"] ++ RootPath)),
+    ?debugFmt(?MODULE_STRING ++ ":eunit_test_ ===>~nTestDir2: ~p~n", [TestDir2]),
+    TestFiles = lists:sort([filename:join(TestDir1, T) || T <- filelib:wildcard(WCard, TestDir1)]
+    ++ [filename:join(TestDir2, T) || T <- filelib:wildcard(WCard, TestDir2)]
+    ),
     ?debugFmt(?MODULE_STRING ++ ":eunit_test_ ===>~nTestFiles: ~p~n", [TestFiles]),
     group_gen(TestFiles, Logs).
 

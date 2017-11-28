@@ -31,7 +31,7 @@ IF "%1" == "" (
 > stress_test.log (
 
     ECHO =======================================================================
-    ECHO %time% Start run - in total %NO_RUNS%
+    ECHO !time! Start run - in total %NO_RUNS%
 
     IF EXIST _build\test\logs (
         ECHO "Deleting _build\test\logs"
@@ -57,18 +57,18 @@ IF "%1" == "" (
 
     FOR /L %%G IN (1,1,%NO_RUNS%) DO (
        ECHO -----------------------------------------------------------------------
-       ECHO %time% %%G. Step: gen_tests.bat
+       ECHO !time! %%G. Step: gen_tests.bat
        CALL test\gen_tests.bat
 
        MD tmp\backup\%%G
        COPY test\*_SUITE.erl tmp\backup\%%G
 
-       ECHO %time% %%G. Step: rebar3 ct
+       ECHO !time! %%G. Step: rebar3 ct
        CALL rebar3 ct
     )
 
     ECHO -----------------------------------------------------------------------
-    ECHO %time% End   run
+    ECHO !time! End   run
     ECHO =======================================================================
 
 )

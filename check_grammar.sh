@@ -5,7 +5,7 @@ sleep .1
 
 # ----------------------------------------------------------------------------
 #
-# check_grammar.bat: SQL - checking grammar definition with BNFC.
+# check_grammar.sh: SQL - checking grammar definition with BNFC.
 #
 # Copyright (c) 2012-17 K2 Informatics GmbH.  All Rights Reserved.
 #

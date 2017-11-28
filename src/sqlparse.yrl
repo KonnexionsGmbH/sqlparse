@@ -552,8 +552,8 @@ drop_user_def -> DROP USER NAME CASCADE                                         
 user_list -> NAME                                                                               : [unwrap_bin('$1')].
 user_list -> NAME ',' user_list                                                                 : [unwrap_bin('$1') | '$3'].
 
-proxy_clause -> GRANT CONNECT THROUGH ENTERPRISE USERS                                          : {'grant connect', 'enterprise users'}.
-proxy_clause -> GRANT CONNECT THROUGH db_user_proxy                                             : {'grant connect', '$4'}.
+proxy_clause -> GRANT  CONNECT THROUGH ENTERPRISE USERS                                         : {'grant connect', 'enterprise users'}.
+proxy_clause -> GRANT  CONNECT THROUGH db_user_proxy                                            : {'grant connect', '$4'}.
 proxy_clause -> REVOKE CONNECT THROUGH ENTERPRISE USERS                                         : {'revoke connect', 'enterprise users'}.
 proxy_clause -> REVOKE CONNECT THROUGH db_user_proxy                                            : {'revoke connect', '$4'}.
 

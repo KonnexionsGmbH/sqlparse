@@ -4228,25 +4228,25 @@ create_code(schema = Rule) ->
                     1 -> lists:append([
                         " ",
                         lists:nth(rand:uniform(Schema_Element_Length), Schema_Element),
-                        " ",
+                        ";",
                         lists:nth(rand:uniform(Schema_Element_Length), Schema_Element),
-                        " ",
+                        ";",
                         lists:nth(rand:uniform(Schema_Element_Length), Schema_Element),
-                        " ",
+                        ";",
                         lists:nth(rand:uniform(Schema_Element_Length), Schema_Element)
                     ]);
                     2 -> lists:append([
                         " ",
                         lists:nth(rand:uniform(Schema_Element_Length), Schema_Element),
-                        " ",
+                        ";",
                         lists:nth(rand:uniform(Schema_Element_Length), Schema_Element),
-                        " ",
+                        ";",
                         lists:nth(rand:uniform(Schema_Element_Length), Schema_Element)
                     ]);
                     3 -> lists:append([
                         " ",
                         lists:nth(rand:uniform(Schema_Element_Length), Schema_Element),
-                        " ",
+                        ";",
                         lists:nth(rand:uniform(Schema_Element_Length), Schema_Element)
                     ]);
                     4 ->

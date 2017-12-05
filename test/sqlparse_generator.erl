@@ -108,6 +108,7 @@ create_code() ->
 %% commit_statement ::= 'COMMIT' ( 'WORK' )?
 %%
 %% ==> manipulative_statement              == manipulative_statement = ... commit_statement ...
+%% ==> sql                                 == sql = ... manipulative_statement ...
 %%
 %% COMPARISON ::= '!=' | '^=' | '<>' | '<' | '>' | '<=' | '>='
 %%
@@ -115,6 +116,9 @@ create_code() ->
 %% {"^(?i)(CORR)$",            'FUNS'},
 %% {"^(?i)(COUNT)$",           'FUNS'},
 %% ...
+%%
+%% grantee_revokee ::= 'PUBLIC'
+%%                   | NAME
 %%
 %% HINT ::= '/*' [^\*\/]* '*/'
 %%
@@ -138,14 +142,29 @@ create_code() ->
 %% ==> column                              == column = ... NAME ...
 %% ==> column_ref                          == column_ref = ... NAME ...
 %% ==> from_column                         == from_column = ... table_ref ...
-%% ==> on_obj_clause                       == on_obj_clause = ... 'ON' 'DIRECTORY' NAME ...
+%% ==> grantee_revokee                     == grantee_revokee = NAME ...
 %% ==> scalar_exp                          == scalar_exp = ... scalar_sub_exp ...
 %% ==> scalar_sub_exp                      == scalar_sub_exp = ... column_ref ...
+%% ==> system_privilege                    == system_privilege = ... NAME
 %% ==> table                               == table = ... NAME ...
 %% ==> table_ref                           == table_ref = ... table ...
 %% ==> target                              == target = ... NAME ...
 %% ==> tbl_type                            == tbl_type = ... NAME ...
 %%
+%% object_privilege ::= 'ALL'
+%%                    | 'ALTER'
+%%                    | 'DELETE'
+%%                    | 'EXECUTE'
+%%                    | 'INDEX'
+%%                    | 'INSERT'
+%%                    | 'REFERENCES'
+%%                    | 'SELECT'
+%%                    | 'UPDATE'
+%%
+%% object_with_grant_option ::= 'WITH' ( 'GRANT' | 'HIERARCHY' ) 'OPTION'
+%%
+%% object_with_grant_option ::= ( 'CASCADE' 'CONSTRAINTS' ) | 'FORCE'
+
 %% outer_join_type ::= ( 'FULL' ( 'OUTER' )? )
 %%                   | ( 'LEFT' ( 'OUTER' )? )
 %%                   | ( 'RIGHT' ( 'OUTER' )? )
@@ -160,6 +179,7 @@ create_code() ->
 %% rollback_statement ::= 'ROLLBACK' ( 'WORK' )?
 %%
 %% ==> manipulative_statement              == manipulative_statement = ... rollback_statement ...
+%% ==> sql                                 == sql = ... manipulative_statement ...
 %%
 %% STRING ::= ( 'fun' [A-Za-z0-9,_]* [.]* '->' [.]* 'end.' )
 %%          | ( 'fun\s' ['A-Za-z0-9_]+ ':' ['A-Za-z0-9_]+ '/' [0-9]+ '.' )
@@ -176,6 +196,15 @@ create_code() ->
 %% ==> table                               == table = ... STRING ...
 %% ==> table_ref                           == table_ref = ... table ...
 %%
+%% system_privilege ::=  'ADMIN'
+%%                    |  'ALL' 'PRIVILEGES'
+%%                    | ( ( 'ALTER' | 'CREATE' | 'DROP' ) 'ANY' ( 'INDEX' | ( 'MATERIALIZED' 'VIEW' ) | 'TABLE' | 'VIEW' ) )
+%%                    | ( 'CREATE' ( ( 'MATERIALIZED' 'VIEW' ) | 'TABLE' | 'VIEW' ) )
+%%                    | ( ( 'DELETE' | 'INSERT' | 'SELECT' | 'UPDATE' ) 'ANY' 'TABLE' )
+%%                    | NAME
+%%
+%% system_with_grant_option ::= 'WITH' ( 'ADMIN' | 'DELEGATE' ) 'OPTION'
+%%
 %% tbl_scope ::= 'LOCAL'
 %%             | 'CLUSTER'
 %%             | 'SCHEMA'
@@ -184,11 +213,6 @@ create_code() ->
 %%            | 'ORDERED_SET'
 %%            | 'BAG'
 %% ==            | NAME
-%%
-%% with_grant_option ::= 'WITH' ( 'GRANT' | 'NAME' | 'HIERARCHY' ) 'OPTION'
-%%
-%% with_revoke_option ::= ( 'CASCADE' 'CONSTRAINTS' )
-%%                      | 'FORCE'
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -199,18 +223,23 @@ create_code() ->
     create_code(commit_statement),
     create_code(comparison),
     create_code(funs),
+    create_code(grantee_revokee),
     create_code(hint),
     create_code(intnum),
     create_code(json),
     create_code(name),
+    create_code(object_privilege),
+    create_code(object_with_grant_option),
+    create_code(object_with_revoke_option),
     create_code(outer_join_type),
     create_code(parameter),
+    create_code(referenceExamples),
     create_code(rollback_statement),
     create_code(string),
+    create_code(system_privilege),
+    create_code(system_with_grant_option),
     create_code(tbl_scope),
     create_code(tbl_type),
-    create_code(with_grant_option),
-    create_code(with_revoke_option),
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Level 02
@@ -231,27 +260,33 @@ create_code() ->
 %%
 %% ==> manipulative_statement              == manipulative_statement = ... create_role_def ...
 %% ==> schema_element                      == schema_element = ... create_role_def ...
+%% ==> sql                                 == sql = ... manipulative_statement ...
 %%
 %% cursor ::= NAME
 %%
 %% drop_role_def ::= 'DROP' 'ROLE' NAME
 %%
 %% ==> manipulative_statement              == manipulative_statement = ... drop_role_def ...
+%% ==> sql                                 == sql = ... manipulative_statement ...
 %%
 %% drop_user_def ::= 'DROP' 'USER' NAME ( 'CASCADE' )?
 %%
 %% ==> manipulative_statement              == manipulative_statement = ... drop_user_def ...
+%% ==> sql                                 == sql = ... manipulative_statement ...
 %%
 %% extra ::= NAME  ';'
 %%
-%% grantee ::= 'PUBLIC'
-%%           | ( NAME ( 'IDENTIFIED' 'BY' NAME )? )
+%% grantee_identified_by ::= NAME 'IDENTIFIED' 'BY' STRING
+%%
+%% grantee_revokee_commalist ::= grantee_revokee ( ',' grantee_revokee )*
 %%
 %% identified ::= IDENTIFIED ( ( 'BY' NAME ) | ( EXTERNALLY ( 'AS' NAME ) ) | ( 'GLOBALLY' ( 'AS' NAME )? ) )
 %%
 %% ==> spec_item                           == spec_item = ... identified ...
 %%
 %% index_name ::= ( NAME '.' )? NAME
+%%
+%% object_privilege_list ::= object_privilege ( ',' object_privilege )*
 %%
 %% quota ::= ( 'QUOTA' 'UNLIMITED' 'ON' NAME )
 %%         | ( 'QUOTA' INTNUM ( NAME )? 'ON' NAME )
@@ -263,12 +298,7 @@ create_code() ->
 %%
 %% sgn_num ::= ( '-' )? INTNUM
 %%
-%% system_privilege ::= 'SELECT'
-%%                    | 'UPDATE'
-%%                    | 'DELETE'
-%%                    | 'INSERT'
-%%                    | 'DROP'
-%%                    | ( NAME ( NAME ( NAME ( NAME )? )? )? )
+%% system_privilege_list ::= system_privilege ( ',' system_privilege )*
 %%
 %% table_name ::= ( ( NAME '.' )? NAME '.' )? NAME
 %%
@@ -286,13 +316,15 @@ create_code() ->
     create_code(drop_role_def),
     create_code(drop_user_def),
     create_code(extra),
-    create_code(grantee),
+    create_code(grantee_identified_by),
+    create_code(grantee_revokee_commalist),
     create_code(identified),
     create_code(index_name),
+    create_code(object_privilege_list),
     create_code(quota),
     create_code(role_list),
     create_code(sgn_num),
-    create_code(system_privilege),
+    create_code(system_privilege_list),
     create_code(table_name),
     create_code(when_action),
 
@@ -303,6 +335,7 @@ create_code() ->
 %% close_statement ::= 'CLOSE' cursor
 %%
 %% ==> manipulative_statement              == manipulative_statement = ... close_statement ...
+%% ==> sql                                 == sql = ... manipulative_statement ...
 %%
 %% data_type ::= STRING
 %%              | ( NAME ( '(' sgn_num ')' )? )
@@ -311,6 +344,7 @@ create_code() ->
 %% open_statement ::= 'OPEN' cursor
 %%
 %% ==> manipulative_statement              == manipulative_statement = ... open_statement ...
+%% ==> sql                                 == sql = ... manipulative_statement ...
 %%
 %% parameter_ref ::= parameter ( ( 'INDICATOR' )? parameter )?
 %%
@@ -320,22 +354,18 @@ create_code() ->
 %% ==> scalar_sub_exp                      == scalar_sub_exp = ... atom ...
 %% ==> target                              == target = ... parameter_ref ...
 %%
-%% system_privilege_list ::= ( system_privilege ( ',' system_privilege )* )
-%%                         | ( 'ALL' ( 'PRIVILEGES' )? )
-%%
 %% table ::= ( ( NAME '.' )? NAME ( NAME )? )
 %%         | STRING
 %%         | ( parameter ( NAME )? )
 %%
 %% ==> from_column                         == from_column = ... table_ref ...
 %% ==> join_ref                            == join_ref = ... table ...
-%% ==> on_obj_clause                       == on_obj_clause = ... 'ON' table ...
-%% ==> on_obj_clause                       == on_obj_clause = ... 'ON' 'JAVA' ( 'SOURCE' | 'RESOURCE' ) table ...
 %% ==> table_ref                           == table_ref = ... table ...
 %%
 %% truncate_table ::= 'TRUNCATE' 'TABLE' table_name ( ( 'PRESERVE' | 'PURGE' ) 'MATERIALIZED' 'VIEW' 'LOG' )? ( ( 'DROP' | 'REUSE' ) 'STORAGE' )?
 %%
 %% ==> manipulative_statement              == manipulative_statement = ... truncate_table ...
+%% ==> sql                                 == sql = ... manipulative_statement ...
 %%
 %% user_opt ::= ( ( 'DEFAULT' | 'TEMPORARY' ) 'TABLESPACE' NAME )
 %%            | ( quota  ( quota )* )
@@ -362,7 +392,6 @@ create_code() ->
     create_code(data_type),
     create_code(open_statement),
     create_code(parameter_ref),
-    create_code(system_privilege_list),
     create_code(table),
     create_code(truncate_table),
     create_code(user_opt),
@@ -379,23 +408,26 @@ create_code() ->
 %%
 %% ==> manipulative_statement              == manipulative_statement = ... create_index_def ...
 %% ==> schema_element                      == schema_element = ... create_index_def ...
+%% ==> sql                                 == sql = ... manipulative_statement ...
 %%
 %% create_user_def ::= 'CREATE' 'USER' NAME identified ( user_opt )*
 %%
 %% ==> manipulative_statement              == manipulative_statement = ... create_user_def ...
 %% ==> schema_element                      == schema_element = ... create_user_def ...
+%% ==> sql                                 == sql = ... manipulative_statement ...
 %%
 %% drop_index_def ::= 'DROP' 'INDEX' ( index_name )? 'FROM' table
 %%
 %% ==> manipulative_statement              == manipulative_statement = ... drop_index_def ...
+%% ==> sql                                 == sql = ... manipulative_statement ...
 %%
 %% drop_table_def ::= 'DROP' ( NAME )? 'TABLE' ( 'IF' 'EXISTS' )? ( table ( ',' table )* ) ( 'RESTRICT' | 'CASCADE' )?
 %%
 %% ==> manipulative_statement              == manipulative_statement = ... drop_table_def ...
+%% ==> sql                                 == sql = ... manipulative_statement ...
 %%
 %% on_obj_clause ::= ( 'ON' table )
 %%                 | ( 'ON' 'DIRECTORY' NAME )
-%%                 | ( 'ON' 'JAVA' ( 'SOURCE' | 'RESOURCE' ) table )
 %%
 %% proxy_with ::= ( 'WITH' 'NO' 'ROLES' )
 %%              | ( 'WITH' 'ROLE' role_list )
@@ -421,13 +453,21 @@ create_code() ->
 %% db_user_proxy ::= proxy_with
 %%                 | ( ( proxy_with )? 'AUTHENTICATION' 'REQUIRED' )
 %%
-%% grant_def ::= 'GRANT' system_privilege_list ( on_obj_clause )? 'TO' grantee ( ',' grantee )* ( with_grant_option )?
+%% grant_def ::= 'GRANT' (
+%%                         ( ( ( 'ALL' 'PRIVILEGES' ) | ( object_privilege (',' object_privilege )* ) ) on_obj_clause 'TO' ( grantee_identified_by | ( grantee_revokee ( ',' grantee_revokee )* ) ) ( 'WITH' ( 'GRANT' | 'HIERARCHY' ) 'OPTION' )? )
+%%                       | ( ( ( 'ALL' 'PRIVILEGES' ) | ( system_privilege (',' system_privilege )* ) )               'TO' ( grantee_identified_by | ( grantee_revokee ( ',' grantee_revokee )* ) ) ( 'WITH' ( 'ADMIN' | 'DELEGATE'  ) 'OPTION' )? )
+%%                       )
 %%
 %% ==> manipulative_statement              == manipulative_statement = ... grant_def ...
+%% ==> sql                                 == sql = ... manipulative_statement ...
 %%
-%% revoke_def ::= 'REVOKE' system_privilege_list ( on_obj_clause )? 'FROM' grantee ( ',' grantee )* ( with_revoke_option )?
+%% revoke_def ::= 'REVOKE' (
+%%                           ( ( ( 'ALL' 'PRIVILEGES' ) | ( object_privilege (',' object_privilege )* ) ) on_obj_clause 'FROM' grantee_revokee ( ',' grantee_revokee )* ( ( 'CASCADE' 'CONSTRAINTS' ) | 'FORCE' )? )
+%%                         | ( ( ( 'ALL' 'PRIVILEGES' ) | ( system_privilege (',' system_privilege )* ) )               'FROM' grantee_revokee ( ',' grantee_revokee )* )
+%%                         )
 %%
 %% ==> manipulative_statement              == manipulative_statement = ... revoke_def ...
+%% ==> sql                                 == sql = ... manipulative_statement ...
 %%
 %% target_commalist ::= target ( ',' target )*
 %%
@@ -447,6 +487,7 @@ create_code() ->
 %% fetch_statement ::= 'FETCH' cursor 'INTO' target_commalist
 %%
 %% ==> manipulative_statement              == manipulative_statement = ... fetch_statement ...
+%% ==> sql                                 == sql = ... manipulative_statement ...
 %%
 %% proxy_clause ::= ( 'GRANT' | 'REVOKE' ) 'CONNECT' 'THROUGH' ( ( 'ENTERPRISE' 'USERS' ) | db_user_proxy )
 %%
@@ -466,6 +507,7 @@ create_code() ->
 %%                  | ( 'ALTER' 'USER' NAME NAME NAME )
 %%
 %% ==> manipulative_statement              == manipulative_statement = ... alter_user_def ...
+%% ==> sql                                 == sql = ... manipulative_statement ...
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -537,7 +579,6 @@ create_code() ->
 %%
 %% on_obj_clause ::= ( 'ON' table )
 %%                 | ( 'ON' 'DIRECTORY' NAME )
-%%                 | ( 'ON' 'JAVA' ( 'SOURCE' | 'RESOURCE' ) table )
 %%
 %% parameter ::= PARAMETER
 %%
@@ -2683,56 +2724,78 @@ create_code(funs = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% grant_def ::= 'GRANT' system_privilege_list ( on_obj_clause )? 'TO' grantee ( ',' grantee )* ( with_grant_option )?
+%% grant_def ::= 'GRANT' (
+%%                         ( ( ( 'ALL' 'PRIVILEGES' ) | ( object_privilege (',' object_privilege )* ) ) on_obj_clause 'TO' ( grantee_identified_by | ( grantee_revokee ( ',' grantee_revokee )* ) ) ( 'WITH' ( 'GRANT' | 'HIERARCHY' ) 'OPTION' )? )
+%%                       | ( ( ( 'ALL' 'PRIVILEGES' ) | ( system_privilege (',' system_privilege )* ) )               'TO' ( grantee_identified_by | ( grantee_revokee ( ',' grantee_revokee )* ) ) ( 'WITH' ( 'ADMIN' | 'DELEGATE'  ) 'OPTION' )? )
+%%                       )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(grant_def = Rule) ->
     ?CREATE_CODE_START,
-    [{grantee, Grantee}] = ets:lookup(?CODE_TEMPLATES, grantee),
-    Grantee_Length = length(Grantee),
+    [{grantee_identified_by, Grantee_Identified_By}] = ets:lookup(?CODE_TEMPLATES, grantee_identified_by),
+    Grantee_Identified_By_Length = length(Grantee_Identified_By),
+    [{grantee_revokee_commalist, Grantee_Revokee_Commalist}] = ets:lookup(?CODE_TEMPLATES, grantee_revokee_commalist),
+    Grantee_Revokee_Commalist_Length = length(Grantee_Revokee_Commalist),
+    [{object_privilege_list, Object_Privilege_List}] = ets:lookup(?CODE_TEMPLATES, object_privilege_list),
+    Object_Privilege_List_Length = length(Object_Privilege_List),
+    [{object_with_grant_option, Object_With_Grant_Option}] = ets:lookup(?CODE_TEMPLATES, object_with_grant_option),
+    Object_With_Grant_Option_Length = length(Object_With_Grant_Option),
     [{on_obj_clause, On_Obj_Clause}] = ets:lookup(?CODE_TEMPLATES, on_obj_clause),
     On_Obj_Clause_Length = length(On_Obj_Clause),
     [{system_privilege_list, System_Privilege_List}] = ets:lookup(?CODE_TEMPLATES, system_privilege_list),
     System_Privilege_List_Length = length(System_Privilege_List),
-    [{with_grant_option, With_Grant_Option}] = ets:lookup(?CODE_TEMPLATES, with_grant_option),
-    With_Grant_Option_Length = length(With_Grant_Option),
+    [{system_with_grant_option, System_With_Grant_Option}] = ets:lookup(?CODE_TEMPLATES, system_with_grant_option),
+    System_With_Grant_Option_Length = length(System_With_Grant_Option),
 
     Code =
         [
-            lists:append([
-                "Grant",
+                "Grant" ++
                 case rand:uniform(2) rem 2 of
                     1 ->
-                        " " ++ lists:nth(rand:uniform(System_Privilege_List_Length), System_Privilege_List);
-                    _ -> []
-                end,
-                case rand:uniform(2) rem 2 of
-                    1 ->
-                        " " ++ lists:nth(rand:uniform(On_Obj_Clause_Length), On_Obj_Clause);
-                    _ -> []
-                end,
-                " To ",
-                case rand:uniform(3) rem 3 of
-                    1 -> lists:append([
-                        lists:nth(rand:uniform(Grantee_Length), Grantee),
-                        ",",
-                        lists:nth(rand:uniform(Grantee_Length), Grantee),
-                        ",",
-                        lists:nth(rand:uniform(Grantee_Length), Grantee)
-                    ]);
-                    2 -> lists:append([
-                        lists:nth(rand:uniform(Grantee_Length), Grantee),
-                        ",",
-                        lists:nth(rand:uniform(Grantee_Length), Grantee)
-                    ]);
-                    _ -> " " ++ lists:nth(rand:uniform(Grantee_Length), Grantee)
-                end,
-                case rand:uniform(2) rem 2 of
-                    1 ->
-                        " " ++ lists:nth(rand:uniform(With_Grant_Option_Length), With_Grant_Option);
-                    _ -> []
+                        lists:append([
+                            " ",
+                            case rand:uniform(4) rem 4 of
+                                1 -> "All Privileges ";
+                                _ ->
+                                    lists:nth(rand:uniform(Object_Privilege_List_Length), Object_Privilege_List)
+                            end,
+                            " ",
+                            lists:nth(rand:uniform(On_Obj_Clause_Length), On_Obj_Clause),
+                            " To ",
+                            case rand:uniform(4) rem 4 of
+                                1 ->
+                                    lists:nth(rand:uniform(Grantee_Identified_By_Length), Grantee_Identified_By);
+                                _ ->
+                                    lists:nth(rand:uniform(Grantee_Revokee_Commalist_Length), Grantee_Revokee_Commalist)
+                            end,
+                            case rand:uniform(2) rem 2 of
+                                1 ->
+                                    " " ++ lists:nth(rand:uniform(Object_With_Grant_Option_Length), Object_With_Grant_Option);
+                                _ -> []
+                            end
+                        ]);
+                    _ ->
+                        lists:append([
+                            " ",
+                            case rand:uniform(4) rem 4 of
+                                1 -> "All Privileges ";
+                                _ ->
+                                    lists:nth(rand:uniform(System_Privilege_List_Length), System_Privilege_List)
+                            end,
+                            " To ",
+                            case rand:uniform(4) rem 4 of
+                                1 ->
+                                    lists:nth(rand:uniform(Grantee_Identified_By_Length), Grantee_Identified_By);
+                                _ ->
+                                    lists:nth(rand:uniform(Grantee_Revokee_Commalist_Length), Grantee_Revokee_Commalist)
+                            end,
+                            case rand:uniform(2) rem 2 of
+                                1 ->
+                                    " " ++ lists:nth(rand:uniform(System_With_Grant_Option_Length), System_With_Grant_Option);
+                                _ -> []
+                            end
+                        ])
                 end
-            ])
             || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
@@ -2741,27 +2804,77 @@ create_code(grant_def = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% grantee ::= 'PUBLIC'
-%%           | ( NAME ( 'IDENTIFIED' 'BY' NAME )? )
+%% grantee_identified_by ::= NAME 'IDENTIFIED' 'BY' STRING
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-create_code(grantee = Rule) ->
+create_code(grantee_identified_by = Rule) ->
     ?CREATE_CODE_START,
     [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
+    [{string, String}] = ets:lookup(?CODE_TEMPLATES, string),
+    String_Length = length(String),
+
+    Code =
+        [
+            lists:append([
+                lists:nth(rand:uniform(Name_Length), Name),
+                " Identified By ",
+                lists:nth(rand:uniform(String_Length), String)
+            ])
+            || _ <- lists:seq(1, ?MAX_BASIC * 2)
+        ],
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% grantee_revokee ::= NAME
+%%                  | 'PUBLIC'
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(grantee_revokee = Rule) ->
+    ?CREATE_CODE_START,
 
     Code =
         [
             "Public"
-        ] ++
+        ],
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% grantee_revokee_commalist ::= grantee_revokee ( ',' grantee_revokee )*
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(grantee_revokee_commalist = Rule) ->
+    ?CREATE_CODE_START,
+    [{grantee_revokee, Grantee_Revokee}] = ets:lookup(?CODE_TEMPLATES, grantee_revokee),
+    Grantee_Revokee_Length = length(Grantee_Revokee),
+
+    Code =
         [
-            case rand:uniform(2) rem 2 of
+            case rand:uniform(4) rem 4 of
                 1 -> lists:append([
-                    lists:nth(rand:uniform(Name_Length), Name),
-                    " Identified By ",
-                    lists:nth(rand:uniform(Name_Length), Name)
+                    lists:nth(rand:uniform(Grantee_Revokee_Length), Grantee_Revokee),
+                    ",",
+                    lists:nth(rand:uniform(Grantee_Revokee_Length), Grantee_Revokee),
+                    ",",
+                    lists:nth(rand:uniform(Grantee_Revokee_Length), Grantee_Revokee),
+                    ",",
+                    lists:nth(rand:uniform(Grantee_Revokee_Length), Grantee_Revokee)
                 ]);
-                _ -> lists:nth(rand:uniform(Name_Length), Name)
+                2 -> lists:append([
+                    lists:nth(rand:uniform(Grantee_Revokee_Length), Grantee_Revokee),
+                    ",",
+                    lists:nth(rand:uniform(Grantee_Revokee_Length), Grantee_Revokee),
+                    ",",
+                    lists:nth(rand:uniform(Grantee_Revokee_Length), Grantee_Revokee)
+                ]);
+                3 -> lists:append([
+                    lists:nth(rand:uniform(Grantee_Revokee_Length), Grantee_Revokee),
+                    ",",
+                    lists:nth(rand:uniform(Grantee_Revokee_Length), Grantee_Revokee)
+                ]);
+                _ -> lists:nth(rand:uniform(Grantee_Revokee_Length), Grantee_Revokee)
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
@@ -3339,8 +3452,10 @@ create_code(name = Rule) ->
     store_code(column, [re:replace(re:replace(C, "ident", "ident_column", [{return, list}]), "IDENT", "IDENT_COLUMN", [{return, list}]) || C <- Code], ?MAX_BASIC, false),
     store_code(column_ref, [re:replace(re:replace(C, "ident", "ident_column_ref", [{return, list}]), "IDENT", "IDENT_COLUMN_REF", [{return, list}]) || C <- Code], ?MAX_BASIC, false),
     store_code(from_column, [re:replace(re:replace(C, "ident", "ident_from_column", [{return, list}]), "IDENT", "IDENT_FROM_COLUMN", [{return, list}]) || C <- Code], ?MAX_BASIC, false),
+    store_code(grantee_revokee, [re:replace(re:replace(C, "ident", "ident_grantee_revokee", [{return, list}]), "IDENT", "IDENT_GRANTEE_REVOKEE", [{return, list}]) || C <- Code], ?MAX_BASIC, false),
     store_code(scalar_exp, [re:replace(re:replace(C, "ident", "ident_scalar_exp", [{return, list}]), "IDENT", "IDENT_SCALAR_EXP", [{return, list}]) || C <- Code], ?MAX_BASIC, false),
     store_code(scalar_sub_exp, [re:replace(re:replace(C, "ident", "ident_scalar_sub_exp", [{return, list}]), "IDENT", "IDENT_SCALAR_SUB_EXP", [{return, list}]) || C <- Code], ?MAX_BASIC, false),
+    store_code(system_privilege, [re:replace(re:replace(C, "ident", "ident_sys_priv", [{return, list}]), "IDENT", "IDENT_SYS_PRIV", [{return, list}]) || C <- Code], ?MAX_BASIC, false),
     store_code(table, [re:replace(re:replace(C, "ident", "ident_table", [{return, list}]), "IDENT", "IDENT_TABLE", [{return, list}]) || C <- Code], ?MAX_BASIC, false),
     store_code(table_ref, [re:replace(re:replace(C, "ident", "ident_table_ref", [{return, list}]), "IDENT", "IDENT_TABLE_REF", [{return, list}]) || C <- Code], ?MAX_BASIC, false),
     store_code(target, [re:replace(re:replace(C, "ident", "ident_target", [{return, list}]), "IDENT", "IDENT_TARGET", [{return, list}]) || C <- Code], ?MAX_BASIC, false),
@@ -3348,9 +3463,108 @@ create_code(name = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% object_privilege ::= 'ALL'
+%%                    | 'ALTER'
+%%                    | 'DELETE'
+%%                    | 'EXECUTE'
+%%                    | 'INDEX'
+%%                    | 'INSERT'
+%%                    | 'REFERENCES'
+%%                    | 'SELECT'
+%%                    | 'UPDATE'
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(object_privilege = Rule) ->
+    ?CREATE_CODE_START,
+
+    Code =
+        [
+            "All",
+            "Alter",
+            "Delete",
+            "Execute",
+            "Index",
+            "Insert",
+            "References",
+            "Select",
+            "Update"
+        ],
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% object_privilege_list ::= object_privilege ( ',' object_privilege )*
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(object_privilege_list = Rule) ->
+    ?CREATE_CODE_START,
+    [{object_privilege, Object_Privilege}] = ets:lookup(?CODE_TEMPLATES, object_privilege),
+    Object_Privilege_Length = length(Object_Privilege),
+
+    Code =
+        [
+            case rand:uniform(4) rem 4 of
+                1 -> lists:append([
+                    lists:nth(rand:uniform(Object_Privilege_Length), Object_Privilege),
+                    ",",
+                    lists:nth(rand:uniform(Object_Privilege_Length), Object_Privilege),
+                    ",",
+                    lists:nth(rand:uniform(Object_Privilege_Length), Object_Privilege),
+                    ",",
+                    lists:nth(rand:uniform(Object_Privilege_Length), Object_Privilege)
+                ]);
+                2 -> lists:append([
+                    lists:nth(rand:uniform(Object_Privilege_Length), Object_Privilege),
+                    ",",
+                    lists:nth(rand:uniform(Object_Privilege_Length), Object_Privilege),
+                    ",",
+                    lists:nth(rand:uniform(Object_Privilege_Length), Object_Privilege)
+                ]);
+                3 -> lists:append([
+                    lists:nth(rand:uniform(Object_Privilege_Length), Object_Privilege),
+                    ",",
+                    lists:nth(rand:uniform(Object_Privilege_Length), Object_Privilege)
+                ]);
+                _ -> lists:nth(rand:uniform(Object_Privilege_Length), Object_Privilege)
+            end
+            || _ <- lists:seq(1, ?MAX_BASIC * 2)
+        ],
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% object_with_grant_option ::= ( 'CASCADE' 'CONSTRAINTS' ) | 'FORCE'
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(object_with_grant_option = Rule) ->
+    ?CREATE_CODE_START,
+
+    Code =
+        [
+            "With Grant Option",
+            "With Hierarchy Option"
+        ],
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% object_with_revoke_option ::= 'WITH' ( 'GRANT' | 'HIERARCHY' ) 'OPTION'
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(object_with_revoke_option = Rule) ->
+    ?CREATE_CODE_START,
+
+    Code =
+        [
+            "Cascade Constraints",
+            "Force"
+        ],
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% on_obj_clause ::= ( 'ON' table )
 %%                 | ( 'ON' 'DIRECTORY' NAME )
-%%                 | ( 'ON' 'JAVA' ( 'SOURCE' | 'RESOURCE' ) table )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(on_obj_clause = Rule) ->
@@ -3365,17 +3579,7 @@ create_code(on_obj_clause = Rule) ->
                 "On" ++
                 case rand:uniform(3) rem 3 of
                     1 -> " " ++ lists:nth(rand:uniform(Table_Length), Table);
-                    2 ->
-                        " Directory " ++ lists:nth(rand:uniform(Name_Length), Name);
-                    _ -> lists:append([
-                        " Java",
-                        case rand:uniform(2) rem 2 of
-                            1 -> " Source";
-                            _ -> " Resource"
-                        end,
-                        " ",
-                        lists:nth(rand:uniform(Table_Length), Table)
-                    ])
+                    _ -> " Directory " ++ lists:nth(rand:uniform(Name_Length), Name)
                 end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
@@ -3899,6 +4103,44 @@ create_code(quota = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Reference examples from Oracle documentation.
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(referenceExamples = Rule) ->
+    ?CREATE_CODE_START,
+
+    LineSep = io_lib:nl(),
+
+    Code = [
+        lists:append([
+            LineSep,
+            "        -- =====================================================================", LineSep,
+            "        -- from book:          ", Book, LineSep,
+            "        --      chapter:       ", Chapter, LineSep,
+            "        --      section:       ", Section, LineSep,
+            case SubSection of
+                [] -> [];
+                _ ->
+                    lists:append(["        --      subsection:    ", SubSection, LineSep])
+            end,
+            case SubSubSection of
+                [] -> [];
+                _ ->
+                    lists:append(["        --      subsubsection: ", SubSubSection, LineSep])
+            end,
+            case Example of
+                [] -> [];
+                _ ->
+                    lists:append(["        --                     ", Example, LineSep])
+            end,
+            "        -- ---------------------------------------------------------------------", LineSep,
+            string:replace(CodeExample, "\"", "\\\"", all)
+        ]) || {Book, Chapter, Section, SubSection, SubSubSection, Example, CodeExample} <- ?TESTS_FROM_DATABASE_SQL_LANGUAGE_REFERENCE_V12C_2
+    ],
+    ets:insert(?CODE_TEMPLATES, {Rule, Code}),
+    ok;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% returning ::= ( 'RETURNING' | 'RETURN' ) selection 'INTO' selection
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -3925,62 +4167,63 @@ create_code(returning = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% revoke_def ::= 'REVOKE' system_privilege_list ( on_obj_clause )? 'FROM' grantee ( ',' grantee )* ( with_revoke_option )?
+%% revoke_def ::= 'REVOKE' (
+%%                           ( ( ( 'ALL' 'PRIVILEGES' ) | ( object_privilege (',' object_privilege )* ) ) on_obj_clause 'FROM' grantee_revokee ( ',' grantee_revokee )* ( ( 'CASCADE' 'CONSTRAINTS' ) | 'FORCE' )? )
+%%                         | ( ( ( 'ALL' 'PRIVILEGES' ) | ( system_privilege (',' system_privilege )* ) )               'FROM' grantee_revokee ( ',' grantee_revokee )* )
+%%                         )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(revoke_def = Rule) ->
     ?CREATE_CODE_START,
-    [{grantee, Grantee}] = ets:lookup(?CODE_TEMPLATES, grantee),
-    Grantee_Length = length(Grantee),
+    [{grantee_revokee_commalist, Grantee_Revokee_Commalist}] = ets:lookup(?CODE_TEMPLATES, grantee_revokee_commalist),
+    Grantee_Revokee_Commalist_Length = length(Grantee_Revokee_Commalist),
+    [{object_privilege_list, Object_Privilege_List}] = ets:lookup(?CODE_TEMPLATES, object_privilege_list),
+    Object_Privilege_List_Length = length(Object_Privilege_List),
+    [{object_with_revoke_option, Object_With_Revoke_Option}] = ets:lookup(?CODE_TEMPLATES, object_with_revoke_option),
+    Object_With_Revoke_Option_Length = length(Object_With_Revoke_Option),
     [{on_obj_clause, On_Obj_Clause}] = ets:lookup(?CODE_TEMPLATES, on_obj_clause),
     On_Obj_Clause_Length = length(On_Obj_Clause),
     [{system_privilege_list, System_Privilege_List}] = ets:lookup(?CODE_TEMPLATES, system_privilege_list),
     System_Privilege_List_Length = length(System_Privilege_List),
-    [{with_revoke_option, With_Revoke_Option}] = ets:lookup(?CODE_TEMPLATES, with_revoke_option),
-    With_Revoke_Option_Length = length(With_Revoke_Option),
 
     Code =
         [
-            lists:append([
-                "Revoke",
-                case rand:uniform(3) rem 3 of
-                    1 -> [];
+                "Revoke" ++
+                case rand:uniform(2) rem 2 of
+                    1 ->
+                        lists:append([
+                            " ",
+                            case rand:uniform(4) rem 4 of
+                                1 -> "All Privileges ";
+                                _ ->
+                                    lists:nth(rand:uniform(Object_Privilege_List_Length), Object_Privilege_List)
+                            end,
+                            " ",
+                            lists:nth(rand:uniform(On_Obj_Clause_Length), On_Obj_Clause),
+                            " From ",
+                            lists:nth(rand:uniform(Grantee_Revokee_Commalist_Length), Grantee_Revokee_Commalist),
+                            case rand:uniform(2) rem 2 of
+                                1 ->
+                                    " " ++ lists:nth(rand:uniform(Object_With_Revoke_Option_Length), Object_With_Revoke_Option);
+                                _ -> []
+                            end
+                        ]);
                     _ ->
-                        " " ++ lists:nth(rand:uniform(System_Privilege_List_Length), System_Privilege_List)
-                end,
-                case rand:uniform(3) rem 3 of
-                    1 -> [];
-                    _ ->
-                        " " ++ lists:nth(rand:uniform(On_Obj_Clause_Length), On_Obj_Clause)
-                end,
-                " From ",
-                case rand:uniform(3) rem 3 of
-                    1 -> lists:append([
-                        " ",
-                        lists:nth(rand:uniform(Grantee_Length), Grantee),
-                        ",",
-                        lists:nth(rand:uniform(Grantee_Length), Grantee),
-                        ",",
-                        lists:nth(rand:uniform(Grantee_Length), Grantee)
-                    ]);
-                    2 -> lists:append([
-                        " ",
-                        lists:nth(rand:uniform(Grantee_Length), Grantee),
-                        ",",
-                        lists:nth(rand:uniform(Grantee_Length), Grantee)
-                    ]);
-                    _ -> " " ++ lists:nth(rand:uniform(Grantee_Length), Grantee)
-                end,
-                case rand:uniform(3) rem 3 of
-                    1 -> [];
-                    _ ->
-                        " " ++ lists:nth(rand:uniform(With_Revoke_Option_Length), With_Revoke_Option)
+                        lists:append([
+                            " ",
+                            case rand:uniform(4) rem 4 of
+                                1 -> "All Privileges ";
+                                _ ->
+                                    lists:nth(rand:uniform(System_Privilege_List_Length), System_Privilege_List)
+                            end,
+                            " From ",
+                            lists:nth(rand:uniform(Grantee_Revokee_Commalist_Length), Grantee_Revokee_Commalist)
+                        ])
                 end
-            ])
-            || _ <- lists:seq(1, ?MAX_BASIC * 2)
+            || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
-    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_COMPLEX, true),
     store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
@@ -4652,60 +4895,45 @@ create_code(string = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% system_privilege ::= 'SELECT'
-%%                    | 'UPDATE'
-%%                    | 'DELETE'
-%%                    | 'INSERT'
-%%                    | 'DROP'
-%%                    | ( NAME ( NAME ( NAME ( NAME )? )? )? )
+%% system_privilege ::=  'ADMIN'
+%%                    |  'ALL' 'PRIVILEGES'
+%%                    | ( ( 'ALTER' | 'CREATE' | 'DROP' ) 'ANY' ( 'INDEX' | ( 'MATERIALIZED' 'VIEW' ) | 'TABLE' | 'VIEW' ) )
+%%                    | ( 'CREATE' ( ( 'MATERIALIZED' 'VIEW' ) | 'TABLE' | 'VIEW' ) )
+%%                    | ( ( 'DELETE' | 'INSERT' | 'SELECT' | 'UPDATE' ) 'ANY' 'TABLE' )
+%%                    | NAME
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(system_privilege = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
-    Name_Length = length(Name),
 
     Code =
         [
-            "Select",
-            "Update",
-            "Delete",
-            "Insert",
-            "Drop"
-        ] ++
-        [
-            case rand:uniform(4) rem 4 of
-                1 -> lists:append([
-                    lists:nth(rand:uniform(Name_Length), Name),
-                    " ",
-                    lists:nth(rand:uniform(Name_Length), Name),
-                    " ",
-                    lists:nth(rand:uniform(Name_Length), Name),
-                    " ",
-                    lists:nth(rand:uniform(Name_Length), Name)
-                ]);
-                2 -> lists:append([
-                    lists:nth(rand:uniform(Name_Length), Name),
-                    " ",
-                    lists:nth(rand:uniform(Name_Length), Name),
-                    " ",
-                    lists:nth(rand:uniform(Name_Length), Name)
-                ]);
-                3 -> lists:append([
-                    lists:nth(rand:uniform(Name_Length), Name),
-                    " ",
-                    lists:nth(rand:uniform(Name_Length), Name)
-                ]);
-                _ -> lists:nth(rand:uniform(Name_Length), Name)
-            end
-            || _ <- lists:seq(1, ?MAX_BASIC * 2)
+            "Admin",
+            "Alter Any Index",
+            "Alter Any Materialized View",
+            "Alter Any Table",
+            "Alter Any View",
+            "Create Any Index",
+            "Create Any Materialized View",
+            "Create Any Table",
+            "Create Any View",
+            "Create Materialized View",
+            "Create Table",
+            "Create View",
+            "Delete Any Table",
+            "Drop Any Index",
+            "Drop Any Materialized View",
+            "Drop Any Table",
+            "Drop Any View",
+            "Insert Any Table",
+            "Select Any Table",
+            "Update Any Table"
         ],
     store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% system_privilege_list ::= ( system_privilege ( ',' system_privilege )* )
-%%                         | ( 'ALL' ( 'PRIVILEGES' )? )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(system_privilege_list = Rule) ->
@@ -4714,10 +4942,6 @@ create_code(system_privilege_list = Rule) ->
     System_Privilege_Length = length(System_Privilege),
 
     Code =
-        [
-            "All",
-            "All Privileges"
-        ] ++
         [
             case rand:uniform(4) rem 4 of
                 1 -> lists:append([
@@ -4745,6 +4969,21 @@ create_code(system_privilege_list = Rule) ->
                     lists:nth(rand:uniform(System_Privilege_Length), System_Privilege)
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
+        ],
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% system_with_grant_option ::= 'WITH' ( 'ADMIN' | 'DELEGATE' ) 'OPTION'
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(system_with_grant_option = Rule) ->
+    ?CREATE_CODE_START,
+
+    Code =
+        [
+            "With Admin Option",
+            "With Delegate Option"
         ],
     store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
@@ -5357,38 +5596,6 @@ create_code(where_clause = Rule) ->
         [
                 "Where " ++ lists:nth(rand:uniform(Search_Condition_Length), Search_Condition)
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
-        ],
-    store_code(Rule, Code, ?MAX_BASIC, false),
-    ?CREATE_CODE_END;
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% with_grant_option ::= 'WITH' ( 'GRANT' | NAME | 'HIERARCHY' ) 'OPTION'
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-create_code(with_grant_option = Rule) ->
-    ?CREATE_CODE_START,
-
-    Code =
-        [
-            "With Grant Option",
-            "With Name Option",
-            "With Hierarchy Option"
-        ],
-    store_code(Rule, Code, ?MAX_BASIC, false),
-    ?CREATE_CODE_END;
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% with_revoke_option ::= ( 'CASCADE' 'CONSTRAINTS' )
-%%                      | 'FORCE'
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-create_code(with_revoke_option = Rule) ->
-    ?CREATE_CODE_START,
-
-    Code =
-        [
-            "Cascade Constraints",
-            "Force"
         ],
     store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END.

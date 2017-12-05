@@ -8,31 +8,32 @@
 %% TESTS
 %%
 
-"REVOKE FROM name_user_1".
-"REVOKE FROM name_user_1, name_user_2".
+"REVOKE ALL ON table_1 FROM name_user_1 CASCADE CONSTRAINTS".
+"REVOKE UPDATE ON table_1 FROM name_user_1, name_user_2 FORCE".
 
-"REVOKE FROM name_user_1 CASCADE CONSTRAINTS".
-"REVOKE FROM name_user_1 FORCE".
+"REVOKE DROP ANY TABLE FROM name_user_1".
+"REVOKE CREATE TABLE FROM name_user_1, name_user_2".
 
-"REVOKE ON name_table FROM name_user_1".
+"REVOKE ADMIN FROM name_user_1".
+"REVOKE role_1 FROM name_user_1".
+
+"REVOKE ALL ON name_table FROM name_user_1".
 % ? "REVOKE ON DIRECTORY name_directory FROM name_user_1".
 % ? "REVOKE ON JAVA SOURCE name_table FROM name_user_1".
 % ? "REVOKE ON JAVA RESOURCE name_table FROM name_user_1".
 
-"REVOKE ALL FROM name_user_1".
 "REVOKE ALL PRIVILEGES FROM name_user_1".
-"REVOKE DELETE FROM name_user_1".
-"REVOKE DROP FROM name_user_1".
-"REVOKE INSERT FROM name_user_1".
-"REVOKE SELECT FROM name_user_1".
-"REVOKE UPDATE FROM name_user_1".
-"REVOKE DELETE, DROP, INSERT, SELECT, UPDATE FROM name_user_1".
+"REVOKE DELETE ON table_1 FROM name_user_1".
+"REVOKE DROP ANY VIEW FROM name_user_1".
+"REVOKE INSERT ON table_1 FROM name_user_1".
+"REVOKE SELECT ON table_1 FROM name_user_1".
+"REVOKE UPDATE ON table_1 FROM name_user_1".
+"REVOKE DELETE, INSERT, SELECT, UPDATE ON table_1 FROM name_user_1".
 "REVOKE name_privilege_1 FROM name_user_1".
-"REVOKE DELETE, name_privilege_1, name_privilege_2 FROM name_user_1".
-"REVOKE name_privilege_1, name_privilege_2, DELETE FROM name_user_1".
-"REVOKE name_privilege_1 name_privilege_2 name_privilege_3 name_privilege_4 name_privilege_5 FROM name_user_1".
+"REVOKE name_privilege_1, name_privilege_2 FROM name_user_1".
+"REVOKE name_privilege_1, name_privilege_2, name_privilege_3, name_privilege_4, name_privilege_5 FROM name_user_1".
 
-"REVOKE manage_system FROM admin".
+"REVOKE manage_system FROM admin1".
 "REVOKE a,b,c FROM user1,user2".
 "REVOKE SELECT ON ddTable FROM user_1".
 "REVOKE ALL ON schema1.ddTable FROM user1,user2".

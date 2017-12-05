@@ -21,10 +21,12 @@
 %% -----------------------------------------------------------------------------
 
 -define(ALL_CLAUSE_PERFORMANCE, [
+    referenceExamples,
     special,
     sql_list
 ]).
 -define(ALL_CLAUSE_RELIABILITY, [
+    referenceExamples,
     special,
     sql_list
 ]).
@@ -63,18 +65,23 @@
 %%    commit_statement,
 %%    comparison,
 %%    funs,
+%%    grantee_revokee,
 %%    hint,
 %%    intnum,
 %%    json,
 %%    name,
+%%    object_privilege,
+%%    object_with_grant_option,
+%%    object_with_revoke_option,
 %%    outer_join_type,
 %%    parameter,
+%%    referenceExamples,
 %%    rollback_statement,
 %%    string,
+%%    system_privilege,
+%%    system_with_grant_option,
 %%    tbl_scope,
 %%    tbl_type,
-%%    with_grant_option,
-%%    with_revoke_option,
 %%%% Level 02 ..........................
 %%    column_commalist,
 %%    column_ref,
@@ -83,13 +90,15 @@
 %%    drop_role_def,
 %%    drop_user_def,
 %%    extra,
-%%    grantee,
+%%    grantee_identified_by,
+%%    grantee_revokee_commalist,
 %%    identified,
 %%    index_name,
+%%    object_privilege_list,
 %%    quota,
 %%    role_list,
 %%    sgn_num,
-%%    system_privilege,
+%%    system_privilege_list,
 %%    table_name,
 %%    when_action,
 %%%% Level 03 ..........................
@@ -97,7 +106,6 @@
 %%    data_type,
 %%    open_statement,
 %%    parameter_ref,
-%%    system_privilege_list,
 %%    table,
 %%    truncate_table,
 %%    user_opt,
@@ -223,5 +231,321 @@
 
 -define(PATH_CT, "test/generated/ct/").
 -define(PATH_EUNIT, "test/generated/eunit/").
+
+-define(TESTS_FROM_DATABASE_SQL_LANGUAGE_REFERENCE_V12C_2, [
+    % ==========================================================================
+    % Tuple structure: {book, chapter, section, subsection, subsubsection, code}
+    % ==========================================================================
+    % SQL Language Reference: 18 SQL Statements: DROP TABLE to LOCK TABLE
+%%    % --------------------------------------------------------------------------
+%%    {
+%%        "SQL Language Reference",
+%%        "18 SQL Statements: DROP TABLE to LOCK TABLE",
+%%        "GRANT",
+%%        "",
+%%        "",
+%%        "",
+%%        "
+%%        GRANT CREATE SESSION
+%%           TO hr;
+%%    "},
+%%    % --------------------------------------------------------------------------
+%%    {
+%%        "SQL Language Reference",
+%%        "18 SQL Statements: DROP TABLE to LOCK TABLE",
+%%        "GRANT",
+%%        "",
+%%        "",
+%%        "",
+%%        "
+%%        GRANT CREATE SESSION
+%%          TO hr, newuser IDENTIFIED BY \"password1\", \"password2\";
+%%    "},
+%%    % --------------------------------------------------------------------------
+%%    {
+%%        "SQL Language Reference",
+%%        "18 SQL Statements: DROP TABLE to LOCK TABLE",
+%%        "GRANT",
+%%        "",
+%%        "",
+%%        "",
+%%        "
+%%        GRANT
+%%             CREATE ANY MATERIALIZED VIEW
+%%           , ALTER ANY MATERIALIZED VIEW
+%%           , DROP ANY MATERIALIZED VIEW
+%%           , QUERY REWRITE
+%%           , GLOBAL QUERY REWRITE
+%%           TO dw_manager
+%%           WITH ADMIN OPTION;
+%%    "},
+    % --------------------------------------------------------------------------
+    {
+        "SQL Language Reference",
+        "18 SQL Statements: DROP TABLE to LOCK TABLE",
+        "GRANT",
+        "",
+        "",
+        "",
+        "
+        GRANT dw_manager
+           TO sh
+           WITH ADMIN OPTION;
+    "},
+    % --------------------------------------------------------------------------
+    {
+        "SQL Language Reference",
+        "18 SQL Statements: DROP TABLE to LOCK TABLE",
+        "GRANT",
+        "",
+        "",
+        "",
+        "
+        GRANT dw_manager
+           TO sh
+           WITH DELEGATE OPTION;
+    "},
+    % --------------------------------------------------------------------------
+    {
+        "SQL Language Reference",
+        "18 SQL Statements: DROP TABLE to LOCK TABLE",
+        "GRANT",
+        "",
+        "",
+        "",
+        "
+        GRANT SELECT ON sh.sales TO warehouse_user;
+    "},
+    % --------------------------------------------------------------------------
+    {
+        "SQL Language Reference",
+        "18 SQL Statements: DROP TABLE to LOCK TABLE",
+        "GRANT",
+        "",
+        "",
+        "",
+        "
+        GRANT warehouse_user TO dw_manager;
+    "},
+%%    % --------------------------------------------------------------------------
+%%    {
+%%        "SQL Language Reference",
+%%        "18 SQL Statements: DROP TABLE to LOCK TABLE",
+%%        "GRANT",
+%%        "",
+%%        "",
+%%        "",
+%%        "
+%%        GRANT INHERIT PRIVILEGES ON USER sh TO hr;
+%%      )
+%%    "},
+%%    % --------------------------------------------------------------------------
+%%    {
+%%        "SQL Language Reference",
+%%        "18 SQL Statements: DROP TABLE to LOCK TABLE",
+%%        "GRANT",
+%%        "",
+%%        "",
+%%        "",
+%%        "
+%%        GRANT READ ON DIRECTORY bfile_dir TO hr
+%%           WITH GRANT OPTION;
+%%    "},
+    % --------------------------------------------------------------------------
+    {
+        "SQL Language Reference",
+        "18 SQL Statements: DROP TABLE to LOCK TABLE",
+        "GRANT",
+        "",
+        "",
+        "",
+        "
+        GRANT ALL ON bonuses TO hr
+           WITH GRANT OPTION;
+    "},
+    % --------------------------------------------------------------------------
+    {
+        "SQL Language Reference",
+        "18 SQL Statements: DROP TABLE to LOCK TABLE",
+        "GRANT",
+        "",
+        "",
+        "",
+        "
+        GRANT SELECT, UPDATE
+           ON emp_view TO PUBLIC;
+    "},
+    % --------------------------------------------------------------------------
+    {
+        "SQL Language Reference",
+        "18 SQL Statements: DROP TABLE to LOCK TABLE",
+        "GRANT",
+        "",
+        "",
+        "",
+        "
+        GRANT SELECT
+           ON oe.customers_seq TO hr;
+    "},
+%%    % --------------------------------------------------------------------------
+%%    {
+%%        "SQL Language Reference",
+%%        "18 SQL Statements: DROP TABLE to LOCK TABLE",
+%%        "GRANT",
+%%        "",
+%%        "",
+%%        "",
+%%        "
+%%        GRANT REFERENCES (employee_id),
+%%              UPDATE (employee_id, salary, commission_pct)
+%%           ON hr.employees
+%%           TO oe;
+%%    "},
+    % ==========================================================================
+    % SQL Language Reference: 19 SQL Statements: MERGE to UPDATE
+    % --------------------------------------------------------------------------
+    {
+        "SQL Language Reference",
+        "19 SQL Statements: MERGE to UPDATE",
+        "REVOKE",
+        "",
+        "",
+        "",
+        "
+        REVOKE DROP ANY TABLE
+            FROM hr, oe;
+    "},
+    % --------------------------------------------------------------------------
+    {
+        "SQL Language Reference",
+        "19 SQL Statements: MERGE to UPDATE",
+        "REVOKE",
+        "",
+        "",
+        "",
+        "
+        REVOKE dw_manager
+            FROM sh;
+    "},
+%%    % --------------------------------------------------------------------------
+%%    {
+%%        "SQL Language Reference",
+%%        "19 SQL Statements: MERGE to UPDATE",
+%%        "REVOKE",
+%%        "",
+%%        "",
+%%        "",
+%%        "
+%%        REVOKE CREATE TABLESPACE
+%%           FROM dw_manager;
+%%    "},
+    % --------------------------------------------------------------------------
+    {
+        "SQL Language Reference",
+        "19 SQL Statements: MERGE to UPDATE",
+        "REVOKE",
+        "",
+        "",
+        "",
+        "
+        REVOKE dw_user
+          FROM dw_manager;
+    "},
+    % --------------------------------------------------------------------------
+    {
+        "SQL Language Reference",
+        "19 SQL Statements: MERGE to UPDATE",
+        "REVOKE",
+        "",
+        "",
+        "",
+        "
+        REVOKE DELETE
+           ON orders FROM hr;
+    "},
+    % --------------------------------------------------------------------------
+    {
+        "SQL Language Reference",
+        "19 SQL Statements: MERGE to UPDATE",
+        "REVOKE",
+        "",
+        "",
+        "",
+        "
+        REVOKE ALL
+           ON orders FROM hr;
+    "},
+    % --------------------------------------------------------------------------
+    {
+        "SQL Language Reference",
+        "19 SQL Statements: MERGE to UPDATE",
+        "REVOKE",
+        "",
+        "",
+        "",
+        "
+        REVOKE UPDATE
+            ON emp_details_view FROM public;
+    "},
+%%    % --------------------------------------------------------------------------
+%%    {
+%%        "SQL Language Reference",
+%%        "19 SQL Statements: MERGE to UPDATE",
+%%        "REVOKE",
+%%        "",
+%%        "",
+%%        "",
+%%        "
+%%        REVOKE INHERIT PRIVILEGES ON USER sh FROM hr;
+%%    "},
+    % --------------------------------------------------------------------------
+    {
+        "SQL Language Reference",
+        "19 SQL Statements: MERGE to UPDATE",
+        "REVOKE",
+        "",
+        "",
+        "",
+        "
+        REVOKE SELECT
+            ON hr.departments_seq FROM oe;
+    "},
+    % --------------------------------------------------------------------------
+    {
+        "SQL Language Reference",
+        "19 SQL Statements: MERGE to UPDATE",
+        "REVOKE",
+        "",
+        "",
+        "",
+        "
+        REVOKE REFERENCES
+            ON hr.employees
+            FROM oe
+            CASCADE CONSTRAINTS;
+    "},
+%%    % --------------------------------------------------------------------------
+%%    {
+%%        "SQL Language Reference",
+%%        "19 SQL Statements: MERGE to UPDATE",
+%%        "REVOKE",
+%%        "",
+%%        "",
+%%        "",
+%%        "
+%%        REVOKE READ ON DIRECTORY bfile_dir FROM hr;
+%%    "},
+    % --------------------------------------------------------------------------
+    {
+        "SQL Language Reference",
+        "19 SQL Statements: MERGE to UPDATE",
+        "REVOKE",
+        "",
+        "",
+        "",
+        "
+        REVOKE UPDATE ON hr.employees FROM oe;
+    "}
+]).
 
 -define(TIMETRAP_MINUTES, 15).

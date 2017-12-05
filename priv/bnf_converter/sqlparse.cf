@@ -520,115 +520,169 @@ ViewDef02.                        ViewDef ::= "CREATE" "VIEW" Table ColumnCommal
 ViewDef03.                        ViewDef ::= "AS" QuerySpec                         ;
 ViewDef04.                        ViewDef ::= "AS" QuerySpec "WITH" "CHECK" "OPTION" ;
 
--- grant_def -> GRANT                                     TO grantee_commalist                     : {grant, [],   {on, <<"">>}, {to, '$3'}, ''}.
--- grant_def -> GRANT                                     TO grantee_commalist with_grant_option   : {grant, [],   {on, <<"">>}, {to, '$3'}, '$4'}.
--- grant_def -> GRANT                       on_obj_clause TO grantee_commalist                     : {grant, [],   '$2',         {to, '$4'}, ''}.
--- grant_def -> GRANT                       on_obj_clause TO grantee_commalist with_grant_option   : {grant, [],   '$2',         {to, '$4'}, '$5'}.
--- grant_def -> GRANT system_privilege_list               TO grantee_commalist                     : {grant, '$2', {on, <<"">>}, {to, '$4'}, ''}.
--- grant_def -> GRANT system_privilege_list               TO grantee_commalist with_grant_option   : {grant, '$2', {on, <<"">>}, {to, '$4'}, '$5'}.
--- grant_def -> GRANT system_privilege_list on_obj_clause TO grantee_commalist                     : {grant, '$2', '$3',         {to, '$5'}, ''}.
--- grant_def -> GRANT system_privilege_list on_obj_clause TO grantee_commalist with_grant_option   : {grant, '$2', '$3',         {to, '$5'}, '$6'}.
+-- grant_def -> GRANT ALL PRIVILEGES        on_obj_clause TO grantee_revokee_commalist                          : {grant, 'all privileges', '$3',         {to, '$5'}, ''}.
+-- grant_def -> GRANT object_privilege_list on_obj_clause TO grantee_revokee_commalist                          : {grant, '$2',             '$3',         {to, '$5'}, ''}.
+-- grant_def -> GRANT ALL PRIVILEGES        on_obj_clause TO grantee_identified_by                              : {grant, 'all privileges', '$3',         {to, '$5'}, ''}.
+-- grant_def -> GRANT object_privilege_list on_obj_clause TO grantee_identified_by                              : {grant, '$2',             '$3',         {to, '$5'}, ''}.
+-- grant_def -> GRANT ALL PRIVILEGES        on_obj_clause TO grantee_revokee_commalist object_with_grant_option : {grant, 'all privileges', '$3',         {to, '$5'}, '$6'}.
+-- grant_def -> GRANT object_privilege_list on_obj_clause TO grantee_revokee_commalist object_with_grant_option : {grant, '$2',             '$3',         {to, '$5'}, '$6'}.
+-- grant_def -> GRANT ALL PRIVILEGES        on_obj_clause TO grantee_identified_by     object_with_grant_option : {grant, 'all privileges', '$3',         {to, '$5'}, '$6'}.
+-- grant_def -> GRANT object_privilege_list on_obj_clause TO grantee_identified_by     object_with_grant_option : {grant, '$2',             '$3',         {to, '$5'}, '$6'}.
+-- grant_def -> GRANT ALL PRIVILEGES                      TO grantee_revokee_commalist                          : {grant, 'all privileges', {on, <<"">>}, {to, '$4'}, ''}.
+-- grant_def -> GRANT system_privilege_list               TO grantee_revokee_commalist                          : {grant, '$2',             {on, <<"">>}, {to, '$4'}, ''}.
+-- grant_def -> GRANT ALL PRIVILEGES                      TO grantee_identified_by                              : {grant, 'all privileges', {on, <<"">>}, {to, '$4'}, ''}.
+-- grant_def -> GRANT system_privilege_list               TO grantee_identified_by                              : {grant, '$2',             {on, <<"">>}, {to, '$4'}, ''}.
+-- grant_def -> GRANT ALL PRIVILEGES                      TO grantee_revokee_commalist system_with_grant_option : {grant, 'all privileges', {on, <<"">>}, {to, '$4'}, '$5'}.
+-- grant_def -> GRANT system_privilege_list               TO grantee_revokee_commalist system_with_grant_option : {grant, '$2',             {on, <<"">>}, {to, '$4'}, '$5'}.
+-- grant_def -> GRANT ALL PRIVILEGES                      TO grantee_identified_by     system_with_grant_option : {grant, 'all privileges', {on, <<"">>}, {to, '$4'}, '$5'}.
+-- grant_def -> GRANT system_privilege_list               TO grantee_identified_by     system_with_grant_option : {grant, '$2',             {on, <<"">>}, {to, '$4'}, '$5'}.
 
-GrantDef01.                       GrantDef ::= "GRANT"                                 "TO" GranteeCommalist                 ;
-GrantDef02.                       GrantDef ::= "GRANT"                                 "TO" GranteeCommalist WithGrantOption ;
-GrantDef03.                       GrantDef ::= "GRANT"                     OnObjClause "TO" GranteeCommalist                 ;
-GrantDef04.                       GrantDef ::= "GRANT"                     OnObjClause "TO" GranteeCommalist WithGrantOption ;
-GrantDef05.                       GrantDef ::= "GRANT" SystemPrivilegeList             "TO" GranteeCommalist                 ;
-GrantDef06.                       GrantDef ::= "GRANT" SystemPrivilegeList             "TO" GranteeCommalist WithGrantOption ;
-GrantDef07.                       GrantDef ::= "GRANT" SystemPrivilegeList OnObjClause "TO" GranteeCommalist                 ;
-GrantDef08.                       GrantDef ::= "GRANT" SystemPrivilegeList OnObjClause "TO" GranteeCommalist WithGrantOption ;
+GrantDef01.                       GrantDef ::= "GRANT" "ALL" "PRIVILEGES"  OnObjClause "TO" GranteeRevokeeCommalist                       ;
+GrantDef02.                       GrantDef ::= "GRANT" ObjectPrivilegeList OnObjClause "TO" GranteeRevokeeCommalist                       ;
+GrantDef03.                       GrantDef ::= "GRANT" "ALL" "PRIVILEGES"  OnObjClause "TO" GranteeIdentifiedBy                           ;
+GrantDef04.                       GrantDef ::= "GRANT" ObjectPrivilegeList OnObjClause "TO" GranteeIdentifiedBy                           ;
+GrantDef05.                       GrantDef ::= "GRANT" "ALL" "PRIVILEGES"  OnObjClause "TO" GranteeRevokeeCommalist ObjectWithGrantOption ;
+GrantDef06.                       GrantDef ::= "GRANT" ObjectPrivilegeList OnObjClause "TO" GranteeRevokeeCommalist ObjectWithGrantOption ;
+GrantDef07.                       GrantDef ::= "GRANT" "ALL" "PRIVILEGES"  OnObjClause "TO" GranteeIdentifiedBy     ObjectWithGrantOption ;
+GrantDef08.                       GrantDef ::= "GRANT" ObjectPrivilegeList OnObjClause "TO" GranteeIdentifiedBy     ObjectWithGrantOption ;
+GrantDef09.                       GrantDef ::= "GRANT" "ALL" "PRIVILEGES"              "TO" GranteeRevokeeCommalist                       ;
+GrantDef10.                       GrantDef ::= "GRANT" SystemPrivilegeList             "TO" GranteeRevokeeCommalist                       ;
+GrantDef11.                       GrantDef ::= "GRANT" "ALL" "PRIVILEGES"              "TO" GranteeIdentifiedBy                           ;
+GrantDef12.                       GrantDef ::= "GRANT" SystemPrivilegeList             "TO" GranteeIdentifiedBy                           ;
+GrantDef13.                       GrantDef ::= "GRANT" "ALL" "PRIVILEGES"              "TO" GranteeRevokeeCommalist SystemWithGrantOption ;
+GrantDef14.                       GrantDef ::= "GRANT" SystemPrivilegeList             "TO" GranteeRevokeeCommalist SystemWithGrantOption ;
+GrantDef15.                       GrantDef ::= "GRANT" "ALL" "PRIVILEGES"              "TO" GranteeIdentifiedBy     SystemWithGrantOption ;
+GrantDef16.                       GrantDef ::= "GRANT" SystemPrivilegeList             "TO" GranteeIdentifiedBy     SystemWithGrantOption ;
 
--- revoke_def -> REVOKE                                     FROM grantee_commalist                 : {revoke, [],   {on, <<"">>}, {from, '$3'}, ''}.
--- revoke_def -> REVOKE                                     FROM grantee_commalist with_revoke_option
---                                                                                                 : {revoke, [],   {on, <<"">>}, {from, '$3'}, '$4'}.
--- revoke_def -> REVOKE                       on_obj_clause FROM grantee_commalist                 : {revoke, [],   '$2',         {from, '$4'}, ''}.
--- revoke_def -> REVOKE                       on_obj_clause FROM grantee_commalist with_revoke_option
---                                                                                                 : {revoke, [],   '$2',         {from, '$4'}, '$5'}.
--- revoke_def -> REVOKE system_privilege_list               FROM grantee_commalist                 : {revoke, '$2', {on, <<"">>}, {from, '$4'}, ''}.
--- revoke_def -> REVOKE system_privilege_list               FROM grantee_commalist with_revoke_option
---                                                                                                 : {revoke, '$2', {on, <<"">>}, {from, '$4'}, '$5'}.
--- revoke_def -> REVOKE system_privilege_list on_obj_clause FROM grantee_commalist                 : {revoke, '$2', '$3',         {from, '$5'}, ''}.
--- revoke_def -> REVOKE system_privilege_list on_obj_clause FROM grantee_commalist with_revoke_option
---                                                                                                 : {revoke, '$2', '$3',         {from, '$5'}, '$6'}.
+-- revoke_def -> REVOKE ALL PRIVILEGES        on_obj_clause FROM grantee_revokee_commalist                           : {revoke, 'all privileges', '$3',         {from, '$5'}, ''}.
+-- revoke_def -> REVOKE object_privilege_list on_obj_clause FROM grantee_revokee_commalist                           : {revoke, '$2',             '$3',         {from, '$5'}, ''}.
+-- revoke_def -> REVOKE ALL PRIVILEGES        on_obj_clause FROM grantee_revokee_commalist object_with_revoke_option : {revoke, 'all privileges', '$3',         {from, '$5'}, '$6'}.
+-- revoke_def -> REVOKE object_privilege_list on_obj_clause FROM grantee_revokee_commalist object_with_revoke_option : {revoke, '$2',             '$3',         {from, '$5'}, '$6'}.
+-- revoke_def -> REVOKE ALL PRIVILEGES                      FROM grantee_revokee_commalist                           : {revoke, 'all privileges', {on, <<"">>}, {from, '$4'}, ''}.
+-- revoke_def -> REVOKE system_privilege_list               FROM grantee_revokee_commalist                           : {revoke, '$2',             {on, <<"">>}, {from, '$4'}, ''}.
 
-RevokeDef01.                      RevokeDef ::= "REVOKE"                                 "FROM" GranteeCommalist                  ;
-RevokeDef02.                      RevokeDef ::= "REVOKE"                                 "FROM" GranteeCommalist WithRevokeOption ;
-RevokeDef03.                      RevokeDef ::= "REVOKE"                     OnObjClause "FROM" GranteeCommalist                  ;
-RevokeDef04.                      RevokeDef ::= "REVOKE"                     OnObjClause "FROM" GranteeCommalist WithRevokeOption ;
-RevokeDef05.                      RevokeDef ::= "REVOKE" SystemPrivilegeList             "FROM" GranteeCommalist                  ;
-RevokeDef06.                      RevokeDef ::= "REVOKE" SystemPrivilegeList             "FROM" GranteeCommalist WithRevokeOption ;
-RevokeDef07.                      RevokeDef ::= "REVOKE" SystemPrivilegeList OnObjClause "FROM" GranteeCommalist                  ;
-RevokeDef08.                      RevokeDef ::= "REVOKE" SystemPrivilegeList OnObjClause "FROM" GranteeCommalist WithRevokeOption ;
+RevokeDef01.                      RevokeDef ::= "REVOKE" "ALL" "PRIVILEGES"  OnObjClause "FROM" GranteeRevokeeCommalist                        ;
+RevokeDef02.                      RevokeDef ::= "REVOKE" ObjectPrivilegeList OnObjClause "FROM" GranteeRevokeeCommalist                        ;
+RevokeDef03.                      RevokeDef ::= "REVOKE" "ALL" "PRIVILEGES"  OnObjClause "FROM" GranteeRevokeeCommalist ObjectWithRevokeOption ;
+RevokeDef04.                      RevokeDef ::= "REVOKE" ObjectPrivilegeList OnObjClause "FROM" GranteeRevokeeCommalist ObjectWithRevokeOption ;
+RevokeDef05.                      RevokeDef ::= "REVOKE" "ALL" "PRIVILEGES"              "FROM" GranteeRevokeeCommalist                        ;
+RevokeDef06.                      RevokeDef ::= "REVOKE" SystemPrivilegeList             "FROM" GranteeRevokeeCommalist                        ;
 
--- on_obj_clause -> ON DIRECTORY NAME                                                              : {'on directory',     unwrap_bin('$3')}.
--- on_obj_clause -> ON JAVA SOURCE   table                                                         : {'on java source',   '$4'}.
--- on_obj_clause -> ON JAVA RESOURCE table                                                         : {'on java resource', '$4'}.
--- on_obj_clause -> ON table                                                                       : {on, '$2'}.
+-- grantee_revokee -> NAME   : unwrap_bin('$1').
+-- grantee_revokee -> PUBLIC : 'public'.
 
-OnObjClause01.                    OnObjClause ::= "ON" "DIRECTORY" "NAME"      ;
-OnObjClause02.                    OnObjClause ::= "ON" "JAVA" "SOURCE"   Table ;
-OnObjClause03.                    OnObjClause ::= "ON" "JAVA" "RESOURCE" Table ;
-OnObjClause04.                    OnObjClause ::= "ON" Table                   ;
+GranteeRevokee01.                 GranteeRevokee ::= "NAME"   ;
+GranteeRevokee02.                 GranteeRevokee ::= "PUBLIC" ;
 
--- system_privilege_list -> ALL                                                                    : ['all'].
--- system_privilege_list -> ALL PRIVILEGES                                                         : ['all privileges'].
--- system_privilege_list -> system_privilege                                                       : ['$1'].
--- system_privilege_list -> system_privilege ',' system_privilege_list                             : ['$1'|'$3'].
+-- grantee_identified_by -> NAME IDENTIFIED BY STRING : {'identified by', unwrap_bin('$1'), unwrap_bin('$4')}.
 
-SystemPrivilegeList01.            SystemPrivilegeList ::= "ALL"                                   ;
-SystemPrivilegeList02.            SystemPrivilegeList ::= "ALL" "PRIVILEGES"                      ;
-SystemPrivilegeList03.            SystemPrivilegeList ::= SystemPrivilege                         ;
-SystemPrivilegeList04.            SystemPrivilegeList ::= SystemPrivilege "," SystemPrivilegeList ;
+GranteeIdentifiedBy01.                GranteeIdentifiedBy ::= "NAME" "IDENTIFIED" "BY" "STRING" ;
 
--- system_privilege -> SELECT                                                                      : 'select'.
--- system_privilege -> UPDATE                                                                      : 'update'.
--- system_privilege -> DELETE                                                                      : 'delete'.
--- system_privilege -> INSERT                                                                      : 'insert'.
--- system_privilege -> DROP                                                                        : 'drop'.
--- system_privilege -> NAME                                                                        : strl2atom(['$1']).
--- system_privilege -> NAME NAME                                                                   : strl2atom(['$1', '$2']).
--- system_privilege -> NAME NAME NAME                                                              : strl2atom(['$1', '$2', '$3']).
--- system_privilege -> NAME NAME NAME NAME                                                         : strl2atom(['$1', '$2', '$3', '$4']).
--- system_privilege -> NAME NAME NAME NAME NAME                                                    : strl2atom(['$1', '$2', '$3', '$4', '$5']).
+-- grantee_revokee_commalist ->                               grantee_revokee :         ['$1'].
+-- grantee_revokee_commalist -> grantee_revokee_commalist ',' grantee_revokee : '$1' ++ ['$3'].
 
-SystemPrivilege01.                SystemPrivilege ::= "SELECT"                           ;
-SystemPrivilege02.                SystemPrivilege ::= "UPDATE"                           ;
-SystemPrivilege03.                SystemPrivilege ::= "DELETE"                           ;
-SystemPrivilege04.                SystemPrivilege ::= "INSERT"                           ;
-SystemPrivilege05.                SystemPrivilege ::= "DROP"                             ;
-SystemPrivilege06.                SystemPrivilege ::= "NAME"                             ;
-SystemPrivilege07.                SystemPrivilege ::= "NAME" "NAME"                      ;
-SystemPrivilege08.                SystemPrivilege ::= "NAME" "NAME" "NAME"               ;
-SystemPrivilege09.                SystemPrivilege ::= "NAME" "NAME" "NAME" "NAME"        ;
-SystemPrivilege10.                SystemPrivilege ::= "NAME" "NAME" "NAME" "NAME" "NAME" ;
+GranteeRevokeeCommalist01.            GranteeRevokeeCommalist ::= GranteeRevokee                         ;
+GranteeRevokeeCommalist02.            GranteeRevokeeCommalist ::= GranteeRevokee "," GranteeRevokeeCommalist ;
 
--- with_grant_option -> WITH GRANT     OPTION                                                      : 'with grant option'.
--- with_grant_option -> WITH HIERARCHY OPTION                                                      : 'with hierarchy option'.
--- with_grant_option -> WITH NAME      OPTION                                                      : strl2atom(["with", '$2', "option"]).
+-- object_privilege -> ALL            : 'all'.
+-- object_privilege -> ALTER          : 'alter'.
+-- object_privilege -> DELETE         : 'delete'.
+-- object_privilege -> EXECUTE        : 'execute'.
+-- object_privilege -> INDEX          : 'index'.
+-- object_privilege -> INSERT         : 'insert'.
+-- object_privilege -> REFERENCES     : 'references'.
+-- object_privilege -> SELECT         : 'select'.
+-- object_privilege -> UPDATE         : 'update'.
 
-WithGrantOption01.                WithGrantOption ::= "WITH"   "GRANT"     "OPTION" ;
-WithGrantOption02.                WithGrantOption ::= "WITH"   "NAME"      "OPTION" ;
-WithGrantOption03.                WithGrantOption ::= "WITH"   "HIERARCHY" "OPTION" ;
+ObjectPrivilege01.                ObjectPrivilege ::= "ALL"         ;
+ObjectPrivilege02.                ObjectPrivilege ::= "ALTER"       ;
+ObjectPrivilege03.                ObjectPrivilege ::= "DELETE"      ;
+ObjectPrivilege04.                ObjectPrivilege ::= "EXECUTE"     ;
+ObjectPrivilege05.                ObjectPrivilege ::= "INDEX"       ;
+ObjectPrivilege06.                ObjectPrivilege ::= "INSERT"      ;
+ObjectPrivilege07.                ObjectPrivilege ::= "REFEFRENCES" ;
+ObjectPrivilege08.                ObjectPrivilege ::= "SELECT"      ;
+ObjectPrivilege09.                ObjectPrivilege ::= "UPDATE"      ;
 
--- with_revoke_option -> CASCADE CONSTRAINTS                                                       : 'cascade constraints'.
--- with_revoke_option -> FORCE                                                                     : 'force'.
+-- object_privilege_list -> object_privilege                           : ['$1'].
+-- object_privilege_list -> object_privilege ',' object_privilege_list : ['$1'|'$3'].
 
-WithRevokeOption01.               WithRevokeOption ::= "CASCADE" "CONSTRAINTS" ;
-WithRevokeOption02.               WithRevokeOption ::= "FORCE"                 ;
+ObjectPrivilegeList01.            ObjectPrivilegeList ::= ObjectPrivilege                         ;
+ObjectPrivilegeList02.            ObjectPrivilegeList ::= ObjectPrivilege "," ObjectPrivilegeList ;
 
--- grantee_commalist ->                       grantee                                              :         ['$1'].
--- grantee_commalist -> grantee_commalist ',' grantee                                              : '$1' ++ ['$3'].
+-- object_with_grant_option -> WITH GRANT     OPTION : 'with grant option'.
+-- object_with_grant_option -> WITH HIERARCHY OPTION : 'with hierarchy option'.
 
-GranteeCommalist01.               GranteeCommalist ::=                      Grantee ;
-GranteeCommalist02.               GranteeCommalist ::= GranteeCommalist "," Grantee ;
+ObjectWithGrantOption01.          ObjectWithGrantOption ::= "WITH" "GRANT"     "OPTION" ;
+ObjectWithGrantOption02.          ObjectWithGrantOption ::= "WITH" "HIERARCHY" "OPTION" ;
 
--- grantee -> NAME                                                                                 : unwrap_bin('$1').
--- grantee -> NAME IDENTIFIED BY NAME                                                              : {'identified by', unwrap_bin('$1'), unwrap_bin('$4')}.
--- grantee -> PUBLIC                                                                               : 'public'.
+-- object_with_revoke_option -> CASCADE CONSTRAINTS : 'cascade constraints'.
+-- object_with_revoke_option -> FORCE               : 'force'.
 
-Grantee01.                        Grantee ::= "NAME"                            ;
-Grantee02.                        Grantee ::= "NAME"   "IDENTIFIED" "BY" "NAME" ;
-Grantee03.                        Grantee ::= "PUBLIC"                          ;
+ObjectWithRevokeOption01.         ObjectWithRevokeOption ::= "CASCADE" "CONSTRAINTS" ;
+ObjectWithRevokeOption02.         ObjectWithRevokeOption ::= "FORCE"                 ;
+
+-- on_obj_clause -> ON DIRECTORY NAME : {'on directory', unwrap_bin('$3')}.
+-- on_obj_clause -> ON table          : {on,            '$2'}.
+
+OnObjClause01.                    OnObjClause ::= "ON" "DIRECTORY" "NAME" ;
+OnObjClause02.                    OnObjClause ::= "ON" Table              ;
+
+-- system_privilege -> ADMIN                        : 'admin'.
+-- system_privilege -> ALTER ANY INDEX              : 'alter any index'.
+-- system_privilege -> ALTER ANY MATERIALIZED VIEW  : 'alter any materialized view'.
+-- system_privilege -> ALTER ANY TABLE              : 'alter any table'.
+-- system_privilege -> ALTER ANY VIEW               : 'alter any view'.
+-- system_privilege -> CREATE ANY INDEX             : 'create any index'.
+-- system_privilege -> CREATE ANY MATERIALIZED VIEW : 'create any materialized view'.
+-- system_privilege -> CREATE ANY TABLE             : 'create any table'.
+-- system_privilege -> CREATE ANY VIEW              : 'create any view'.
+-- system_privilege -> CREATE MATERIALIZED VIEW     : 'create materialized view'.
+-- system_privilege -> CREATE TABLE                 : 'create table'.
+-- system_privilege -> CREATE VIEW                  : 'create view'.
+-- system_privilege -> DELETE ANY TABLE             : 'delete any table'.
+-- system_privilege -> DROP ANY INDEX               : 'drop any index'.
+-- system_privilege -> DROP ANY MATERIALIZED VIEW   : 'drop any materialized view'.
+-- system_privilege -> DROP ANY TABLE               : 'drop any table'.
+-- system_privilege -> DROP ANY VIEW                : 'drop any view'.
+-- system_privilege -> INSERT ANY TABLE             : 'insert any table'.
+-- system_privilege -> SELECT ANY TABLE             : 'select any table'.
+-- system_privilege -> UPDATE ANY TABLE             : 'update any table'.
+-- system_privilege -> NAME                         : strl2atom(['$1']).
+
+SystemPrivilege01.                SystemPrivilege ::= "ADMIN"                              ;
+SystemPrivilege02.                SystemPrivilege ::= "ALTER"  "ANY" "INDEX"               ;
+SystemPrivilege03.                SystemPrivilege ::= "ALTER"  "ANY" "MATERIALIZED" "VIEW" ;
+SystemPrivilege04.                SystemPrivilege ::= "ALTER"  "ANY" "TABLE"               ;
+SystemPrivilege05.                SystemPrivilege ::= "ALTER"  "ANY" "VIEW"                ;
+SystemPrivilege06.                SystemPrivilege ::= "CREATE" "ANY" "INDEX"               ;
+SystemPrivilege07.                SystemPrivilege ::= "CREATE" "ANY" "MATERIALIZED" "VIEW" ;
+SystemPrivilege08.                SystemPrivilege ::= "CREATE" "ANY" "TABLE"               ;
+SystemPrivilege09.                SystemPrivilege ::= "CREATE" "ANY" "VIEW"                ;
+SystemPrivilege10.                SystemPrivilege ::= "CREATE"       "MATERIALIZED" "VIEW" ;
+SystemPrivilege11.                SystemPrivilege ::= "CREATE"       "TABLE"               ;
+SystemPrivilege12.                SystemPrivilege ::= "CREATE"       "VIEW"                ;
+SystemPrivilege13.                SystemPrivilege ::= "DELETE" "ANY" "TABLE"               ;
+SystemPrivilege14.                SystemPrivilege ::= "DROP"   "ANY" "INDEX"               ;
+SystemPrivilege15.                SystemPrivilege ::= "DROP"   "ANY" "MATERIALIZED" "VIEW" ;
+SystemPrivilege16.                SystemPrivilege ::= "DROP"   "ANY" "TABLE"               ;
+SystemPrivilege17.                SystemPrivilege ::= "DROP"   "ANY" "VIEW"                ;
+SystemPrivilege18.                SystemPrivilege ::= "INSERT" "ANY" "TABLE"               ;
+SystemPrivilege19.                SystemPrivilege ::= "SELECT" "ANY" "TABLE"               ;
+SystemPrivilege20.                SystemPrivilege ::= "UPDATE" "ANY" "TABLE"               ;
+SystemPrivilege21.                SystemPrivilege ::= "NAME"                               ;
+
+-- system_privilege_list -> system_privilege                           : ['$1'].
+-- system_privilege_list -> system_privilege ',' system_privilege_list : ['$1'|'$3'].
+
+SystemPrivilegeList01.            SystemPrivilegeList ::= SystemPrivilege                         ;
+SystemPrivilegeList02.            SystemPrivilegeList ::= SystemPrivilege "," SystemPrivilegeList ;
+
+-- system_with_grant_option -> WITH ADMIN    OPTION : 'with admin option'.
+-- system_with_grant_option -> WITH DELEGATE OPTION : 'with delegate option'.
+
+SystemWithGrantOption01.          SystemWithGrantOption ::= "WITH" "ADMIN"    "OPTION" ;
+SystemWithGrantOption02.          SystemWithGrantOption ::= "WITH" "DELEGATE" "OPTION" ;
 
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 -- Cursor definition

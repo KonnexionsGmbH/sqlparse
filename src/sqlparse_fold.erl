@@ -1345,10 +1345,8 @@ fold(FType, Fun, Ctx, Lvl, {grant, Objs, {OnTyp, On}, {'to', Tos}, Opts} = ST)
               end,
     RT = {lists:append([
         "grant ",
-        case length(ObjsStr) == 0 of
-            true -> [];
-            _ -> string:join(ObjsStr, ",") ++ " "
-        end,
+        string:join(ObjsStr, ","),
+        " ",
         case On =/= <<"">> of
             true -> lists:append([OnTypNew, " ", OnNew, " "]);
             _ -> []
@@ -2386,10 +2384,8 @@ fold(FType, Fun, Ctx, Lvl, {revoke, Objs, {OnTyp, On}, {'from', Tos}, Opts} = ST
               end,
     RT = {lists:append([
         "revoke ",
-        case length(ObjsStr) == 0 of
-            true -> [];
-            _ -> string:join(ObjsStr, ",") ++ " "
-        end,
+        string:join(ObjsStr, ","),
+        " ",
         case On =/= <<"">> of
             true -> lists:append([OnTypNew, " ", OnNew, " "]);
             _ -> []

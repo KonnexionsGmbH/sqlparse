@@ -89,8 +89,9 @@ Nonterminals
  function_ref
  function_ref_list
  grant_def
- grantee
- grantee_commalist
+ grantee_identified_by
+ grantee_revokee
+ grantee_revokee_commalist
  group_by_clause
  having_clause
  hierarchical_query_clause
@@ -118,6 +119,10 @@ Nonterminals
  not_between
  not_in
  not_like
+ object_privilege
+ object_privilege_list
+ object_with_grant_option
+ object_with_revoke_option
  on_obj_clause
  open_statement
  order_by_clause
@@ -164,6 +169,7 @@ Nonterminals
  subquery
  system_privilege
  system_privilege_list
+ system_with_grant_option
  table
  table_constraint_def
  table_exp
@@ -187,8 +193,6 @@ Nonterminals
  view_def
  when_action
  where_clause
- with_grant_option
- with_revoke_option
 .
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -197,6 +201,7 @@ Nonterminals
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Terminals
+ ADMIN
  ALL
  ALTER
  AND
@@ -228,6 +233,7 @@ Terminals
  CURSOR
  DECLARE
  DEFAULT
+ DELEGATE
  DELETE
  DESC
  DIRECTORY
@@ -237,6 +243,7 @@ Terminals
  END
  ENTERPRISE
  ESCAPE
+ EXECUTE
  EXCEPT
  EXISTS
  EXTERNALLY
@@ -268,7 +275,6 @@ Terminals
  INTNUM
  INTO
  IS
- JAVA
  JOIN
  JSON
  KEY
@@ -307,7 +313,6 @@ Terminals
  QUOTA
  REFERENCES
  REQUIRED
- RESOURCE
  RESTRICT
  RETURN
  RETURNING
@@ -321,7 +326,6 @@ Terminals
  SELECT
  SET
  SOME
- SOURCE
  SQLERROR
  START
  STORAGE
@@ -629,58 +633,87 @@ view_def -> CREATE VIEW table '(' column_commalist ')' : {'create view', '$3', '
 view_def -> AS query_spec                              : {as, '$2', []                 }.
 view_def -> AS query_spec WITH CHECK OPTION            : {as, '$2', "with check option"}.
 
-grant_def -> GRANT                                     TO grantee_commalist                   : {grant, [],   {on, <<"">>}, {to, '$3'}, ''}.
-grant_def -> GRANT                                     TO grantee_commalist with_grant_option : {grant, [],   {on, <<"">>}, {to, '$3'}, '$4'}.
-grant_def -> GRANT                       on_obj_clause TO grantee_commalist                   : {grant, [],   '$2',         {to, '$4'}, ''}.
-grant_def -> GRANT                       on_obj_clause TO grantee_commalist with_grant_option : {grant, [],   '$2',         {to, '$4'}, '$5'}.
-grant_def -> GRANT system_privilege_list               TO grantee_commalist                   : {grant, '$2', {on, <<"">>}, {to, '$4'}, ''}.
-grant_def -> GRANT system_privilege_list               TO grantee_commalist with_grant_option : {grant, '$2', {on, <<"">>}, {to, '$4'}, '$5'}.
-grant_def -> GRANT system_privilege_list on_obj_clause TO grantee_commalist                   : {grant, '$2', '$3',         {to, '$5'}, ''}.
-grant_def -> GRANT system_privilege_list on_obj_clause TO grantee_commalist with_grant_option : {grant, '$2', '$3',         {to, '$5'}, '$6'}.
+grant_def -> GRANT ALL PRIVILEGES        on_obj_clause TO grantee_revokee_commalist                          : {grant, ['all privileges'], '$4',         {to, '$6'},   ''}.
+grant_def -> GRANT object_privilege_list on_obj_clause TO grantee_revokee_commalist                          : {grant, '$2',               '$3',         {to, '$5'},   ''}.
+grant_def -> GRANT ALL PRIVILEGES        on_obj_clause TO grantee_identified_by                              : {grant, ['all privileges'], '$4',         {to, ['$6']}, ''}.
+grant_def -> GRANT object_privilege_list on_obj_clause TO grantee_identified_by                              : {grant, '$2',               '$3',         {to, ['$5']}, ''}.
+grant_def -> GRANT ALL PRIVILEGES        on_obj_clause TO grantee_revokee_commalist object_with_grant_option : {grant, ['all privileges'], '$4',         {to, '$6'},   '$7'}.
+grant_def -> GRANT object_privilege_list on_obj_clause TO grantee_revokee_commalist object_with_grant_option : {grant, '$2',               '$3',         {to, '$5'},   '$6'}.
+grant_def -> GRANT ALL PRIVILEGES        on_obj_clause TO grantee_identified_by     object_with_grant_option : {grant, ['all privileges'], '$4',         {to, ['$6']}, '$7'}.
+grant_def -> GRANT object_privilege_list on_obj_clause TO grantee_identified_by     object_with_grant_option : {grant, '$2',               '$3',         {to, ['$5']}, '$6'}.
+grant_def -> GRANT ALL PRIVILEGES                      TO grantee_revokee_commalist                          : {grant, ['all privileges'], {on, <<"">>}, {to, '$5'},   ''}.
+grant_def -> GRANT system_privilege_list               TO grantee_revokee_commalist                          : {grant, '$2',               {on, <<"">>}, {to, '$4'},   ''}.
+grant_def -> GRANT ALL PRIVILEGES                      TO grantee_identified_by                              : {grant, ['all privileges'], {on, <<"">>}, {to, ['$5']}, ''}.
+grant_def -> GRANT system_privilege_list               TO grantee_identified_by                              : {grant, '$2',               {on, <<"">>}, {to, ['$4']}, ''}.
+grant_def -> GRANT ALL PRIVILEGES                      TO grantee_revokee_commalist system_with_grant_option : {grant, ['all privileges'], {on, <<"">>}, {to, '$5'},   '$6'}.
+grant_def -> GRANT system_privilege_list               TO grantee_revokee_commalist system_with_grant_option : {grant, '$2',               {on, <<"">>}, {to, '$4'},   '$5'}.
+grant_def -> GRANT ALL PRIVILEGES                      TO grantee_identified_by     system_with_grant_option : {grant, ['all privileges'], {on, <<"">>}, {to, ['$5']}, '$6'}.
+grant_def -> GRANT system_privilege_list               TO grantee_identified_by     system_with_grant_option : {grant, '$2',               {on, <<"">>}, {to, ['$4']}, '$5'}.
 
-revoke_def -> REVOKE                                     FROM grantee_commalist                    : {revoke, [],   {on, <<"">>}, {from, '$3'}, ''}.
-revoke_def -> REVOKE                                     FROM grantee_commalist with_revoke_option : {revoke, [],   {on, <<"">>}, {from, '$3'}, '$4'}.
-revoke_def -> REVOKE                       on_obj_clause FROM grantee_commalist                    : {revoke, [],   '$2',         {from, '$4'}, ''}.
-revoke_def -> REVOKE                       on_obj_clause FROM grantee_commalist with_revoke_option : {revoke, [],   '$2',         {from, '$4'}, '$5'}.
-revoke_def -> REVOKE system_privilege_list               FROM grantee_commalist                    : {revoke, '$2', {on, <<"">>}, {from, '$4'}, ''}.
-revoke_def -> REVOKE system_privilege_list               FROM grantee_commalist with_revoke_option : {revoke, '$2', {on, <<"">>}, {from, '$4'}, '$5'}.
-revoke_def -> REVOKE system_privilege_list on_obj_clause FROM grantee_commalist                    : {revoke, '$2', '$3',         {from, '$5'}, ''}.
-revoke_def -> REVOKE system_privilege_list on_obj_clause FROM grantee_commalist with_revoke_option : {revoke, '$2', '$3',         {from, '$5'}, '$6'}.
+revoke_def -> REVOKE ALL PRIVILEGES        on_obj_clause FROM grantee_revokee_commalist                           : {revoke, ['all privileges'], '$4',         {from, '$6'}, ''}.
+revoke_def -> REVOKE object_privilege_list on_obj_clause FROM grantee_revokee_commalist                           : {revoke, '$2',               '$3',         {from, '$5'}, ''}.
+revoke_def -> REVOKE ALL PRIVILEGES        on_obj_clause FROM grantee_revokee_commalist object_with_revoke_option : {revoke, ['all privileges'], '$4',         {from, '$6'}, '$7'}.
+revoke_def -> REVOKE object_privilege_list on_obj_clause FROM grantee_revokee_commalist object_with_revoke_option : {revoke, '$2',               '$3',         {from, '$5'}, '$6'}.
+revoke_def -> REVOKE ALL PRIVILEGES                      FROM grantee_revokee_commalist                           : {revoke, ['all privileges'], {on, <<"">>}, {from, '$5'}, ''}.
+revoke_def -> REVOKE system_privilege_list               FROM grantee_revokee_commalist                           : {revoke, '$2',               {on, <<"">>}, {from, '$4'}, ''}.
 
-on_obj_clause -> ON DIRECTORY NAME      : {'on directory',     unwrap_bin('$3')}.
-on_obj_clause -> ON JAVA SOURCE   table : {'on java source',   '$4'}.
-on_obj_clause -> ON JAVA RESOURCE table : {'on java resource', '$4'}.
-on_obj_clause -> ON table               : {on, '$2'}.
+grantee_identified_by -> NAME IDENTIFIED BY STRING : {'identified by', unwrap_bin('$1'), unwrap_bin('$4')}.
 
-system_privilege_list -> ALL                                        : ['all'].
-system_privilege_list -> ALL PRIVILEGES                             : ['all privileges'].
+grantee_revokee -> NAME   : unwrap_bin('$1').
+grantee_revokee -> PUBLIC : 'public'.
+
+grantee_revokee_commalist ->                               grantee_revokee :         ['$1'].
+grantee_revokee_commalist -> grantee_revokee_commalist ',' grantee_revokee : '$1' ++ ['$3'].
+
+object_privilege -> ALL            : 'all'.
+object_privilege -> ALTER          : 'alter'.
+object_privilege -> DELETE         : 'delete'.
+object_privilege -> EXECUTE        : 'execute'.
+object_privilege -> INDEX          : 'index'.
+object_privilege -> INSERT         : 'insert'.
+object_privilege -> REFERENCES     : 'references'.
+object_privilege -> SELECT         : 'select'.
+object_privilege -> UPDATE         : 'update'.
+
+object_privilege_list -> object_privilege                           : ['$1'].
+object_privilege_list -> object_privilege ',' object_privilege_list : ['$1'|'$3'].
+
+object_with_grant_option -> WITH GRANT     OPTION : 'with grant option'.
+object_with_grant_option -> WITH HIERARCHY OPTION : 'with hierarchy option'.
+
+object_with_revoke_option -> CASCADE CONSTRAINTS : 'cascade constraints'.
+object_with_revoke_option -> FORCE               : 'force'.
+
+on_obj_clause -> ON DIRECTORY NAME : {'on directory', unwrap_bin('$3')}.
+on_obj_clause -> ON table          : {on,            '$2'}.
+
+system_privilege -> ADMIN                        : 'admin'.
+system_privilege -> ALTER ANY INDEX              : 'alter any index'.
+system_privilege -> ALTER ANY MATERIALIZED VIEW  : 'alter any materialized view'.
+system_privilege -> ALTER ANY TABLE              : 'alter any table'.
+system_privilege -> ALTER ANY VIEW               : 'alter any view'.
+system_privilege -> CREATE ANY INDEX             : 'create any index'.
+system_privilege -> CREATE ANY MATERIALIZED VIEW : 'create any materialized view'.
+system_privilege -> CREATE ANY TABLE             : 'create any table'.
+system_privilege -> CREATE ANY VIEW              : 'create any view'.
+system_privilege -> CREATE MATERIALIZED VIEW     : 'create materialized view'.
+system_privilege -> CREATE TABLE                 : 'create table'.
+system_privilege -> CREATE VIEW                  : 'create view'.
+system_privilege -> DELETE ANY TABLE             : 'delete any table'.
+system_privilege -> DROP ANY INDEX               : 'drop any index'.
+system_privilege -> DROP ANY MATERIALIZED VIEW   : 'drop any materialized view'.
+system_privilege -> DROP ANY TABLE               : 'drop any table'.
+system_privilege -> DROP ANY VIEW                : 'drop any view'.
+system_privilege -> INSERT ANY TABLE             : 'insert any table'.
+system_privilege -> SELECT ANY TABLE             : 'select any table'.
+system_privilege -> UPDATE ANY TABLE             : 'update any table'.
+system_privilege -> NAME                         : strl2atom(['$1']).
+
 system_privilege_list -> system_privilege                           : ['$1'].
 system_privilege_list -> system_privilege ',' system_privilege_list : ['$1'|'$3'].
 
-system_privilege -> SELECT                   : 'select'.
-system_privilege -> UPDATE                   : 'update'.
-system_privilege -> DELETE                   : 'delete'.
-system_privilege -> INSERT                   : 'insert'.
-system_privilege -> DROP                     : 'drop'.
-system_privilege -> NAME                     : strl2atom(['$1']).
-system_privilege -> NAME NAME                : strl2atom(['$1', '$2']).
-system_privilege -> NAME NAME NAME           : strl2atom(['$1', '$2', '$3']).
-system_privilege -> NAME NAME NAME NAME      : strl2atom(['$1', '$2', '$3', '$4']).
-system_privilege -> NAME NAME NAME NAME NAME : strl2atom(['$1', '$2', '$3', '$4', '$5']).
-
-with_grant_option -> WITH GRANT     OPTION : 'with grant option'.
-with_grant_option -> WITH HIERARCHY OPTION : 'with hierarchy option'.
-with_grant_option -> WITH NAME      OPTION : strl2atom(["with", '$2', "option"]).
-
-with_revoke_option -> CASCADE CONSTRAINTS : 'cascade constraints'.
-with_revoke_option -> FORCE               : 'force'.
-
-grantee_commalist ->                       grantee :         ['$1'].
-grantee_commalist -> grantee_commalist ',' grantee : '$1' ++ ['$3'].
-
-grantee -> NAME                    : unwrap_bin('$1').
-grantee -> NAME IDENTIFIED BY NAME : {'identified by', unwrap_bin('$1'), unwrap_bin('$4')}.
-grantee -> PUBLIC                  : 'public'.
+system_with_grant_option -> WITH ADMIN    OPTION : 'with admin option'.
+system_with_grant_option -> WITH DELEGATE OPTION : 'with delegate option'.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% cursor definition

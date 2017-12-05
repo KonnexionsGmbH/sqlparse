@@ -8,30 +8,28 @@
 %% TESTS
 %%
 
-"GRANT TO name_user_1".
-"GRANT TO name_user_1, name_user_2".
+"GRANT CREATE TABLE TO name_user_1".
+"GRANT DROP ANY TABLE TO name_user_1, name_user_2".
 
-"GRANT TO name_user_1 WITH GRANT OPTION".
-"GRANT TO name_user_1 WITH HIERARCHY OPTION".
-"GRANT TO name_user_1 WITH name OPTION".
+"GRANT super_role TO name_user_1 WITH DELEGATE OPTION".
+"GRANT ADMIN TO name_user_1 WITH ADMIN OPTION".
+"GRANT SELECT ON table_1 TO name_user_1 WITH GRANT OPTION".
+"GRANT REFERENCES ON table_1 TO name_user_1 WITH HIERARCHY OPTION".
 
-"GRANT ON name_table TO name_user_1".
+"GRANT ALL ON name_table TO name_user_1".
 % ? "GRANT ON DIRECTORY name_directory TO name_user_1".
 % ? "GRANT ON JAVA SOURCE name_table TO name_user_1".
 % ? "GRANT ON JAVA RESOURCE name_table TO name_user_1".
 
-"GRANT ALL TO name_user_1".
 "GRANT ALL PRIVILEGES TO name_user_1".
-"GRANT DELETE TO name_user_1".
-"GRANT DROP TO name_user_1".
-"GRANT INSERT TO name_user_1".
-"GRANT SELECT TO name_user_1".
-"GRANT UPDATE TO name_user_1".
-"GRANT DELETE, DROP, INSERT, SELECT, UPDATE TO name_user_1".
-"GRANT name_privilege_1 TO name_user_1".
-"GRANT DELETE, name_privilege_1, name_privilege_2 TO name_user_1".
-"GRANT name_privilege_1, name_privilege_2, DELETE TO name_user_1".
-"GRANT name_privilege_1 name_privilege_2 name_privilege_3 name_privilege_4 name_privilege_5 TO name_user_1".
+"GRANT DELETE ON table_1 TO name_user_1".
+"GRANT INSERT ON table_1 TO name_user_1".
+"GRANT SELECT ON table_1 TO name_user_1".
+"GRANT UPDATE ON table_1 TO name_user_1".
+"GRANT DELETE, INSERT, SELECT, UPDATE ON table_1 TO name_user_1".
+"GRANT name_role TO name_user_1".
+"GRANT name_privilege_1, name_privilege_2 TO name_user_1".
+"GRANT name_privilege_1, name_privilege_2, name_privilege_3, name_privilege_4, name_privilege_5 TO name_user_1".
 
 "GRANT manage_system TO user_1".
 "GRANT a,b,c TO user2".

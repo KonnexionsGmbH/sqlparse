@@ -5491,8 +5491,7 @@ create_code(user_role = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% view_def ::= ( 'CREATE' 'VIEW' table ( '(' column_commalist ')' )? )
-%%            | ( 'AS' query_spec ( 'WITH' 'CHECK' 'OPTION' )? )
+%% view_def ::= 'CREATE' 'VIEW' table ( '(' column_commalist ')' )? 'AS' query_spec ( 'WITH' 'CHECK' 'OPTION' )?
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(view_def = Rule) ->
@@ -5506,28 +5505,24 @@ create_code(view_def = Rule) ->
 
     Code =
         [
-            case rand:uniform(2) rem 2 of
-                1 -> lists:append([
-                    "Create View ",
-                    lists:nth(rand:uniform(Table_Length), Table),
-                    case rand:uniform(5) rem 5 of
-                        1 -> [];
-                        _ -> lists:append([
-                            " (",
-                            lists:nth(rand:uniform(Column_Commalist_Length), Column_Commalist),
-                            ")"
-                        ])
-                    end
-                ]);
-                _ -> lists:append([
-                    "As ",
-                    lists:nth(rand:uniform(Query_Spec_Length), Query_Spec),
-                    case rand:uniform(2) rem 2 of
-                        1 -> " With Check Option";
-                        _ -> []
-                    end
-                ])
-            end
+            lists:append([
+                "Create View ",
+                lists:nth(rand:uniform(Table_Length), Table),
+                case rand:uniform(5) rem 5 of
+                    1 -> [];
+                    _ -> lists:append([
+                        " (",
+                        lists:nth(rand:uniform(Column_Commalist_Length), Column_Commalist),
+                        ")"
+                    ])
+                end,
+                " As ",
+                lists:nth(rand:uniform(Query_Spec_Length), Query_Spec),
+                case rand:uniform(2) rem 2 of
+                    1 -> " With Check Option";
+                    _ -> []
+                end
+            ])
             || _ <- lists:seq(1, ?MAX_STATEMENT_COMPLEX * 2)
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_COMPLEX, true),

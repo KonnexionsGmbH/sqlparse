@@ -628,10 +628,10 @@ table_constraint_def -> CHECK '(' search_condition ')'                          
 column_commalist -> column                      : ['$1'].
 column_commalist -> column ',' column_commalist : ['$1' | '$3'].
 
-view_def -> CREATE VIEW table                          : {'create view', '$3', []}.
-view_def -> CREATE VIEW table '(' column_commalist ')' : {'create view', '$3', '$5'}.
-view_def -> AS query_spec                              : {as, '$2', []                 }.
-view_def -> AS query_spec WITH CHECK OPTION            : {as, '$2', "with check option"}.
+view_def -> CREATE VIEW table                          AS query_spec                   : {'create view', '$3', [],   {as, '$5', []}}.
+view_def -> CREATE VIEW table                          AS query_spec WITH CHECK OPTION : {'create view', '$3', [],   {as, '$5', "with check option"}}.
+view_def -> CREATE VIEW table '(' column_commalist ')' AS query_spec                   : {'create view', '$3', '$5', {as, '$8', []}}.
+view_def -> CREATE VIEW table '(' column_commalist ')' AS query_spec WITH CHECK OPTION : {'create view', '$3', '$5', {as, '$8', "with check option"}}.
 
 grant_def -> GRANT ALL PRIVILEGES        on_obj_clause TO grantee_revokee_commalist                          : {grant, ['all privileges'], '$4',         {to, '$6'},   ''}.
 grant_def -> GRANT object_privilege_list on_obj_clause TO grantee_revokee_commalist                          : {grant, '$2',               '$3',         {to, '$5'},   ''}.

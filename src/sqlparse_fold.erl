@@ -740,7 +740,7 @@ fold(FType, Fun, Ctx, Lvl, {'create user', Usr, Id, Opts} = ST)
 % CREATE VIEW
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(FType, Fun, Ctx, Lvl, {'create view', Table, Columns} = ST) ->
+fold(FType, Fun, Ctx, Lvl, {'create view', Table, Columns, QuerySpec} = ST) ->
     ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, ST]),
     NewCtx = case FType of
                  top_down -> Fun(ST, Ctx);
@@ -759,15 +759,22 @@ fold(FType, Fun, Ctx, Lvl, {'create view', Table, Columns} = ST) ->
                                            end,
                               {[], NewCtx1}, Columns)
                       end,
-    NewCtx3 = case FType of
-                  top_down -> NewCtx2;
-                  bottom_up -> Fun(ST, NewCtx2)
+    {QuerySpecStr, NewCtx3} = fold(FType, Fun, NewCtx2, Lvl + 1, QuerySpec),
+    NewCtx4 = case FType of
+                  top_down -> NewCtx;
+                  bottom_up -> Fun(ST, NewCtx3)
               end,
-    RT = {lists:append(["create view ", TableStr, case Clms of
-                                                      [] -> [];
-                                                      _ ->
-                                                          lists:append([" (", string:join(Clms, ", "), ")"])
-                                                  end]), NewCtx3},
+    RT = {lists:append([
+        "create view ",
+        TableStr,
+        case Clms of
+            [] -> [];
+            _ ->
+                lists:append([" (", string:join(Clms, ", "), ")"])
+        end,
+        " ",
+        QuerySpecStr
+    ]), NewCtx4},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
 

@@ -104,14 +104,14 @@ CreateTableDef04.                 CreateTableDef ::= "CREATE" CreateOpts "TABLE"
 CreateUserDef01.                  CreateUserDef ::= "CREATE" "USER" "NAME" Identified              ;
 CreateUserDef02.                  CreateUserDef ::= "CREATE" "USER" "NAME" Identified UserOptsList ;
 
--- drop_table_def -> DROP      TABLE        table_list                                             : {'drop table', {'tables', '$3'}, {},   {},   []}.
--- drop_table_def -> DROP      TABLE        table_list restrict_cascade                            : {'drop table', {'tables', '$3'}, {},   '$4', []}.
--- drop_table_def -> DROP      TABLE exists table_list                                             : {'drop table', {'tables', '$4'}, '$3', {},   []}.
--- drop_table_def -> DROP      TABLE exists table_list restrict_cascade                            : {'drop table', {'tables', '$4'}, '$3', '$5', []}.
--- drop_table_def -> DROP NAME TABLE        table_list                                             : {'drop table', {'tables', '$4'}, {},   {},   unwrap('$2')}.
--- drop_table_def -> DROP NAME TABLE        table_list restrict_cascade                            : {'drop table', {'tables', '$4'}, {},   '$5', unwrap('$2')}.
--- drop_table_def -> DROP NAME TABLE exists table_list                                             : {'drop table', {'tables', '$5'}, '$4', {},   unwrap('$2')}.
--- drop_table_def -> DROP NAME TABLE exists table_list restrict_cascade                            : {'drop table', {'tables', '$5'}, '$4', '$6', unwrap('$2')}.
+-- drop_table_def -> DROP      TABLE        table_list                  : {'drop table', {'tables', '$3'}, {},   {},   []}.
+-- drop_table_def -> DROP      TABLE        table_list restrict_cascade : {'drop table', {'tables', '$3'}, {},   '$4', []}.
+-- drop_table_def -> DROP      TABLE exists table_list                  : {'drop table', {'tables', '$4'}, '$3', {},   []}.
+-- drop_table_def -> DROP      TABLE exists table_list restrict_cascade : {'drop table', {'tables', '$4'}, '$3', '$5', []}.
+-- drop_table_def -> DROP NAME TABLE        table_list                  : {'drop table', {'tables', '$4'}, {},   {},   unwrap('$2')}.
+-- drop_table_def -> DROP NAME TABLE        table_list restrict_cascade : {'drop table', {'tables', '$4'}, {},   '$5', unwrap('$2')}.
+-- drop_table_def -> DROP NAME TABLE exists table_list                  : {'drop table', {'tables', '$5'}, '$4', {},   unwrap('$2')}.
+-- drop_table_def -> DROP NAME TABLE exists table_list restrict_cascade : {'drop table', {'tables', '$5'}, '$4', '$6', unwrap('$2')}.
 
 DropTableDef01.                   DropTableDef ::= "DROP"        "TABLE"        TableList                 ;
 DropTableDef02.                   DropTableDef ::= "DROP"        "TABLE"        TableList RestrictCascade ;
@@ -126,101 +126,79 @@ DropTableDef08.                   DropTableDef ::= "DROP" "NAME" "TABLE" Exists 
 
 DropRoleDef01.                    DropRoleDef ::= "DROP" "ROLE" "NAME" ;
 
--- drop_index_def -> DROP INDEX            FROM table                                              : {'drop index', {},   '$4'}.
--- drop_index_def -> DROP INDEX index_name FROM table                                              : {'drop index', '$3', '$5'}.
+-- drop_index_def -> DROP INDEX            FROM table : {'drop index', {},   '$4'}.
+-- drop_index_def -> DROP INDEX index_name            : {'drop index', '$3', []}.
+-- drop_index_def -> DROP INDEX index_name FROM table : {'drop index', '$3', '$5'}.
 
 DropIndexDef01.                   DropIndexDef ::= "DROP" "INDEX"           "FROM" Table ;
-DropIndexDef02.                   DropIndexDef ::= "DROP" "INDEX" IndexName "FROM" Table ;
+DropIndexDef02.                   DropIndexDef ::= "DROP" "INDEX" IndexName              ;
+DropIndexDef03.                   DropIndexDef ::= "DROP" "INDEX" IndexName "FROM" Table ;
 
--- create_index_def -> CREATE                   INDEX            ON table                          : {'create index', {},   {},   '$4', [],   {},   {}}.
--- create_index_def -> CREATE                   INDEX            ON table                                     create_index_filter
---                                                                                                 : {'create index', {},   {},   '$4', [],   {},   '$5'}.
--- create_index_def -> CREATE                   INDEX            ON table                   create_index_norm
---                                                                                                 : {'create index', {},   {},   '$4', [],   '$5', {}}.
--- create_index_def -> CREATE                   INDEX            ON table                   create_index_norm create_index_filter
---                                                                                                 : {'create index', {},   {},   '$4', [],   '$5', '$6'}.
--- create_index_def -> CREATE                   INDEX            ON table create_index_spec        : {'create index', {},   {},   '$4', '$5', {},   {}}.
--- create_index_def -> CREATE                   INDEX            ON table create_index_spec                   create_index_filter
---                                                                                                 : {'create index', {},   {},   '$4', '$5', {},   '$6'}.
--- create_index_def -> CREATE                   INDEX            ON table create_index_spec create_index_norm
---                                                                                                 : {'create index', {},   {},   '$4', '$5', '$6', {}}.
--- create_index_def -> CREATE                   INDEX            ON table create_index_spec create_index_norm create_index_filter
---                                                                                                 : {'create index', {},   {},   '$4', '$5', '$6', '$7'}.
--- create_index_def -> CREATE                   INDEX index_name ON table                          : {'create index', {},   '$3', '$5', [],   {},   {}}.
--- create_index_def -> CREATE                   INDEX index_name ON table                                     create_index_filter
---                                                                                                 : {'create index', {},   '$3', '$5', [],   {},   '$6'}.
--- create_index_def -> CREATE                   INDEX index_name ON table                   create_index_norm
---                                                                                                 : {'create index', {},   '$3', '$5', [],   '$6', {}}.
--- create_index_def -> CREATE                   INDEX index_name ON table                   create_index_norm create_index_filter
---                                                                                                 : {'create index', {},   '$3', '$5', [],   '$6', '$7'}.
--- create_index_def -> CREATE                   INDEX index_name ON table create_index_spec        : {'create index', {},   '$3', '$5', '$6', {},   {}}.
--- create_index_def -> CREATE                   INDEX index_name ON table create_index_spec                   create_index_filter
---                                                                                                 : {'create index', {},   '$3', '$5', '$6', {},   '$7'}.
--- create_index_def -> CREATE                   INDEX index_name ON table create_index_spec create_index_norm create_index_filter
---                                                                                                 : {'create index', {},   '$3', '$5', '$6', '$7', '$8'}.
--- create_index_def -> CREATE                   INDEX index_name ON table create_index_spec create_index_norm
---                                                                                                 : {'create index', {},   '$3', '$5', '$6', '$7', {}}.
--- create_index_def -> CREATE create_index_opts INDEX            ON table                          : {'create index', '$2', {},   '$5', [],   {},   {}}.
--- create_index_def -> CREATE create_index_opts INDEX            ON table                                     create_index_filter
---                                                                                                 : {'create index', '$2', {},   '$5', [],   {},   '$6'}.
--- create_index_def -> CREATE create_index_opts INDEX            ON table                   create_index_norm
---                                                                                                 : {'create index', '$2', {},   '$5', [],   '$6', {}}.
--- create_index_def -> CREATE create_index_opts INDEX            ON table                   create_index_norm create_index_filter
---                                                                                                 : {'create index', '$2', {},   '$5', [],   '$6', '$7'}.
--- create_index_def -> CREATE create_index_opts INDEX            ON table create_index_spec        : {'create index', '$2', {},   '$5', '$6', {},   {}}.
--- create_index_def -> CREATE create_index_opts INDEX            ON table create_index_spec                   create_index_filter
---                                                                                                 : {'create index', '$2', {},   '$5', '$6', {},   '$7'}.
--- create_index_def -> CREATE create_index_opts INDEX            ON table create_index_spec create_index_norm
---                                                                                                 : {'create index', '$2', {},   '$5', '$6', '$7', {}}.
--- create_index_def -> CREATE create_index_opts INDEX            ON table create_index_spec create_index_norm create_index_filter
---                                                                                                 : {'create index', '$2', {},   '$5', '$6', '$7', '$8'}.
--- create_index_def -> CREATE create_index_opts INDEX index_name ON table                          : {'create index', '$2', '$4', '$6', [],   {},   {}}.
--- create_index_def -> CREATE create_index_opts INDEX index_name ON table                                     create_index_filter
---                                                                                                 : {'create index', '$2', '$4', '$6', [],   {},   '$7'}.
--- create_index_def -> CREATE create_index_opts INDEX index_name ON table                   create_index_norm
---                                                                                                 : {'create index', '$2', '$4', '$6', [],   '$7', {}}.
--- create_index_def -> CREATE create_index_opts INDEX index_name ON table                   create_index_norm create_index_filter
---                                                                                                 : {'create index', '$2', '$4', '$6', [],   '$7', '$8'}.
--- create_index_def -> CREATE create_index_opts INDEX index_name ON table create_index_spec        : {'create index', '$2', '$4', '$6', '$7', {},   {}}.
--- create_index_def -> CREATE create_index_opts INDEX index_name ON table create_index_spec                   create_index_filter
---                                                                                                 : {'create index', '$2', '$4', '$6', '$7', {},   '$8'}.
--- create_index_def -> CREATE create_index_opts INDEX index_name ON table create_index_spec create_index_norm
---                                                                                                 : {'create index', '$2', '$4', '$6', '$7', '$8', {}}.
--- create_index_def -> CREATE create_index_opts INDEX index_name ON table create_index_spec create_index_norm create_index_filter
---                                                                                                 : {'create index', '$2', '$4', '$6', '$7', '$8', '$9'}.
+-- create_index_def -> CREATE                   INDEX            ON table_alias                                                         : {'create index', {},   {},   '$4', [],   {},   {}}.
+-- create_index_def -> CREATE                   INDEX            ON table_alias                                     create_index_filter : {'create index', {},   {},   '$4', [],   {},   '$5'}.
+-- create_index_def -> CREATE                   INDEX            ON table_alias                   create_index_norm                     : {'create index', {},   {},   '$4', [],   '$5', {}}.
+-- create_index_def -> CREATE                   INDEX            ON table_alias                   create_index_norm create_index_filter : {'create index', {},   {},   '$4', [],   '$5', '$6'}.
+-- create_index_def -> CREATE                   INDEX            ON table_alias create_index_spec                                       : {'create index', {},   {},   '$4', '$5', {},   {}}.
+-- create_index_def -> CREATE                   INDEX            ON table_alias create_index_spec                   create_index_filter : {'create index', {},   {},   '$4', '$5', {},   '$6'}.
+-- create_index_def -> CREATE                   INDEX            ON table_alias create_index_spec create_index_norm                     : {'create index', {},   {},   '$4', '$5', '$6', {}}.
+-- create_index_def -> CREATE                   INDEX            ON table_alias create_index_spec create_index_norm create_index_filter : {'create index', {},   {},   '$4', '$5', '$6', '$7'}.
+-- create_index_def -> CREATE                   INDEX index_name ON table_alias                                                         : {'create index', {},   '$3', '$5', [],   {},   {}}.
+-- create_index_def -> CREATE                   INDEX index_name ON table_alias                                     create_index_filter : {'create index', {},   '$3', '$5', [],   {},   '$6'}.
+-- create_index_def -> CREATE                   INDEX index_name ON table_alias                   create_index_norm                     : {'create index', {},   '$3', '$5', [],   '$6', {}}.
+-- create_index_def -> CREATE                   INDEX index_name ON table_alias                   create_index_norm create_index_filter : {'create index', {},   '$3', '$5', [],   '$6', '$7'}.
+-- create_index_def -> CREATE                   INDEX index_name ON table_alias create_index_spec                                       : {'create index', {},   '$3', '$5', '$6', {},   {}}.
+-- create_index_def -> CREATE                   INDEX index_name ON table_alias create_index_spec                   create_index_filter : {'create index', {},   '$3', '$5', '$6', {},   '$7'}.
+-- create_index_def -> CREATE                   INDEX index_name ON table_alias create_index_spec create_index_norm create_index_filter : {'create index', {},   '$3', '$5', '$6', '$7', '$8'}.
+-- create_index_def -> CREATE                   INDEX index_name ON table_alias create_index_spec create_index_norm                     : {'create index', {},   '$3', '$5', '$6', '$7', {}}.
+-- create_index_def -> CREATE create_index_opts INDEX            ON table_alias                                                         : {'create index', '$2', {},   '$5', [],   {},   {}}.
+-- create_index_def -> CREATE create_index_opts INDEX            ON table_alias                                     create_index_filter : {'create index', '$2', {},   '$5', [],   {},   '$6'}.
+-- create_index_def -> CREATE create_index_opts INDEX            ON table_alias                   create_index_norm                     : {'create index', '$2', {},   '$5', [],   '$6', {}}.
+-- create_index_def -> CREATE create_index_opts INDEX            ON table_alias                   create_index_norm create_index_filter : {'create index', '$2', {},   '$5', [],   '$6', '$7'}.
+-- create_index_def -> CREATE create_index_opts INDEX            ON table_alias create_index_spec                                       : {'create index', '$2', {},   '$5', '$6', {},   {}}.
+-- create_index_def -> CREATE create_index_opts INDEX            ON table_alias create_index_spec                   create_index_filter : {'create index', '$2', {},   '$5', '$6', {},   '$7'}.
+-- create_index_def -> CREATE create_index_opts INDEX            ON table_alias create_index_spec create_index_norm                     : {'create index', '$2', {},   '$5', '$6', '$7', {}}.
+-- create_index_def -> CREATE create_index_opts INDEX            ON table_alias create_index_spec create_index_norm create_index_filter : {'create index', '$2', {},   '$5', '$6', '$7', '$8'}.
+-- create_index_def -> CREATE create_index_opts INDEX index_name ON table_alias                                                         : {'create index', '$2', '$4', '$6', [],   {},   {}}.
+-- create_index_def -> CREATE create_index_opts INDEX index_name ON table_alias                                     create_index_filter : {'create index', '$2', '$4', '$6', [],   {},   '$7'}.
+-- create_index_def -> CREATE create_index_opts INDEX index_name ON table_alias                   create_index_norm                     : {'create index', '$2', '$4', '$6', [],   '$7', {}}.
+-- create_index_def -> CREATE create_index_opts INDEX index_name ON table_alias                   create_index_norm create_index_filter : {'create index', '$2', '$4', '$6', [],   '$7', '$8'}.
+-- create_index_def -> CREATE create_index_opts INDEX index_name ON table_alias create_index_spec                                       : {'create index', '$2', '$4', '$6', '$7', {},   {}}.
+-- create_index_def -> CREATE create_index_opts INDEX index_name ON table_alias create_index_spec                   create_index_filter : {'create index', '$2', '$4', '$6', '$7', {},   '$8'}.
+-- create_index_def -> CREATE create_index_opts INDEX index_name ON table_alias create_index_spec create_index_norm                     : {'create index', '$2', '$4', '$6', '$7', '$8', {}}.
+-- create_index_def -> CREATE create_index_opts INDEX index_name ON table_alias create_index_spec create_index_norm create_index_filter : {'create index', '$2', '$4', '$6', '$7', '$8', '$9'}.
 
-CreateIndexDef01.                 CreateIndexDef ::= "CREATE"                 "INDEX"           "ON" Table                                                   ;
-CreateIndexDef02.                 CreateIndexDef ::= "CREATE"                 "INDEX"           "ON" Table                                 CreateIndexFilter ;
-CreateIndexDef03.                 CreateIndexDef ::= "CREATE"                 "INDEX"           "ON" Table                 CreateIndexNorm                   ;
-CreateIndexDef04.                 CreateIndexDef ::= "CREATE"                 "INDEX"           "ON" Table                 CreateIndexNorm CreateIndexFilter ;
-CreateIndexDef05.                 CreateIndexDef ::= "CREATE"                 "INDEX"           "ON" Table CreateIndexSpec                                   ;
-CreateIndexDef06.                 CreateIndexDef ::= "CREATE"                 "INDEX"           "ON" Table CreateIndexSpec                 CreateIndexFilter ;
-CreateIndexDef07.                 CreateIndexDef ::= "CREATE"                 "INDEX"           "ON" Table CreateIndexSpec CreateIndexNorm                   ;
-CreateIndexDef08.                 CreateIndexDef ::= "CREATE"                 "INDEX"           "ON" Table CreateIndexSpec CreateIndexNorm CreateIndexFilter ;
-CreateIndexDef09.                 CreateIndexDef ::= "CREATE"                 "INDEX" IndexName "ON" Table                                                   ;
-CreateIndexDef10.                 CreateIndexDef ::= "CREATE"                 "INDEX" IndexName "ON" Table                                 CreateIndexFilter ;
-CreateIndexDef11.                 CreateIndexDef ::= "CREATE"                 "INDEX" IndexName "ON" Table                 CreateIndexNorm                   ;
-CreateIndexDef12.                 CreateIndexDef ::= "CREATE"                 "INDEX" IndexName "ON" Table                 CreateIndexNorm CreateIndexFilter ;
-CreateIndexDef13.                 CreateIndexDef ::= "CREATE"                 "INDEX" IndexName "ON" Table CreateIndexSpec                                   ;
-CreateIndexDef14.                 CreateIndexDef ::= "CREATE"                 "INDEX" IndexName "ON" Table CreateIndexSpec                 CreateIndexFilter ;
-CreateIndexDef15.                 CreateIndexDef ::= "CREATE"                 "INDEX" IndexName "ON" Table CreateIndexSpec CreateIndexNorm                   ;
-CreateIndexDef16.                 CreateIndexDef ::= "CREATE"                 "INDEX" IndexName "ON" Table CreateIndexSpec CreateIndexNorm CreateIndexFilter ;
-CreateIndexDef17.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX"           "ON" Table                                                   ;
-CreateIndexDef18.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX"           "ON" Table                                 CreateIndexFilter ;
-CreateIndexDef19.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX"           "ON" Table                 CreateIndexNorm                   ;
-CreateIndexDef20.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX"           "ON" Table                 CreateIndexNorm CreateIndexFilter ;
-CreateIndexDef21.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX"           "ON" Table CreateIndexSpec                                   ;
-CreateIndexDef22.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX"           "ON" Table CreateIndexSpec                 CreateIndexFilter ;
-CreateIndexDef23.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX"           "ON" Table CreateIndexSpec CreateIndexNorm                   ;
-CreateIndexDef24.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX"           "ON" Table CreateIndexSpec CreateIndexNorm CreateIndexFilter ;
-CreateIndexDef25.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX" IndexName "ON" Table                                                   ;
-CreateIndexDef26.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX" IndexName "ON" Table                                 CreateIndexFilter ;
-CreateIndexDef27.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX" IndexName "ON" Table                 CreateIndexNorm                   ;
-CreateIndexDef28.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX" IndexName "ON" Table                 CreateIndexNorm CreateIndexFilter ;
-CreateIndexDef29.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX" IndexName "ON" Table CreateIndexSpec                                   ;
-CreateIndexDef30.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX" IndexName "ON" Table CreateIndexSpec                 CreateIndexFilter ;
-CreateIndexDef31.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX" IndexName "ON" Table CreateIndexSpec CreateIndexNorm                   ;
-CreateIndexDef32.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX" IndexName "ON" Table CreateIndexSpec CreateIndexNorm CreateIndexFilter ;
+CreateIndexDef01.                 CreateIndexDef ::= "CREATE"                 "INDEX"           "ON" TableAlias                                                   ;
+CreateIndexDef02.                 CreateIndexDef ::= "CREATE"                 "INDEX"           "ON" TableAlias                                 CreateIndexFilter ;
+CreateIndexDef03.                 CreateIndexDef ::= "CREATE"                 "INDEX"           "ON" TableAlias                 CreateIndexNorm                   ;
+CreateIndexDef04.                 CreateIndexDef ::= "CREATE"                 "INDEX"           "ON" TableAlias                 CreateIndexNorm CreateIndexFilter ;
+CreateIndexDef05.                 CreateIndexDef ::= "CREATE"                 "INDEX"           "ON" TableAlias CreateIndexSpec                                   ;
+CreateIndexDef06.                 CreateIndexDef ::= "CREATE"                 "INDEX"           "ON" TableAlias CreateIndexSpec                 CreateIndexFilter ;
+CreateIndexDef07.                 CreateIndexDef ::= "CREATE"                 "INDEX"           "ON" TableAlias CreateIndexSpec CreateIndexNorm                   ;
+CreateIndexDef08.                 CreateIndexDef ::= "CREATE"                 "INDEX"           "ON" TableAlias CreateIndexSpec CreateIndexNorm CreateIndexFilter ;
+CreateIndexDef09.                 CreateIndexDef ::= "CREATE"                 "INDEX" IndexName "ON" TableAlias                                                   ;
+CreateIndexDef10.                 CreateIndexDef ::= "CREATE"                 "INDEX" IndexName "ON" TableAlias                                 CreateIndexFilter ;
+CreateIndexDef11.                 CreateIndexDef ::= "CREATE"                 "INDEX" IndexName "ON" TableAlias                 CreateIndexNorm                   ;
+CreateIndexDef12.                 CreateIndexDef ::= "CREATE"                 "INDEX" IndexName "ON" TableAlias                 CreateIndexNorm CreateIndexFilter ;
+CreateIndexDef13.                 CreateIndexDef ::= "CREATE"                 "INDEX" IndexName "ON" TableAlias CreateIndexSpec                                   ;
+CreateIndexDef14.                 CreateIndexDef ::= "CREATE"                 "INDEX" IndexName "ON" TableAlias CreateIndexSpec                 CreateIndexFilter ;
+CreateIndexDef15.                 CreateIndexDef ::= "CREATE"                 "INDEX" IndexName "ON" TableAlias CreateIndexSpec CreateIndexNorm                   ;
+CreateIndexDef16.                 CreateIndexDef ::= "CREATE"                 "INDEX" IndexName "ON" TableAlias CreateIndexSpec CreateIndexNorm CreateIndexFilter ;
+CreateIndexDef17.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX"           "ON" TableAlias                                                   ;
+CreateIndexDef18.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX"           "ON" TableAlias                                 CreateIndexFilter ;
+CreateIndexDef19.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX"           "ON" TableAlias                 CreateIndexNorm                   ;
+CreateIndexDef20.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX"           "ON" TableAlias                 CreateIndexNorm CreateIndexFilter ;
+CreateIndexDef21.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX"           "ON" TableAlias CreateIndexSpec                                   ;
+CreateIndexDef22.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX"           "ON" TableAlias CreateIndexSpec                 CreateIndexFilter ;
+CreateIndexDef23.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX"           "ON" TableAlias CreateIndexSpec CreateIndexNorm                   ;
+CreateIndexDef24.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX"           "ON" TableAlias CreateIndexSpec CreateIndexNorm CreateIndexFilter ;
+CreateIndexDef25.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX" IndexName "ON" TableAlias                                                   ;
+CreateIndexDef26.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX" IndexName "ON" TableAlias                                 CreateIndexFilter ;
+CreateIndexDef27.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX" IndexName "ON" TableAlias                 CreateIndexNorm                   ;
+CreateIndexDef28.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX" IndexName "ON" TableAlias                 CreateIndexNorm CreateIndexFilter ;
+CreateIndexDef29.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX" IndexName "ON" TableAlias CreateIndexSpec                                   ;
+CreateIndexDef30.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX" IndexName "ON" TableAlias CreateIndexSpec                 CreateIndexFilter ;
+CreateIndexDef31.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX" IndexName "ON" TableAlias CreateIndexSpec CreateIndexNorm                   ;
+CreateIndexDef32.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX" IndexName "ON" TableAlias CreateIndexSpec CreateIndexNorm CreateIndexFilter ;
 
 -- create_index_opts -> BITMAP                                                                     : bitmap.
 -- create_index_opts -> KEYLIST                                                                    : keylist.
@@ -768,23 +746,15 @@ ManipulativeStatement22.          ManipulativeStatement ::= TruncateTable       
 ManipulativeStatement23.          ManipulativeStatement ::= GrantDef                  ;
 ManipulativeStatement24.          ManipulativeStatement ::= RevokeDef                 ;
 
--- truncate_table -> TRUNCATE TABLE table_name                                                     : {'truncate table', '$3', {},   {}}.
--- truncate_table -> TRUNCATE TABLE table_name              storage                                : {'truncate table', '$3', {},   '$4'}.
--- truncate_table -> TRUNCATE TABLE table_name materialized                                        : {'truncate table', '$3', '$4', {}}.
--- truncate_table -> TRUNCATE TABLE table_name materialized storage                                : {'truncate table', '$3', '$4', '$5'}.
+-- truncate_table -> TRUNCATE TABLE table                      : {'truncate table', '$3', {},   {}}.
+-- truncate_table -> TRUNCATE TABLE table              storage : {'truncate table', '$3', {},   '$4'}.
+-- truncate_table -> TRUNCATE TABLE table materialized         : {'truncate table', '$3', '$4', {}}.
+-- truncate_table -> TRUNCATE TABLE table materialized storage : {'truncate table', '$3', '$4', '$5'}.
 
-TruncateTable01.                  TruncateTable ::= "TRUNCATE" "TABLE" Tablename                      ;
-TruncateTable02.                  TruncateTable ::= "TRUNCATE" "TABLE" Tablename              Storage ;
-TruncateTable03.                  TruncateTable ::= "TRUNCATE" "TABLE" Tablename Materialized         ;
-TruncateTable04.                  TruncateTable ::= "TRUNCATE" "TABLE" Tablename Materialized Storage ;
-
--- table_name -> NAME                                                                              : unwrap_bin('$1').
--- table_name -> NAME '.' NAME                                                                     : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
--- table_name -> NAME '.' NAME '.' NAME                                                            : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).
-
-Tablename01.                      Tablename ::= "NAME"                       ;
-Tablename02.                      Tablename ::= "NAME" "." "NAME"            ;
-Tablename03.                      Tablename ::= "NAME" "." "NAME" "." "NAME" ;
+TruncateTable01.                  TruncateTable ::= "TRUNCATE" "TABLE" Table                      ;
+TruncateTable02.                  TruncateTable ::= "TRUNCATE" "TABLE" Table              Storage ;
+TruncateTable03.                  TruncateTable ::= "TRUNCATE" "TABLE" Table Materialized         ;
+TruncateTable04.                  TruncateTable ::= "TRUNCATE" "TABLE" Table Materialized Storage ;
 
 -- materialized -> PRESERVE MATERIALIZED VIEW LOG                                                  : {'materialized view log', preserve}.
 -- materialized -> PURGE    MATERIALIZED VIEW LOG                                                  : {'materialized view log', purge}.
@@ -808,39 +778,39 @@ CloseStatement01.                 CloseStatement ::= "CLOSE" Cursor ;
 CommitStatement01.                CommitStatement ::= "COMMIT"        ;
 CommitStatement02.                CommitStatement ::= "COMMIT" "WORK" ;
 
--- delete_statement_positioned -> DELETE FROM table WHERE CURRENT OF cursor                        : {delete, '$3',{where_current_of, '$7'}, {returning, {}}}.
--- delete_statement_positioned -> DELETE FROM table WHERE CURRENT OF cursor returning              : {delete, '$3',{where_current_of, '$7'}, '$8'}.
+-- delete_statement_positioned -> DELETE FROM table_dblink WHERE CURRENT OF cursor           : {delete, '$3',{where_current_of, '$7'}, {returning, {}}}.
+-- delete_statement_positioned -> DELETE FROM table_dblink WHERE CURRENT OF cursor returning : {delete, '$3',{where_current_of, '$7'}, '$8'}.
 
-DeleteStatementPositioned01.      DeleteStatementPositioned ::= "DELETE" "FROM" Table "WHERE" "CURRENT" "OF" Cursor           ;
-DeleteStatementPositioned02.      DeleteStatementPositioned ::= "DELETE" "FROM" Table "WHERE" "CURRENT" "OF" Cursor Returning ;
+DeleteStatementPositioned01.      DeleteStatementPositioned ::= "DELETE" "FROM" TableDblink "WHERE" "CURRENT" "OF" Cursor           ;
+DeleteStatementPositioned02.      DeleteStatementPositioned ::= "DELETE" "FROM" TableDblink "WHERE" "CURRENT" "OF" Cursor Returning ;
 
--- delete_statement_searched -> DELETE FROM table                                                  : {delete, '$3', [],   {returning, {}}}.
--- delete_statement_searched -> DELETE FROM table              returning                           : {delete, '$3', [],   '$4'}.
--- delete_statement_searched -> DELETE FROM table where_clause                                     : {delete, '$3', '$4', {returning, {}}}.
--- delete_statement_searched -> DELETE FROM table where_clause returning                           : {delete, '$3', '$4', '$5'}.
+-- delete_statement_searched -> DELETE FROM table_dblink                        : {delete, '$3', [],   {returning, {}}}.
+-- delete_statement_searched -> DELETE FROM table_dblink              returning : {delete, '$3', [],   '$4'}.
+-- delete_statement_searched -> DELETE FROM table_dblink where_clause           : {delete, '$3', '$4', {returning, {}}}.
+-- delete_statement_searched -> DELETE FROM table_dblink where_clause returning : {delete, '$3', '$4', '$5'}.
 
-DeleteStatementSearched01.        DeleteStatementSearched ::= "DELETE" "FROM" Table                       ;
-DeleteStatementSearched02.        DeleteStatementSearched ::= "DELETE" "FROM" Table WhereClause           ;
-DeleteStatementSearched03.        DeleteStatementSearched ::= "DELETE" "FROM" Table             Returning ;
-DeleteStatementSearched04.        DeleteStatementSearched ::= "DELETE" "FROM" Table WhereClause Returning ;
+DeleteStatementSearched01.        DeleteStatementSearched ::= "DELETE" "FROM" TableDblink                       ;
+DeleteStatementSearched02.        DeleteStatementSearched ::= "DELETE" "FROM" TableDblink WhereClause           ;
+DeleteStatementSearched03.        DeleteStatementSearched ::= "DELETE" "FROM" TableDblink             Returning ;
+DeleteStatementSearched04.        DeleteStatementSearched ::= "DELETE" "FROM" TableDblink WhereClause Returning ;
 
 -- fetch_statement -> FETCH cursor INTO target_commalist                                           : {fetch, '$2', {into, '$4'}}.
 
 FetchStatement01.                 FetchStatement ::= "FETCH" Cursor "INTO" TargetCommalist ;
 
--- insert_statement -> INSERT INTO table                                                           : {insert, '$3', {},           {},   {returning, {}}}.
--- insert_statement -> INSERT INTO table                                               returning   : {insert, '$3', {},           {},   '$4'}.
--- insert_statement -> INSERT INTO table                          values_or_query_spec             : {insert, '$3', {cols, []},   '$4', {returning, {}}}.
--- insert_statement -> INSERT INTO table                          values_or_query_spec returning   : {insert, '$3', {cols, []},   '$4', '$5'}.
--- insert_statement -> INSERT INTO table '(' column_commalist ')' values_or_query_spec             : {insert, '$3', {cols, '$5'}, '$7', {returning, {}}}.
--- insert_statement -> INSERT INTO table '(' column_commalist ')' values_or_query_spec returning   : {insert, '$3', {cols, '$5'}, '$7', '$8'}.
+-- insert_statement -> INSERT INTO table_dblink                                                         : {insert, '$3', {},           {},   {returning, {}}}.
+-- insert_statement -> INSERT INTO table_dblink                                               returning : {insert, '$3', {},           {},   '$4'}.
+-- insert_statement -> INSERT INTO table_dblink                          values_or_query_spec           : {insert, '$3', {cols, []},   '$4', {returning, {}}}.
+-- insert_statement -> INSERT INTO table_dblink                          values_or_query_spec returning : {insert, '$3', {cols, []},   '$4', '$5'}.
+-- insert_statement -> INSERT INTO table_dblink '(' column_commalist ')' values_or_query_spec           : {insert, '$3', {cols, '$5'}, '$7', {returning, {}}}.
+-- insert_statement -> INSERT INTO table_dblink '(' column_commalist ')' values_or_query_spec returning : {insert, '$3', {cols, '$5'}, '$7', '$8'}.
 
-InsertStatement01.                InsertStatement ::= "INSERT" "INTO" Table                                                     ;
-InsertStatement02.                InsertStatement ::= "INSERT" "INTO" Table                                           Returning ;
-InsertStatement03.                InsertStatement ::= "INSERT" "INTO" Table                         ValuesOrQuerySpec           ;
-InsertStatement04.                InsertStatement ::= "INSERT" "INTO" Table                         ValuesOrQuerySpec Returning ;
-InsertStatement05.                InsertStatement ::= "INSERT" "INTO" Table "(" ColumnCommalist ")" ValuesOrQuerySpec           ;
-InsertStatement06.                InsertStatement ::= "INSERT" "INTO" Table "(" ColumnCommalist ")" ValuesOrQuerySpec Returning ;
+InsertStatement01.                InsertStatement ::= "INSERT" "INTO" TableDblink                                                     ;
+InsertStatement02.                InsertStatement ::= "INSERT" "INTO" TableDblink                                           Returning ;
+InsertStatement03.                InsertStatement ::= "INSERT" "INTO" TableDblink                         ValuesOrQuerySpec           ;
+InsertStatement04.                InsertStatement ::= "INSERT" "INTO" TableDblink                         ValuesOrQuerySpec Returning ;
+InsertStatement05.                InsertStatement ::= "INSERT" "INTO" TableDblink "(" ColumnCommalist ")" ValuesOrQuerySpec           ;
+InsertStatement06.                InsertStatement ::= "INSERT" "INTO" TableDblink "(" ColumnCommalist ")" ValuesOrQuerySpec Returning ;
 
 -- values_or_query_spec -> VALUES '(' insert_atom_commalist ')'                                    : {values, '$3'}.
 -- values_or_query_spec -> query_spec                                                              : '$1'.
@@ -882,12 +852,11 @@ Hint01.                           Hint ::= "HINT"   ;
 AllDistinct01.                    AllDistinct ::= "ALL"      ;
 AllDistinct02.                    AllDistinct ::= "DISTINCT" ;
 
--- update_statement_positioned -> UPDATE table SET assignment_commalist WHERE CURRENT OF cursor    : {update, '$2', {set, '$4'}, {where_current_of, '$8'}, {returning, {}}}.
--- update_statement_positioned -> UPDATE table SET assignment_commalist WHERE CURRENT OF cursor returning
---                                                                                                 : {update, '$2', {set, '$4'}, {where_current_of, '$8'}, '$9'}.
+-- update_statement_positioned -> UPDATE table_dblink SET assignment_commalist WHERE CURRENT OF cursor           : {update, '$2', {set, '$4'}, {where_current_of, '$8'}, {returning, {}}}.
+-- update_statement_positioned -> UPDATE table_dblink SET assignment_commalist WHERE CURRENT OF cursor returning : {update, '$2', {set, '$4'}, {where_current_of, '$8'}, '$9'}.
 
-UpdateStatementPositioned01.      UpdateStatementPositioned ::= "UPDATE" Table "SET" AssignmentCommalist "WHERE" "CURRENT" "OF" Cursor           ;
-UpdateStatementPositioned02.      UpdateStatementPositioned ::= "UPDATE" Table "SET" AssignmentCommalist "WHERE" "CURRENT" "OF" Cursor Returning ;
+UpdateStatementPositioned01.      UpdateStatementPositioned ::= "UPDATE" TableDblink "SET" AssignmentCommalist "WHERE" "CURRENT" "OF" Cursor           ;
+UpdateStatementPositioned02.      UpdateStatementPositioned ::= "UPDATE" TableDblink "SET" AssignmentCommalist "WHERE" "CURRENT" "OF" Cursor Returning ;
 
 -- assignment_commalist ->                          assignment                                     :         ['$1'].
 -- assignment_commalist -> assignment_commalist ',' assignment                                     : '$1' ++ ['$3'].
@@ -899,15 +868,15 @@ AssignmentCommalist02.            AssignmentCommalist ::= AssignmentCommalist ",
 
 Assignment01.                     Assignment ::= Column "=" ScalarOptAsExp ;
 
--- update_statement_searched -> UPDATE table SET assignment_commalist                              : {update, '$2', {set, '$4'}, [],   {returning, {}}}.
--- update_statement_searched -> UPDATE table SET assignment_commalist              returning       : {update, '$2', {set, '$4'}, [],   '$5'}.
--- update_statement_searched -> UPDATE table SET assignment_commalist where_clause                 : {update, '$2', {set, '$4'}, '$5', {returning, {}}}.
--- update_statement_searched -> UPDATE table SET assignment_commalist where_clause returning       : {update, '$2', {set, '$4'}, '$5', '$6'}.
+-- update_statement_searched -> UPDATE table_dblink SET assignment_commalist                        : {update, '$2', {set, '$4'}, [],   {returning, {}}}.
+-- update_statement_searched -> UPDATE table_dblink SET assignment_commalist              returning : {update, '$2', {set, '$4'}, [],   '$5'}.
+-- update_statement_searched -> UPDATE table_dblink SET assignment_commalist where_clause           : {update, '$2', {set, '$4'}, '$5', {returning, {}}}.
+-- update_statement_searched -> UPDATE table_dblink SET assignment_commalist where_clause returning : {update, '$2', {set, '$4'}, '$5', '$6'}.
 
-UpdateStatementSearched01.        UpdateStatementSearched ::= "UPDATE" Table "SET" AssignmentCommalist                       ;
-UpdateStatementSearched02.        UpdateStatementSearched ::= "UPDATE" Table "SET" AssignmentCommalist WhereClause           ;
-UpdateStatementSearched03.        UpdateStatementSearched ::= "UPDATE" Table "SET" AssignmentCommalist             Returning ;
-UpdateStatementSearched04.        UpdateStatementSearched ::= "UPDATE" Table "SET" AssignmentCommalist WhereClause Returning ;
+UpdateStatementSearched01.        UpdateStatementSearched ::= "UPDATE" TableDblink "SET" AssignmentCommalist                       ;
+UpdateStatementSearched02.        UpdateStatementSearched ::= "UPDATE" TableDblink "SET" AssignmentCommalist WhereClause           ;
+UpdateStatementSearched03.        UpdateStatementSearched ::= "UPDATE" TableDblink "SET" AssignmentCommalist             Returning ;
+UpdateStatementSearched04.        UpdateStatementSearched ::= "UPDATE" TableDblink "SET" AssignmentCommalist WhereClause Returning ;
 
 -- target_commalist ->                      target                                                 :         ['$1'].
 -- target_commalist -> target_commalist ',' target                                                 : '$1' ++ ['$3'].
@@ -1253,19 +1222,19 @@ OuterJoinType04.                  OuterJoinType ::= "LEFT"  "OUTER" ;
 OuterJoinType05.                  OuterJoinType ::= "RIGHT"         ;
 OuterJoinType06.                  OuterJoinType ::= "RIGHT" "OUTER" ;
 
--- table_ref -> table                                                                              : '$1'.
--- table_ref -> query_term                                                                         : '$1'.
--- table_ref -> query_term NAME                                                                    : {as, '$1', unwrap_bin('$2')}.
+-- table_ref -> table_dblink    : '$1'.
+-- table_ref -> query_term      : '$1'.
+-- table_ref -> query_term NAME : {as, '$1', unwrap_bin('$2')}.
 
-TableRef01.                       TableRef ::= Table            ;
+TableRef01.                       TableRef ::= TableDblink      ;
 TableRef02.                       TableRef ::= QueryTerm        ;
 TableRef03.                       TableRef ::= QueryTerm "NAME" ;
 
--- join_ref -> table                                                                               : '$1'.
--- join_ref -> query_term                                                                          : '$1'.
--- join_ref -> query_term NAME                                                                     : {as, '$1', unwrap_bin('$2')}.
+-- join_ref -> table_dblink    : '$1'.
+-- join_ref -> query_term      : '$1'.
+-- join_ref -> query_term NAME : {as, '$1', unwrap_bin('$2')}.
 
-JoinRef01.                        JoinRef ::= Table            ;
+JoinRef01.                        JoinRef ::= TableDblink      ;
 JoinRef02.                        JoinRef ::= QueryTerm        ;
 JoinRef03.                        JoinRef ::= QueryTerm "NAME" ;
 
@@ -1575,21 +1544,43 @@ Literal03.                        Literal ::= "APPROXNUM" ;
 -- miscellaneous
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--- table -> NAME                                                                                   : unwrap_bin('$1').
--- table -> NAME NAME                                                                              : {as, unwrap_bin('$1'), unwrap_bin('$2')}.
--- table -> STRING                                                                                 : unwrap_bin('$1').
--- table -> NAME '.' NAME                                                                          : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
--- table -> NAME '.' NAME NAME                                                                     : {as, list_to_binary([unwrap('$1'),".",unwrap('$3')]), unwrap_bin('$4')}.
--- table -> parameter                                                                              : '$1'.
--- table -> parameter NAME                                                                         : {as, '$1', unwrap_bin('$2')}.
+-- table -> NAME          : unwrap_bin('$1').
+-- table -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+-- table -> parameter     : '$1'.
+-- table -> STRING        : unwrap_bin('$1').
 
-Table01.                          Table ::= "NAME"                   ;
-Table02.                          Table ::= "NAME"            "NAME" ;
-Table03.                          Table ::= "STRING"                 ;
-Table04.                          Table ::= "NAME" "."        "NAME" ;
-Table05.                          Table ::= "NAME" "." "NAME" "NAME" ;
-Table06.                          Table ::= Parameter                ;
-Table07.                          Table ::= Parameter         "NAME" ;
+Table01.                          Table ::= "NAME"            ;
+Table02.                          Table ::= "NAME" "." "NAME" ;
+Table03.                          Table ::= Parameter         ;
+Table04.                          Table ::= "STRING"          ;
+
+-- table_alias -> NAME          NAME : {as, unwrap_bin('$1'),                                unwrap_bin('$2')}.
+-- table_alias -> NAME '.' NAME NAME : {as, list_to_binary([unwrap('$1'),".",unwrap('$3')]), unwrap_bin('$4')}.
+-- table_alias -> parameter     NAME : {as, '$1',                                            unwrap_bin('$2')}.
+-- table_alias -> STRING        NAME : {as, unwrap_bin('$1'),                                unwrap_bin('$2')}.
+-- table_alias -> table              : '$1'.
+
+TableAlias01.                     TableAlias ::= "NAME"                     "NAME" ;
+TableAlias02.                     TableAlias ::= "NAME" "." "NAME"          "NAME" ;
+TableAlias03.                     TableAlias ::= Parameter                  "NAME" ;
+TableAlias04.                     TableAlias ::= "STRING"                   "NAME" ;
+TableAlias05.                     TableAlias ::= Table                             ;
+
+-- table_dblink -> NAME          DBLINK      : {    unwrap_bin('$1'),                                                    {dblink, unwrap_bin('$2')}}.
+-- table_dblink -> NAME          DBLINK NAME : {as, unwrap_bin('$1'),                                  unwrap_bin('$3'), {dblink, unwrap_bin('$2')}}.
+-- table_dblink -> NAME '.' NAME DBLINK      : {    list_to_binary([unwrap('$1'), ".", unwrap('$3')]),                   {dblink, unwrap_bin('$4')}}.
+-- table_dblink -> NAME '.' NAME DBLINK NAME : {as, list_to_binary([unwrap('$1'), ".", unwrap('$3')]), unwrap_bin('$5'), {dblink, unwrap_bin('$4')}}.
+-- table_dblink -> parameter     DBLINK      : {    '$1',                                                                {dblink, unwrap_bin('$2')}}.
+-- table_dblink -> parameter     DBLINK NAME : {as, '$1',                                              unwrap_bin('$3'), {dblink, unwrap_bin('$2')}}.
+-- table_dblink -> table_alias               : '$1'.
+
+TableDblink01.                    TableDblink ::= "NAME"            "DBLINK"        ;
+TableDblink02.                    TableDblink ::= "NAME"            "DBLINK" "NAME" ;
+TableDblink03.                    TableDblink ::= "NAME" "." "NAME" "DBLINK"        ;
+TableDblink04.                    TableDblink ::= "NAME" "." "NAME" "DBLINK" "NAME" ;
+TableDblink05.                    TableDblink ::= Parameter         "DBLINK"        ;
+TableDblink06.                    TableDblink ::= Parameter         "DBLINK" "NAME" ;
+TableDblink07.                    TableDblink ::= TableAlias                        ;
 
 -- column_ref -> JSON                                                                              : {jp, jpparse('$1')}.
 -- column_ref -> NAME     JSON                                                                     : {jp, list_to_binary(unwrap('$1')), jpparse('$2')}.

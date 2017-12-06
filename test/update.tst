@@ -19,3 +19,21 @@
 
 "UPDATE abc set a='a', b='b\nb', c='c' || \"c\r\nc\" where a is NULL".
 "UPDATE abc set a='a', b='b\nb', c='c' || \"c\r\nc\" where a || b = 'c' || 'd'".
+
+% table reference -------------------------------------------------------------
+
+"Update table_1 Set column_1 = value_1".
+"Update table_1\"@link_1\" Set column_1 = value_1".
+"Update schema_1.table_1\"@link_1\" Set column_1 = value_1".
+"Update schema_1.table_1 Set column_1 = value_1".
+"Update :param_1\"@link_1\" Set column_1 = value_1".
+"Update :param_1 Set column_1 = value_1".
+"Update \"^&()\" Set column_1 = value_1".
+
+"Update table_1\"@link_1\" alias_1 Set column_1 = value_1".
+"Update table_1 alias_1 Set column_1 = value_1".
+"Update schema_1.table_1\"@link_1\" alias_1 Set column_1 = value_1".
+"Update schema_1.table_1 alias_1 Set column_1 = value_1".
+"Update :param_1\"@link_1\" alias_1 Set column_1 = value_1".
+"Update :param_1 alias_1 Set column_1 = value_1".
+"Update \"^&()\" alias_1 Set column_1 = value_1".

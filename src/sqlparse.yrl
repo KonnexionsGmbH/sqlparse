@@ -171,10 +171,11 @@ Nonterminals
  system_privilege_list
  system_with_grant_option
  table
+ table_alias
  table_constraint_def
+ table_dblink
  table_exp
  table_list
- table_name
  table_ref
  target
  target_commalist
@@ -231,6 +232,7 @@ Terminals
  CROSS
  CURRENT
  CURSOR
+ DBLINK
  DEFAULT
  DELEGATE
  DELETE
@@ -389,7 +391,7 @@ extra -> NAME  ';' : {extra, unwrap_bin('$1')}.
 %% =============================================================================
 %% Helper definitions - test purposes.
 %% -----------------------------------------------------------------------------
-% sql -> from_column                    : '$1'.
+% sql -> table_ref                      : '$1'.
 %% =============================================================================
 
 sql -> cursor_def                     : '$1'.
@@ -398,9 +400,6 @@ sql -> procedure_call                 : '$1'.
 sql -> schema                         : '$1'.
 sql -> WHENEVER NOT FOUND when_action : {when_not_found, '$4'}.
 sql -> WHENEVER SQLERROR  when_action : {when_sql_err, '$3'}.
-
-
-
 
 procedure_call -> BEGIN function_ref_list END : {'begin procedure', '$2'}.
 procedure_call -> BEGIN sql_list          END : {'begin procedure', '$2'}.
@@ -445,40 +444,41 @@ drop_table_def -> DROP NAME TABLE exists table_list restrict_cascade : {'drop ta
 drop_role_def -> DROP ROLE NAME : {'drop role', unwrap_bin('$3')}.
 
 drop_index_def -> DROP INDEX            FROM table : {'drop index', {},   '$4'}.
+drop_index_def -> DROP INDEX index_name            : {'drop index', '$3', []}.
 drop_index_def -> DROP INDEX index_name FROM table : {'drop index', '$3', '$5'}.
 
-create_index_def -> CREATE                   INDEX            ON table                                                         : {'create index', {},   {},   '$4', [],   {},   {}}.
-create_index_def -> CREATE                   INDEX            ON table                                     create_index_filter : {'create index', {},   {},   '$4', [],   {},   '$5'}.
-create_index_def -> CREATE                   INDEX            ON table                   create_index_norm                     : {'create index', {},   {},   '$4', [],   '$5', {}}.
-create_index_def -> CREATE                   INDEX            ON table                   create_index_norm create_index_filter : {'create index', {},   {},   '$4', [],   '$5', '$6'}.
-create_index_def -> CREATE                   INDEX            ON table create_index_spec                                       : {'create index', {},   {},   '$4', '$5', {},   {}}.
-create_index_def -> CREATE                   INDEX            ON table create_index_spec                   create_index_filter : {'create index', {},   {},   '$4', '$5', {},   '$6'}.
-create_index_def -> CREATE                   INDEX            ON table create_index_spec create_index_norm                     : {'create index', {},   {},   '$4', '$5', '$6', {}}.
-create_index_def -> CREATE                   INDEX            ON table create_index_spec create_index_norm create_index_filter : {'create index', {},   {},   '$4', '$5', '$6', '$7'}.
-create_index_def -> CREATE                   INDEX index_name ON table                                                         : {'create index', {},   '$3', '$5', [],   {},   {}}.
-create_index_def -> CREATE                   INDEX index_name ON table                                     create_index_filter : {'create index', {},   '$3', '$5', [],   {},   '$6'}.
-create_index_def -> CREATE                   INDEX index_name ON table                   create_index_norm                     : {'create index', {},   '$3', '$5', [],   '$6', {}}.
-create_index_def -> CREATE                   INDEX index_name ON table                   create_index_norm create_index_filter : {'create index', {},   '$3', '$5', [],   '$6', '$7'}.
-create_index_def -> CREATE                   INDEX index_name ON table create_index_spec                                       : {'create index', {},   '$3', '$5', '$6', {},   {}}.
-create_index_def -> CREATE                   INDEX index_name ON table create_index_spec                   create_index_filter : {'create index', {},   '$3', '$5', '$6', {},   '$7'}.
-create_index_def -> CREATE                   INDEX index_name ON table create_index_spec create_index_norm create_index_filter : {'create index', {},   '$3', '$5', '$6', '$7', '$8'}.
-create_index_def -> CREATE                   INDEX index_name ON table create_index_spec create_index_norm                     : {'create index', {},   '$3', '$5', '$6', '$7', {}}.
-create_index_def -> CREATE create_index_opts INDEX            ON table                                                         : {'create index', '$2', {},   '$5', [],   {},   {}}.
-create_index_def -> CREATE create_index_opts INDEX            ON table                                     create_index_filter : {'create index', '$2', {},   '$5', [],   {},   '$6'}.
-create_index_def -> CREATE create_index_opts INDEX            ON table                   create_index_norm                     : {'create index', '$2', {},   '$5', [],   '$6', {}}.
-create_index_def -> CREATE create_index_opts INDEX            ON table                   create_index_norm create_index_filter : {'create index', '$2', {},   '$5', [],   '$6', '$7'}.
-create_index_def -> CREATE create_index_opts INDEX            ON table create_index_spec                                       : {'create index', '$2', {},   '$5', '$6', {},   {}}.
-create_index_def -> CREATE create_index_opts INDEX            ON table create_index_spec                   create_index_filter : {'create index', '$2', {},   '$5', '$6', {},   '$7'}.
-create_index_def -> CREATE create_index_opts INDEX            ON table create_index_spec create_index_norm                     : {'create index', '$2', {},   '$5', '$6', '$7', {}}.
-create_index_def -> CREATE create_index_opts INDEX            ON table create_index_spec create_index_norm create_index_filter : {'create index', '$2', {},   '$5', '$6', '$7', '$8'}.
-create_index_def -> CREATE create_index_opts INDEX index_name ON table                                                         : {'create index', '$2', '$4', '$6', [],   {},   {}}.
-create_index_def -> CREATE create_index_opts INDEX index_name ON table                                     create_index_filter : {'create index', '$2', '$4', '$6', [],   {},   '$7'}.
-create_index_def -> CREATE create_index_opts INDEX index_name ON table                   create_index_norm                     : {'create index', '$2', '$4', '$6', [],   '$7', {}}.
-create_index_def -> CREATE create_index_opts INDEX index_name ON table                   create_index_norm create_index_filter : {'create index', '$2', '$4', '$6', [],   '$7', '$8'}.
-create_index_def -> CREATE create_index_opts INDEX index_name ON table create_index_spec                                       : {'create index', '$2', '$4', '$6', '$7', {},   {}}.
-create_index_def -> CREATE create_index_opts INDEX index_name ON table create_index_spec                   create_index_filter : {'create index', '$2', '$4', '$6', '$7', {},   '$8'}.
-create_index_def -> CREATE create_index_opts INDEX index_name ON table create_index_spec create_index_norm                     : {'create index', '$2', '$4', '$6', '$7', '$8', {}}.
-create_index_def -> CREATE create_index_opts INDEX index_name ON table create_index_spec create_index_norm create_index_filter : {'create index', '$2', '$4', '$6', '$7', '$8', '$9'}.
+create_index_def -> CREATE                   INDEX            ON table_alias                                                         : {'create index', {},   {},   '$4', [],   {},   {}}.
+create_index_def -> CREATE                   INDEX            ON table_alias                                     create_index_filter : {'create index', {},   {},   '$4', [],   {},   '$5'}.
+create_index_def -> CREATE                   INDEX            ON table_alias                   create_index_norm                     : {'create index', {},   {},   '$4', [],   '$5', {}}.
+create_index_def -> CREATE                   INDEX            ON table_alias                   create_index_norm create_index_filter : {'create index', {},   {},   '$4', [],   '$5', '$6'}.
+create_index_def -> CREATE                   INDEX            ON table_alias create_index_spec                                       : {'create index', {},   {},   '$4', '$5', {},   {}}.
+create_index_def -> CREATE                   INDEX            ON table_alias create_index_spec                   create_index_filter : {'create index', {},   {},   '$4', '$5', {},   '$6'}.
+create_index_def -> CREATE                   INDEX            ON table_alias create_index_spec create_index_norm                     : {'create index', {},   {},   '$4', '$5', '$6', {}}.
+create_index_def -> CREATE                   INDEX            ON table_alias create_index_spec create_index_norm create_index_filter : {'create index', {},   {},   '$4', '$5', '$6', '$7'}.
+create_index_def -> CREATE                   INDEX index_name ON table_alias                                                         : {'create index', {},   '$3', '$5', [],   {},   {}}.
+create_index_def -> CREATE                   INDEX index_name ON table_alias                                     create_index_filter : {'create index', {},   '$3', '$5', [],   {},   '$6'}.
+create_index_def -> CREATE                   INDEX index_name ON table_alias                   create_index_norm                     : {'create index', {},   '$3', '$5', [],   '$6', {}}.
+create_index_def -> CREATE                   INDEX index_name ON table_alias                   create_index_norm create_index_filter : {'create index', {},   '$3', '$5', [],   '$6', '$7'}.
+create_index_def -> CREATE                   INDEX index_name ON table_alias create_index_spec                                       : {'create index', {},   '$3', '$5', '$6', {},   {}}.
+create_index_def -> CREATE                   INDEX index_name ON table_alias create_index_spec                   create_index_filter : {'create index', {},   '$3', '$5', '$6', {},   '$7'}.
+create_index_def -> CREATE                   INDEX index_name ON table_alias create_index_spec create_index_norm create_index_filter : {'create index', {},   '$3', '$5', '$6', '$7', '$8'}.
+create_index_def -> CREATE                   INDEX index_name ON table_alias create_index_spec create_index_norm                     : {'create index', {},   '$3', '$5', '$6', '$7', {}}.
+create_index_def -> CREATE create_index_opts INDEX            ON table_alias                                                         : {'create index', '$2', {},   '$5', [],   {},   {}}.
+create_index_def -> CREATE create_index_opts INDEX            ON table_alias                                     create_index_filter : {'create index', '$2', {},   '$5', [],   {},   '$6'}.
+create_index_def -> CREATE create_index_opts INDEX            ON table_alias                   create_index_norm                     : {'create index', '$2', {},   '$5', [],   '$6', {}}.
+create_index_def -> CREATE create_index_opts INDEX            ON table_alias                   create_index_norm create_index_filter : {'create index', '$2', {},   '$5', [],   '$6', '$7'}.
+create_index_def -> CREATE create_index_opts INDEX            ON table_alias create_index_spec                                       : {'create index', '$2', {},   '$5', '$6', {},   {}}.
+create_index_def -> CREATE create_index_opts INDEX            ON table_alias create_index_spec                   create_index_filter : {'create index', '$2', {},   '$5', '$6', {},   '$7'}.
+create_index_def -> CREATE create_index_opts INDEX            ON table_alias create_index_spec create_index_norm                     : {'create index', '$2', {},   '$5', '$6', '$7', {}}.
+create_index_def -> CREATE create_index_opts INDEX            ON table_alias create_index_spec create_index_norm create_index_filter : {'create index', '$2', {},   '$5', '$6', '$7', '$8'}.
+create_index_def -> CREATE create_index_opts INDEX index_name ON table_alias                                                         : {'create index', '$2', '$4', '$6', [],   {},   {}}.
+create_index_def -> CREATE create_index_opts INDEX index_name ON table_alias                                     create_index_filter : {'create index', '$2', '$4', '$6', [],   {},   '$7'}.
+create_index_def -> CREATE create_index_opts INDEX index_name ON table_alias                   create_index_norm                     : {'create index', '$2', '$4', '$6', [],   '$7', {}}.
+create_index_def -> CREATE create_index_opts INDEX index_name ON table_alias                   create_index_norm create_index_filter : {'create index', '$2', '$4', '$6', [],   '$7', '$8'}.
+create_index_def -> CREATE create_index_opts INDEX index_name ON table_alias create_index_spec                                       : {'create index', '$2', '$4', '$6', '$7', {},   {}}.
+create_index_def -> CREATE create_index_opts INDEX index_name ON table_alias create_index_spec                   create_index_filter : {'create index', '$2', '$4', '$6', '$7', {},   '$8'}.
+create_index_def -> CREATE create_index_opts INDEX index_name ON table_alias create_index_spec create_index_norm                     : {'create index', '$2', '$4', '$6', '$7', '$8', {}}.
+create_index_def -> CREATE create_index_opts INDEX index_name ON table_alias create_index_spec create_index_norm create_index_filter : {'create index', '$2', '$4', '$6', '$7', '$8', '$9'}.
 
 create_index_opts -> BITMAP  : bitmap.
 create_index_opts -> KEYLIST : keylist.
@@ -755,14 +755,10 @@ manipulative_statement -> truncate_table              : '$1'.
 manipulative_statement -> grant_def                   : '$1'.
 manipulative_statement -> revoke_def                  : '$1'.
 
-truncate_table -> TRUNCATE TABLE table_name                      : {'truncate table', '$3', {},   {}}.
-truncate_table -> TRUNCATE TABLE table_name              storage : {'truncate table', '$3', {},   '$4'}.
-truncate_table -> TRUNCATE TABLE table_name materialized         : {'truncate table', '$3', '$4', {}}.
-truncate_table -> TRUNCATE TABLE table_name materialized storage : {'truncate table', '$3', '$4', '$5'}.
-
-table_name -> NAME                   : unwrap_bin('$1').
-table_name -> NAME '.' NAME          : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
-table_name -> NAME '.' NAME '.' NAME : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).
+truncate_table -> TRUNCATE TABLE table                      : {'truncate table', '$3', {},   {}}.
+truncate_table -> TRUNCATE TABLE table              storage : {'truncate table', '$3', {},   '$4'}.
+truncate_table -> TRUNCATE TABLE table materialized         : {'truncate table', '$3', '$4', {}}.
+truncate_table -> TRUNCATE TABLE table materialized storage : {'truncate table', '$3', '$4', '$5'}.
 
 materialized -> PRESERVE MATERIALIZED VIEW LOG : {'materialized view log', preserve}.
 materialized -> PURGE    MATERIALIZED VIEW LOG : {'materialized view log', purge}.
@@ -775,22 +771,22 @@ close_statement -> CLOSE cursor : {close, '$2'}.
 commit_statement -> COMMIT      : 'commit'.
 commit_statement -> COMMIT WORK : 'commit work'.
 
-delete_statement_positioned -> DELETE FROM table WHERE CURRENT OF cursor           : {delete, '$3',{where_current_of, '$7'}, {returning, {}}}.
-delete_statement_positioned -> DELETE FROM table WHERE CURRENT OF cursor returning : {delete, '$3',{where_current_of, '$7'}, '$8'}.
+delete_statement_positioned -> DELETE FROM table_dblink WHERE CURRENT OF cursor           : {delete, '$3',{where_current_of, '$7'}, {returning, {}}}.
+delete_statement_positioned -> DELETE FROM table_dblink WHERE CURRENT OF cursor returning : {delete, '$3',{where_current_of, '$7'}, '$8'}.
 
-delete_statement_searched -> DELETE FROM table                        : {delete, '$3', [],   {returning, {}}}.
-delete_statement_searched -> DELETE FROM table              returning : {delete, '$3', [],   '$4'}.
-delete_statement_searched -> DELETE FROM table where_clause           : {delete, '$3', '$4', {returning, {}}}.
-delete_statement_searched -> DELETE FROM table where_clause returning : {delete, '$3', '$4', '$5'}.
+delete_statement_searched -> DELETE FROM table_dblink                        : {delete, '$3', [],   {returning, {}}}.
+delete_statement_searched -> DELETE FROM table_dblink              returning : {delete, '$3', [],   '$4'}.
+delete_statement_searched -> DELETE FROM table_dblink where_clause           : {delete, '$3', '$4', {returning, {}}}.
+delete_statement_searched -> DELETE FROM table_dblink where_clause returning : {delete, '$3', '$4', '$5'}.
 
 fetch_statement -> FETCH cursor INTO target_commalist : {fetch, '$2', {into, '$4'}}.
 
-insert_statement -> INSERT INTO table                                                         : {insert, '$3', {},           {},   {returning, {}}}.
-insert_statement -> INSERT INTO table                                               returning : {insert, '$3', {},           {},   '$4'}.
-insert_statement -> INSERT INTO table                          values_or_query_spec           : {insert, '$3', {cols, []},   '$4', {returning, {}}}.
-insert_statement -> INSERT INTO table                          values_or_query_spec returning : {insert, '$3', {cols, []},   '$4', '$5'}.
-insert_statement -> INSERT INTO table '(' column_commalist ')' values_or_query_spec           : {insert, '$3', {cols, '$5'}, '$7', {returning, {}}}.
-insert_statement -> INSERT INTO table '(' column_commalist ')' values_or_query_spec returning : {insert, '$3', {cols, '$5'}, '$7', '$8'}.
+insert_statement -> INSERT INTO table_dblink                                                         : {insert, '$3', {},           {},   {returning, {}}}.
+insert_statement -> INSERT INTO table_dblink                                               returning : {insert, '$3', {},           {},   '$4'}.
+insert_statement -> INSERT INTO table_dblink                          values_or_query_spec           : {insert, '$3', {cols, []},   '$4', {returning, {}}}.
+insert_statement -> INSERT INTO table_dblink                          values_or_query_spec returning : {insert, '$3', {cols, []},   '$4', '$5'}.
+insert_statement -> INSERT INTO table_dblink '(' column_commalist ')' values_or_query_spec           : {insert, '$3', {cols, '$5'}, '$7', {returning, {}}}.
+insert_statement -> INSERT INTO table_dblink '(' column_commalist ')' values_or_query_spec returning : {insert, '$3', {cols, '$5'}, '$7', '$8'}.
 
 values_or_query_spec -> VALUES '(' insert_atom_commalist ')' : {values, '$3'}.
 values_or_query_spec -> query_spec                           : '$1'.
@@ -812,18 +808,18 @@ hint -> HINT : {hints, unwrap_bin('$1')}.
 all_distinct -> ALL      : {opt, <<"all">>}.
 all_distinct -> DISTINCT : {opt, <<"distinct">>}.
 
-update_statement_positioned -> UPDATE table SET assignment_commalist WHERE CURRENT OF cursor           : {update, '$2', {set, '$4'}, {where_current_of, '$8'}, {returning, {}}}.
-update_statement_positioned -> UPDATE table SET assignment_commalist WHERE CURRENT OF cursor returning : {update, '$2', {set, '$4'}, {where_current_of, '$8'}, '$9'}.
+update_statement_positioned -> UPDATE table_dblink SET assignment_commalist WHERE CURRENT OF cursor           : {update, '$2', {set, '$4'}, {where_current_of, '$8'}, {returning, {}}}.
+update_statement_positioned -> UPDATE table_dblink SET assignment_commalist WHERE CURRENT OF cursor returning : {update, '$2', {set, '$4'}, {where_current_of, '$8'}, '$9'}.
 
 assignment_commalist ->                          assignment :         ['$1'].
 assignment_commalist -> assignment_commalist ',' assignment : '$1' ++ ['$3'].
 
 assignment -> column '=' scalar_opt_as_exp : {'=', '$1', '$3'}.
 
-update_statement_searched -> UPDATE table SET assignment_commalist                        : {update, '$2', {set, '$4'}, [],   {returning, {}}}.
-update_statement_searched -> UPDATE table SET assignment_commalist              returning : {update, '$2', {set, '$4'}, [],   '$5'}.
-update_statement_searched -> UPDATE table SET assignment_commalist where_clause           : {update, '$2', {set, '$4'}, '$5', {returning, {}}}.
-update_statement_searched -> UPDATE table SET assignment_commalist where_clause returning : {update, '$2', {set, '$4'}, '$5', '$6'}.
+update_statement_searched -> UPDATE table_dblink SET assignment_commalist                        : {update, '$2', {set, '$4'}, [],   {returning, {}}}.
+update_statement_searched -> UPDATE table_dblink SET assignment_commalist              returning : {update, '$2', {set, '$4'}, [],   '$5'}.
+update_statement_searched -> UPDATE table_dblink SET assignment_commalist where_clause           : {update, '$2', {set, '$4'}, '$5', {returning, {}}}.
+update_statement_searched -> UPDATE table_dblink SET assignment_commalist where_clause returning : {update, '$2', {set, '$4'}, '$5', '$6'}.
 
 target_commalist ->                      target :         ['$1'].
 target_commalist -> target_commalist ',' target : '$1' ++ ['$3'].
@@ -1000,11 +996,11 @@ outer_join_type -> LEFT  OUTER : left_outer.
 outer_join_type -> RIGHT       : right.
 outer_join_type -> RIGHT OUTER : right_outer.
 
-table_ref -> table           : '$1'.
+table_ref -> table_dblink    : '$1'.
 table_ref -> query_term      : '$1'.
 table_ref -> query_term NAME : {as, '$1', unwrap_bin('$2')}.
 
-join_ref -> table           : '$1'.
+join_ref -> table_dblink    : '$1'.
 join_ref -> query_term      : '$1'.
 join_ref -> query_term NAME : {as, '$1', unwrap_bin('$2')}.
 
@@ -1167,13 +1163,24 @@ literal -> APPROXNUM : unwrap_bin('$1').
 %% miscellaneous
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-table -> NAME               : unwrap_bin('$1').
-table -> NAME NAME          : {as, unwrap_bin('$1'), unwrap_bin('$2')}.
-table -> STRING             : unwrap_bin('$1').
-table -> NAME '.' NAME      : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
-table -> NAME '.' NAME NAME : {as, list_to_binary([unwrap('$1'),".",unwrap('$3')]), unwrap_bin('$4')}.
-table -> parameter          : '$1'.
-table -> parameter NAME     : {as, '$1', unwrap_bin('$2')}.
+table -> NAME          : unwrap_bin('$1').
+table -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+table -> parameter     : '$1'.
+table -> STRING        : unwrap_bin('$1').
+
+table_alias -> NAME          NAME : {as, unwrap_bin('$1'),                                unwrap_bin('$2')}.
+table_alias -> NAME '.' NAME NAME : {as, list_to_binary([unwrap('$1'),".",unwrap('$3')]), unwrap_bin('$4')}.
+table_alias -> parameter     NAME : {as, '$1',                                            unwrap_bin('$2')}.
+table_alias -> STRING        NAME : {as, unwrap_bin('$1'),                                unwrap_bin('$2')}.
+table_alias -> table              : '$1'.
+
+table_dblink -> NAME          DBLINK      : {    unwrap_bin('$1'),                                                    {dblink, unwrap_bin('$2')}}.
+table_dblink -> NAME          DBLINK NAME : {as, unwrap_bin('$1'),                                  unwrap_bin('$3'), {dblink, unwrap_bin('$2')}}.
+table_dblink -> NAME '.' NAME DBLINK      : {    list_to_binary([unwrap('$1'), ".", unwrap('$3')]),                   {dblink, unwrap_bin('$4')}}.
+table_dblink -> NAME '.' NAME DBLINK NAME : {as, list_to_binary([unwrap('$1'), ".", unwrap('$3')]), unwrap_bin('$5'), {dblink, unwrap_bin('$4')}}.
+table_dblink -> parameter     DBLINK      : {    '$1',                                                                {dblink, unwrap_bin('$2')}}.
+table_dblink -> parameter     DBLINK NAME : {as, '$1',                                              unwrap_bin('$3'), {dblink, unwrap_bin('$2')}}.
+table_dblink -> table_alias               : '$1'.
 
 column_ref -> NAME                   JSON        : jpparse(list_to_binary([unwrap('$1'),unwrap('$2')])).
 column_ref -> NAME '.' NAME          JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),unwrap('$4')])).

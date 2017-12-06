@@ -43,3 +43,10 @@
 
 "DROP USER name_user_1".
 "DROP USER name_user_1 CASCADE".
+
+% table reference -------------------------------------------------------------
+
+"Drop Table table_1".
+"Drop Table schema_1.table_1".
+"Drop Table :param_1".
+"Drop Table \"^&()\"".

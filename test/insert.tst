@@ -21,4 +21,3 @@
 "insert into table_1 (field_a, field_3) values ('third','31.12.2012 23:59:59')".
 "insert into abc values (1, 'a', 'b', 'c' || 'd')".
 "INSERT INTO Persons VALUES (4,'Nilsen', 'Johan', 'Bakken 2', 'Stavanger')".
-

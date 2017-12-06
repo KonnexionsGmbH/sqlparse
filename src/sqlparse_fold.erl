@@ -321,6 +321,26 @@ fold(FType, Fun, Ctx, Lvl, {as, L, R} = ST)
     RT = {lists:append([Fl, " ", binary_to_list(R)]), NewCtx3},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
+fold(FType, Fun, Ctx, Lvl, {as, L, R, {dblink, Dblink}} = ST)
+    when is_binary(R) ->
+    ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, ST]),
+    NewCtx = case FType of
+                 top_down -> Fun(ST, Ctx);
+                 bottom_up -> Ctx
+             end,
+    {Fl, NewCtx1} = case is_binary(L) of
+                        true -> {binary_to_list(L), NewCtx};
+                        _ -> fold(FType, Fun, NewCtx, Lvl + 1, L)
+                    end,
+    NewCtx2 = Fun(R, NewCtx1),
+    NewCtx3 = Fun(Dblink, NewCtx2),
+    NewCtx4 = case FType of
+                  top_down -> NewCtx3;
+                  bottom_up -> Fun(ST, NewCtx3)
+              end,
+    RT = {lists:append([Fl, binary_to_list(Dblink), " ", binary_to_list(R)]), NewCtx4},
+    ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
+    RT;
 fold(_FType, Fun, Ctx, _Lvl, Tab = _ST)
     when is_binary(Tab) ->
     ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [_Lvl, _ST]),
@@ -513,7 +533,7 @@ fold(FType, Fun, Ctx, Lvl, {'create index', Opts, Idx, Table, Spec, Norm, Filter
              end,
     {OptsStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl + 1, Opts),
     {IdxStr, NewCtx2} = fold(FType, Fun, NewCtx1, Lvl + 1, Idx),
-    {TableStr, NewCtx3} = fold(FType, Fun, NewCtx2, Lvl + 1, Table),
+    {TableStr, NewCtx3} = fold(FType, Fun, NewCtx2, Lvl + 1, {table, Table}),
     {Specs, NewCtx4} = lists:foldl(fun(S, {Acc, CtxAcc}) ->
         {SubAcc, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, S),
         {Acc ++ [SubAcc], CtxAcc1}
@@ -617,7 +637,7 @@ fold(FType, Fun, Ctx, Lvl, {'create schema authorization', User, SchemaElements}
 % CREATE TABLE
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(FType, Fun, Ctx, Lvl, {'create table', Tab, Fields, Opts} = ST) ->
+fold(FType, Fun, Ctx, Lvl, {'create table', Table, Fields, Opts} = ST) ->
     ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, ST]),
     NewCtx = case FType of
                  top_down -> Fun(ST, Ctx);
@@ -636,7 +656,7 @@ fold(FType, Fun, Ctx, Lvl, {'create table', Tab, Fields, Opts} = ST) ->
                 NewStr
             ]), NewAccCtx}
         end, {"", NewCtx}, Opts),
-    NewCtx2 = Fun(Tab, NewCtx1),
+    NewCtx2 = Fun(Table, NewCtx1),
     {Clms, NewCtx3} = lists:foldl(fun(Clm, {Acc, CtxAcc}) ->
         case Clm of
             {C, {T, N, N1}, O} when is_binary(C) ->
@@ -670,10 +690,7 @@ fold(FType, Fun, Ctx, Lvl, {'create table', Tab, Fields, Opts} = ST) ->
                                   end,
         {[], NewCtx2},
         Fields),
-    {TabStr, NewCtx4} = case is_binary(Tab) of
-                            true -> {binary_to_list(Tab), NewCtx3};
-                            _ -> fold(FType, Fun, NewCtx3, Lvl + 1, Tab)
-                        end,
+    {TableStr, NewCtx4} = fold(FType, Fun, NewCtx3, Lvl + 1, {table, Table}),
     NewCtx5 = case FType of
                   top_down -> NewCtx4;
                   bottom_up -> Fun(ST, NewCtx4)
@@ -686,7 +703,7 @@ fold(FType, Fun, Ctx, Lvl, {'create table', Tab, Fields, Opts} = ST) ->
             _ -> []
         end,
         "table ",
-        TabStr,
+        TableStr,
         " (",
         string:join(Clms, ", "),
         ")"
@@ -746,11 +763,7 @@ fold(FType, Fun, Ctx, Lvl, {'create view', Table, Columns, QuerySpec} = ST) ->
                  top_down -> Fun(ST, Ctx);
                  bottom_up -> Ctx
              end,
-    {TableStr, NewCtx1} = case is_binary(Table) of
-                              true ->
-                                  {binary_to_list(Table), Fun(Table, NewCtx)};
-                              _ -> fold(FType, Fun, NewCtx, Lvl + 1, Table)
-                          end,
+    {TableStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl + 1, {table, Table}),
     {Clms, NewCtx2} = case Columns of
                           [] -> {[], NewCtx1};
                           _ -> lists:foldl(fun(Clm, {Acc, CtxAcc}) ->
@@ -872,11 +885,7 @@ fold(FType, Fun, Ctx, Lvl, {delete, Table, Where, Return} = ST) ->
                  top_down -> Fun(ST, Ctx);
                  bottom_up -> Ctx
              end,
-    {TableStr, NewCtx1} =
-        case is_binary(Table) of
-            true -> {binary_to_list(Table), NewCtx};
-            _ -> fold(FType, Fun, NewCtx, Lvl + 1, Table)
-        end,
+    {TableStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl + 1, {table, Table}),
     {WhereStr, NewCtx2} = fold(FType, Fun, NewCtx1, Lvl + 1, Where),
     {ReturnStr, NewCtx3} =
         case Return of
@@ -903,16 +912,26 @@ fold(FType, Fun, Ctx, Lvl, {delete, Table, Where, Return} = ST) ->
 % DROP INDEX
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(FType, Fun, Ctx, Lvl, {'drop index', Indx, Tbl} = ST) ->
+fold(FType, Fun, Ctx, _Lvl, {'drop index', Indx, []} = ST) ->
+    ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [_Lvl, ST]),
+    NewCtx = case FType of
+                 top_down -> Fun(ST, Ctx);
+                 bottom_up -> Ctx
+             end,
+    NewCtx1 = case FType of
+                  top_down -> NewCtx;
+                  bottom_up -> Fun(ST, NewCtx)
+              end,
+    RT = {"drop index " ++ binary_to_list(Indx), NewCtx1},
+    ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
+    RT;
+fold(FType, Fun, Ctx, Lvl, {'drop index', Indx, Table} = ST) ->
     ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, ST]),
     NewCtx = case FType of
                  top_down -> Fun(ST, Ctx);
                  bottom_up -> Ctx
              end,
-    {TblStr, NewCtx1} = case is_binary(Tbl) of
-                            true -> {binary_to_list(Tbl), NewCtx};
-                            _ -> fold(FType, Fun, NewCtx, Lvl + 1, Tbl)
-                        end,
+    {TableStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl + 1, {table, Table}),
     NewCtx2 = case FType of
                   top_down -> NewCtx1;
                   bottom_up -> Fun(ST, NewCtx1)
@@ -924,7 +943,7 @@ fold(FType, Fun, Ctx, Lvl, {'drop index', Indx, Tbl} = ST) ->
             _ ->
                 binary_to_list(Indx) ++ " from "
         end,
-        TblStr
+        TableStr
     ]), NewCtx2},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
@@ -953,7 +972,7 @@ fold(FType, Fun, Ctx, Lvl, {'drop role', Role} = ST)
 % DROP TABLE
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(FType, Fun, Ctx, Lvl, {'drop table', {tables, Ts}, E, RC, Types} = ST)
+fold(FType, Fun, Ctx, Lvl, {'drop table', {tables, Tables}, E, RC, Types} = ST)
     when (is_atom(RC) orelse (RC =:= {})) andalso
     (is_atom(E) orelse (E =:= {})) ->
     ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, ST]),
@@ -962,16 +981,13 @@ fold(FType, Fun, Ctx, Lvl, {'drop table', {tables, Ts}, E, RC, Types} = ST)
                  bottom_up -> Ctx
              end,
     NewCtx1 = Fun(E, NewCtx),
-    {Tables, NewCtx2} = lists:foldl(fun(T, {Acc, CtxAcc}) ->
+    {TablesList, NewCtx2} = lists:foldl(fun(T, {Acc, CtxAcc}) ->
         CtxAcc1 = Fun(T, CtxAcc),
-        {Acc ++ [case is_binary(T) of
-                     true -> binary_to_list(T);
-                     _ -> {TNew, _} = fold(FType, Fun, NewCtx, Lvl + 1, T),
-                         TNew
-                 end], CtxAcc1}
-                                    end,
+        {TNew, _} = fold(FType, Fun, NewCtx, Lvl + 1, {table, T}),
+        {Acc ++ [TNew], CtxAcc1}
+                                        end,
         {[], NewCtx1},
-        Ts),
+        Tables),
     NewCtx3 = case FType of
                   top_down -> NewCtx2;
                   bottom_up -> Fun(ST, NewCtx2)
@@ -988,7 +1004,7 @@ fold(FType, Fun, Ctx, Lvl, {'drop table', {tables, Ts}, E, RC, Types} = ST)
             true -> "if exists ";
             _ -> []
         end,
-        string:join(Tables, ", "),
+        string:join(TablesList, ", "),
         case is_atom(RC) of
             true -> " " ++ atom_to_list(RC);
             _ -> []
@@ -1090,6 +1106,7 @@ fold(FType, Fun, Ctx, Lvl, {fields, Fields} = ST) ->
                  bottom_up -> Ctx
              end,
     {FieldsStr, NewCtx1} = lists:foldl(fun(F, {Acc, CtxAcc}) ->
+        ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n F: ~p~n", [F]),
         case F of
             F when is_binary(F) -> {Acc ++ [binary_to_list(F)], Fun(F, CtxAcc)};
             {'select', _} ->
@@ -1153,16 +1170,16 @@ fold(FType, Fun, Ctx, Lvl, {'foreign key', ClmList, {ref, Ref}} = ST) ->
     case Ref of
         {Table, TblClmList}
             when is_list(TblClmList) ->
-            {TblStr, NewCtx2} = fold(FType, Fun, NewCtx1, Lvl + 1, Table),
+            {TableStr, NewCtx2} = fold(FType, Fun, NewCtx1, Lvl + 1, {table, Table}),
             {TblColStrList, NewCtx3} =
                 lists:foldl(
                     fun(Clm, {StrList, ICtx}) ->
                         {CStr, ICtx1} = fold(FType, Fun, ICtx, Lvl + 1, Clm),
                         {[CStr | StrList], ICtx1}
                     end, {[], NewCtx2}, TblClmList),
-            RefStr = lists:append([TblStr, " (", string:join(lists:reverse(TblColStrList), ", "), ")"]);
+            RefStr = lists:append([TableStr, " (", string:join(lists:reverse(TblColStrList), ", "), ")"]);
         _ ->
-            {RefStr, NewCtx3} = fold(FType, Fun, NewCtx1, Lvl + 1, Ref)
+            {RefStr, NewCtx3} = fold(FType, Fun, NewCtx1, Lvl + 1, {table, Ref})
     end,
     NewCtx4 = case FType of
                   top_down -> NewCtx3;
@@ -1185,15 +1202,30 @@ fold(FType, Fun, Ctx, Lvl, {from, Froms} = ST) ->
     {FrmStr, NewCtx1}
         = lists:foldl(
         fun(F, {Acc, CtxAcc}) ->
+            ?debugFmt(?MODULE_STRING ++ ":fold ===> F: ~p~n", [F]),
             case F of
-                F when is_binary(F) ->
-                    {Acc ++ [binary_to_list(F)], Fun(F, CtxAcc)};
-                {'select', _} = F ->
+                {select, _} = F ->
+                    {FoldFStr, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, F),
+                    {Acc ++ [lists:flatten(["(", string:strip(FoldFStr), ")"])],
+                        CtxAcc1};
+                {T, J} = F when is_binary(T), is_list(J) ->
+                    {FoldFStr, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, F),
+                    {Acc ++ [lists:flatten(["(", string:strip(FoldFStr), ")"])],
+                        CtxAcc1};
+                {{as, _, _}, J} = F when is_list(J) ->
+                    {FoldFStr, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, F),
+                    {Acc ++ [lists:flatten(["(", string:strip(FoldFStr), ")"])],
+                        CtxAcc1};
+                {{as, _, _, _}, J} = F when is_list(J) ->
+                    {FoldFStr, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, F),
+                    {Acc ++ [lists:flatten(["(", string:strip(FoldFStr), ")"])],
+                        CtxAcc1};
+                {{param, _}, J} = F when is_list(J) ->
                     {FoldFStr, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, F),
                     {Acc ++ [lists:flatten(["(", string:strip(FoldFStr), ")"])],
                         CtxAcc1};
                 Other ->
-                    {SubAcc, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, Other),
+                    {SubAcc, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, {table, Other}),
                     {Acc ++ [SubAcc], CtxAcc1}
             end
         end, {[], NewCtx},
@@ -1327,10 +1359,7 @@ fold(FType, Fun, Ctx, Lvl, {grant, Objs, {OnTyp, On}, {'to', Tos}, Opts} = ST)
         {[], NewCtx},
         Objs),
     {OnTypNew, NewCtx2} = fold(FType, Fun, NewCtx1, Lvl + 1, OnTyp),
-    {OnNew, NewCtx3} = case is_binary(On) of
-                           true -> {binary_to_list(On), NewCtx2};
-                           _ -> fold(FType, Fun, NewCtx2, Lvl + 1, On)
-                       end,
+    {OnNew, NewCtx3} = fold(FType, Fun, NewCtx2, Lvl + 1, {table, On}),
     {TosStr, NewCtx4} = lists:foldl(fun(O, {Acc, CtxAcc}) ->
         {Acc ++ [case is_binary(O) of
                      true -> binary_to_list(O);
@@ -1541,16 +1570,13 @@ fold(FType, Fun, Ctx, Lvl, {'in', L, R} = ST)
 % INSERT
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(FType, Fun, Ctx, Lvl, {insert, Tab, {}, {}, Return} = ST) ->
+fold(FType, Fun, Ctx, Lvl, {insert, Table, {}, {}, Return} = ST) ->
     ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, ST]),
     NewCtx = case FType of
                  top_down -> Fun(ST, Ctx);
                  bottom_up -> Ctx
              end,
-    {TabStr, NewCtx1} = case is_binary(Tab) of
-                            true -> {binary_to_list(Tab), NewCtx};
-                            _ -> fold(FType, Fun, NewCtx, Lvl + 1, Tab)
-                        end,
+    {TableStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl + 1, {table, Table}),
     {Ret, NewCtx2} =
         case Return of
             {_, {}} -> {[], NewCtx1};
@@ -1562,7 +1588,7 @@ fold(FType, Fun, Ctx, Lvl, {insert, Tab, {}, {}, Return} = ST) ->
               end,
     RT = {lists:append([
         "insert into ",
-        TabStr,
+        TableStr,
         case Ret of
             [] -> [];
             _ -> " " ++ Ret
@@ -1570,16 +1596,13 @@ fold(FType, Fun, Ctx, Lvl, {insert, Tab, {}, {}, Return} = ST) ->
     ]), NewCtx3},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
-fold(FType, Fun, Ctx, Lvl, {insert, Tab, {cols, Columns}, {values, Values}, Return} = ST) ->
+fold(FType, Fun, Ctx, Lvl, {insert, Table, {cols, Columns}, {values, Values}, Return} = ST) ->
     ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, ST]),
     NewCtx = case FType of
                  top_down -> Fun(ST, Ctx);
                  bottom_up -> Ctx
              end,
-    {TabStr, NewCtx1} = case is_binary(Tab) of
-                            true -> {binary_to_list(Tab), NewCtx};
-                            _ -> fold(FType, Fun, NewCtx, Lvl + 1, Tab)
-                        end,
+    {TableStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl + 1, {table, Table}),
     {CStrs, NewCtx2} = case Columns of
                            [] -> {[], NewCtx1};
                            _ -> lists:foldl(fun(C, {Acc, CtxAcc}) ->
@@ -1611,7 +1634,7 @@ fold(FType, Fun, Ctx, Lvl, {insert, Tab, {cols, Columns}, {values, Values}, Retu
               end,
     RT = {lists:append([
         "insert into ",
-        TabStr,
+        TableStr,
         case length(CStrs) == 0 of
             true -> [];
             _ -> lists:flatten([" (", string:join(CStrs, ","), ")"])
@@ -1626,16 +1649,13 @@ fold(FType, Fun, Ctx, Lvl, {insert, Tab, {cols, Columns}, {values, Values}, Retu
     ]), NewCtx5},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
-fold(FType, Fun, Ctx, Lvl, {insert, Tab, {cols, Columns}, {select, _} = SubQuery, Return} = ST) ->
+fold(FType, Fun, Ctx, Lvl, {insert, Table, {cols, Columns}, {select, _} = SubQuery, Return} = ST) ->
     ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, ST]),
     NewCtx = case FType of
                  top_down -> Fun(ST, Ctx);
                  bottom_up -> Ctx
              end,
-    {TabStr, NewCtx1} = case is_binary(Tab) of
-                            true -> {binary_to_list(Tab), NewCtx};
-                            _ -> fold(FType, Fun, NewCtx, Lvl + 1, Tab)
-                        end,
+    {TableStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl + 1, {table, Table}),
     {CStrs, NewCtx2} = case Columns of
                            [] -> {[], NewCtx1};
                            _ -> lists:foldl(fun(C, {Acc, CtxAcc}) ->
@@ -1657,7 +1677,7 @@ fold(FType, Fun, Ctx, Lvl, {insert, Tab, {cols, Columns}, {select, _} = SubQuery
               end,
     RT = {lists:append([
         "insert into ",
-        TabStr,
+        TableStr,
         case length(CStrs) == 0 of
             true -> [];
             _ -> lists:flatten([" (", string:join(CStrs, ","), ")"])
@@ -2255,14 +2275,14 @@ fold(FType, Fun, Ctx, Lvl, {quotas, Quotas} = ST) ->
 % REFERENCES
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(FType, Fun, Ctx, Lvl, {ref, {Value1, Value2}} = ST)
+fold(FType, Fun, Ctx, Lvl, {ref, {Table, Value2}} = ST)
     when is_list(Value2) ->
     ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, ST]),
     NewCtx = case FType of
                  top_down -> Fun(ST, Ctx);
                  bottom_up -> Ctx
              end,
-    {Value1Str, NewCtx1} = fold(FType, Fun, NewCtx, Lvl + 1, Value1),
+    {TableStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl + 1, {table, Table}),
     {Value2Str, NewCtx2} = lists:foldl(fun(V, {Acc, CtxAcc}) ->
         {VNew, _} = fold(FType, Fun, NewCtx1, Lvl + 1, V),
         {lists:append([
@@ -2280,21 +2300,21 @@ fold(FType, Fun, Ctx, Lvl, {ref, {Value1, Value2}} = ST)
                   top_down -> NewCtx2;
                   bottom_up -> Fun(ST, NewCtx2)
               end,
-    RT = {lists:flatten(["references ", Value1Str, " (", Value2Str, ")"]), NewCtx3},
+    RT = {lists:flatten(["references ", TableStr, " (", Value2Str, ")"]), NewCtx3},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
-fold(FType, Fun, Ctx, Lvl, {ref, Value1} = ST) ->
+fold(FType, Fun, Ctx, Lvl, {ref, Table} = ST) ->
     ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, ST]),
     NewCtx = case FType of
                  top_down -> Fun(ST, Ctx);
                  bottom_up -> Ctx
              end,
-    {Value1Str, NewCtx1} = fold(FType, Fun, NewCtx, Lvl + 1, Value1),
+    {TableStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl + 1, {table, Table}),
     NewCtx2 = case FType of
                   top_down -> NewCtx1;
                   bottom_up -> Fun(ST, NewCtx1)
               end,
-    RT = {lists:flatten(["references ", Value1Str]), NewCtx2},
+    RT = {lists:flatten(["references ", TableStr]), NewCtx2},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
 
@@ -2347,10 +2367,7 @@ fold(FType, Fun, Ctx, Lvl, {revoke, Objs, {OnTyp, On}, {'from', Tos}, Opts} = ST
         {[], NewCtx},
         Objs),
     {OnTypNew, NewCtx2} = fold(FType, Fun, NewCtx1, Lvl + 1, OnTyp),
-    {OnNew, NewCtx3} = case is_binary(On) of
-                           true -> {binary_to_list(On), NewCtx2};
-                           _ -> fold(FType, Fun, NewCtx2, Lvl + 1, On)
-                       end,
+    {OnNew, NewCtx3} = fold(FType, Fun, NewCtx2, Lvl + 1, {table, On}),
     {TosStr, NewCtx4} = lists:foldl(fun(O, {Acc, CtxAcc}) ->
         {Acc ++ [case is_binary(O) of
                      true -> binary_to_list(O);
@@ -2522,17 +2539,107 @@ fold(FType, Fun, Ctx, Lvl, {Tab, [J | _] = Joins} = ST)
     RT;
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% TRUNCATE TABLE
+% Table & Dblink & Alias
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(FType, Fun, Ctx, _Lvl, {'truncate table', Tbl, Mvl, Storage} = ST)
-    when is_binary(Tbl) ->
-    ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [_Lvl, ST]),
+fold(FType, Fun, Ctx, Lvl, {table, {as, Table, Alias, {dblink, Dblink}}} = ST) ->
+    ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, ST]),
     NewCtx = case FType of
                  top_down -> Fun(ST, Ctx);
                  bottom_up -> Ctx
              end,
-    NewCtx1 = Fun(Tbl, NewCtx),
+    {TableStr, NewCtx1} = case is_binary(Table) of
+                              true -> {binary_to_list(Table), NewCtx};
+                              _ -> fold(FType, Fun, NewCtx, Lvl + 1, Table)
+                          end,
+    NewCtx2 = Fun(Alias, NewCtx1),
+    NewCtx3 = Fun(Dblink, NewCtx2),
+    NewCtx4 = case FType of
+                  top_down -> NewCtx3;
+                  bottom_up -> Fun(ST, NewCtx3)
+              end,
+    RT = {lists:append([TableStr, binary_to_list(Dblink), " ", binary_to_list(Alias)]), NewCtx4},
+    ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
+    RT;
+fold(FType, Fun, Ctx, Lvl, {table, {as, Table, Alias}} = ST) ->
+    ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, ST]),
+    NewCtx = case FType of
+                 top_down -> Fun(ST, Ctx);
+                 bottom_up -> Ctx
+             end,
+    {TableStr, NewCtx1} = case is_binary(Table) of
+                              true -> {binary_to_list(Table), NewCtx};
+                              _ -> fold(FType, Fun, NewCtx, Lvl + 1, Table)
+                          end,
+    NewCtx2 = Fun(Alias, NewCtx1),
+    NewCtx3 = case FType of
+                  top_down -> NewCtx2;
+                  bottom_up -> Fun(ST, NewCtx2)
+              end,
+    RT = {lists:append([TableStr, " ", binary_to_list(Alias)]), NewCtx3},
+    ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
+    RT;
+fold(FType, Fun, Ctx, Lvl, {table, {param, _} = Table} = ST) ->
+    ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, ST]),
+    NewCtx = case FType of
+                 top_down -> Fun(ST, Ctx);
+                 bottom_up -> Ctx
+             end,
+    {TableStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl + 1, Table),
+    NewCtx2 = case FType of
+                  top_down -> NewCtx1;
+                  bottom_up -> Fun(ST, NewCtx1)
+              end,
+    RT = {TableStr, NewCtx2},
+    ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
+    RT;
+fold(FType, Fun, Ctx, Lvl, {table, {Table, {dblink, Dblink}}} = ST) ->
+    ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, ST]),
+    NewCtx = case FType of
+                 top_down -> Fun(ST, Ctx);
+                 bottom_up -> Ctx
+             end,
+    {TableStr, NewCtx1} = case is_binary(Table) of
+                              true -> {binary_to_list(Table), NewCtx};
+                              _ -> fold(FType, Fun, NewCtx, Lvl + 1, Table)
+                          end,
+    NewCtx2 = Fun(Dblink, NewCtx1),
+    NewCtx3 = case FType of
+                  top_down -> NewCtx2;
+                  bottom_up -> Fun(ST, NewCtx2)
+              end,
+    RT = {TableStr ++ binary_to_list(Dblink), NewCtx3},
+    ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
+    RT;
+fold(FType, Fun, Ctx, Lvl, {table, Table} = ST) ->
+    ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, ST]),
+    NewCtx = case FType of
+                 top_down -> Fun(ST, Ctx);
+                 bottom_up -> Ctx
+             end,
+    {TableStr, NewCtx1} = case is_binary(Table) of
+                              true -> {binary_to_list(Table), NewCtx};
+                              _ -> fold(FType, Fun, NewCtx, Lvl + 1, Table)
+                          end,
+    NewCtx2 = case FType of
+                  top_down -> NewCtx1;
+                  bottom_up -> Fun(ST, NewCtx1)
+              end,
+    RT = {TableStr, NewCtx2},
+    ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
+    RT;
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% TRUNCATE TABLE
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(FType, Fun, Ctx, Lvl, {'truncate table', Table, Mvl, Storage} = ST) ->
+    ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, ST]),
+    NewCtx = case FType of
+                 top_down -> Fun(ST, Ctx);
+                 bottom_up -> Ctx
+             end,
+    {TableStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl + 1, {table, Table}),
     NewCtx2 = Fun(Mvl, NewCtx1),
     NewCtx3 = Fun(Storage, NewCtx2),
     NewCtx4 = case FType of
@@ -2541,7 +2648,7 @@ fold(FType, Fun, Ctx, _Lvl, {'truncate table', Tbl, Mvl, Storage} = ST)
               end,
     RT = {lists:append([
         "truncate table ",
-        binary_to_list(Tbl),
+        TableStr,
         " ",
         case Mvl of
             {} -> [];
@@ -2606,11 +2713,7 @@ fold(FType, Fun, Ctx, Lvl, {update, Table, {set, Set}, Where, Return} = ST) ->
                  top_down -> Fun(ST, Ctx);
                  bottom_up -> Ctx
              end,
-    {TableStr, NewCtx1} =
-        case is_binary(Table) of
-            true -> {binary_to_list(Table), NewCtx};
-            _ -> fold(FType, Fun, NewCtx, Lvl + 1, Table)
-        end,
+    {TableStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl + 1, {table, Table}),
     {Sets, NewCtx2} = lists:foldl(fun(S, {Acc, CtxAcc}) ->
         {SubAcc, CtxAcc1} = fold(FType, Fun, CtxAcc, Lvl + 1, S),
         {Acc ++ [SubAcc], CtxAcc1}
@@ -2951,6 +3054,20 @@ fold(FType, Fun, Ctx, _Lvl, ST) when is_atom(ST) ->
     RT = {atom_to_list(ST), NewCtx1},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
+fold(FType, Fun, Ctx, _Lvl, {Table, {dblink, Dblink}} = ST) when is_binary(Table) ->
+    ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [_Lvl, ST]),
+    NewCtx = case FType of
+                 top_down -> Fun(ST, Ctx);
+                 bottom_up -> Ctx
+             end,
+    {TableStr, NewCtx1} = {binary_to_list(Table) ++ binary_to_list(Dblink), NewCtx},
+    NewCtx2 = case FType of
+                  top_down -> NewCtx1;
+                  bottom_up -> Fun(ST, NewCtx1)
+              end,
+    RT = {TableStr, NewCtx2},
+    ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
+    RT;
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % UNSUPPORTED
@@ -2966,10 +3083,10 @@ fold(_FType, Fun, Ctx, _Lvl, PTree) ->
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 columns_join([], _Separator, Result) ->
-    ?debugFmt(?MODULE_STRING ++ ":columns_join ===> Result: ~p~n", [Result]),
+    ?debugFmt(?MODULE_STRING ++ ":columns_join ===>~n Result: ~p~n", [Result]),
     Result;
 columns_join([Head | Tail], Separator, Result) ->
-    ?debugFmt(?MODULE_STRING ++ ":columns_join ===> Head ~p~n Result: ~p~n", [Head, Result]),
+    ?debugFmt(?MODULE_STRING ++ ":columns_join ===>~n Head ~p~n Result: ~p~n", [Head, Result]),
     columns_join(Tail, Separator, lists:append([
         Result,
         case Result of

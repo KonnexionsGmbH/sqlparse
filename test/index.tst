@@ -25,5 +25,18 @@
 "create bitmap index s.a on s.d (f, g)".
 "create index a on b (a|:d|, b|:e|)".
 
+"drop index s.a".
 "drop index s.a from s.b".
 "drop index from s.b".
+
+% table reference -------------------------------------------------------------
+
+"create Index index_1 On table_1 (column_1)".
+"create Index index_1 On schema_1.table_1 (column_1)".
+"create Index index_1 On :param_1 (column_1)".
+"create Index index_1 On \"^&()\" (column_1)".
+
+"create Index index_1 On table_1 alias_1 (column_1)".
+"create Index index_1 On schema_1.table_1 alias_1 (column_1)".
+"create Index index_1 On :param_1 alias_1 (column_1)".
+"create Index index_1 On \"^&()\" alias_1 (column_1)".

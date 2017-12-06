@@ -39,3 +39,10 @@
 "REVOKE ALL ON schema1.ddTable FROM user1,user2".
 "REVOKE EXECUTE ON module1 FROM user1".
 "revoke update, delete on ddTable from test_user_1".
+
+% table reference -------------------------------------------------------------
+
+"Revoke Delete On table_1 From user_1".
+"Revoke Delete On schema_1.table_1 From user_1".
+"Revoke Delete On :param_1 From user_1".
+"Revoke Delete On \"^&()\" From user_1".

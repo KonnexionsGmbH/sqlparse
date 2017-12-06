@@ -200,3 +200,32 @@ fld TUPLE(0) default fun(_D) -> {} end.
 %%
 
 % ? "CREATE VIEW name_table_1".
+
+% table reference -------------------------------------------------------------
+
+% table reference -------------------------------------------------------------
+
+"Create Index index_1 On table_1".
+"Create Index index_1 On schema_1.table_1".
+"Create Index index_1 On :param_1".
+"Create Index index_1 On \"^&()\"".
+
+"Create Index index_1 On table_1 alias_1".
+"Create Index index_1 On schema_1.table_1 alias_1".
+"Create Index index_1 On :param_1 alias_1".
+"Create Index index_1 On \"^&()\" alias_1".
+
+"Create Table table_1 (column_1 date)".
+"Create Table schema_1.table_1 (column_1 date)".
+"Create Table :param_1 (column_1 date)".
+"Create Table \"^&()\" (column_1 date)".
+
+"Create Table table_1 (column_1 date, column_2 date, FOREIGN KEY (fkey_1) REFERENCES table_2)".
+"Create Table schema_1.table_1 (column_1 date, column_2 date, FOREIGN KEY (fkey_1) REFERENCES schema_1.table_2)".
+"Create Table :param_1 (column_1 date, column_2 date, FOREIGN KEY (fkey_1) REFERENCES :param_2)".
+"Create Table \"^&()_1\" (column_1 date, column_2 date, FOREIGN KEY (fkey_1) REFERENCES \"^&()_2\")".
+
+"Create Table table_1 (column_1 date, column_2 date, FOREIGN KEY (fkey_1) REFERENCES table_2 (column_9))".
+"Create Table schema_1.table_1 (column_1 date, column_2 date, FOREIGN KEY (fkey_1) REFERENCES schema_1.table_2 (column_9))".
+"Create Table :param_1 (column_1 date, column_2 date, FOREIGN KEY (fkey_1) REFERENCES :param_2 (column_9))".
+"Create Table \"^&()_1\" (column_1 date, column_2 date, FOREIGN KEY (fkey_1) REFERENCES \"^&()_2\" (column_9))".

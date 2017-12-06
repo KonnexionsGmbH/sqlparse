@@ -41,3 +41,10 @@
 "grant update, delete on ddTable to test_user_1".
 "grant insert on ddTable to test_user_1 WITH GRANT OPTION".
 "GRANT manage_system TO test_user_1 with admin option".
+
+% table reference -------------------------------------------------------------
+
+"Grant Delete On table_1 To user_1".
+"Grant Delete On schema_1.table_1 To user_1".
+"Grant Delete On :param_1 To user_1".
+"Grant Delete On \"^&()\" To user_1".

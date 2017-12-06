@@ -18,3 +18,10 @@
 "truncate table tbl preserve materialized view log reuse storage".
 "truncate table tbl purge materialized view log drop storage".
 "truncate table tbl purge materialized view log reuse storage".
+
+% table reference -------------------------------------------------------------
+
+"Truncate Table table_1 Drop Storage".
+"Truncate Table schema_1.table_1 Drop Storage".
+"Truncate Table :param_1 Drop Storage".
+"Truncate Table \"^&()\" Drop Storage".

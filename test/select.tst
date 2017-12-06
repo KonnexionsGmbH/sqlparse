@@ -348,3 +348,53 @@ UNION ALL
 "Select Case When a or (b and c) Then d End From tab".
 "Select a From tab Where a or (b and c)".
 "Select a From tab Having a or (b and c)".
+
+% table reference -------------------------------------------------------------
+
+"Select * From table_1".
+"Select * From table_1\"@link_1\"".
+"Select * From schema_1.table_1\"@link_1\"".
+"Select * From schema_1.table_1".
+"Select * From :param_1\"@link_1\"".
+"Select * From :param_1".
+"Select * From \"^&()\"".
+
+"Select * From table_1\"@link_1\" alias_1".
+"Select * From table_1 alias_1".
+"Select * From schema_1.table_1\"@link_1\" alias_1".
+"Select * From schema_1.table_1 alias_1".
+"Select * From :param_1\"@link_1\" alias_1".
+"Select * From :param_1 alias_1".
+"Select * From \"^&()\" alias_1".
+
+% join reference --------------------------------------------------------------
+
+"Select * From (schema_1.table_1\"@dblink_1\" Join schema_2.table_2\"@dblink_2\" On column_1 = column_2)".
+"Select * From (schema_1.table_1\"@dblink_1\" Cross Join schema_2.table_2\"@dblink_2\")".
+"Select * From (schema_1.table_1\"@dblink_1\" Inner Join schema_2.table_2\"@dblink_2\" On column_1 = column_2)".
+"Select * From (schema_1.table_1\"@dblink_1\" Natural Join schema_2.table_2\"@dblink_2\")".
+"Select * From (schema_1.table_1\"@dblink_1\" Natural Inner Join schema_2.table_2\"@dblink_2\")".
+
+"Select * From (schema_1.table_1\"@dblink_1\"                               Full Join schema_2.table_2\"@dblink_2\"                       On column_1 = column_2)".
+"Select * From (schema_1.table_1\"@dblink_1\"                               Full Join schema_2.table_2\"@dblink_2\"                                             )".
+"Select * From (schema_1.table_1\"@dblink_1\"                               Full Join schema_2.table_2\"@dblink_2\" Partition By column_1                       )".
+"Select * From (schema_1.table_1\"@dblink_1\"                               Full Join schema_2.table_2\"@dblink_2\" Partition By column_1 On column_1 = column_2)".
+"Select * From (schema_1.table_1\"@dblink_1\"                       Natural Full Join schema_2.table_2\"@dblink_2\"                       On column_1 = column_2)".
+"Select * From (schema_1.table_1\"@dblink_1\"                       Natural Full Join schema_2.table_2\"@dblink_2\"                                             )".
+"Select * From (schema_1.table_1\"@dblink_1\"                       Natural Full Join schema_2.table_2\"@dblink_2\" Partition By column_1                       )".
+"Select * From (schema_1.table_1\"@dblink_1\"                       Natural Full Join schema_2.table_2\"@dblink_2\" Partition By column_1 On column_1 = column_2)".
+"Select * From (schema_1.table_1\"@dblink_1\" Partition By column_1         Full Join schema_2.table_2\"@dblink_2\"                       On column_1 = column_2)".
+"Select * From (schema_1.table_1\"@dblink_1\" Partition By column_1         Full Join schema_2.table_2\"@dblink_2\"                                             )".
+"Select * From (schema_1.table_1\"@dblink_1\" Partition By column_1         Full Join schema_2.table_2\"@dblink_2\" Partition By column_1                       )".
+"Select * From (schema_1.table_1\"@dblink_1\" Partition By column_1         Full Join schema_2.table_2\"@dblink_2\" Partition By column_1 On column_1 = column_2)".
+"Select * From (schema_1.table_1\"@dblink_1\" Partition By column_1 Natural Full Join schema_2.table_2\"@dblink_2\"                       On column_1 = column_2)".
+"Select * From (schema_1.table_1\"@dblink_1\" Partition By column_1 Natural Full Join schema_2.table_2\"@dblink_2\"                                             )".
+"Select * From (schema_1.table_1\"@dblink_1\" Partition By column_1 Natural Full Join schema_2.table_2\"@dblink_2\" Partition By column_1                       )".
+"Select * From (schema_1.table_1\"@dblink_1\" Partition By column_1 Natural Full Join schema_2.table_2\"@dblink_2\" Partition By column_1 On column_1 = column_2)".
+
+% special alias ---------------------------------------------------------------
+
+"Select * From  :param_1 alias_1 Join :param_2 alias_2 On column_1 = column_2".
+"Select * From (:param_1 alias_1 Join :param_2 alias_2 On column_1 = column_2)".
+"Select * From (:param_1\"@link_1\" alias_1 Join :param_1\"@link_1\" alias_1 On column_1 = column_2)".
+"Select * From  :param_1\"@link_1\" alias_1 Join :param_1\"@link_1\" alias_1 On column_1 = column_2".

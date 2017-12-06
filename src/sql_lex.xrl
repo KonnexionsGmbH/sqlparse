@@ -29,6 +29,9 @@ Rules.
 (fun\([A-Za-z0-9,_]*\).*\->.*end\.)                 : match_fun(TokenLine, TokenChars).
 (fun\s['A-Za-z0-9_]+:['A-Za-z0-9_]+\/[0-9]+\.)      : {token, {'STRING', TokenLine, TokenChars}}.
 
+% database link
+(\"@[A-Za-z0-9_\$#\.@]+\")                          : {token, {'DBLINK', TokenLine, TokenChars}}.
+
 % strings
 (\'([^\']*(\'\')*)*\')                              : {token, {'STRING', TokenLine, TokenChars}}.
 (\"((\$|[^\"]*)*(\"\")*)*\")                        : {token, {'NAME', TokenLine, TokenChars}}.
@@ -44,7 +47,7 @@ Rules.
 (\|[:{\[#]([^\|]*)+\|)                              : parse_json(TokenLine, TokenChars).
 
 % names
-[A-Za-z][A-Za-z0-9_@\$~]*                           : match_any(TokenChars, TokenLen, TokenLine, ?TokenPatters).
+[A-Za-z][A-Za-z0-9_\$@~]*                           : match_any(TokenChars, TokenLen, TokenLine, ?TokenPatters).
 
 % parameters
 (\:[A-Za-z0-9_\.][A-Za-z0-9_\.]*)                   : {token, {'PARAMETER', TokenLine, TokenChars}}.
@@ -137,6 +140,7 @@ Erlang code.
     {"^(?i)(DELEGATE)$",        'DELEGATE'},
     {"^(?i)(DELETE)$",          'DELETE'},
     {"^(?i)(DESC)$",            'DESC'},
+    {"^(?i)(DIRECTORY)$",       'DIRECTORY'},
     {"^(?i)(DISTINCT)$",        'DISTINCT'},
     {"^(?i)(DOUBLE)$",          'DOUBLE'},
     {"^(?i)(DROP)$",            'DROP'},

@@ -423,11 +423,9 @@ schema -> CREATE SCHEMA AUTHORIZATION NAME schema_element_list : {'create schema
 schema_element_list ->                     schema_element :         ['$1'].
 schema_element_list -> schema_element_list schema_element : '$1' ++ ['$2'].
 
-schema_element -> create_role_def  : '$1'.
 schema_element -> create_table_def : '$1'.
-schema_element -> create_index_def : '$1'.
-schema_element -> create_user_def  : '$1'.
 schema_element -> view_def         : '$1'.
+schema_element -> grant_def        : '$1'.
 
 create_role_def -> CREATE ROLE NAME : {'create role', unwrap_bin('$3')}.
 

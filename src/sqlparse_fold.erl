@@ -1358,8 +1358,12 @@ fold(FType, Fun, Ctx, Lvl, {grant, Objs, {OnTyp, On}, {'to', Tos}, Opts} = ST)
             true -> lists:append([OnTypNew, " ", OnNew, " "]);
             _ -> []
         end,
-        lists:append(["to ", string:join(TosStr, ","), " "]),
-        atom_to_list(Opts)
+        "to ",
+        string:join(TosStr, ","),
+        case atom_to_list(Opts) of
+            [] -> "";
+            OptsStr -> " " ++ OptsStr
+        end
     ]), NewCtx6},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
@@ -2399,8 +2403,10 @@ fold(FType, Fun, Ctx, Lvl, {revoke, Objs, {OnTyp, On}, {'from', Tos}, Opts} = ST
         end,
         "from ",
         string:join(TosStr, ","),
-        " ",
-        atom_to_list(Opts)
+        case atom_to_list(Opts) of
+            [] -> "";
+            OptsStr -> " " ++ OptsStr
+        end
     ]), NewCtx6},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;

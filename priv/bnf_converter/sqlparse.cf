@@ -68,8 +68,8 @@ FunctionRefList02.                FunctionRefList ::= FunctionRef ";" FunctionRe
 
 Sql02.                            Sql ::= Schema ;
 
--- schema -> CREATE SCHEMA AUTHORIZATION NAME                                                      : {'create schema authorization', unwrap('$4'), []}.
--- schema -> CREATE SCHEMA AUTHORIZATION NAME schema_element_list                                  : {'create schema authorization', unwrap('$4'), '$5'}.
+-- schema -> CREATE SCHEMA AUTHORIZATION NAME                     : {'create schema authorization', unwrap('$4'), []}.
+-- schema -> CREATE SCHEMA AUTHORIZATION NAME schema_element_list : {'create schema authorization', unwrap('$4'), '$5'}.
 
 Schema01.                         Schema ::= "CREATE" "SCHEMA" "AUTHORIZATION" "NAME"                   ;
 Schema02.                         Schema ::= "CREATE" "SCHEMA" "AUTHORIZATION" "NAME" SchemaElementList ;
@@ -80,17 +80,13 @@ Schema02.                         Schema ::= "CREATE" "SCHEMA" "AUTHORIZATION" "
 SchemaElementList01.              SchemaElementList ::=                   SchemaElement ;
 SchemaElementList02.              SchemaElementList ::= SchemaElementList SchemaElement ;
 
--- schema_element -> create_role_def                                                               : '$1'.
--- schema_element -> create_table_def                                                              : '$1'.
--- schema_element -> -- create_index_def                                                              : '$1'.
--- schema_element -> create_user_def                                                               : '$1'.
--- schema_element -> view_def                                                                      : '$1'.
+-- schema_element -> create_table_def : '$1'.
+-- schema_element -> view_def         : '$1'.
+-- schema_element -> grant_def        : '$1'.
 
-SchemaElement01.                  SchemaElement ::= CreateRoleDef  ;
-SchemaElement02.                  SchemaElement ::= CreateTableDef ;
-SchemaElement03.                  SchemaElement ::= CreateIndexDef ;
-SchemaElement04.                  SchemaElement ::= CreateUserDef  ;
-SchemaElement05.                  SchemaElement ::= ViewDef        ;
+SchemaElement01.                  SchemaElement ::= CreateTableDef ;
+SchemaElement02.                  SchemaElement ::= ViewDef        ;
+SchemaElement03.                  SchemaElement ::= GrantDef       ;
 
 -- create_role_def -> CREATE ROLE NAME                                                             : {'create role', unwrap_bin('$3')}.
 

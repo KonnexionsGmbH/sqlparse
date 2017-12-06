@@ -236,6 +236,24 @@
     % ==========================================================================
     % Tuple structure: {book, chapter, section, subsection, subsubsection, code}
     % ==========================================================================
+    % SQL Language Reference: 14 SQL Statements: CREATE LIBRARY to CREATE SCHEMA
+    % --------------------------------------------------------------------------
+    {
+        "SQL Language Reference",
+        "14 SQL Statements: CREATE LIBRARY to CREATE SCHEMA",
+        "CREATE SCHEMA",
+        "",
+        "",
+        "",
+        "
+        CREATE SCHEMA AUTHORIZATION oe
+           CREATE TABLE new_product
+              (color VARCHAR2(10), quantity NUMBER)
+           CREATE VIEW new_product_view
+              AS SELECT color, quantity FROM new_product WHERE color = 'RED'
+           GRANT select ON new_product_view TO hr;
+    "},
+    % ==========================================================================
     % SQL Language Reference: 18 SQL Statements: DROP TABLE to LOCK TABLE
 %%    % --------------------------------------------------------------------------
 %%    {

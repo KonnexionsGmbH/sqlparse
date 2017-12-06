@@ -84,28 +84,24 @@ function_ref_list ::= ( function_ref ';' )
 
 sql -> schema                                                                                   : '$1'.
 
-schema -> CREATE SCHEMA AUTHORIZATION NAME                                                      : {'create schema authorization', unwrap('$4'), []}.
-schema -> CREATE SCHEMA AUTHORIZATION NAME schema_element_list                                  : {'create schema authorization', unwrap('$4'), '$5'}.
+schema -> CREATE SCHEMA AUTHORIZATION NAME                     : {'create schema authorization', unwrap('$4'), []}.
+schema -> CREATE SCHEMA AUTHORIZATION NAME schema_element_list : {'create schema authorization', unwrap('$4'), '$5'}.
 
-schema_element_list ->                     schema_element                                       :         ['$1'].
-schema_element_list -> schema_element_list schema_element                                       : '$1' ++ ['$2'].
+schema_element_list ->                     schema_element :         ['$1'].
+schema_element_list -> schema_element_list schema_element : '$1' ++ ['$2'].
 ============================================================================= */
 
 schema ::= 'CREATE' 'SCHEMA' 'AUTHORIZATION' NAME ( schema_element ( schema_element )* )?
 
 /* =============================================================================
-schema_element -> create_role_def                                                               : '$1'.
-schema_element -> create_table_def                                                              : '$1'.
-schema_element -> create_index_def                                                              : '$1'.
-schema_element -> create_user_def                                                               : '$1'.
-schema_element -> view_def                                                                      : '$1'.
+schema_element -> create_table_def : '$1'.
+schema_element -> view_def         : '$1'.
+schema_element -> grant_def        : '$1'.
 ============================================================================= */
 
-schema_element ::= create_role_def
-                 | create_table_def
-                 | create_index_def
-                 | create_user_def
+schema_element ::= create_table_def
                  | view_def
+                 | grant_def
 
 /* =============================================================================
 create_role_def -> CREATE ROLE NAME                                                             : {'create role', unwrap_bin('$3')}.

@@ -216,7 +216,7 @@ create_code() ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    ?debugFmt("~n~n======================================================> create_code: Level 01   <===================~n", []),
+    erlang:display(io:format("~n~n======================================================> create_code: Level 01   <===================~n", [])),
 
     create_code(approxnum),
     create_code(atom),
@@ -259,7 +259,6 @@ create_code() ->
 %% create_role_def ::= 'CREATE' 'ROLE' NAME
 %%
 %% ==> manipulative_statement              == manipulative_statement = ... create_role_def ...
-%% ==> schema_element                      == schema_element = ... create_role_def ...
 %% ==> sql                                 == sql = ... manipulative_statement ...
 %%
 %% cursor ::= NAME
@@ -307,7 +306,7 @@ create_code() ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    ?debugFmt("~n~n======================================================> create_code: Level 02   <===================~n", []),
+    erlang:display(io:format("~n~n======================================================> create_code: Level 02   <===================~n", [])),
 
     create_code(column_commalist),
     create_code(column_ref),
@@ -386,7 +385,7 @@ create_code() ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    ?debugFmt("~n~n======================================================> create_code: Level 03   <===================~n", []),
+    erlang:display(io:format("~n~n======================================================> create_code: Level 03   <===================~n", [])),
 
     create_code(close_statement),
     create_code(data_type),
@@ -407,13 +406,11 @@ create_code() ->
 %%                      ( 'NORM_WITH' STRING )?  ( 'FILTER_WITH' STRING )?
 %%
 %% ==> manipulative_statement              == manipulative_statement = ... create_index_def ...
-%% ==> schema_element                      == schema_element = ... create_index_def ...
 %% ==> sql                                 == sql = ... manipulative_statement ...
 %%
 %% create_user_def ::= 'CREATE' 'USER' NAME identified ( user_opt )*
 %%
 %% ==> manipulative_statement              == manipulative_statement = ... create_user_def ...
-%% ==> schema_element                      == schema_element = ... create_user_def ...
 %% ==> sql                                 == sql = ... manipulative_statement ...
 %%
 %% drop_index_def ::= 'DROP' 'INDEX' ( index_name )? 'FROM' table
@@ -437,7 +434,7 @@ create_code() ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    ?debugFmt("~n~n======================================================> create_code: Level 04   <===================~n", []),
+    erlang:display(io:format("~n~n======================================================> create_code: Level 04   <===================~n", [])),
 
     create_code(create_index_def),
     create_code(create_user_def),
@@ -459,6 +456,7 @@ create_code() ->
 %%                       )
 %%
 %% ==> manipulative_statement              == manipulative_statement = ... grant_def ...
+%% ==> schema_element                      == schema_element = ... grant_def
 %% ==> sql                                 == sql = ... manipulative_statement ...
 %%
 %% revoke_def ::= 'REVOKE' (
@@ -473,7 +471,7 @@ create_code() ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    ?debugFmt("~n~n======================================================> create_code: Level 05   <===================~n", []),
+    erlang:display(io:format("~n~n======================================================> create_code: Level 05   <===================~n", [])),
 
     create_code(db_user_proxy),
     create_code(grant_def),
@@ -493,7 +491,7 @@ create_code() ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    ?debugFmt("~n~n======================================================> create_code: Level 06   <===================~n", []),
+    erlang:display(io:format("~n~n======================================================> create_code: Level 06   <===================~n", [])),
 
     create_code(fetch_statement),
     create_code(proxy_clause),
@@ -511,7 +509,7 @@ create_code() ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    ?debugFmt("~n~n======================================================> create_code: Level 07   <===================~n", []),
+    erlang:display(io:format("~n~n======================================================> create_code: Level 07   <===================~n", [])),
 
     create_code(alter_user_def),
 
@@ -519,7 +517,7 @@ create_code() ->
 %% Level 08 = 11-22/1
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    ?debugFmt("~n~n======================================================> create_code: Level 08   <===================~n", []),
+    erlang:display(io:format("~n~n======================================================> create_code: Level 08   <===================~n", [])),
 
     create_code_layer("1"),
 
@@ -527,7 +525,7 @@ create_code() ->
 %% Level 09 = 11-22/2
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    ?debugFmt("~n~n======================================================> create_code: Level 09   <===================~n", []),
+    erlang:display(io:format("~n~n======================================================> create_code: Level 09   <===================~n", [])),
 
     create_code_layer("2"),
 
@@ -590,11 +588,9 @@ create_code() ->
 %%             | all_or_any_predicate
 %%             | existence_test
 %%
-%% schema_element ::= create_role_def
-%%                  | create_table_def
-%%                  | create_index_def
-%%                  | create_user_def
+%% schema_element ::= create_table_def
 %%                  | view_def
+%%                  | grant_def
 %%
 %% select_statement ::= query_exp
 %%
@@ -611,7 +607,7 @@ create_code() ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    ?debugFmt("~n~n======================================================> create_code: Level 99   <===================~n", []),
+    erlang:display(io:format("~n~n======================================================> create_code: Level 99   <===================~n", [])),
 
     create_code(special),
 
@@ -639,7 +635,7 @@ create_code_layer(_Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    ?debugFmt("~n~n================================================> create_code_layer: Level 11/~s <===================~n", [_Version]),
+    erlang:display(io:format("~n~n================================================> create_code_layer: Level 11/~s <===================~n", [_Version])),
 
     create_code(fun_args),
     create_code(scalar_exp),
@@ -682,7 +678,7 @@ create_code_layer(_Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    ?debugFmt("~n~n================================================> create_code_layer: Level 12/~s <===================~n", [_Version]),
+    erlang:display(io:format("~n~n================================================> create_code_layer: Level 12/~s <===================~n", [_Version])),
 
     create_code(between_predicate),
     create_code(function_ref),
@@ -724,7 +720,7 @@ create_code_layer(_Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    ?debugFmt("~n~n================================================> create_code_layer: Level 13/~s <===================~n", [_Version]),
+    erlang:display(io:format("~n~n================================================> create_code_layer: Level 13/~s <===================~n", [_Version])),
 
     create_code(assignment),
     create_code(case_when_then),
@@ -765,7 +761,7 @@ create_code_layer(_Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    ?debugFmt("~n~n================================================> create_code_layer: Level 14/~s <===================~n", [_Version]),
+    erlang:display(io:format("~n~n================================================> create_code_layer: Level 14/~s <===================~n", [_Version])),
 
     create_code(assignment_commalist),
     create_code(case_when_then_list),
@@ -795,7 +791,7 @@ create_code_layer(_Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    ?debugFmt("~n~n================================================> create_code_layer: Level 15/~s <===================~n", [_Version]),
+    erlang:display(io:format("~n~n================================================> create_code_layer: Level 15/~s <===================~n", [_Version])),
 
     create_code(case_when_exp),
     create_code(column_def_opt),
@@ -836,7 +832,7 @@ create_code_layer(_Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    ?debugFmt("~n~n================================================> create_code_layer: Level 16/~s <===================~n", [_Version]),
+    erlang:display(io:format("~n~n================================================> create_code_layer: Level 16/~s <===================~n", [_Version])),
 
     create_code(column_def),
     create_code(delete_statement),
@@ -854,7 +850,7 @@ create_code_layer(_Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    ?debugFmt("~n~n================================================> create_code_layer: Level 17/~s <===================~n", [_Version]),
+    erlang:display(io:format("~n~n================================================> create_code_layer: Level 17/~s <===================~n", [_Version])),
 
     create_code(select_field_commalist),
 
@@ -869,7 +865,7 @@ create_code_layer(_Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    ?debugFmt("~n~n================================================> create_code_layer: Level 18/~s <===================~n", [_Version]),
+    erlang:display(io:format("~n~n================================================> create_code_layer: Level 18/~s <===================~n", [_Version])),
 
     create_code(join_on_or_using_clause),
     create_code(table_exp),
@@ -899,7 +895,7 @@ create_code_layer(_Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    ?debugFmt("~n~n================================================> create_code_layer: Level 19/~s <===================~n", [_Version]),
+    erlang:display(io:format("~n~n================================================> create_code_layer: Level 19/~s <===================~n", [_Version])),
 
     create_code(inner_cross_join),
     create_code(outer_join),
@@ -936,7 +932,7 @@ create_code_layer(_Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    ?debugFmt("~n~n================================================> create_code_layer: Level 20/~s <===================~n", [_Version]),
+    erlang:display(io:format("~n~n================================================> create_code_layer: Level 20/~s <===================~n", [_Version])),
 
     create_code(insert_statement),
     create_code(join_clause),
@@ -959,7 +955,7 @@ create_code_layer(_Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    ?debugFmt("~n~n================================================> create_code_layer: Level 21/~s <===================~n", [_Version]),
+    erlang:display(io:format("~n~n================================================> create_code_layer: Level 21/~s <===================~n", [_Version])),
 
     create_code(query_exp),
 
@@ -1018,7 +1014,7 @@ create_code_layer(_Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    ?debugFmt("~n~n================================================> create_code_layer: Level 22/~s <===================~n", [_Version]),
+    erlang:display(io:format("~n~n================================================> create_code_layer: Level 22/~s <===================~n", [_Version])),
 
     create_code(all_or_any_predicate),
     create_code(cursor_def),
@@ -1956,7 +1952,6 @@ create_code(create_index_def = Rule) ->
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
     store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
-    store_code(schema_element, Code, ?MAX_STATEMENT_SIMPLE, true),
     store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
@@ -1973,7 +1968,6 @@ create_code(create_role_def = Rule) ->
                 "Create Role " ++ N || N <- Name
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
-    store_code(schema_element, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2080,7 +2074,6 @@ create_code(create_user_def = Rule) ->
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
     store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
-    store_code(schema_element, Code, ?MAX_STATEMENT_SIMPLE, true),
     store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
@@ -2799,7 +2792,8 @@ create_code(grant_def = Rule) ->
             || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
-    store_code(manipulative_statement, Code, ?MAX_STATEMENT_COMPLEX, true),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(schema_element, Code, ?MAX_STATEMENT_SIMPLE, true),
     store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
@@ -4471,25 +4465,25 @@ create_code(schema = Rule) ->
                     1 -> lists:append([
                         " ",
                         lists:nth(rand:uniform(Schema_Element_Length), Schema_Element),
-                        ";",
+                        " ",
                         lists:nth(rand:uniform(Schema_Element_Length), Schema_Element),
-                        ";",
+                        " ",
                         lists:nth(rand:uniform(Schema_Element_Length), Schema_Element),
-                        ";",
+                        " ",
                         lists:nth(rand:uniform(Schema_Element_Length), Schema_Element)
                     ]);
                     2 -> lists:append([
                         " ",
                         lists:nth(rand:uniform(Schema_Element_Length), Schema_Element),
-                        ";",
+                        " ",
                         lists:nth(rand:uniform(Schema_Element_Length), Schema_Element),
-                        ";",
+                        " ",
                         lists:nth(rand:uniform(Schema_Element_Length), Schema_Element)
                     ]);
                     3 -> lists:append([
                         " ",
                         lists:nth(rand:uniform(Schema_Element_Length), Schema_Element),
-                        ";",
+                        " ",
                         lists:nth(rand:uniform(Schema_Element_Length), Schema_Element)
                     ]);
                     4 ->

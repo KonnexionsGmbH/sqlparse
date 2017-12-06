@@ -42,17 +42,13 @@ Extra01.                          Extra ::= "NAME"   ";" ;
 
 Sql01.                            Sql ::= ProcedureCall ;
 
--- procedure_call -> DECLARE BEGIN function_ref_list END                                           : {'declare begin procedure', '$3'}.
--- procedure_call -> DECLARE BEGIN sql_list          END                                           : {'declare begin procedure', '$3'}.
--- procedure_call ->         BEGIN function_ref_list END                                           : {'begin procedure', '$2'}.
--- procedure_call ->         BEGIN sql_list          END                                           : {'begin procedure', '$2'}.
--- procedure_call ->         CALL  function_ref                                                    : {'call procedure', '$2'}.
+-- procedure_call -> BEGIN function_ref_list END : {'begin procedure', '$2'}.
+-- procedure_call -> BEGIN sql_list          END : {'begin procedure', '$2'}.
+-- procedure_call -> CALL  function_ref          : {'call procedure', '$2'}.
 
-ProcedureCall01.                  ProcedureCall ::= "DECLARE" "BEGIN" FunctionRefList "END" ;
-ProcedureCall02.                  ProcedureCall ::= "DECLARE" "BEGIN" SqlList         "END" ;
-ProcedureCall03.                  ProcedureCall ::=           "BEGIN" FunctionRefList "END" ;
-ProcedureCall04.                  ProcedureCall ::=           "BEGIN" SqlList         "END" ;
-ProcedureCall05.                  ProcedureCall ::=           "CALL"  FunctionRef           ;
+ProcedureCall01.                  ProcedureCall ::= "BEGIN" FunctionRefList "END" ;
+ProcedureCall02.                  ProcedureCall ::= "BEGIN" SqlList         "END" ;
+ProcedureCall03.                  ProcedureCall ::= "CALL"  FunctionRef           ;
 
 -- function_ref_list -> function_ref ';'                                                           : ['$1'].
 -- function_ref_list -> function_ref ';' function_ref_list                                         : ['$1' | '$3'].

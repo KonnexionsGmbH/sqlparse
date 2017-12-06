@@ -404,11 +404,9 @@ sql -> WHENEVER SQLERROR  when_action : {when_sql_err, '$3'}.
 
 
 
-procedure_call -> DECLARE BEGIN function_ref_list END : {'declare begin procedure', '$3'}.
-procedure_call -> DECLARE BEGIN sql_list          END : {'declare begin procedure', '$3'}.
-procedure_call ->         BEGIN function_ref_list END : {'begin procedure', '$2'}.
-procedure_call ->         BEGIN sql_list          END : {'begin procedure', '$2'}.
-procedure_call ->         CALL  function_ref          : {'call procedure', '$2'}.
+procedure_call -> BEGIN function_ref_list END : {'begin procedure', '$2'}.
+procedure_call -> BEGIN sql_list          END : {'begin procedure', '$2'}.
+procedure_call -> CALL  function_ref          : {'call procedure', '$2'}.
 
 function_ref_list -> function_ref ';'                   : ['$1'].
 function_ref_list -> function_ref ';' function_ref_list : ['$1' | '$3'].

@@ -744,10 +744,8 @@ create_code_layer(_Version) ->
 %% ==> manipulative_statement              == manipulative_statement = ... create_table_def ...
 %% ==> schema_element                      == schema_element = ... create_table_def ...
 %%
-%% procedure_call ::= ( 'DECLARE' 'BEGIN' function_ref_list 'END' )
-%%                  | ( 'DECLARE' 'BEGIN' sql_list          'END' )
-%%                  | (           'BEGIN' function_ref_list 'END' )
-%%                  | (           'BEGIN' sql_list          'END' )
+%% procedure_call ::= ( 'BEGIN' function_ref_list 'END' )
+%%                  | ( 'BEGIN' sql_list          'END' )
 %%                  | ( 'CALL' function_ref )
 %%
 %% ==> sql                                 == sql = ... procedure_call ...
@@ -3799,10 +3797,8 @@ create_code(parameter_ref = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% procedure_call ::= ( 'DECLARE' 'BEGIN' function_ref_list 'END' )
-%%                  | ( 'DECLARE' 'BEGIN' sql_list          'END' )
-%%                  | (           'BEGIN' function_ref_list 'END' )
-%%                  | (           'BEGIN' sql_list          'END' )
+%% procedure_call ::= ( 'BEGIN' function_ref_list 'END' )
+%%                  | ( 'BEGIN' sql_list          'END' )
 %%                  | ( 'CALL' function_ref )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -3817,23 +3813,13 @@ create_code(procedure_call = Rule) ->
 
     Code =
         [
-            case rand:uniform(5) rem 5 of
+            case rand:uniform(3) rem 3 of
                 1 -> lists:append([
-                    "Declare Begin ",
-                    lists:nth(rand:uniform(Function_Ref_List_Length), Function_Ref_List),
-                    " End"
-                ]);
-                2 -> lists:append([
-                    "Declare Begin ",
-                    lists:nth(rand:uniform(Sql_List_Length), Sql_List),
-                    " End"
-                ]);
-                3 -> lists:append([
                     "Begin ",
                     lists:nth(rand:uniform(Function_Ref_List_Length), Function_Ref_List),
                     " End"
                 ]);
-                4 -> lists:append([
+                2 -> lists:append([
                     "Begin ",
                     lists:nth(rand:uniform(Sql_List_Length), Sql_List),
                     " End"

@@ -800,11 +800,11 @@ fold(FType, Fun, Ctx, Lvl, {declare, {cur, CurName}, {cur_for, Stmt},
     RT;
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% procedure calls ('declare begin procedure' or 'begin procedure')
+% procedure calls ('begin procedure')
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fold(FType, Fun, Ctx, Lvl, {D, StmtList} = ST)
-    when D =:= 'declare begin procedure'; D =:= 'begin procedure' ->
+    when D =:= 'begin procedure' ->
     ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, ST]),
     NewCtx = case FType of
                  top_down -> Fun(ST, Ctx);
@@ -812,10 +812,7 @@ fold(FType, Fun, Ctx, Lvl, {D, StmtList} = ST)
              end,
     {BodyStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl + 1, {stmtList, StmtList}),
     RT = {lists:append([
-        case D of
-            'declare begin procedure' -> "declare begin ";
-            'begin procedure' -> "begin "
-        end,
+        "begin ",
         BodyStr,
         "; end"
     ]), NewCtx1},

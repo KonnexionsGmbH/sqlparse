@@ -934,8 +934,7 @@ create_code_layer(_Version) ->
 
     create_code(insert_statement),
     create_code(join_clause),
-%% wwe: currently not supported
-%%    create_code(query_term),
+    create_code(query_term),
     create_code(view_def),
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -966,7 +965,7 @@ create_code_layer(_Version) ->
 %% ==> predicate                           == predicate = ... all_or_any_predicate ...
 %% ==> search_condition                    == search_condition = ... predicate ...
 %%
-%% cursor_def ::= 'DECLARE' cursor 'CURSOR' 'FOR' query_exp ( order_by_clause )?
+%% cursor_def ::= 'CURSOR' cursor 'IS' query_exp
 %%
 %% ==> sql                                 == sql = ... cursor_def ...
 %%
@@ -2096,30 +2095,23 @@ create_code(cursor = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% cursor_def ::= 'DECLARE' cursor 'CURSOR' 'FOR' query_exp ( order_by_clause )?
+%% cursor_def ::= 'CURSOR' cursor 'IS' query_exp
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(cursor_def = Rule) ->
     ?CREATE_CODE_START,
     [{cursor, Cursor}] = ets:lookup(?CODE_TEMPLATES, cursor),
     Cursor_Length = length(Cursor),
-    [{order_by_clause, Order_By_Clause}] = ets:lookup(?CODE_TEMPLATES, order_by_clause),
-    Order_By_Clause_Length = length(Order_By_Clause),
     [{query_exp, Query_Exp}] = ets:lookup(?CODE_TEMPLATES, query_exp),
     Query_Exp_Length = length(Query_Exp),
 
     Code =
         [
             lists:append([
-                "Declare ",
+                "Cursor ",
                 lists:nth(rand:uniform(Cursor_Length), Cursor),
-                " Cursor For ",
-                bracket_query_spec(lists:nth(rand:uniform(Query_Exp_Length), Query_Exp)),
-                case rand:uniform(2) rem 2 of
-                    1 ->
-                        " " ++ lists:nth(rand:uniform(Order_By_Clause_Length), Order_By_Clause);
-                    _ -> []
-                end
+                " Is ",
+                bracket_query_spec(lists:nth(rand:uniform(Query_Exp_Length), Query_Exp))
             ])
             || _ <- lists:seq(1, ?MAX_STATEMENT_COMPLEX * 2)
         ],

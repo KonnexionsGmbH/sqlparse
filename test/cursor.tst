@@ -9,7 +9,10 @@
 %%
 
 "CLOSE name_cursor_1".
-"DECLARE name_cursor_1 CURSOR FOR SELECT * FROM name_table_1".
+"CURSOR cursor_1 IS SELECT * FROM table_1".
+"CURSOR cursor_1 IS SELECT * FROM table_1 Order By column_1".
+"CURSOR cursor_1 IS (SELECT * FROM table_1)".
+"CURSOR cursor_1 IS (SELECT * FROM table_1 Order By column_1)".
 "FETCH name_cursor_1 INTO name_column_1".
 "OPEN name_cursor_1".
 "DELETE FROM table_name WHERE CURRENT OF name_cursor".

@@ -231,7 +231,6 @@ Terminals
  CROSS
  CURRENT
  CURSOR
- DECLARE
  DEFAULT
  DELEGATE
  DELETE
@@ -249,7 +248,6 @@ Terminals
  EXTERNALLY
  FETCH
  FILTER_WITH
- FOR
  FORCE
  FOREIGN
  FOUND
@@ -715,8 +713,7 @@ system_with_grant_option -> WITH DELEGATE OPTION : 'with delegate option'.
 %% cursor definition
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-cursor_def -> DECLARE cursor CURSOR FOR query_exp                 : {declare, '$2', {cur_for, '$5'}, {'order by', []}}.
-cursor_def -> DECLARE cursor CURSOR FOR query_exp order_by_clause : {declare, '$2', {cur_for, '$5'}, '$6'}.
+cursor_def -> CURSOR cursor IS query_exp : {cursor_def, '$2', '$4'}.
 
 order_by_clause -> ORDER BY ordering_spec_commalist : {'order by', '$3'}.
 

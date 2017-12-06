@@ -684,11 +684,9 @@ SystemWithGrantOption02.          SystemWithGrantOption ::= "WITH" "DELEGATE" "O
 
 Sql03.                            Sql ::= Cursordef ;
 
--- cursor_def -> DECLARE cursor CURSOR FOR query_exp                                               : {declare, '$2', {cur_for, '$5'}, {'order by', []}}.
--- cursor_def -> DECLARE cursor CURSOR FOR query_exp order_by_clause                               : {declare, '$2', {cur_for, '$5'}, '$6'}.
+-- cursor_def -> CURSOR cursor IS query_exp : {cursor_def, '$2', '$4'}.
 
-Cursordef01.                      Cursordef ::= "DECLARE" Cursor "CURSOR" "FOR" QueryExp               ;
-Cursordef02.                      Cursordef ::= "DECLARE" Cursor "CURSOR" "FOR" QueryExp OrderByClause ;
+Cursordef01.                      Cursordef ::= "CURSOR" Cursor "IS" QueryExp ;
 
 -- order_by_clause -> ORDER BY ordering_spec_commalist                                             : {'order by', '$3'}.
 

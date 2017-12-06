@@ -779,23 +779,21 @@ fold(FType, Fun, Ctx, Lvl, {'create view', Table, Columns, QuerySpec} = ST) ->
     RT;
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% DECLARE
+% CURSOR
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(FType, Fun, Ctx, Lvl, {declare, {cur, CurName}, {cur_for, Stmt},
-    OrderByST} = ST) ->
+fold(FType, Fun, Ctx, Lvl, {cursor_def, {cur, CurName}, Stmt} = ST) ->
     ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, ST]),
     NewCtx = case FType of
                  top_down -> Fun(ST, Ctx);
                  bottom_up -> Ctx
              end,
     {StmtStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl + 1, Stmt),
-    {OptOrderByStr, NewCtx2} = fold(FType, Fun, NewCtx1, Lvl + 1, OrderByST),
-    NewCtx3 = case FType of
+    NewCtx2 = case FType of
                   top_down -> NewCtx;
-                  bottom_up -> Fun(ST, NewCtx2)
+                  bottom_up -> Fun(ST, NewCtx1)
               end,
-    RT = {lists:append(["declare ", CurName, " cursor for (", StmtStr, ") ", OptOrderByStr]), NewCtx3},
+    RT = {lists:append(["cursor ", CurName, " is (", StmtStr, ")"]), NewCtx2},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
 

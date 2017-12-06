@@ -995,11 +995,9 @@ QuerySpec06.                      QuerySpec ::= "SELECT" Hint             Select
 QuerySpec07.                      QuerySpec ::= "SELECT" Hint AllDistinct Selection      TableExp ;
 QuerySpec08.                      QuerySpec ::= "SELECT" Hint AllDistinct Selection Into TableExp ;
 
--- into -> INTO target_commalist                                                                   : '$2'.
--- into -> INTO target_commalist IN NAME                                                           : {'$2', {in, unwrap_bin('$4')}}.
+-- into -> INTO target_commalist : '$2'.
 
-Into01.                           Into ::= "INTO" TargetCommalist             ;
-Into02.                           Into ::= "INTO" TargetCommalist "IN" "NAME" ;
+Into01.                           Into ::= "INTO" TargetCommalist ;
 
 -- selection -> select_field_commalist                                                             : '$1'.
 

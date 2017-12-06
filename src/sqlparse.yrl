@@ -884,8 +884,7 @@ query_spec -> SELECT hint all_distinct selection into table_exp : {select,
                                                                    if '$5' == {} -> []; true -> [{into, '$5'}] end ++
                                                                    '$6'}.
 
-into -> INTO target_commalist         : '$2'.
-into -> INTO target_commalist IN NAME : {'$2', {in, unwrap_bin('$4')}}.
+into -> INTO target_commalist : '$2'.
 
 selection -> select_field_commalist : '$1'.
 

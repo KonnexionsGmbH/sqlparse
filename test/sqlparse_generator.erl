@@ -881,7 +881,7 @@ create_code_layer(_Version) ->
 %%
 %% ==> join                                == join = ... outer_join ...
 %%
-%% query_spec ::= 'SELECT' ( HINT )? ( 'ALL' | 'DISTINCT' )? selection ( 'INTO' target_commalist ( 'IN' NAME )? )? table_exp
+%% query_spec ::= 'SELECT' ( HINT )? ( 'ALL' | 'DISTINCT' )? selection ( 'INTO' target_commalist )? table_exp
 %%
 %% ==> fun_arg                             == fun_arg = ... subquery ...
 %% ==> query_exp                           == query_exp = ... query_term ...
@@ -3952,15 +3952,13 @@ create_code(query_exp = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% query_spec ::= 'SELECT' ( HINT )? ( 'ALL' | 'DISTINCT' )? selection ( 'INTO' target_commalist ( 'IN' NAME )? )? table_exp
+%% query_spec ::= 'SELECT' ( HINT )? ( 'ALL' | 'DISTINCT' )? selection ( 'INTO' target_commalist )? table_exp
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(query_spec = Rule) ->
     ?CREATE_CODE_START,
     [{hint, Hint}] = ets:lookup(?CODE_TEMPLATES, hint),
     Hint_Length = length(Hint),
-    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
-    Name_Length = length(Name),
     [{selection, Selection}] = ets:lookup(?CODE_TEMPLATES, selection),
     Selection_Length = length(Selection),
     [{table_exp, Table_Exp}] = ets:lookup(?CODE_TEMPLATES, table_exp),
@@ -3984,14 +3982,8 @@ create_code(query_spec = Rule) ->
                 " ",
                 lists:nth(rand:uniform(Selection_Length), Selection),
                 case rand:uniform(2) rem 2 of
-                    1 -> lists:append([" Into ",
-                        lists:nth(rand:uniform(Target_Commalist_Length), Target_Commalist),
-                        case rand:uniform(2) rem 2 of
-                            1 ->
-                                " In " ++ lists:nth(rand:uniform(Name_Length), Name);
-                            _ -> []
-                        end
-                    ]);
+                    1 -> " Into " ++
+                    lists:nth(rand:uniform(Target_Commalist_Length), Target_Commalist);
                     _ -> []
                 end,
                 " ",

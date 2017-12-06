@@ -1707,29 +1707,6 @@ fold(FType, Fun, Ctx, Lvl, {Type, A, B} = ST)
 % INTO
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(FType, Fun, Ctx, Lvl, {into, {Into, {in, In}}} = ST)
-    when is_list(Into), is_binary(In) ->
-    ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, ST]),
-    NewCtx = case FType of
-                 top_down -> Fun(ST, Ctx);
-                 bottom_up -> Ctx
-             end,
-    {IntoStr, NewCtx1} = lists:foldl(fun(I, {Acc, CtxAcc}) ->
-        {Acc ++ [case is_binary(I) of
-                     true -> binary_to_list(I);
-                     _ -> {INew, _} = fold(FType, Fun, NewCtx, Lvl + 1, I),
-                         INew
-                 end], Fun(I, CtxAcc)}
-                                     end,
-        {[], NewCtx},
-        Into),
-    NewCtx2 = case FType of
-                  top_down -> NewCtx1;
-                  bottom_up -> Fun(ST, NewCtx1)
-              end,
-    RT = {lists:append(["into ", string:join(IntoStr, ","), " in ", binary_to_list(In)]), NewCtx2},
-    ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
-    RT;
 fold(FType, Fun, Ctx, Lvl, {into, Into} = ST)
     when is_list(Into) ->
     ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, ST]),

@@ -403,3 +403,37 @@ UNION ALL
 
 "SELECT AVG(CASE WHEN e.salary > 2000 THEN e.salary
                  ELSE 2000 END) Average_Salary FROM employees e;".
+
+% test if redundant round brackets disturb ------------------------------------
+
+% ===> from_column -> '(' join_clause ')' : ['$2'].
+
+"Select * From (schema_1.table_1\"@dblink_1\" Inner         Join schema_2.table_2\"@dblink_2\" On column_1 = column_2)".
+"Select * From (schema_1.table_1\"@dblink_1\" Natural Inner Join schema_2.table_2\"@dblink_2\")".
+
+"Select * From (schema_1.table_1\"@dblink_1\"         Full Join schema_2.table_2\"@dblink_2\" Partition By column_1 On column_1 = column_2)".
+"Select * From (schema_1.table_1\"@dblink_1\" Natural Full Join schema_2.table_2\"@dblink_2\"                       On column_1 = column_2)".
+
+% ===> from_column ->     join_clause     : ['$1'].
+
+"Select * From schema_1.table_1\"@dblink_1\" Inner         Join schema_2.table_2\"@dblink_2\" On column_1 = column_2".
+"Select * From schema_1.table_1\"@dblink_1\" Natural Inner Join schema_2.table_2\"@dblink_2\"".
+
+"Select * From schema_1.table_1\"@dblink_1\"         Full Join schema_2.table_2\"@dblink_2\" Partition By column_1 On column_1 = column_2".
+"Select * From schema_1.table_1\"@dblink_1\" Natural Full Join schema_2.table_2\"@dblink_2\"                       On column_1 = column_2".
+
+% ===> query_partition_clause -> PARTITION BY     scalar_exp_commalist     : {partition_by, '$3'} .
+
+"Select * From table_1 Partition By 1, 2, 3, 4, 5 Natural Full Join table_2".
+
+% ===> query_partition_clause -> PARTITION BY '(' scalar_exp_commalist ')' : {partition_by, '$4'}.
+
+"Select * From table_1 Partition By (1, 2, 3, 4, 5) Natural Full Join table_2".
+
+% ===> query_term ->     query_spec    : '$1'.
+
+"Select * From Select * From dual Where column_1 = column_2".
+
+% ===> query_term -> '(' query_exp ')' : '$2'.
+
+"Select * From (Select * From dual Where column_1 = column_2)".

@@ -1093,8 +1093,6 @@ create_code(all_or_any_predicate = Rule) ->
     store_code(Rule, Code, ?MAX_BASIC, false),
     store_code(predicate, Code, ?MAX_BASIC, false),
     store_code(search_condition, Code, ?MAX_BASIC, false),
-%% wwe: currently not supported
-%%    store_code(search_condition, [lists:append(["(", C, ")"]) || C <- Code], ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1330,8 +1328,6 @@ create_code(between_predicate = Rule) ->
     store_code(Rule, Code, ?MAX_BASIC, false),
     store_code(predicate, Code, ?MAX_BASIC, false),
     store_code(search_condition, Code, ?MAX_BASIC, false),
-%% wwe: currently not supported
-%%    store_code(search_condition, [lists:append(["(", C, ")"]) || C <- Code], ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1856,8 +1852,6 @@ create_code(comparison_predicate = Rule) ->
     store_code(Rule, Code, ?MAX_BASIC, false),
     store_code(predicate, Code, ?MAX_BASIC, false),
     store_code(search_condition, Code, ?MAX_BASIC, false),
-%% wwe: currently not supported
-%%    store_code(search_condition, [lists:append(["(", C, ")"]) || C <- Code], ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2404,8 +2398,6 @@ create_code(existence_test = Rule) ->
     store_code(Rule, Code, ?MAX_BASIC, false),
     store_code(predicate, Code, ?MAX_BASIC, false),
     store_code(search_condition, Code, ?MAX_BASIC, false),
-%% wwe: currently not supported
-%%    store_code(search_condition, [lists:append(["(", C, ")"]) || C <- Code], ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3049,8 +3041,6 @@ create_code(in_predicate = Rule) ->
     store_code(Rule, Code, ?MAX_BASIC, false),
     store_code(predicate, Code, ?MAX_BASIC, false),
     store_code(search_condition, Code, ?MAX_BASIC, false),
-%% wwe: currently not supported
-%%    store_code(search_condition, [lists:append(["(", C, ")"]) || C <- Code], ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3403,8 +3393,6 @@ create_code(like_predicate = Rule) ->
     store_code(Rule, Code, ?MAX_BASIC, false),
     store_code(predicate, Code, ?MAX_STATEMENT_SIMPLE, false),
     store_code(search_condition, Code, ?MAX_BASIC, false),
-%% wwe: currently not supported
-%%    store_code(search_condition, [lists:append(["(", C, ")"]) || C <- Code], ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3944,19 +3932,12 @@ create_code(query_partition_clause = Rule) ->
 
     Code =
         [
-                "Partition By " ++
-                lists:nth(rand:uniform(Scalar_Exp_Commalist_Length), Scalar_Exp_Commalist)
-%% wwe: currently not supported
-%%                "Partition By" ++
-%%                case rand:uniform(2) rem 2 of
-%%                    1 -> lists:append([
-%%                        "(",
-%%                        lists:nth(rand:uniform(Scalar_Exp_Commalist_Length), Scalar_Exp_Commalist),
-%%                        ")"
-%%                    ]);
-%%                    _ ->
-%%                        " " ++ lists:nth(rand:uniform(Scalar_Exp_Commalist_Length), Scalar_Exp_Commalist)
-%%                end
+            lists:append([
+                "Partition By",
+                "(",
+                lists:nth(rand:uniform(Scalar_Exp_Commalist_Length), Scalar_Exp_Commalist),
+                ")"
+            ])
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
     store_code(Rule, Code, ?MAX_BASIC, false),
@@ -4044,7 +4025,7 @@ create_code(query_spec = Rule) ->
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, false),
     store_code(fun_arg, Code, ?MAX_BASIC, false),
     store_code(query_exp, Code, ?MAX_STATEMENT_SIMPLE, false),
-    store_code(query_term, Code, ?MAX_STATEMENT_SIMPLE, false),
+    store_code(query_term, [lists:append(["(", C, ")"]) || C <- Code], ?MAX_STATEMENT_SIMPLE, false),
     store_code(scalar_exp, Code, ?MAX_BASIC, false),
     store_code(scalar_sub_exp, Code, ?MAX_BASIC, false),
     store_code(select_statement, Code, ?MAX_STATEMENT_COMPLEX, false),
@@ -5381,8 +5362,6 @@ create_code(test_for_null = Rule) ->
     store_code(Rule, Code, ?MAX_BASIC, false),
     store_code(predicate, Code, ?MAX_BASIC, false),
     store_code(search_condition, Code, ?MAX_BASIC, false),
-%% wwe: currently not supported
-%%    store_code(search_condition, [lists:append(["(", C, ")"]) || C <- Code], ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

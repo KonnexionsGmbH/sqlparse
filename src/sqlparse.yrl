@@ -840,7 +840,7 @@ query_exp -> query_exp MINUS     query_term : {minus,       '$1', '$3'}.
 returning -> RETURNING selection INTO selection : {returning, '$2', '$4'}.
 returning -> RETURN    selection INTO selection : {return,    '$2', '$4'}.
 
-query_term -> query_spec        : '$1'.
+query_term ->     query_spec    : '$1'.
 query_term -> '(' query_exp ')' : '$2'.
 
 query_spec -> SELECT                   selection      table_exp : {select,

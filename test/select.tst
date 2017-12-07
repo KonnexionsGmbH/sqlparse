@@ -398,3 +398,8 @@ UNION ALL
 "Select * From (:param_1 alias_1 Join :param_2 alias_2 On column_1 = column_2)".
 "Select * From (:param_1\"@link_1\" alias_1 Join :param_1\"@link_1\" alias_1 On column_1 = column_2)".
 "Select * From  :param_1\"@link_1\" alias_1 Join :param_1\"@link_1\" alias_1 On column_1 = column_2".
+
+% function argument with case example -----------------------------------------
+
+"SELECT AVG(CASE WHEN e.salary > 2000 THEN e.salary
+                 ELSE 2000 END) Average_Salary FROM employees e;".

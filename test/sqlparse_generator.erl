@@ -800,6 +800,8 @@ create_code_layer(_Version) ->
 %% case_when_exp ::= ( '(' case_when_exp ')' )
 %%                 | ( 'CASE' ( scalar_opt_as_exp )? case_when_then_list ( 'ELSE' scalar_opt_as_exp )? 'END' )
 %%
+%% ==> fun_arg                             == fun_arg = ... case_when_exp
+%%
 %% column_def_opt ::= ( 'NOT' 'NULL' ( 'UNIQUE' | 'PRIMARY' 'KEY' )? )
 %%                  | ( 'DEFAULT' ( function_ref | literal | NAME | 'NULL' | 'USER' ) )
 %%                  | ( 'CHECK' '(' search_condition ')' )
@@ -1370,6 +1372,7 @@ create_code(case_when_exp = Rule) ->
             lists:append(["(", C, ")"]) || C <- Code_1
         ],
     store_code(Rule, Code ++ Code_1, ?MAX_BASIC, false),
+    store_code(fun_arg, Code ++ Code_1, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

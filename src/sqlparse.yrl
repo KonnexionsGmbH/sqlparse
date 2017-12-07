@@ -1154,6 +1154,7 @@ fun_arg -> fun_arg    NAME               : {as, '$1', unwrap_bin('$2')}.
 fun_arg -> fun_arg AS NAME               : {as, '$1', unwrap_bin('$3')}.
 fun_arg -> fun_arg '='        fun_arg    : {'=',          '$1', '$3'}.
 fun_arg -> fun_arg COMPARISON fun_arg    : {unwrap('$2'), '$1', '$3'}.
+fun_arg -> case_when_exp                 : '$1'.
 
 literal -> STRING    : unwrap_bin('$1').
 literal -> INTNUM    : unwrap_bin('$1').

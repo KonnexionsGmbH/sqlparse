@@ -101,6 +101,7 @@
 %%    fun_arg,
 %%    fun_args,
 %%    function_ref,
+%%    function_ref_json,
 %%    function_ref_list,
 %%    funs,
 %%    grant_def,
@@ -144,6 +145,7 @@
 %%    query_partition_clause,
 %%    query_spec,
 %%    query_term,
+%%    query_term_json,
 %%    quota,
 %%    referenceExamples,
 %%    returning,
@@ -154,6 +156,7 @@
 %%    scalar_exp_commalist,
 %%    scalar_opt_as_exp,
 %%    scalar_sub_exp,
+%%    scalar_sub_exp_json,
 %%    schema,
 %%    search_condition,
 %%    schema_element,
@@ -217,7 +220,7 @@
 
 -define(LOGGING, list_to_atom(string:to_lower(os:getenv("LOGGING", "false")))).
 
--define(MAX_BASIC, list_to_integer(string:to_lower(os:getenv("MAX_BASIC", "250")))).
+-define(MAX_BASIC, list_to_integer(os:getenv("MAX_BASIC", "250"))).
 -define(MAX_SQL, ?MAX_BASIC * 16).
 -define(MAX_STATEMENT_COMPLEX, ?MAX_BASIC * 8).
 -define(MAX_STATEMENT_SIMPLE, ?MAX_BASIC * 2).

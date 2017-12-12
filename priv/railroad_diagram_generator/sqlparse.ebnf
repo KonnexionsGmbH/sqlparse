@@ -809,12 +809,14 @@ returning -> RETURN    selection INTO selection                                 
 returning ::= ( 'RETURNING' | 'RETURN' ) selection 'INTO' selection
 
 /* =============================================================================
-query_term -> query_spec                                                                        : '$1'.
-query_term -> '(' query_exp ')'                                                                 : '$2'.
+query_term ->     query_spec          : '$1'.
+query_term ->     query_spec     JSON : {'$1', jpparse(list_to_binary([unwrap('$2')])), []}.
+query_term -> '(' query_exp  ')'      : '$2'.
+query_term -> '(' query_exp  ')' JSON : {'$2', jpparse(list_to_binary([unwrap('$4')])), '('}.
 ============================================================================= */
 
-query_term ::= query_spec
-             | ( '(' query_exp ')' )
+query_term ::= (     query_spec     ( JSON )? )
+             | ( '(' query_exp  ')' ( JSON )? )
 
 /* =============================================================================
 query_spec -> SELECT                   selection      table_exp                                 : {select,
@@ -1257,18 +1259,19 @@ scalar_exp -> scalar_sub_exp                                                    
 scalar_exp ::= scalar_sub_exp ( '||' scalar_exp )?
 
 /* =============================================================================
-scalar_sub_exp -> scalar_sub_exp '+'    scalar_sub_exp                                          : {'+','$1','$3'}.
-scalar_sub_exp -> scalar_sub_exp '-'    scalar_sub_exp                                          : {'-','$1','$3'}.
-scalar_sub_exp -> scalar_sub_exp '*'    scalar_sub_exp                                          : {'*','$1','$3'}.
-scalar_sub_exp -> scalar_sub_exp '/'    scalar_sub_exp                                          : {'/','$1','$3'}.
-scalar_sub_exp -> scalar_sub_exp 'div'  scalar_sub_exp                                          : {'div','$1','$3'}.
-scalar_sub_exp -> unary_add_or_subtract scalar_sub_exp                                          : {'$1','$2'}.
-scalar_sub_exp -> NULLX                                                                         : <<"NULL">>.
-scalar_sub_exp -> atom                                                                          : '$1'.
-scalar_sub_exp -> subquery                                                                      : '$1'.
-scalar_sub_exp -> column_ref                                                                    : '$1'.
-scalar_sub_exp -> function_ref                                                                  : '$1'.
-scalar_sub_exp -> '(' scalar_sub_exp ')'                                                        : '$2'.
+scalar_sub_exp -> scalar_sub_exp '+'    scalar_sub_exp : {'+','$1','$3'}.
+scalar_sub_exp -> scalar_sub_exp '-'    scalar_sub_exp : {'-','$1','$3'}.
+scalar_sub_exp -> scalar_sub_exp '*'    scalar_sub_exp : {'*','$1','$3'}.
+scalar_sub_exp -> scalar_sub_exp '/'    scalar_sub_exp : {'/','$1','$3'}.
+scalar_sub_exp -> scalar_sub_exp 'div'  scalar_sub_exp : {'div','$1','$3'}.
+scalar_sub_exp -> unary_add_or_subtract scalar_sub_exp : {'$1','$2'}.
+scalar_sub_exp -> NULLX                                : <<"NULL">>.
+scalar_sub_exp -> atom                                 : '$1'.
+scalar_sub_exp -> subquery                             : '$1'.
+scalar_sub_exp -> column_ref                           : '$1'.
+scalar_sub_exp -> function_ref                         : '$1'.
+scalar_sub_exp -> '(' scalar_sub_exp ')'               : '$2'.
+scalar_sub_exp -> '(' scalar_sub_exp ')' JSON          : {'$2', jpparse(list_to_binary([unwrap('$4')])), '('}.
 
 unary_add_or_subtract -> '+'                                                                    : '+'.
 unary_add_or_subtract -> '-'                                                                    : '-'.
@@ -1281,7 +1284,7 @@ scalar_sub_exp ::= ( scalar_sub_exp ( '+' | '-' | '*' | '/' | 'div' ) scalar_sub
                  | subquery
                  | column_ref
                  | function_ref
-                 | ( '(' scalar_sub_exp ')' )
+                 | ( '(' scalar_sub_exp ')' JSON? )
 
 /* =============================================================================
 scalar_exp_commalist ->                          scalar_opt_as_exp                              :         ['$1'].
@@ -1309,18 +1312,20 @@ parameter_ref -> parameter INDICATOR parameter                                  
 parameter_ref ::= parameter ( ( 'INDICATOR' )? parameter )?
 
 /* =============================================================================
-function_ref -> NAME '.' NAME '.' NAME '(' fun_args ')'                                         : {'fun', list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]), make_list('$7')}.
-function_ref -> NAME '.' NAME '(' fun_args ')'                                                  : {'fun', list_to_binary([unwrap('$1'),".",unwrap('$3')]),make_list('$5')}.
-function_ref -> NAME '(' fun_args ')'                                                           : {'fun', unwrap_bin('$1'), make_list('$3')}.
-function_ref -> FUNS                                                                            : {'fun', unwrap_bin('$1'), []}.
-function_ref -> FUNS '(' fun_args ')'                                                           : {'fun', unwrap_bin('$1'), make_list('$3')}.
-function_ref -> FUNS '(' '*' ')'                                                                : {'fun', unwrap_bin('$1'), [<<"*">>]}.
-function_ref -> FUNS '(' DISTINCT column_ref ')'                                                : {'fun', unwrap_bin('$1'), [{distinct, '$4'}]}.
-function_ref -> FUNS '(' ALL      scalar_exp ')'                                                : {'fun', unwrap_bin('$1'), [{all,      '$4'}]}.
+function_ref -> NAME '.' NAME '.' NAME '(' fun_args ')' : {'fun', list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]), make_list('$7')}.
+function_ref -> NAME '.' NAME '(' fun_args ')'          : {'fun', list_to_binary([unwrap('$1'),".",unwrap('$3')]),make_list('$5')}.
+function_ref -> NAME '(' fun_args ')'                   : {'fun', unwrap_bin('$1'), make_list('$3')}.
+function_ref -> FUNS                                    : {'fun', unwrap_bin('$1'), []}.
+function_ref -> FUNS '(' fun_args ')'                   : {'fun', unwrap_bin('$1'), make_list('$3')}.
+function_ref -> FUNS '(' '*' ')'                        : {'fun', unwrap_bin('$1'), [<<"*">>]}.
+function_ref -> FUNS '(' DISTINCT column_ref ')'        : {'fun', unwrap_bin('$1'), [{distinct, '$4'}]}.
+function_ref -> FUNS '(' ALL      scalar_exp ')'        : {'fun', unwrap_bin('$1'), [{all,      '$4'}]}.
+function_ref -> function_ref JSON                       : {'$2', jpparse(list_to_binary([unwrap('$4')])), []}.
 ============================================================================= */
 
 function_ref ::= ( ( ( NAME '.' )?  NAME '.' )? NAME '(' fun_args ')' )
                | ( 'FUNS' ( '(' ( fun_args | '*' | ( 'DISTINCT' column_ref ) | ( 'ALL' scalar_exp ) ) ')' )? )
+               | (     function_ref     JSON )
 
 /* =============================================================================
 fun_args -> fun_arg                                                                             : ['$1'].

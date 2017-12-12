@@ -1167,25 +1167,24 @@ fold(FType, Fun, Ctx, Lvl, {'foreign key', ClmList, {ref, Ref}} = ST) ->
                 {[CStr | StrList], ICtx1}
             end, {[], NewCtx}, ClmList),
     ClmStr = string:join(lists:reverse(ColStrList), ", "),
-    case Ref of
-        {Table, TblClmList}
-            when is_list(TblClmList) ->
-            {TableStr, NewCtx2} = fold(FType, Fun, NewCtx1, Lvl + 1, {table, Table}),
-            {TblColStrList, NewCtx3} =
-                lists:foldl(
-                    fun(Clm, {StrList, ICtx}) ->
-                        {CStr, ICtx1} = fold(FType, Fun, ICtx, Lvl + 1, Clm),
-                        {[CStr | StrList], ICtx1}
-                    end, {[], NewCtx2}, TblClmList),
-            RefStr = lists:append([TableStr, " (", string:join(lists:reverse(TblColStrList), ", "), ")"]);
-        _ ->
-            {RefStr, NewCtx3} = fold(FType, Fun, NewCtx1, Lvl + 1, {table, Ref})
-    end,
-    NewCtx4 = case FType of
-                  top_down -> NewCtx3;
-                  bottom_up -> Fun(ST, NewCtx3)
+    {RefStr, NewCtx4} = case Ref of
+                            {Table, TblClmList} when is_list(TblClmList) ->
+                                {TableStr, NewCtx2} = fold(FType, Fun, NewCtx1, Lvl + 1, {table, Table}),
+                                {TblColStrList, NewCtx3} =
+                                    lists:foldl(
+                                        fun(Clm, {StrList, ICtx}) ->
+                                            {CStr, ICtx1} = fold(FType, Fun, ICtx, Lvl + 1, Clm),
+                                            {[CStr | StrList], ICtx1}
+                                        end, {[], NewCtx2}, TblClmList),
+                                {lists:append([TableStr, " (", string:join(lists:reverse(TblColStrList), ", "), ")"]), NewCtx3};
+                            _ ->
+                                fold(FType, Fun, NewCtx1, Lvl + 1, {table, Ref})
+                        end,
+    NewCtx5 = case FType of
+                  top_down -> NewCtx4;
+                  bottom_up -> Fun(ST, NewCtx4)
               end,
-    RT = {lists:append(["foreign key (", ClmStr, ") references ", RefStr]), NewCtx4},
+    RT = {lists:append(["foreign key (", ClmStr, ") references ", RefStr]), NewCtx5},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
 
@@ -2878,7 +2877,14 @@ fold(_FType, _Fun, Ctx, _Lvl, {Op, Columns, _} = ST)
                   lists:append([
                       string:strip(decompose_tuple(Columns), right, $.),
                       "|",
-                      string:sub_string(JPPathList, length(Target) + 1), "|"
+                      string:sub_string(JPPathList, length(Target) + 1),
+                      "|"
+                  ]);
+              empty ->
+                  lists:append([
+                      "|",
+                      JPPathList,
+                      "|"
                   ]);
               _ ->
                   Target = string:strip(binary_to_list(Columns), right, $.),
@@ -3070,6 +3076,40 @@ fold(FType, Fun, Ctx, _Lvl, {Table, {dblink, Dblink}} = ST) when is_binary(Table
     RT;
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% JSONPath anchors
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(FType, Fun, Ctx, Lvl, {Anchor, {Op, _, _} = JSON, Bracket} = ST)
+    when (Op =:= '{}' orelse Op =:= '[]' orelse Op =:= ':' orelse Op =:= '::' orelse Op =:= '#')
+    andalso (Bracket =:= [] orelse Bracket =:= '(') ->
+    ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [Lvl, ST]),
+    NewCtx = case FType of
+                 top_down -> Fun(ST, Ctx);
+                 bottom_up -> Ctx
+             end,
+    {AnchorStr, NewCtx1} = fold(FType, Fun, NewCtx, Lvl, Anchor),
+    {JSONStr, NewCtx2} = fold(FType, Fun, NewCtx1, Lvl, JSON),
+    NewCtx3 = case FType of
+                  top_down -> NewCtx2;
+                  bottom_up -> Fun(ST, NewCtx2)
+              end,
+    RT = {lists:append([
+        case Bracket of
+            '(' -> "(";
+            _ -> []
+        end,
+        AnchorStr,
+        case Bracket of
+            '(' -> ")";
+            _ -> []
+        end,
+        " ",
+        JSONStr
+    ]), NewCtx3},
+    ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
+    RT;
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % UNSUPPORTED
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -3102,4 +3142,6 @@ columns_join([Head | Tail], Separator, Result) ->
 decompose_tuple({_, _, X}) when is_tuple(X) ->
     decompose_tuple(X);
 decompose_tuple({_, _, X}) when is_binary(X) ->
-    binary_to_list(X).
+    binary_to_list(X);
+decompose_tuple({_, _, empty}) ->
+    [].

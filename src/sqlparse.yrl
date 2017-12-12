@@ -840,8 +840,10 @@ query_exp -> query_exp MINUS     query_term : {minus,       '$1', '$3'}.
 returning -> RETURNING selection INTO selection : {returning, '$2', '$4'}.
 returning -> RETURN    selection INTO selection : {return,    '$2', '$4'}.
 
-query_term ->     query_spec    : '$1'.
-query_term -> '(' query_exp ')' : '$2'.
+query_term ->     query_spec          : '$1'.
+query_term ->     query_spec     JSON : {'$1', jpparse(list_to_binary([unwrap('$2')])), []}.
+query_term -> '(' query_exp  ')'      : '$2'.
+query_term -> '(' query_exp  ')' JSON : {'$2', jpparse(list_to_binary([unwrap('$4')])), '('}.
 
 query_spec -> SELECT                   selection      table_exp : {select,
                                                                    [{fields, '$2'}] ++
@@ -1110,6 +1112,7 @@ scalar_sub_exp -> subquery                             : '$1'.
 scalar_sub_exp -> column_ref                           : '$1'.
 scalar_sub_exp -> function_ref                         : '$1'.
 scalar_sub_exp -> '(' scalar_sub_exp ')'               : '$2'.
+scalar_sub_exp -> '(' scalar_sub_exp ')' JSON          : {'$2', jpparse(list_to_binary([unwrap('$4')])), '('}.
 
 unary_add_or_subtract -> '+' : '+'.
 unary_add_or_subtract -> '-' : '-'.
@@ -1133,6 +1136,7 @@ function_ref -> FUNS '(' fun_args ')'                   : {'fun', unwrap_bin('$1
 function_ref -> FUNS '(' '*' ')'                        : {'fun', unwrap_bin('$1'), [<<"*">>]}.
 function_ref -> FUNS '(' DISTINCT column_ref ')'        : {'fun', unwrap_bin('$1'), [{distinct, '$4'}]}.
 function_ref -> FUNS '(' ALL      scalar_exp ')'        : {'fun', unwrap_bin('$1'), [{all,      '$4'}]}.
+function_ref -> function_ref JSON                       : {'$1', jpparse(list_to_binary([unwrap('$2')])), []}.
 
 fun_args -> fun_arg              : ['$1'].
 fun_args -> fun_arg ',' fun_args : ['$1' | '$3'].

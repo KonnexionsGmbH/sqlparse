@@ -640,7 +640,7 @@ create_code() ->
 %% Creating code layered.
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-create_code_layer(_Version) ->
+create_code_layer(Version) ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Level 11
@@ -658,7 +658,7 @@ create_code_layer(_Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format("~n~n================================================> create_code_layer: Level 11/~s <===================~n", [_Version])),
+    erlang:display(io:format("~n~n================================================> create_code_layer: Level 11/~s <===================~n", [Version])),
 
     create_code(fun_args),
     create_code(scalar_exp),
@@ -676,6 +676,7 @@ create_code_layer(_Version) ->
 %%
 %% function_ref ::= ( ( ( NAME '.' )?  NAME '.' )? NAME '(' fun_args ')' )
 %%                | ( 'FUNS' ( '(' ( fun_args | '*' | ( 'DISTINCT' column_ref ) | ( 'ALL' scalar_exp ) ) ')' )? )
+%%                | ( function_ref JSON )
 %%
 %% ==> fun_arg                             == fun_arg = ... function_ref ...
 %% ==> scalar_exp                          == scalar_exp = ... scalar_sub_exp ...
@@ -703,10 +704,14 @@ create_code_layer(_Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format("~n~n================================================> create_code_layer: Level 12/~s <===================~n", [_Version])),
+    erlang:display(io:format("~n~n================================================> create_code_layer: Level 12/~s <===================~n", [Version])),
 
     create_code(between_predicate),
     create_code(function_ref),
+    case Version of
+        "2" -> create_code(function_ref_json);
+        _ -> ok
+    end,
     create_code(like_predicate),
     create_code(ordering_spec),
     create_code(scalar_opt_as_exp),
@@ -745,7 +750,7 @@ create_code_layer(_Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format("~n~n================================================> create_code_layer: Level 13/~s <===================~n", [_Version])),
+    erlang:display(io:format("~n~n================================================> create_code_layer: Level 13/~s <===================~n", [Version])),
 
     create_code(assignment),
     create_code(case_when_then),
@@ -784,7 +789,7 @@ create_code_layer(_Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format("~n~n================================================> create_code_layer: Level 14/~s <===================~n", [_Version])),
+    erlang:display(io:format("~n~n================================================> create_code_layer: Level 14/~s <===================~n", [Version])),
 
     create_code(assignment_commalist),
     create_code(case_when_then_list),
@@ -816,7 +821,7 @@ create_code_layer(_Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format("~n~n================================================> create_code_layer: Level 15/~s <===================~n", [_Version])),
+    erlang:display(io:format("~n~n================================================> create_code_layer: Level 15/~s <===================~n", [Version])),
 
     create_code(case_when_exp),
     create_code(column_def_opt),
@@ -857,7 +862,7 @@ create_code_layer(_Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format("~n~n================================================> create_code_layer: Level 16/~s <===================~n", [_Version])),
+    erlang:display(io:format("~n~n================================================> create_code_layer: Level 16/~s <===================~n", [Version])),
 
     create_code(column_def),
     create_code(delete_statement),
@@ -875,7 +880,7 @@ create_code_layer(_Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format("~n~n================================================> create_code_layer: Level 17/~s <===================~n", [_Version])),
+    erlang:display(io:format("~n~n================================================> create_code_layer: Level 17/~s <===================~n", [Version])),
 
     create_code(select_field_commalist),
 
@@ -890,7 +895,7 @@ create_code_layer(_Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format("~n~n================================================> create_code_layer: Level 18/~s <===================~n", [_Version])),
+    erlang:display(io:format("~n~n================================================> create_code_layer: Level 18/~s <===================~n", [Version])),
 
     create_code(join_on_or_using_clause),
     create_code(table_exp),
@@ -920,7 +925,7 @@ create_code_layer(_Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format("~n~n================================================> create_code_layer: Level 19/~s <===================~n", [_Version])),
+    erlang:display(io:format("~n~n================================================> create_code_layer: Level 19/~s <===================~n", [Version])),
 
     create_code(inner_cross_join),
     create_code(outer_join),
@@ -939,8 +944,8 @@ create_code_layer(_Version) ->
 %% ==> from_column                         == from_column = ... join_clause ...
 %% ==> from_column                         == from_column = ... '(' join_clause ')' ...
 %%
-%% query_term ::= query_spec
-%%              | ( '(' query_exp ')' )
+%% query_term ::= (     query_spec     ( JSON )? )
+%%              | ( '(' query_exp  ')' ( JSON )? )
 %%
 %% ==> fun_arg                             == fun_arg = ... subquery ...
 %% ==> query_exp                           == query_exp = ... query_term ...
@@ -957,11 +962,15 @@ create_code_layer(_Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format("~n~n================================================> create_code_layer: Level 20/~s <===================~n", [_Version])),
+    erlang:display(io:format("~n~n================================================> create_code_layer: Level 20/~s <===================~n", [Version])),
 
     create_code(insert_statement),
     create_code(join_clause),
     create_code(query_term),
+    case Version of
+        "2" -> create_code(query_term_json);
+        _ -> ok
+    end,
     create_code(view_def),
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -979,7 +988,7 @@ create_code_layer(_Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format("~n~n================================================> create_code_layer: Level 21/~s <===================~n", [_Version])),
+    erlang:display(io:format("~n~n================================================> create_code_layer: Level 21/~s <===================~n", [Version])),
 
     create_code(query_exp),
 
@@ -1030,6 +1039,7 @@ create_code_layer(_Version) ->
 %%                  | column_ref
 %%                  | function_ref
 %%                  | ( '(' scalar_sub_exp ')' )
+%%                  | ( '(' scalar_sub_exp ')' JSON? )    
 %%
 %% table_ref ::= table_dblink
 %%             | ( query_term ( NAME )? )
@@ -1038,7 +1048,7 @@ create_code_layer(_Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format("~n~n================================================> create_code_layer: Level 22/~s <===================~n", [_Version])),
+    erlang:display(io:format("~n~n================================================> create_code_layer: Level 22/~s <===================~n", [Version])),
 
     create_code(all_or_any_predicate),
     create_code(cursor_def),
@@ -1047,6 +1057,10 @@ create_code_layer(_Version) ->
     create_code(in_predicate),
     create_code(join_ref),
     create_code(scalar_sub_exp),
+    case Version of
+        "2" -> create_code(scalar_sub_exp_json);
+        _ -> ok
+    end,
     create_code(table_ref),
 
     ok.
@@ -1897,7 +1911,7 @@ create_code(create_index_def = Rule) ->
                         "( ",
                         case rand:uniform(2) rem 2 of
                             1 -> lists:append([
-                                lists:nth(rand:uniform(Name_Length), Name),
+                        lists:nth(rand:uniform(Name_Length), Name),
                                 " ",
                                 lists:nth(rand:uniform(Json_Length), Json)
                             ]);
@@ -1906,7 +1920,7 @@ create_code(create_index_def = Rule) ->
                         ", ",
                         case rand:uniform(2) rem 2 of
                             1 -> lists:append([
-                                lists:nth(rand:uniform(Name_Length), Name),
+                        lists:nth(rand:uniform(Name_Length), Name),
                                 " ",
                                 lists:nth(rand:uniform(Json_Length), Json)
                             ]);
@@ -1915,7 +1929,7 @@ create_code(create_index_def = Rule) ->
                         ", ",
                         case rand:uniform(2) rem 2 of
                             1 -> lists:append([
-                                lists:nth(rand:uniform(Name_Length), Name),
+                        lists:nth(rand:uniform(Name_Length), Name),
                                 " ",
                                 lists:nth(rand:uniform(Json_Length), Json)
                             ]);
@@ -1927,7 +1941,7 @@ create_code(create_index_def = Rule) ->
                         "( ",
                         case rand:uniform(2) rem 2 of
                             1 -> lists:append([
-                                lists:nth(rand:uniform(Name_Length), Name),
+                        lists:nth(rand:uniform(Name_Length), Name),
                                 " ",
                                 lists:nth(rand:uniform(Json_Length), Json)
                             ]);
@@ -1936,7 +1950,7 @@ create_code(create_index_def = Rule) ->
                         ", ",
                         case rand:uniform(2) rem 2 of
                             1 -> lists:append([
-                                lists:nth(rand:uniform(Name_Length), Name),
+                        lists:nth(rand:uniform(Name_Length), Name),
                                 " ",
                                 lists:nth(rand:uniform(Json_Length), Json)
                             ]);
@@ -1948,7 +1962,7 @@ create_code(create_index_def = Rule) ->
                         "( ",
                         case rand:uniform(2) rem 2 of
                             1 -> lists:append([
-                                lists:nth(rand:uniform(Name_Length), Name),
+                        lists:nth(rand:uniform(Name_Length), Name),
                                 " ",
                                 lists:nth(rand:uniform(Json_Length), Json)
                             ]);
@@ -2566,6 +2580,7 @@ create_code(fun_args = Rule) ->
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% function_ref ::= ( ( ( NAME '.' )?  NAME '.' )? NAME '(' fun_args ')' )
 %%                | ( 'FUNS' ( '(' ( fun_args | '*' | ( 'DISTINCT' column_ref ) | ( 'ALL' scalar_exp ) ) ')' )? )
+%%                | ( function_ref JSON )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(function_ref = Rule) ->
@@ -2632,6 +2647,29 @@ create_code(function_ref = Rule) ->
         ],
     store_code(Rule, Code, ?MAX_BASIC, false),
     store_code(fun_arg, Code, ?MAX_BASIC, false),
+    store_code(scalar_exp, Code, ?MAX_BASIC, false),
+    store_code(scalar_sub_exp, Code, ?MAX_BASIC, false),
+    ?CREATE_CODE_END;
+
+create_code(function_ref_json = Rule) ->
+    ?CREATE_CODE_START,
+    [{function_ref, Function_Ref}] = ets:lookup(?CODE_TEMPLATES, function_ref),
+    Function_Ref_Length = length(Function_Ref),
+    [{json, Json}] = ets:lookup(?CODE_TEMPLATES, json),
+    Json_Length = length(Json),
+
+    Code =
+        [
+            lists:append([
+                lists:nth(rand:uniform(Function_Ref_Length), Function_Ref),
+                " ",
+                lists:nth(rand:uniform(Json_Length), Json)
+            ])
+            || _ <- lists:seq(1, ?MAX_BASIC * 2)
+        ],
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    store_code(fun_arg, Code, ?MAX_BASIC, false),
+    store_code(function_ref, Code, ?MAX_BASIC, false),
     store_code(scalar_exp, Code, ?MAX_BASIC, false),
     store_code(scalar_sub_exp, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
@@ -4033,8 +4071,8 @@ create_code(query_spec = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% query_term ::= query_spec
-%%              | ( '(' query_exp ')' )
+%% query_term ::= (     query_spec     ( JSON )? )
+%%              | ( '(' query_exp  ')' ( JSON )? )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(query_term = Rule) ->
@@ -4054,6 +4092,29 @@ create_code(query_term = Rule) ->
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, false),
     store_code(fun_arg, Code, ?MAX_BASIC, false),
     store_code(query_exp, Code, ?MAX_STATEMENT_SIMPLE, false),
+    store_code(scalar_exp, Code, ?MAX_BASIC, false),
+    store_code(scalar_sub_exp, Code, ?MAX_BASIC, false),
+    store_code(select_statement, Code, ?MAX_STATEMENT_COMPLEX, false),
+    store_code(subquery, Code, ?MAX_STATEMENT_COMPLEX, false),
+    ?CREATE_CODE_END;
+
+create_code(query_term_json = Rule) ->
+    ?CREATE_CODE_START,
+    [{json, Json}] = ets:lookup(?CODE_TEMPLATES, json),
+    Json_Length = length(Json),
+    [{query_term, Query_Term}] = ets:lookup(?CODE_TEMPLATES, query_term),
+    Query_Term_Length = length(Query_Term),
+
+    Code =
+        [
+                lists:nth(rand:uniform(Query_Term_Length), Query_Term) ++
+                lists:nth(rand:uniform(Json_Length), Json)
+            || _ <- lists:seq(1, ?MAX_BASIC * 2)
+        ],
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    store_code(fun_arg, Code, ?MAX_BASIC, false),
+    store_code(query_exp, Code, ?MAX_STATEMENT_SIMPLE, false),
+    store_code(query_term, Code, ?MAX_STATEMENT_SIMPLE, false),
     store_code(scalar_exp, Code, ?MAX_BASIC, false),
     store_code(scalar_sub_exp, Code, ?MAX_BASIC, false),
     store_code(select_statement, Code, ?MAX_STATEMENT_COMPLEX, false),
@@ -4398,6 +4459,7 @@ create_code(scalar_opt_as_exp = Rule) ->
 %%                  | column_ref
 %%                  | function_ref
 %%                  | ( '(' scalar_sub_exp ')' )
+%%                  | ( '(' scalar_sub_exp ')' JSON? )    
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(scalar_sub_exp = Rule) ->
@@ -4446,6 +4508,28 @@ create_code(scalar_sub_exp = Rule) ->
         ]),
     store_code(Rule, Code, ?MAX_BASIC, false),
     store_code(scalar_exp, Code, ?MAX_BASIC, false),
+    ?CREATE_CODE_END;
+
+create_code(scalar_sub_exp_json = Rule) ->
+    ?CREATE_CODE_START,
+    [{json, Json}] = ets:lookup(?CODE_TEMPLATES, json),
+    Json_Length = length(Json),
+    [{scalar_sub_exp, Scalar_Sub_eExp}] = ets:lookup(?CODE_TEMPLATES, scalar_sub_exp),
+    Scalar_Sub_eExp_Length = length(Scalar_Sub_eExp),
+
+    Code =
+        [
+            lists:append([
+                " (",
+                lists:nth(rand:uniform(Scalar_Sub_eExp_Length), Scalar_Sub_eExp),
+                ")",
+                lists:nth(rand:uniform(Json_Length), Json)
+            ])
+            || _ <- lists:seq(1, ?MAX_BASIC * 2)
+        ],
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    store_code(scalar_exp, Code, ?MAX_BASIC, false),
+    store_code(scalar_sub_exp, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

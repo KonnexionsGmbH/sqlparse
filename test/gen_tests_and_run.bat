@@ -3,7 +3,7 @@ REM ----------------------------------------------------------------------------
 REM
 REM gen_tests_and_run.bat: SQL - generate and run test data.
 REM
-REM Copyright (c) 2012-17 K2 Informatics GmbH.  All Rights Reserved.
+REM Copyright (c) 2012-18 K2 Informatics GmbH.  All Rights Reserved.
 REM
 REM This file is provided to you under the Apache License,
 REM Version 2.0 (the "License"); you may not use this file
@@ -21,9 +21,10 @@ REM under the License.
 REM
 REM ----------------------------------------------------------------------------
 
+SETLOCAL enableDelayedExpansion
+
 > gen_tests_and_run.log (
 
-    SETLOCAL enableDelayedExpansion
     ECHO !time! Start Test Data Generation and Run
 
     REM Setting sqlparse options ...............................................
@@ -52,6 +53,9 @@ REM ----------------------------------------------------------------------------
 
     ECHO !time! Start Dialyzer
     CALL rebar3 dialyzer
+
+    ECHO !time! geas (Guess Erlang Application Scattering)
+    CALL rebar3 as test geas
 
     ECHO !time! End   Test Data Generation and Run
 

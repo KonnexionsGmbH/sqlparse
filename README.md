@@ -21,8 +21,8 @@ SELECT column_a|:f()|, column_b
 
 ```erlang
 1> {ok, {ParseTree, Tokens}} = sqlparse:parsetree_with_tokens("SELECT column_a|:f()|, column_b FROM table_a WHERE column_b = 'test' ORDER BY 2 DESC, 1;").
-{ok,{[{{select,[{fields,[{jp,<<"column_a">>,
-                             {':',{'fun',<<"f">>,[]},empty}},
+{ok,{[{{select,[{fields,[{':',{'fun',<<"f">>,[]},
+                              <<"column_a">>},
                          <<"column_b">>]},
                 {from,[<<"table_a">>]},
                 {where,{'=',<<"column_b">>,<<"'test'">>}},
@@ -40,7 +40,7 @@ SELECT column_a|:f()|, column_b
       {'NAME',7,"table_a"},
       {'WHERE',1},
       {'NAME',8,"column_b"},
-      {'COMPARISON',1,'='},
+      {'=',1},
       {'STRING',1,"'test'"},
       {'ORDER',1},
       {'BY',1},
@@ -55,8 +55,7 @@ SELECT column_a|:f()|, column_b
 
 ```erlang
 2> ParseTree.
-[{{select,[{fields,[{jp,<<"column_a">>,
-                        {':',{'fun',<<"f">>,[]},empty}},
+[{{select,[{fields,[{':',{'fun',<<"f">>,[]},<<"column_a">>},
                     <<"column_b">>]},
            {from,[<<"table_a">>]},
            {where,{'=',<<"column_b">>,<<"'test'">>}},
@@ -80,7 +79,7 @@ SELECT column_a|:f()|, column_b
  {'NAME',7,"table_a"},
  {'WHERE',1},
  {'NAME',8,"column_b"},
- {'COMPARISON',1,'='},
+ {'=',1},
  {'STRING',1,"'test'"},
  {'ORDER',1},
  {'BY',1},

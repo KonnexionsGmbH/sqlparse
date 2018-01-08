@@ -3,7 +3,7 @@ REM ----------------------------------------------------------------------------
 REM
 REM gen_tests.bat: SQL - generating test data.
 REM
-REM Copyright (c) 2012-17 K2 Informatics GmbH.  All Rights Reserved.
+REM Copyright (c) 2012-18 K2 Informatics GmbH.  All Rights Reserved.
 REM
 REM This file is provided to you under the Apache License,
 REM Version 2.0 (the "License"); you may not use this file

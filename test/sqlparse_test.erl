@@ -2,7 +2,7 @@
 %%
 %% sqlparse_test.erl: SQL - test driver.
 %%
-%% Copyright (c) 2012-17 K2 Informatics GmbH.  All Rights Reserved.
+%% Copyright (c) 2012-18 K2 Informatics GmbH.  All Rights Reserved.
 %%
 %% This file is provided to you under the Apache License,
 %% Version 2.0 (the "License"); you may not use this file
@@ -22,19 +22,19 @@
 
 -module(sqlparse_test).
 
--define(ENV_VAR_FILE_TYPE, ".tst").
--define(ENV_VAR_FILE_WILDCARD, "SOURCEFILES").
--define(ENV_VAR_LOGGING_LEVEL, "LOG").
--define(PARSER_MODULE, sqlparse).
--define(TIMEOUT, 60).
--define(WHITESPACE, " \n\r").
-
 -export([common_test_source/1]).
 -export([eunit_test_source/3]).
 
 -define(NODEBUG, true).
 -include_lib("common_test/include/ct.hrl").
 -include_lib("eunit/include/eunit.hrl").
+
+-define(ENV_VAR_FILE_TYPE, ".tst").
+-define(ENV_VAR_FILE_WILDCARD, "SOURCEFILES").
+-define(ENV_VAR_LOGGING_LEVEL, "LOG").
+-define(PARSER_MODULE, sqlparse).
+-define(TIMEOUT, 60).
+-define(WHITESPACE, " \n\r").
 
 %%------------------------------------------------------------------------------
 %% Common Test Driver.
@@ -229,13 +229,13 @@ eunit_test_source(_TestGroup, Source, Logs) ->
             %% -----------------------------------------------------------------
             NSource_TD = case ?PARSER_MODULE:pt_to_string(ParseTree) of
                              {error, Error_TD} ->
-                                 ?D_("~n[TD] Error ParseTree -> NewSource : ParseTree~n > ~p", [ParseTree]),
-                                 ?D_("~n[TD] Error ParseTree -> NewSource : Error~n > ~p", [Error_TD]),
+                                 io:format(user, "~n[TD] Error ParseTree -> NewSource : ParseTree~n > ~p", [ParseTree]),
+                                 io:format(user, "~n[TD] Error ParseTree -> NewSource : Error~n > ~p", [Error_TD]),
                                  throw({error, Error_TD});
                              NS_TD ->
                                  NS_TD
                          end,
-            ?debugFmt(?MODULE_STRING ++ ":eunit_test_source ===>~NewSource = ~tp~n", [NSource_TD]),
+            ?debugFmt(?MODULE_STRING ++ ":eunit_test_source ===>~nNewSource = ~tp~n", [binary_to_list(NSource_TD)]),
             ?D3("~n[TD] NewSource~n~s", [NSource_TD]),
             %% -----------------------------------------------------------------
             %% 3. Source (=NSource_TD) ==> ParseTree (=NPT_TD)
@@ -246,18 +246,18 @@ eunit_test_source(_TestGroup, Source, Logs) ->
                       {ok, {NPT_TD, NT_TD}}
                   catch
                       ExceptionTD:ReasonTD ->
-                          ?D_("~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Source   ~n > ~p", [Source]),
-                          ?D_("~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : TestGroup~n > ~p", [_TestGroup]),
-                          ?D_("~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : NewSource~n > ~p", [NSource_TD]),
-                          ?D_("~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Exception~n > ~p", [ExceptionTD]),
-                          ?D_("~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Reason   ~n > ~p", [ReasonTD]),
+                          io:format(user, "~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Source   ~n > ~p", [Source]),
+                          io:format(user, "~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : TestGroup~n > ~p", [_TestGroup]),
+                          io:format(user, "~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : NewSource~n > ~p", [NSource_TD]),
+                          io:format(user, "~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Exception~n > ~p", [ExceptionTD]),
+                          io:format(user, "~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Reason   ~n > ~p", [ReasonTD]),
                           throw({error, "[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens"})
                   end,
             if ParseTree /= NPTree_TD ->
-                ?D_("~n[TD] Error ParseTree = NPTree : Source      ~n > ~p", [Source]),
-                ?D_("~n[TD] Error ParseTree = NPTree : NewParseTree~n > ~p", [NPTree_TD]),
-                ?D_("~n[TD] Error ParseTree = NPTree : Tokens      ~n > ~p", [_Tokens]),
-                ?D_("~n[TD] Error ParseTree = NPTree : NewTokens   ~n > ~p", [_NToks_TD]);
+                io:format(user, "~n[TD] Error ParseTree = NPTree : Source      ~n > ~p", [Source]),
+                io:format(user, "~n[TD] Error ParseTree = NPTree : NewParseTree~n > ~p", [NPTree_TD]),
+                io:format(user, "~n[TD] Error ParseTree = NPTree : Tokens      ~n > ~p", [_Tokens]),
+                io:format(user, "~n[TD] Error ParseTree = NPTree : NewTokens   ~n > ~p", [_NToks_TD]);
                 true -> ok
             end,
             ?assertEqual(ParseTree, NPTree_TD),
@@ -266,9 +266,9 @@ eunit_test_source(_TestGroup, Source, Logs) ->
             case StringNSource_TDMultipleSpace of
                 0 -> ok;
                 _ ->
-                    ?D_("~n[TD] Error redundant whitespace(s) : Source         ~n > ~p", [Source]),
-                    ?D_("~n[TD] Error redundant whitespace(s) : NewSource      ~n > ~p", [StringNSource_TD]),
-                    ?D_("~n[TD] Error redundant whitespace(s) : 1. Redundant WS~n > ~p", [StringNSource_TDMultipleSpace]),
+                    io:format(user, "~n[TD] Error redundant whitespace(s) : Source         ~n > ~p", [Source]),
+                    io:format(user, "~n[TD] Error redundant whitespace(s) : NewSource      ~n > ~p", [StringNSource_TD]),
+                    io:format(user, "~n[TD] Error redundant whitespace(s) : 1. Redundant WS~n > ~p", [StringNSource_TDMultipleSpace]),
                     throw({error, "[TD] Error redundant whitespace(s)"})
             end,
             ?D4("~n[TD] ParseTree~n~p", [ParseTree]),
@@ -279,7 +279,7 @@ eunit_test_source(_TestGroup, Source, Logs) ->
             %% -----------------------------------------------------------------
             NSource_BU = case ?PARSER_MODULE:pt_to_string_bu(ParseTree) of
                              {error, Error_BU} ->
-                                 ?D_("~n[BU] Error ParseTree -> NewSource : ParseTree~n > ~p", [ParseTree]),
+                                 io:format(user, "~n[BU] Error ParseTree -> NewSource : ParseTree~n > ~p", [ParseTree]),
                                  throw({error, "[BU] Error ParseTree -> NewSource : " ++ Error_BU});
                              NS_BU ->
                                  NS_BU
@@ -294,18 +294,18 @@ eunit_test_source(_TestGroup, Source, Logs) ->
                       {ok, {NPT_BU, NT_BU}}
                   catch
                       ExceptionBU:ReasonBU ->
-                          ?D_("~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Source   ~n > ~p", [Source]),
-                          ?D_("~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : TestGroup~n > ~p", [_TestGroup]),
-                          ?D_("~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : NewSource~n > ~p", [NSource_BU]),
-                          ?D_("~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Exception~n > ~p", [ExceptionBU]),
-                          ?D_("~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Reason   ~n > ~p", [ReasonBU]),
+                          io:format(user, "~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Source   ~n > ~p", [Source]),
+                          io:format(user, "~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : TestGroup~n > ~p", [_TestGroup]),
+                          io:format(user, "~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : NewSource~n > ~p", [NSource_BU]),
+                          io:format(user, "~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Exception~n > ~p", [ExceptionBU]),
+                          io:format(user, "~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Reason   ~n > ~p", [ReasonBU]),
                           throw({error, "[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens"})
                   end,
             if ParseTree /= NPTree_BU ->
-                ?D_("~n[BU] Error ParseTree = NPTree : Source      ~n > ~p", [Source]),
-                ?D_("~n[BU] Error ParseTree = NPTree : NewParseTree~n > ~p", [NPTree_BU]),
-                ?D_("~n[BU] Error ParseTree = NPTree : Tokens      ~n > ~p", [_Tokens]),
-                ?D_("~n[BU] Error ParseTree = NPTree : NewTokens   ~n > ~p", [_NToks_BU]);
+                io:format(user, "~n[BU] Error ParseTree = NPTree : Source      ~n > ~p", [Source]),
+                io:format(user, "~n[BU] Error ParseTree = NPTree : NewParseTree~n > ~p", [NPTree_BU]),
+                io:format(user, "~n[BU] Error ParseTree = NPTree : Tokens      ~n > ~p", [_Tokens]),
+                io:format(user, "~n[BU] Error ParseTree = NPTree : NewTokens   ~n > ~p", [_NToks_BU]);
                 true -> ok
             end,
             ?assertEqual(ParseTree, NPTree_BU),
@@ -314,20 +314,20 @@ eunit_test_source(_TestGroup, Source, Logs) ->
             case StringNSource_BUMultipleSpace of
                 0 -> ok;
                 _ ->
-                    ?D_("~n[BU] Error redundant whitespace(s) : Source         ~n > ~p", [Source]),
-                    ?D_("~n[BU] Error redundant whitespace(s) : NewSource      ~n > ~p", [StringNSource_BU]),
-                    ?D_("~n[BU] Error redundant whitespace(s) : 1. Redundant WS~n > ~p", [StringNSource_BUMultipleSpace]),
+                    io:format(user, "~n[BU] Error redundant whitespace(s) : Source         ~n > ~p", [Source]),
+                    io:format(user, "~n[BU] Error redundant whitespace(s) : NewSource      ~n > ~p", [StringNSource_BU]),
+                    io:format(user, "~n[BU] Error redundant whitespace(s) : 1. Redundant WS~n > ~p", [StringNSource_BUMultipleSpace]),
                     throw({error, "[BU] Error redundant whitespace(s)"})
             end,
             ?D4("~n[BU] ParseTree~n~p", [ParseTree]);
         {lex_error, _Error} ->
-            ?D_("~nFailed lex_error : Source~n > ~p", [Source]),
-            ?D_("~nFailed lex_error : Error ~n > ~p", [_Error]),
+            io:format(user, "~nFailed lex_error : Source~n > ~p", [Source]),
+            io:format(user, "~nFailed lex_error : Error ~n > ~p", [_Error]),
             throw({error, "Failed lex_error"});
         {parse_error, {_Error, _Tokens}} ->
-            ?D_("~nFailed parse_error : Source~n > ~p", [Source]),
-            ?D_("~nFailed parse_error : Tokens~n > ~p", [_Tokens]),
-            ?D_("~nFailed parse_error : Error ~n > ~p", [_Error]),
+            io:format(user, "~nFailed parse_error : Source~n > ~p", [Source]),
+            io:format(user, "~nFailed parse_error : Tokens~n > ~p", [_Tokens]),
+            io:format(user, "~nFailed parse_error : Error ~n > ~p", [_Error]),
             throw({error, "Failed parse_error"})
     end.
 

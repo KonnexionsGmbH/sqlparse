@@ -7,7 +7,7 @@ sleep .1
 #
 # gen_tests_and_run.sh: SQL - generate and run test data.
 #
-# Copyright (c) 2012-17 K2 Informatics GmbH.  All Rights Reserved.
+# Copyright (c) 2012-18 K2 Informatics GmbH.  All Rights Reserved.
 #
 # This file is provided to you under the Apache License,
 # Version 2.0 (the "License"); you may not use this file
@@ -57,6 +57,9 @@ rebar3 cover
 
 echo "$(timestamp) Start Dialyzer"
 rebar3 dialyzer
+
+echo "$(timestamp) Start geas (Guess Erlang Application Scattering)"
+rebar3 as test geas
 
 echo "$(timestamp) End   Test Data Generation and Run"
 

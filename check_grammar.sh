@@ -7,7 +7,7 @@ sleep .1
 #
 # check_grammar.sh: SQL - checking grammar definition with BNFC.
 #
-# Copyright (c) 2012-17 K2 Informatics GmbH.  All Rights Reserved.
+# Copyright (c) 2012-18 K2 Informatics GmbH.  All Rights Reserved.
 #
 # This file is provided to you under the Apache License,
 # Version 2.0 (the "License"); you may not use this file

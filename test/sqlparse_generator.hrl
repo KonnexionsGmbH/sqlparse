@@ -20,6 +20,9 @@
 %%
 %% -----------------------------------------------------------------------------
 
+-ifndef(SQLPARSE_GENERATOR_HRL).
+-define(SQLPARSE_GENERATOR_HRL, true).
+
 -define(ALIVE_COUNTER, 500).
 
 -define(ALL_CLAUSE_PERFORMANCE, [
@@ -565,3 +568,5 @@
 ]).
 
 -define(TIMETRAP_MINUTES, 15).
+
+-endif.

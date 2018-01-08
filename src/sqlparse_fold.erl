@@ -1905,7 +1905,7 @@ fold(FType, Fun, Ctx, Lvl, {like, Var, Like, OptEsc} = ST) ->
 % LIMITED
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(FType, Fun, Ctx, _Lvl, {limited, Q, T} = ST)
+fold(FType, Fun, Ctx, _Lvl, {limited, Q, U, T} = ST)
     when is_binary(Q), is_binary(T) ->
     ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [_Lvl, ST]),
     NewCtx = case FType of
@@ -1913,12 +1913,16 @@ fold(FType, Fun, Ctx, _Lvl, {limited, Q, T} = ST)
                  bottom_up -> Ctx
              end,
     NewCtx1 = Fun(Q, NewCtx),
-    NewCtx2 = Fun(T, NewCtx1),
-    NewCtx3 = case FType of
-                  top_down -> NewCtx2;
-                  bottom_up -> Fun(ST, NewCtx2)
+    NewCtx2 = Fun(U, NewCtx1),
+    NewCtx3 = Fun(T, NewCtx2),
+    NewCtx4 = case FType of
+                  top_down -> NewCtx3;
+                  bottom_up -> Fun(ST, NewCtx3)
               end,
-    RT = {lists:append(["quota ", binary_to_list(Q), " on ", binary_to_list(T)]), NewCtx3},
+    RT = {lists:append(["quota ", binary_to_list(Q), case U =/= <<"">> of
+                                                         true -> " " ++ binary_to_list(U);
+                                                         _ -> []
+                                                     end, " on ", binary_to_list(T)]), NewCtx4},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
 
@@ -2423,7 +2427,8 @@ fold(FType, Fun, Ctx, _Lvl, {Role, Roles} = ST)
     ]), NewCtx1},
     ?debugFmt(?MODULE_STRING ++ ":fold ===> ~n RT: ~p~n", [RT]),
     RT;
-fold(FType, Fun, Ctx, _Lvl, 'default role all' = ST) ->
+fold(FType, Fun, Ctx, _Lvl, ST)
+    when ST == 'default role all'; ST == 'default role none' ->
     ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p~n ST: ~p~n", [_Lvl, ST]),
     NewCtx = case FType of
                  top_down -> Fun(ST, Ctx);

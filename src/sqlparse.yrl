@@ -578,8 +578,8 @@ quota_list -> quota            : ['$1'].
 quota_list -> quota quota_list : ['$1'] ++ '$2'.
 
 quota -> QUOTA UNLIMITED   ON NAME : {'unlimited on', unwrap_bin('$4')}.
-quota -> QUOTA INTNUM      ON NAME : {limited, unwrap_bin('$2'), unwrap_bin('$4')}.
-quota -> QUOTA INTNUM NAME ON NAME : {limited, list_to_binary([unwrap('$2'),unwrap('$3')]),unwrap_bin('$5')}.
+quota -> QUOTA INTNUM      ON NAME : {limited, unwrap_bin('$2'), <<"">>,           unwrap_bin('$4')}.
+quota -> QUOTA INTNUM NAME ON NAME : {limited, unwrap_bin('$2'), unwrap_bin('$3'), unwrap_bin('$5')}.
 
 table_list ->                table :         ['$1'].
 table_list -> table_list ',' table : '$1' ++ ['$3'].
@@ -1262,7 +1262,8 @@ Erlang code.
     parsetree/1,
     parsetree_with_tokens/1,
     pt_to_string/1,
-    pt_to_string_bu/1
+    pt_to_string_bu/1,
+    pt_to_string_format/1
 ]).
 
 -define(NODEBUG, true).
@@ -1316,7 +1317,7 @@ parsetree_with_tokens(Sql0) ->
     NSql = if C =:= $; -> Sql; true -> string:strip(Sql) ++ ";" end,
     case sql_lex:string(NSql) of
         {ok, Toks, _} ->
-            case sqlparse:parse(Toks) of
+            case parse(Toks) of
                 {ok, PTree} -> {ok, {PTree, Toks}};
                 {error, {N, ?MODULE, ErrorTerms}} ->
                     {parse_error, {lists:flatten([integer_to_list(N), ": ", ErrorTerms]), Toks}};
@@ -1341,8 +1342,14 @@ is_reserved(Word) when is_list(Word) ->
 %%                                  COMPILER
 %%-----------------------------------------------------------------------------
 
--spec pt_to_string(tuple()| list()) -> {error, term()} | binary().
-pt_to_string(PTree) -> foldtd(fun(_, _) -> null_fun end, null_fun, PTree).
+-spec foldbu(fun(), term(), tuple()) -> {error, term()} | binary().
+foldbu(Fun, Ctx, PTree) when is_function(Fun, 2) ->
+    try sqlparse_fold:fold(bottom_up, Fun, Ctx, 0, PTree) of
+        {Sql, null_fun = Ctx} -> list_to_binary(string:strip(Sql));
+        {_Output, NewCtx} -> NewCtx
+    catch
+        _:Error -> {error, Error}
+    end.
 
 -spec foldtd(fun(), term(), tuple() | list()) -> {error, term()} | binary().
 foldtd(Fun, Ctx, PTree) when is_function(Fun, 2) ->
@@ -1353,14 +1360,20 @@ foldtd(Fun, Ctx, PTree) when is_function(Fun, 2) ->
         _:Error -> {error, Error}
     end.
 
--spec pt_to_string_bu(tuple()| list()) -> {error, term()} | binary().
-pt_to_string_bu(PTree) -> foldbu(fun(_, _) -> null_fun end, null_fun, PTree).
-
--spec foldbu(fun(), term(), tuple()) -> {error, term()} | binary().
-foldbu(Fun, Ctx, PTree) when is_function(Fun, 2) ->
-    try sqlparse_fold:fold(bottom_up, Fun, Ctx, 0, PTree) of
+-spec format(fun(), term(), tuple() | list()) -> {error, term()} | binary().
+format(Fun, Ctx, PTree) when is_function(Fun, 2) ->
+    try sqlparse_format:fold({}, top_down, Fun, Ctx, 0, PTree) of
         {Sql, null_fun = Ctx} -> list_to_binary(string:strip(Sql));
         {_Output, NewCtx} -> NewCtx
     catch
         _:Error -> {error, Error}
     end.
+
+-spec pt_to_string(tuple()| list()) -> {error, term()} | binary().
+pt_to_string(PTree) -> foldtd(fun(_, _) -> null_fun end, null_fun, PTree).
+
+-spec pt_to_string_bu(tuple()| list()) -> {error, term()} | binary().
+pt_to_string_bu(PTree) -> foldbu(fun(_, _) -> null_fun end, null_fun, PTree).
+
+-spec pt_to_string_format(tuple()| list()) -> {error, term()} | binary().
+pt_to_string_format(PTree) -> format(fun(_, _) -> null_fun end, null_fun, PTree).

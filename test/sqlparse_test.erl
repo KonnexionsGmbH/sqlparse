@@ -134,6 +134,18 @@ common_test_source(Source) ->
                     ct:pal("~n[BU] Error redundant whitespace(s) : NewSource      ~n > ~p", [StringNSource_BU]),
                     ct:pal("~n[BU] Error redundant whitespace(s) : 1. Redundant WS~n > ~p", [StringNSource_BUMultipleSpace]),
                     throw({error, "[BU] Error redundant whitespace(s)"})
+            end,
+            %% -----------------------------------------------------------------
+            %% Test Format
+            %% -----------------------------------------------------------------
+            %% 4. ParseTree ==> Source (=NSource_Format)
+            %% -----------------------------------------------------------------
+            _NSource_Format = case ?PARSER_MODULE:pt_to_string_format(ParseTree) of
+                                  {error, Error_Format} ->
+                                      ct:pal("~n[BU] Error ParseTree -> NewSource Format : ParseTree~n > ~p", [ParseTree]),
+                                      throw({error, "[BU] Error ParseTree -> NewSource Format : " ++ Error_Format});
+                                  NS_Format ->
+                                      NS_Format
             end;
         {lex_error, _Error} ->
             ct:pal("~nFailed lex_error : Source~n > ~p", [Source]),
@@ -319,7 +331,20 @@ eunit_test_source(_TestGroup, Source, Logs) ->
                     io:format(user, "~n[BU] Error redundant whitespace(s) : 1. Redundant WS~n > ~p", [StringNSource_BUMultipleSpace]),
                     throw({error, "[BU] Error redundant whitespace(s)"})
             end,
-            ?D4("~n[BU] ParseTree~n~p", [ParseTree]);
+            ?D4("~n[BU] ParseTree~n~p", [ParseTree]),
+            %% -----------------------------------------------------------------
+            %% Test Format
+            %% -----------------------------------------------------------------
+            %% 4. ParseTree ==> Source (=NSource_Format)
+            %% -----------------------------------------------------------------
+            _NSource_Format = case ?PARSER_MODULE:pt_to_string_format(ParseTree) of
+                                  {error, Error_Format} ->
+                                      io:format(user, "~n[BU] Error ParseTree -> NewSource Format : ParseTree~n > ~p", [ParseTree]),
+                                      throw({error, "[BU] Error ParseTree -> NewSource Format : " ++ Error_Format});
+                                  NS_Format ->
+                                      NS_Format
+                              end,
+            ?D3("~n[BU] NewSource~n~s", [_NSource_Format]);
         {lex_error, _Error} ->
             io:format(user, "~nFailed lex_error : Source~n > ~p", [Source]),
             io:format(user, "~nFailed lex_error : Error ~n > ~p", [_Error]),

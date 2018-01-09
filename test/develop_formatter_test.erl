@@ -1,6 +1,7 @@
 %% -----------------------------------------------------------------------------
 %%
-%% develop_formatter_test.erl: SQL - formatter test driver for development purposes.
+%% develop_formatter_test.erl: SQL - formatter test driver for
+%%                                   development purposes.
 %%
 %% Copyright (c) 2012-18 K2 Informatics GmbH.  All Rights Reserved.
 %%
@@ -68,13 +69,18 @@ eunit_test_() ->
     {ok, Cwd} = file:get_cwd(),
     ?debugFmt(?MODULE_STRING ++ ":eunit_test_ ===>~nCwd: ~p~n", [Cwd]),
     RootPath = lists:reverse(filename:split(Cwd)),
-    ?debugFmt(?MODULE_STRING ++ ":eunit_test_ ===>~nRootPath: ~p~n", [RootPath]),
+    ?debugFmt(?MODULE_STRING ++ ":eunit_test_ ===>~nRootPath: ~p~n",
+        [RootPath]),
     TestDir1 = filename:join(lists:reverse(["test" | RootPath])),
-    ?debugFmt(?MODULE_STRING ++ ":eunit_test_ ===>~nTestDir1: ~p~n", [TestDir1]),
-    TestDir2 = filename:join(lists:reverse(["eunit", "generated", "test"] ++ RootPath)),
-    ?debugFmt(?MODULE_STRING ++ ":eunit_test_ ===>~nTestDir2: ~p~n", [TestDir2]),
+    ?debugFmt(?MODULE_STRING ++ ":eunit_test_ ===>~nTestDir1: ~p~n",
+        [TestDir1]),
+    TestDir2 = filename:join(
+        lists:reverse(["eunit", "generated", "test"] ++ RootPath)),
+    ?debugFmt(?MODULE_STRING ++ ":eunit_test_ ===>~nTestDir2: ~p~n",
+        [TestDir2]),
     TestFiles = lists:sort(
-        [filename:join(TestDir1, T) || T <- filelib:wildcard(WCard, TestDir1)] ++
+        [filename:join(TestDir1, T) || T <- filelib:wildcard(WCard,
+            TestDir1)] ++
         [filename:join(TestDir2, T) || T <- filelib:wildcard(WCard, TestDir2)]
     ),
     group_gen(TestFiles).
@@ -84,51 +90,83 @@ eunit_test_() ->
 %%------------------------------------------------------------------------------
 
 eunit_test_source(_TestGroup, Statement) ->
-    ?debugFmt(?MODULE_STRING ++ ":eunit_test_source ===> TestGroup:~n~p~n", [_TestGroup]),
+    ?debugFmt(?MODULE_STRING ++ ":eunit_test_source ===> TestGroup:~n~p~n",
+        [_TestGroup]),
     io:format(user, "~n", []),
-    io:format(user, "~n===========================================>           Statement(s):~n~ts~n", [Statement]),
+    io:format(user,
+        "~n===========================================>           Statement(s):~n~ts~n",
+        [Statement]),
 
     %% -------------------------------------------------------------------------
     %% 1. Statement ==> ParseTree
     %% -------------------------------------------------------------------------
     case ?PARSER_MODULE:parsetree_with_tokens(Statement) of
         {ok, {ParseTree, _Tokens}} ->
-            ?debugFmt(?MODULE_STRING ++ ":eunit_test_source ===> ParseTree:~n~p~n", [ParseTree]),
-            ?debugFmt(?MODULE_STRING ++ ":eunit_test_source ===> Tokens:   ~n~p~n", [_Tokens]),
+            ?debugFmt(
+                ?MODULE_STRING ++ ":eunit_test_source ===> ParseTree:~n~p~n",
+                [ParseTree]),
+            ?debugFmt(
+                ?MODULE_STRING ++ ":eunit_test_source ===> Tokens:   ~n~p~n",
+                [_Tokens]),
             %% -----------------------------------------------------------------
             %% Test Format
             %% -----------------------------------------------------------------
             %% 2. ParseTree ==> Statement (=FormattedStatement)
             %% -----------------------------------------------------------------
-            FormattedStatement = case ?PARSER_MODULE:pt_to_string_format(ParseTree) of
-                                     {error, Error_TD} ->
-                                         io:format(user, ?MODULE_STRING ++ ":eunit_test_source ===> Error_TD:~n~p~n", [Error_TD]),
-                                         throw({error, Error_TD});
-                                     NS_TD ->
-                                         NS_TD
-                                 end,
-            io:format(user, "~n-------------------------------------------> Formatted Statement(s):~n~n~ts~n", [binary_to_list(FormattedStatement)]),
+            FormattedStatement =
+                case ?PARSER_MODULE:pt_to_string_format(ParseTree) of
+                    {error, Error_TD} ->
+                        io:format(user, ?MODULE_STRING ++
+                        ":eunit_test_source ===> Error_TD:~n~p~n", [Error_TD]),
+                        throw({error, Error_TD});
+                    NS_TD ->
+                        NS_TD
+                end,
+            io:format(user,
+                "~n-------------------------------------------> Formatted Statement(s):~n~n~ts~n",
+                [binary_to_list(FormattedStatement)]),
             io:format(user, "~n", []),
             %% -----------------------------------------------------------------
             %% 3. Statement (=FormattedStatement) ==> ParseTree (=NPT_FORMAT)
             %% -----------------------------------------------------------------
             {ok, {_NPTree_FORMAT, _NToks_FORMAT}}
                 = try
-                      {ok, {NPT_FORMAT, NT_FORMAT}} = ?PARSER_MODULE:parsetree_with_tokens(FormattedStatement),
+                      {ok, {NPT_FORMAT, NT_FORMAT}} =
+                          ?PARSER_MODULE:parsetree_with_tokens(
+                              FormattedStatement),
                       {ok, {NPT_FORMAT, NT_FORMAT}}
                   catch
                       ExceptionFORMAT:ReasonFORMAT ->
-                          io:format(user, "~n[FORMAT] Error " ++ ?MODULE_STRING ++ ":eunit_test_source : Statement      ~n > ~p", [Statement]),
-                          io:format(user, "~n[FORMAT] Error " ++ ?MODULE_STRING ++ ":eunit_test_source : FormattedSource~n > ~p", [FormattedStatement]),
-                          io:format(user, "~n[FORMAT] Error " ++ ?MODULE_STRING ++ ":eunit_test_source : Exception      ~n > ~p", [ExceptionFORMAT]),
-                          io:format(user, "~n[FORMAT] Error " ++ ?MODULE_STRING ++ ":eunit_test_source : Reason         ~n > ~p", [ReasonFORMAT]),
-                          throw({error, "[FORMAT] Error " ++ ?MODULE_STRING ++ ":eunit_test_source"})
+                          io:format(user, "~n[FORMAT] Error " ++
+                              ?MODULE_STRING ++
+                              ":eunit_test_source : Statement      ~n > ~p",
+                              [Statement]),
+                          io:format(user, "~n[FORMAT] Error " ++
+                              ?MODULE_STRING ++
+                              ":eunit_test_source : FormattedSource~n > ~p",
+                              [FormattedStatement]),
+                          io:format(user, "~n[FORMAT] Error " ++
+                              ?MODULE_STRING ++
+                              ":eunit_test_source : Exception      ~n > ~p",
+                              [ExceptionFORMAT]),
+                          io:format(user, "~n[FORMAT] Error " ++
+                              ?MODULE_STRING ++
+                              ":eunit_test_source : Reason         ~n > ~p",
+                              [ReasonFORMAT]),
+                          throw({error, "[FORMAT] Error " ++
+                              ?MODULE_STRING ++ ":eunit_test_source"})
                   end;        {lex_error, _Error} ->
-        io:format(user, ?MODULE_STRING ++ ":eunit_test_source ===> Error:    ~n~p~n", [_Error]),
+        io:format(user,
+            ?MODULE_STRING ++ ":eunit_test_source ===> Error:    ~n~p~n",
+            [_Error]),
         throw({error, "Failed lex_error"});
         {parse_error, {_Error, _Tokens}} ->
-            io:format(user, ?MODULE_STRING ++ ":eunit_test_source ===> Error:    ~n~p~n", [_Error]),
-            io:format(user, ?MODULE_STRING ++ ":eunit_test_source ===> Tokens:   ~n~p~n", [_Tokens]),
+            io:format(user,
+                ?MODULE_STRING ++ ":eunit_test_source ===> Error:    ~n~p~n",
+                [_Error]),
+            io:format(user,
+                ?MODULE_STRING ++ ":eunit_test_source ===> Tokens:   ~n~p~n",
+                [_Tokens]),
             throw({error, "Failed parse_error"})
     end.
 
@@ -147,13 +185,22 @@ group_gen(TestFiles) ->
                     {ok, [Opts | Tests]} = file:consult(TestFile),
                     {ok, TestFileBin} = file:read_file(TestFile),
                     TestLines = [begin
-                                     TRe0 = re:replace(T, "(.*)(\")(.*)", "\\1\\\\\"\\3"
-                                         , [{return, list}, ungreedy, global, dotall]),
-                                     TRe = list_to_binary(io_lib:format("~p", [TRe0])),
+                                     TRe0 = re:replace(T, "(.*)(\")(.*)",
+                                         "\\1\\\\\"\\3",
+                                         [
+                                             {return, list},
+                                             ungreedy,
+                                             global,
+                                             dotall
+                                         ]),
+                                     TRe = list_to_binary(
+                                         io_lib:format("~p", [TRe0])),
                                      case binary:match(TestFileBin, TRe) of
                                          {I1, _} ->
-                                             <<Head:I1/binary, _/binary>> = TestFileBin,
-                                             case re:run(Head, ".*[\r\n]", [global]) of
+                                             <<Head:I1/binary, _/binary>> =
+                                                 TestFileBin,
+                                             case re:run(Head, ".*[\r\n]",
+                                                 [global]) of
                                                  {match, Matches} ->
                                                      length(Matches) + 1;
                                                  nomatch ->
@@ -164,14 +211,23 @@ group_gen(TestFiles) ->
                                                          "Tests ~p~n"
                                                          "T ~p~n"
                                                          "TRe ~p~n"
-                                                         , [TestFile, Head, Opts, Tests, T, TRe]),
+                                                         ,
+                                                         [
+                                                             TestFile,
+                                                             Head,
+                                                             Opts,
+                                                             Tests,
+                                                             T,
+                                                             TRe
+                                                         ]),
                                                      error(nomatch)
                                              end;
                                          nomatch ->
                                              I
                                      end
                                  end
-                        || {I, T} <- lists:zip(lists:seq(1, length(Tests)), Tests)],
+                        || {I, T} <- lists:zip(lists:seq(1, length(Tests)),
+                            Tests)],
                     AugTests = lists:zip(TestLines, Tests),
                     TestGroup = filename:rootname(
                         filename:basename(TestFile)),
@@ -185,7 +241,9 @@ group_gen(TestFiles) ->
 %%------------------------------------------------------------------------------
 
 tests_gen(TestGroup, Tests, Opts) ->
-    ?debugFmt(?MODULE_STRING ++ ":tests_gen ===>~nTestGroup = ~p~n Tests = ~p~n Opts = ~p~n", [TestGroup, Tests, Opts]),
+    ?debugFmt(?MODULE_STRING ++
+    ":tests_gen ===>~nTestGroup = ~p~n Tests = ~p~n Opts = ~p~n",
+        [TestGroup, Tests, Opts]),
     SelTests = case proplists:get_value(tests, Opts) of
                    St when St =:= undefined; St =:= [] ->
                        {Indices, _} = lists:unzip(Tests),
@@ -202,7 +260,8 @@ tests_gen(TestGroup, [{I, T} | Tests], SelTests, Acc) ->
             tests_gen(TestGroup, Tests, SelTests,
                 [{TestGroup, I,
                     fun() ->
-                        {timeout, ?TIMEOUT, ?MODULE:eunit_test_source(TestGroup, T)}
+                        {timeout, ?TIMEOUT, ?MODULE:eunit_test_source(TestGroup,
+                            T)}
                     end} | Acc]);
         _ -> Acc
     end.

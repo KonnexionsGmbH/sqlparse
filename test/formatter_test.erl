@@ -41,37 +41,68 @@ default_ALTER_USER_test_() ->
         fun setup_default/0,
         fun() ->
             [
-                {formatter("ALTER_USER_01", ?ALTER_USER_01, ?ALTER_USER_01_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_02", ?ALTER_USER_02, ?ALTER_USER_02_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_03", ?ALTER_USER_03, ?ALTER_USER_03_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_04", ?ALTER_USER_04, ?ALTER_USER_04_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_05", ?ALTER_USER_05, ?ALTER_USER_05_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_06", ?ALTER_USER_06, ?ALTER_USER_06_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_07", ?ALTER_USER_07, ?ALTER_USER_07_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_08", ?ALTER_USER_08, ?ALTER_USER_08_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_09", ?ALTER_USER_09, ?ALTER_USER_09_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_10", ?ALTER_USER_10, ?ALTER_USER_10_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_11", ?ALTER_USER_11, ?ALTER_USER_11_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_12", ?ALTER_USER_12, ?ALTER_USER_12_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_13", ?ALTER_USER_13, ?ALTER_USER_13_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_14", ?ALTER_USER_14, ?ALTER_USER_14_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_15", ?ALTER_USER_15, ?ALTER_USER_15_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_16", ?ALTER_USER_16, ?ALTER_USER_16_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_17", ?ALTER_USER_17, ?ALTER_USER_17_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_18", ?ALTER_USER_18, ?ALTER_USER_18_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_19", ?ALTER_USER_19, ?ALTER_USER_19_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_20", ?ALTER_USER_20, ?ALTER_USER_20_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_21", ?ALTER_USER_21, ?ALTER_USER_21_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_22", ?ALTER_USER_22, ?ALTER_USER_22_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_23", ?ALTER_USER_23, ?ALTER_USER_23_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_24", ?ALTER_USER_24, ?ALTER_USER_24_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_25", ?ALTER_USER_25, ?ALTER_USER_25_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_26", ?ALTER_USER_26, ?ALTER_USER_26_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_27", ?ALTER_USER_27, ?ALTER_USER_27_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_28", ?ALTER_USER_28, ?ALTER_USER_28_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_29", ?ALTER_USER_29, ?ALTER_USER_29_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_30", ?ALTER_USER_30, ?ALTER_USER_30_RESULT_DEFAULT)},
-                {formatter("ALTER_USER_31", ?ALTER_USER_31, ?ALTER_USER_31_RESULT_DEFAULT)}
+                {formatter("ALTER_USER_01", ?ALTER_USER_01,
+                    ?ALTER_USER_01_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_02", ?ALTER_USER_02,
+                    ?ALTER_USER_02_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_03", ?ALTER_USER_03,
+                    ?ALTER_USER_03_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_04", ?ALTER_USER_04,
+                    ?ALTER_USER_04_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_05", ?ALTER_USER_05,
+                    ?ALTER_USER_05_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_06", ?ALTER_USER_06,
+                    ?ALTER_USER_06_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_07", ?ALTER_USER_07,
+                    ?ALTER_USER_07_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_08", ?ALTER_USER_08,
+                    ?ALTER_USER_08_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_09", ?ALTER_USER_09,
+                    ?ALTER_USER_09_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_10", ?ALTER_USER_10,
+                    ?ALTER_USER_10_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_11", ?ALTER_USER_11,
+                    ?ALTER_USER_11_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_12", ?ALTER_USER_12,
+                    ?ALTER_USER_12_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_13", ?ALTER_USER_13,
+                    ?ALTER_USER_13_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_14", ?ALTER_USER_14,
+                    ?ALTER_USER_14_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_15", ?ALTER_USER_15,
+                    ?ALTER_USER_15_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_16", ?ALTER_USER_16,
+                    ?ALTER_USER_16_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_17", ?ALTER_USER_17,
+                    ?ALTER_USER_17_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_18", ?ALTER_USER_18,
+                    ?ALTER_USER_18_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_19", ?ALTER_USER_19,
+                    ?ALTER_USER_19_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_20", ?ALTER_USER_20,
+                    ?ALTER_USER_20_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_21", ?ALTER_USER_21,
+                    ?ALTER_USER_21_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_22", ?ALTER_USER_22,
+                    ?ALTER_USER_22_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_23", ?ALTER_USER_23,
+                    ?ALTER_USER_23_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_24", ?ALTER_USER_24,
+                    ?ALTER_USER_24_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_25", ?ALTER_USER_25,
+                    ?ALTER_USER_25_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_26", ?ALTER_USER_26,
+                    ?ALTER_USER_26_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_27", ?ALTER_USER_27,
+                    ?ALTER_USER_27_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_28", ?ALTER_USER_28,
+                    ?ALTER_USER_28_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_29", ?ALTER_USER_29,
+                    ?ALTER_USER_29_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_30", ?ALTER_USER_30,
+                    ?ALTER_USER_30_RESULT_DEFAULT)},
+                {formatter("ALTER_USER_31", ?ALTER_USER_31,
+                    ?ALTER_USER_31_RESULT_DEFAULT)}
             ]
         end
     }.
@@ -223,15 +254,24 @@ default_GROUP_BY_test_() ->
         fun setup_default/0,
         fun() ->
             [
-                {formatter("GROUP_BY_01", ?GROUP_BY_01, ?GROUP_BY_01_RESULT_DEFAULT)},
-                {formatter("GROUP_BY_02", ?GROUP_BY_02, ?GROUP_BY_02_RESULT_DEFAULT)},
-                {formatter("GROUP_BY_03", ?GROUP_BY_03, ?GROUP_BY_03_RESULT_DEFAULT)},
-                {formatter("GROUP_BY_04", ?GROUP_BY_04, ?GROUP_BY_04_RESULT_DEFAULT)},
-                {formatter("GROUP_BY_05", ?GROUP_BY_05, ?GROUP_BY_05_RESULT_DEFAULT)},
-                {formatter("GROUP_BY_06", ?GROUP_BY_06, ?GROUP_BY_06_RESULT_DEFAULT)},
-                {formatter("GROUP_BY_07", ?GROUP_BY_07, ?GROUP_BY_07_RESULT_DEFAULT)},
-                {formatter("GROUP_BY_08", ?GROUP_BY_08, ?GROUP_BY_08_RESULT_DEFAULT)},
-                {formatter("GROUP_BY_09", ?GROUP_BY_09, ?GROUP_BY_09_RESULT_DEFAULT)}
+                {formatter("GROUP_BY_01", ?GROUP_BY_01,
+                    ?GROUP_BY_01_RESULT_DEFAULT)},
+                {formatter("GROUP_BY_02", ?GROUP_BY_02,
+                    ?GROUP_BY_02_RESULT_DEFAULT)},
+                {formatter("GROUP_BY_03", ?GROUP_BY_03,
+                    ?GROUP_BY_03_RESULT_DEFAULT)},
+                {formatter("GROUP_BY_04", ?GROUP_BY_04,
+                    ?GROUP_BY_04_RESULT_DEFAULT)},
+                {formatter("GROUP_BY_05", ?GROUP_BY_05,
+                    ?GROUP_BY_05_RESULT_DEFAULT)},
+                {formatter("GROUP_BY_06", ?GROUP_BY_06,
+                    ?GROUP_BY_06_RESULT_DEFAULT)},
+                {formatter("GROUP_BY_07", ?GROUP_BY_07,
+                    ?GROUP_BY_07_RESULT_DEFAULT)},
+                {formatter("GROUP_BY_08", ?GROUP_BY_08,
+                    ?GROUP_BY_08_RESULT_DEFAULT)},
+                {formatter("GROUP_BY_09", ?GROUP_BY_09,
+                    ?GROUP_BY_09_RESULT_DEFAULT)}
             ]
         end
     }.
@@ -333,15 +373,24 @@ default_MISCELLANEOUS_test_() ->
         fun setup_default/0,
         fun() ->
             [
-                {formatter("MISCELLANEOUS_02", ?MISCELLANEOUS_02, ?MISCELLANEOUS_02_RESULT_DEFAULT)},
-                {formatter("MISCELLANEOUS_03", ?MISCELLANEOUS_03, ?MISCELLANEOUS_03_RESULT_DEFAULT)},
-                {formatter("MISCELLANEOUS_04", ?MISCELLANEOUS_04, ?MISCELLANEOUS_04_RESULT_DEFAULT)},
-                {formatter("MISCELLANEOUS_05", ?MISCELLANEOUS_05, ?MISCELLANEOUS_05_RESULT_DEFAULT)},
-                {formatter("MISCELLANEOUS_06", ?MISCELLANEOUS_06, ?MISCELLANEOUS_06_RESULT_DEFAULT)},
-                {formatter("MISCELLANEOUS_07", ?MISCELLANEOUS_07, ?MISCELLANEOUS_07_RESULT_DEFAULT)},
-                {formatter("MISCELLANEOUS_08", ?MISCELLANEOUS_08, ?MISCELLANEOUS_08_RESULT_DEFAULT)},
-                {formatter("MISCELLANEOUS_09", ?MISCELLANEOUS_09, ?MISCELLANEOUS_09_RESULT_DEFAULT)},
-                {formatter("MISCELLANEOUS_10", ?MISCELLANEOUS_10, ?MISCELLANEOUS_10_RESULT_DEFAULT)}
+                {formatter("MISCELLANEOUS_02", ?MISCELLANEOUS_02,
+                    ?MISCELLANEOUS_02_RESULT_DEFAULT)},
+                {formatter("MISCELLANEOUS_03", ?MISCELLANEOUS_03,
+                    ?MISCELLANEOUS_03_RESULT_DEFAULT)},
+                {formatter("MISCELLANEOUS_04", ?MISCELLANEOUS_04,
+                    ?MISCELLANEOUS_04_RESULT_DEFAULT)},
+                {formatter("MISCELLANEOUS_05", ?MISCELLANEOUS_05,
+                    ?MISCELLANEOUS_05_RESULT_DEFAULT)},
+                {formatter("MISCELLANEOUS_06", ?MISCELLANEOUS_06,
+                    ?MISCELLANEOUS_06_RESULT_DEFAULT)},
+                {formatter("MISCELLANEOUS_07", ?MISCELLANEOUS_07,
+                    ?MISCELLANEOUS_07_RESULT_DEFAULT)},
+                {formatter("MISCELLANEOUS_08", ?MISCELLANEOUS_08,
+                    ?MISCELLANEOUS_08_RESULT_DEFAULT)},
+                {formatter("MISCELLANEOUS_09", ?MISCELLANEOUS_09,
+                    ?MISCELLANEOUS_09_RESULT_DEFAULT)},
+                {formatter("MISCELLANEOUS_10", ?MISCELLANEOUS_10,
+                    ?MISCELLANEOUS_10_RESULT_DEFAULT)}
             ]
         end
     }.
@@ -356,9 +405,12 @@ default_MULTIPLE_test_() ->
         fun setup_default/0,
         fun() ->
             [
-                {formatter("MULTIPLE_01", ?MULTIPLE_01, ?MULTIPLE_01_RESULT_DEFAULT)},
-                {formatter("MULTIPLE_02", ?MULTIPLE_02, ?MULTIPLE_02_RESULT_DEFAULT)},
-                {formatter("MULTIPLE_03", ?MULTIPLE_03, ?MULTIPLE_03_RESULT_DEFAULT)}
+                {formatter("MULTIPLE_01", ?MULTIPLE_01,
+                    ?MULTIPLE_01_RESULT_DEFAULT)},
+                {formatter("MULTIPLE_02", ?MULTIPLE_02,
+                    ?MULTIPLE_02_RESULT_DEFAULT)},
+                {formatter("MULTIPLE_03", ?MULTIPLE_03,
+                    ?MULTIPLE_03_RESULT_DEFAULT)}
             ]
         end
     }.
@@ -373,9 +425,12 @@ default_ORDER_BY_test_() ->
         fun setup_default/0,
         fun() ->
             [
-                {formatter("ORDER_BY_01", ?ORDER_BY_01, ?ORDER_BY_01_RESULT_DEFAULT)},
-                {formatter("ORDER_BY_02", ?ORDER_BY_02, ?ORDER_BY_02_RESULT_DEFAULT)},
-                {formatter("ORDER_BY_03", ?ORDER_BY_03, ?ORDER_BY_03_RESULT_DEFAULT)}
+                {formatter("ORDER_BY_01", ?ORDER_BY_01,
+                    ?ORDER_BY_01_RESULT_DEFAULT)},
+                {formatter("ORDER_BY_02", ?ORDER_BY_02,
+                    ?ORDER_BY_02_RESULT_DEFAULT)},
+                {formatter("ORDER_BY_03", ?ORDER_BY_03,
+                    ?ORDER_BY_03_RESULT_DEFAULT)}
             ]
         end
     }.
@@ -516,9 +571,12 @@ default_STRUCTURE_test_() ->
         fun setup_default/0,
         fun() ->
             [
-                {formatter("STRUCTURE_01", ?STRUCTURE_01, ?STRUCTURE_01_RESULT_DEFAULT)},
-                {formatter("STRUCTURE_02", ?STRUCTURE_02, ?STRUCTURE_02_RESULT_DEFAULT)},
-                {formatter("STRUCTURE_03", ?STRUCTURE_03, ?STRUCTURE_03_RESULT_DEFAULT)}
+                {formatter("STRUCTURE_01", ?STRUCTURE_01,
+                    ?STRUCTURE_01_RESULT_DEFAULT)},
+                {formatter("STRUCTURE_02", ?STRUCTURE_02,
+                    ?STRUCTURE_02_RESULT_DEFAULT)},
+                {formatter("STRUCTURE_03", ?STRUCTURE_03,
+                    ?STRUCTURE_03_RESULT_DEFAULT)}
             ]
         end
     }.
@@ -533,10 +591,14 @@ default_TRANSACTION_test_() ->
         fun setup_default/0,
         fun() ->
             [
-                {formatter("TRANSACTION_01", ?TRANSACTION_01, ?TRANSACTION_01_RESULT_DEFAULT)},
-                {formatter("TRANSACTION_02", ?TRANSACTION_02, ?TRANSACTION_02_RESULT_DEFAULT)},
-                {formatter("TRANSACTION_03", ?TRANSACTION_03, ?TRANSACTION_03_RESULT_DEFAULT)},
-                {formatter("TRANSACTION_04", ?TRANSACTION_04, ?TRANSACTION_04_RESULT_DEFAULT)}
+                {formatter("TRANSACTION_01", ?TRANSACTION_01,
+                    ?TRANSACTION_01_RESULT_DEFAULT)},
+                {formatter("TRANSACTION_02", ?TRANSACTION_02,
+                    ?TRANSACTION_02_RESULT_DEFAULT)},
+                {formatter("TRANSACTION_03", ?TRANSACTION_03,
+                    ?TRANSACTION_03_RESULT_DEFAULT)},
+                {formatter("TRANSACTION_04", ?TRANSACTION_04,
+                    ?TRANSACTION_04_RESULT_DEFAULT)}
             ]
         end
     }.
@@ -551,13 +613,20 @@ default_TRUNCATE_test_() ->
         fun setup_default/0,
         fun() ->
             [
-                {formatter("TRUNCATE_01", ?TRUNCATE_01, ?TRUNCATE_01_RESULT_DEFAULT)},
-                {formatter("TRUNCATE_02", ?TRUNCATE_02, ?TRUNCATE_02_RESULT_DEFAULT)},
-                {formatter("TRUNCATE_03", ?TRUNCATE_03, ?TRUNCATE_03_RESULT_DEFAULT)},
-                {formatter("TRUNCATE_04", ?TRUNCATE_04, ?TRUNCATE_04_RESULT_DEFAULT)},
-                {formatter("TRUNCATE_05", ?TRUNCATE_05, ?TRUNCATE_05_RESULT_DEFAULT)},
-                {formatter("TRUNCATE_06", ?TRUNCATE_06, ?TRUNCATE_06_RESULT_DEFAULT)},
-                {formatter("TRUNCATE_07", ?TRUNCATE_07, ?TRUNCATE_07_RESULT_DEFAULT)}
+                {formatter("TRUNCATE_01", ?TRUNCATE_01,
+                    ?TRUNCATE_01_RESULT_DEFAULT)},
+                {formatter("TRUNCATE_02", ?TRUNCATE_02,
+                    ?TRUNCATE_02_RESULT_DEFAULT)},
+                {formatter("TRUNCATE_03", ?TRUNCATE_03,
+                    ?TRUNCATE_03_RESULT_DEFAULT)},
+                {formatter("TRUNCATE_04", ?TRUNCATE_04,
+                    ?TRUNCATE_04_RESULT_DEFAULT)},
+                {formatter("TRUNCATE_05", ?TRUNCATE_05,
+                    ?TRUNCATE_05_RESULT_DEFAULT)},
+                {formatter("TRUNCATE_06", ?TRUNCATE_06,
+                    ?TRUNCATE_06_RESULT_DEFAULT)},
+                {formatter("TRUNCATE_07", ?TRUNCATE_07,
+                    ?TRUNCATE_07_RESULT_DEFAULT)}
             ]
         end
     }.
@@ -686,7 +755,8 @@ option_K_I_4_S_T_test_() ->
         fun setup_K_I_4_S_T/0,
         fun() ->
             [
-                {formatter("OPTION_01_K_I_4_S_T", ?OPTION_01, ?OPTION_01_RESULT_K_I_4_S_T)}
+                {formatter("OPTION_01_K_I_4_S_T", ?OPTION_01,
+                    ?OPTION_01_RESULT_K_I_4_S_T)}
             ]
         end
     }.
@@ -706,7 +776,8 @@ option_L_U_4_S_T_test() ->
         fun setup_L_U_4_S_T/0,
         fun() ->
             [
-                {formatter("OPTION_01_L_U_4_S_T", ?OPTION_01, ?OPTION_01_RESULT_L_U_4_S_T)}
+                {formatter("OPTION_01_L_U_4_S_T", ?OPTION_01,
+                    ?OPTION_01_RESULT_L_U_4_S_T)}
             ]
         end
     }.
@@ -726,7 +797,8 @@ option_U_L_4_S_T_test() ->
         fun setup_U_L_4_S_T/0,
         fun() ->
             [
-                {formatter("OPTION_01_U_L_4_S_T", ?OPTION_01, ?OPTION_01_RESULT_U_L_4_S_T)}
+                {formatter("OPTION_01_U_L_4_S_T", ?OPTION_01,
+                    ?OPTION_01_RESULT_U_L_4_S_T)}
             ]
         end
     }.
@@ -735,27 +807,9 @@ option_U_L_4_S_T_test() ->
 %% Helper functions.
 %%------------------------------------------------------------------------------
 
-%%formatter(Title, Statement, Result) ->
-%%    ?debugFmt(?MODULE_STRING ++ ":formatter ===> Start ~n Title: ~p~n", [Title]),
-%%
-%%    case ?PARSER_MODULE:parsetree_with_tokens(Statement) of
-%%        {ok, {ParseTree, _Tokens}} ->
-%%            FormattedStatement = case ?PARSER_MODULE:pt_to_string_format(ParseTree) of
-%%                                     {error, Error_TD} ->
-%%                                         throw({error, Error_TD});
-%%                                     Formatted ->
-%%                                         Formatted
-%%                                 end,
-%%            ?debugFmt(?MODULE_STRING ++ ":formatter ===>~nFormattedStatement:~p~n", [FormattedStatement]),
-%%            ?assertEqual(Result, binary_to_list(FormattedStatement));
-%%        {lex_error, _Error} ->
-%%            throw({error, "Failed lex_error - Statement " ++ Title ++ ": " ++ Statement});
-%%        {parse_error, {_Error, _Tokens}} ->
-%%            throw({error, "Failed parse_error - Statement " ++ Title ++ ": " ++ Statement})
-%%    end.
-
 formatter(Title, Statement, Result) ->
-    ?debugFmt(?MODULE_STRING ++ ":formatter ===> Start ~n Title: ~p~n", [Title]),
+    ?debugFmt(?MODULE_STRING ++ ":formatter ===> Start ~n Title: ~p~n",
+        [Title]),
 
     %% -------------------------------------------------------------------------
     %% 1. Source ==> ParseTree
@@ -769,8 +823,12 @@ formatter(Title, Statement, Result) ->
             %% -----------------------------------------------------------------
             NSource_TD = case ?PARSER_MODULE:pt_to_string(ParseTree) of
                              {error, Error_TD} ->
-                                 io:format(user, "~n[TD] Error ParseTree -> NewSource : ParseTree~n > ~p", [ParseTree]),
-                                 io:format(user, "~n[TD] Error ParseTree -> NewSource : Error~n > ~p", [Error_TD]),
+                                 io:format(user,
+                                     "~n[TD] Error ParseTree -> NewSource : ParseTree~n > ~p",
+                                     [ParseTree]),
+                                 io:format(user,
+                                     "~n[TD] Error ParseTree -> NewSource : Error~n > ~p",
+                                     [Error_TD]),
                                  throw({error, Error_TD});
                              NS_TD ->
                                  NS_TD
@@ -780,23 +838,45 @@ formatter(Title, Statement, Result) ->
             %% -----------------------------------------------------------------
             {ok, {NPTree_TD, _NToks_TD}}
                 = try
-                      {ok, {NPT_TD, NT_TD}} = ?PARSER_MODULE:parsetree_with_tokens(NSource_TD),
+                      {ok, {NPT_TD, NT_TD}} =
+                          ?PARSER_MODULE:parsetree_with_tokens(NSource_TD),
                       {ok, {NPT_TD, NT_TD}}
                   catch
                       ExceptionTD:ReasonTD ->
-                          io:format(user, "~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Title    ~n > ~p", [Title]),
-                          io:format(user, "~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Statement~n > ~p", [Statement]),
-                          io:format(user, "~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : NewSource~n > ~p", [NSource_TD]),
-                          io:format(user, "~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Exception~n > ~p", [ExceptionTD]),
-                          io:format(user, "~n[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Reason   ~n > ~p", [ReasonTD]),
-                          throw({error, "[TD] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens"})
+                          io:format(user, "~n[TD] Error " ++ ?MODULE_STRING ++
+                              ":parsetree_with_tokens : Title    ~n > ~p",
+                              [Title]),
+                          io:format(user, "~n[TD] Error " ++ ?MODULE_STRING ++
+                              ":parsetree_with_tokens : Statement~n > ~p",
+                              [Statement]),
+                          io:format(user, "~n[TD] Error " ++ ?MODULE_STRING ++
+                              ":parsetree_with_tokens : NewSource~n > ~p",
+                              [NSource_TD]),
+                          io:format(user, "~n[TD] Error " ++ ?MODULE_STRING ++
+                              ":parsetree_with_tokens : Exception~n > ~p",
+                              [ExceptionTD]),
+                          io:format(user, "~n[TD] Error " ++ ?MODULE_STRING ++
+                              ":parsetree_with_tokens : Reason   ~n > ~p",
+                              [ReasonTD]),
+                          throw({error, "[TD] Error " ++
+                              ?MODULE_STRING ++ ":parsetree_with_tokens"})
                   end,
             if ParseTree /= NPTree_TD ->
-                io:format(user, "~n[TD] Error ParseTree = NPTree : Title       ~n > ~p", [Title]),
-                io:format(user, "~n[TD] Error ParseTree = NPTree : Statement   ~n > ~p", [Statement]),
-                io:format(user, "~n[TD] Error ParseTree = NPTree : NewParseTree~n > ~p", [NPTree_TD]),
-                io:format(user, "~n[TD] Error ParseTree = NPTree : Tokens      ~n > ~p", [_Tokens]),
-                io:format(user, "~n[TD] Error ParseTree = NPTree : NewTokens   ~n > ~p", [_NToks_TD]);
+                io:format(user,
+                    "~n[TD] Error ParseTree = NPTree : Title       ~n > ~p",
+                    [Title]),
+                io:format(user,
+                    "~n[TD] Error ParseTree = NPTree : Statement   ~n > ~p",
+                    [Statement]),
+                io:format(user,
+                    "~n[TD] Error ParseTree = NPTree : NewParseTree~n > ~p",
+                    [NPTree_TD]),
+                io:format(user,
+                    "~n[TD] Error ParseTree = NPTree : Tokens      ~n > ~p",
+                    [_Tokens]),
+                io:format(user,
+                    "~n[TD] Error ParseTree = NPTree : NewTokens   ~n > ~p",
+                    [_NToks_TD]);
                 true -> ok
             end,
             ?assertEqual(ParseTree, NPTree_TD),
@@ -805,10 +885,18 @@ formatter(Title, Statement, Result) ->
             case StringNSource_TDMultipleSpace of
                 0 -> ok;
                 _ ->
-                    io:format(user, "~n[TD] Error redundant whitespace(s) : Title          ~n > ~p", [Title]),
-                    io:format(user, "~n[TD] Error redundant whitespace(s) : Statement      ~n > ~p", [Statement]),
-                    io:format(user, "~n[TD] Error redundant whitespace(s) : NewSource      ~n > ~p", [StringNSource_TD]),
-                    io:format(user, "~n[TD] Error redundant whitespace(s) : 1. Redundant WS~n > ~p", [StringNSource_TDMultipleSpace]),
+                    io:format(user,
+                        "~n[TD] Error redundant whitespace(s) : Title          ~n > ~p",
+                        [Title]),
+                    io:format(user,
+                        "~n[TD] Error redundant whitespace(s) : Statement      ~n > ~p",
+                        [Statement]),
+                    io:format(user,
+                        "~n[TD] Error redundant whitespace(s) : NewSource      ~n > ~p",
+                        [StringNSource_TD]),
+                    io:format(user,
+                        "~n[TD] Error redundant whitespace(s) : 1. Redundant WS~n > ~p",
+                        [StringNSource_TDMultipleSpace]),
                     throw({error, "[TD] Error redundant whitespace(s)"})
             end,
             %% -----------------------------------------------------------------
@@ -818,8 +906,12 @@ formatter(Title, Statement, Result) ->
             %% -----------------------------------------------------------------
             NSource_BU = case ?PARSER_MODULE:pt_to_string_bu(ParseTree) of
                              {error, Error_BU} ->
-                                 io:format(user, "~n[BU] Error ParseTree -> NewSource : ParseTree~n > ~p", [ParseTree]),
-                                 throw({error, "[BU] Error ParseTree -> NewSource : " ++ Error_BU});
+                                 io:format(user,
+                                     "~n[BU] Error ParseTree -> NewSource : ParseTree~n > ~p",
+                                     [ParseTree]),
+                                 throw({error,
+                                         "[BU] Error ParseTree -> NewSource : " ++
+                                         Error_BU});
                              NS_BU ->
                                  NS_BU
                          end,
@@ -828,23 +920,45 @@ formatter(Title, Statement, Result) ->
             %% -----------------------------------------------------------------
             {ok, {NPTree_BU, _NToks_BU}}
                 = try
-                      {ok, {NPT_BU, NT_BU}} = ?PARSER_MODULE:parsetree_with_tokens(NSource_BU),
+                      {ok, {NPT_BU, NT_BU}} =
+                          ?PARSER_MODULE:parsetree_with_tokens(NSource_BU),
                       {ok, {NPT_BU, NT_BU}}
                   catch
                       ExceptionBU:ReasonBU ->
-                          io:format(user, "~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Title    ~n > ~p", [Title]),
-                          io:format(user, "~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Statement~n > ~p", [Statement]),
-                          io:format(user, "~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : NewSource~n > ~p", [NSource_BU]),
-                          io:format(user, "~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Exception~n > ~p", [ExceptionBU]),
-                          io:format(user, "~n[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Reason   ~n > ~p", [ReasonBU]),
-                          throw({error, "[BU] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens"})
+                          io:format(user, "~n[BU] Error " ++ ?MODULE_STRING ++
+                              ":parsetree_with_tokens : Title    ~n > ~p",
+                              [Title]),
+                          io:format(user, "~n[BU] Error " ++ ?MODULE_STRING ++
+                              ":parsetree_with_tokens : Statement~n > ~p",
+                              [Statement]),
+                          io:format(user, "~n[BU] Error " ++ ?MODULE_STRING ++
+                              ":parsetree_with_tokens : NewSource~n > ~p",
+                              [NSource_BU]),
+                          io:format(user, "~n[BU] Error " ++ ?MODULE_STRING ++
+                              ":parsetree_with_tokens : Exception~n > ~p",
+                              [ExceptionBU]),
+                          io:format(user, "~n[BU] Error " ++ ?MODULE_STRING ++
+                              ":parsetree_with_tokens : Reason   ~n > ~p",
+                              [ReasonBU]),
+                          throw({error, "[BU] Error " ++
+                              ?MODULE_STRING ++ ":parsetree_with_tokens"})
                   end,
             if ParseTree /= NPTree_BU ->
-                io:format(user, "~n[BU] Error ParseTree = NPTree : Title       ~n > ~p", [Title]),
-                io:format(user, "~n[BU] Error ParseTree = NPTree : Statement   ~n > ~p", [Statement]),
-                io:format(user, "~n[BU] Error ParseTree = NPTree : NewParseTree~n > ~p", [NPTree_BU]),
-                io:format(user, "~n[BU] Error ParseTree = NPTree : Tokens      ~n > ~p", [_Tokens]),
-                io:format(user, "~n[BU] Error ParseTree = NPTree : NewTokens   ~n > ~p", [_NToks_BU]);
+                io:format(user,
+                    "~n[BU] Error ParseTree = NPTree : Title       ~n > ~p",
+                    [Title]),
+                io:format(user,
+                    "~n[BU] Error ParseTree = NPTree : Statement   ~n > ~p",
+                    [Statement]),
+                io:format(user,
+                    "~n[BU] Error ParseTree = NPTree : NewParseTree~n > ~p",
+                    [NPTree_BU]),
+                io:format(user,
+                    "~n[BU] Error ParseTree = NPTree : Tokens      ~n > ~p",
+                    [_Tokens]),
+                io:format(user,
+                    "~n[BU] Error ParseTree = NPTree : NewTokens   ~n > ~p",
+                    [_NToks_BU]);
                 true -> ok
             end,
             ?assertEqual(ParseTree, NPTree_BU),
@@ -853,10 +967,18 @@ formatter(Title, Statement, Result) ->
             case StringNSource_BUMultipleSpace of
                 0 -> ok;
                 _ ->
-                    io:format(user, "~n[BU] Error redundant whitespace(s) : Title          ~n > ~p", [Title]),
-                    io:format(user, "~n[BU] Error redundant whitespace(s) : Statement      ~n > ~p", [Statement]),
-                    io:format(user, "~n[BU] Error redundant whitespace(s) : NewSource      ~n > ~p", [StringNSource_BU]),
-                    io:format(user, "~n[BU] Error redundant whitespace(s) : 1. Redundant WS~n > ~p", [StringNSource_BUMultipleSpace]),
+                    io:format(user,
+                        "~n[BU] Error redundant whitespace(s) : Title          ~n > ~p",
+                        [Title]),
+                    io:format(user,
+                        "~n[BU] Error redundant whitespace(s) : Statement      ~n > ~p",
+                        [Statement]),
+                    io:format(user,
+                        "~n[BU] Error redundant whitespace(s) : NewSource      ~n > ~p",
+                        [StringNSource_BU]),
+                    io:format(user,
+                        "~n[BU] Error redundant whitespace(s) : 1. Redundant WS~n > ~p",
+                        [StringNSource_BUMultipleSpace]),
                     throw({error, "[BU] Error redundant whitespace(s)"})
             end,
             %% -----------------------------------------------------------------
@@ -864,41 +986,70 @@ formatter(Title, Statement, Result) ->
             %% -----------------------------------------------------------------
             %% 4. ParseTree ==> Source (=FormattedStatement)
             %% -----------------------------------------------------------------
-            FormattedStatement = case ?PARSER_MODULE:pt_to_string_format(ParseTree) of
-                                     {error, Error_Format} ->
-                                         io:format(user, "~n[BU] Error ParseTree -> NewSource Format : ParseTree~n > ~p", [ParseTree]),
-                                         throw({error, "[BU] Error ParseTree -> NewSource Format : " ++ Error_Format});
-                                     NS_Format ->
-                                         NS_Format
-                                 end,
-            ?debugFmt(?MODULE_STRING ++ ":formatter ===>~nFormattedStatement:~p~n", [FormattedStatement]),
+            FormattedStatement =
+                case ?PARSER_MODULE:pt_to_string_format(ParseTree) of
+                    {error, Error_Format} ->
+                        io:format(user,
+                            "~n[BU] Error ParseTree -> NewSource Format : ParseTree~n > ~p",
+                            [ParseTree]),
+                        throw({error,
+                                "[BU] Error ParseTree -> NewSource Format : " ++
+                                Error_Format});
+                    NS_Format ->
+                        NS_Format
+                end,
+            ?debugFmt(
+                ?MODULE_STRING ++ ":formatter ===>~nFormattedStatement:~p~n",
+                [FormattedStatement]),
             ?assertEqual(Result, binary_to_list(FormattedStatement)),
             %% -----------------------------------------------------------------
             %% 5. Source (=FormattedStatement) ==> ParseTree (=NPT_FORMAT)
             %% -----------------------------------------------------------------
             {ok, {_NPTree_FORMAT, _NToks_FORMAT}}
                 = try
-                      {ok, {NPT_FORMAT, NT_FORMAT}} = ?PARSER_MODULE:parsetree_with_tokens(FormattedStatement),
+                      {ok, {NPT_FORMAT, NT_FORMAT}} =
+                          ?PARSER_MODULE:parsetree_with_tokens(
+                              FormattedStatement),
                       {ok, {NPT_FORMAT, NT_FORMAT}}
                   catch
                       ExceptionFORMAT:ReasonFORMAT ->
-                          io:format(user, "~n[FORMAT] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Title          ~n > ~p", [Title]),
-                          io:format(user, "~n[FORMAT] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Statement      ~n > ~p", [Statement]),
-                          io:format(user, "~n[FORMAT] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : FormattedSource~n > ~p", [FormattedStatement]),
-                          io:format(user, "~n[FORMAT] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Exception      ~n > ~p", [ExceptionFORMAT]),
-                          io:format(user, "~n[FORMAT] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens : Reason         ~n > ~p", [ReasonFORMAT]),
-                          throw({error, "[FORMAT] Error " ++ ?MODULE_STRING ++ ":parsetree_with_tokens"})
+                          io:format(user, "~n[FORMAT] Error " ++
+                              ?MODULE_STRING ++
+                              ":parsetree_with_tokens : Title          ~n > ~p",
+                              [Title]),
+                          io:format(user, "~n[FORMAT] Error " ++
+                              ?MODULE_STRING ++
+                              ":parsetree_with_tokens : Statement      ~n > ~p",
+                              [Statement]),
+                          io:format(user, "~n[FORMAT] Error " ++
+                              ?MODULE_STRING ++
+                              ":parsetree_with_tokens : FormattedSource~n > ~p",
+                              [FormattedStatement]),
+                          io:format(user, "~n[FORMAT] Error " ++
+                              ?MODULE_STRING ++
+                              ":parsetree_with_tokens : Exception      ~n > ~p",
+                              [ExceptionFORMAT]),
+                          io:format(user, "~n[FORMAT] Error " ++
+                              ?MODULE_STRING ++
+                              ":parsetree_with_tokens : Reason         ~n > ~p",
+                              [ReasonFORMAT]),
+                          throw({error, "[FORMAT] Error " ++
+                              ?MODULE_STRING ++ ":parsetree_with_tokens"})
                   end;
         {lex_error, _Error} ->
             io:format(user, "~nFailed lex_error : Title    ~n > ~p", [Title]),
-            io:format(user, "~nFailed lex_error : Statement~n > ~p", [Statement]),
+            io:format(user, "~nFailed lex_error : Statement~n > ~p",
+                [Statement]),
             io:format(user, "~nFailed lex_error : Error    ~n > ~p", [_Error]),
             throw({error, "Failed lex_error"});
         {parse_error, {_Error, _Tokens}} ->
             io:format(user, "~nFailed parse_error : Title    ~n > ~p", [Title]),
-            io:format(user, "~nFailed parse_error : Statement~n > ~p", [Statement]),
-            io:format(user, "~nFailed parse_error : Tokens   ~n > ~p", [_Tokens]),
-            io:format(user, "~nFailed parse_error : Error    ~n > ~p", [_Error]),
+            io:format(user, "~nFailed parse_error : Statement~n > ~p",
+                [Statement]),
+            io:format(user, "~nFailed parse_error : Tokens   ~n > ~p",
+                [_Tokens]),
+            io:format(user, "~nFailed parse_error : Error    ~n > ~p",
+                [_Error]),
             throw({error, "Failed parse_error"})
     end.
 

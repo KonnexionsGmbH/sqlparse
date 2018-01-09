@@ -205,9 +205,12 @@
 -define(CREATE_CODE_END,
     [_CodeFirst | _] = Code,
     {_, _MemorySize} = erlang:process_info(self(), memory),
-    ?debugFmt("~ntime (ms)          ===  ~12.. B rule: ~s ~n", [erlang:monotonic_time(1000) - _Start, atom_to_list(Rule)]),
-    ?debugFmt("~nmemory (bytes)     ===  ~12.. B rule: ~s ~n", [_MemorySize, atom_to_list(Rule)]),
-    ?debugFmt("~ncode size (bytes) <===  ~12.. B rule: ~s ~n", [length(_CodeFirst), atom_to_list(Rule)]),
+    ?debugFmt("~ntime (ms)          ===  ~12.. B rule: ~s ~n",
+        [erlang:monotonic_time(1000) - _Start, atom_to_list(Rule)]),
+    ?debugFmt("~nmemory (bytes)     ===  ~12.. B rule: ~s ~n",
+        [_MemorySize, atom_to_list(Rule)]),
+    ?debugFmt("~ncode size (bytes) <===  ~12.. B rule: ~s ~n",
+        [length(_CodeFirst), atom_to_list(Rule)]),
     ok
 ).
 -define(CREATE_CODE_START,
@@ -217,11 +220,17 @@
 
 -define(F_RANDOM, fun(X, Y) -> erlang:phash2(X) < erlang:phash2(Y) end).
 
--define(GENERATE_COMPACTED, list_to_atom(string:to_lower(os:getenv("GENERATE_COMPACTED", "true")))).          % TRUE: compacted / FALSE: detailed.
--define(GENERATE_CT, list_to_atom(string:to_lower(os:getenv("GENERATE_CT", "true")))).
--define(GENERATE_EUNIT, list_to_atom(string:to_lower(os:getenv("GENERATE_EUNIT", "true")))).
--define(GENERATE_PERFORMANCE, list_to_atom(string:to_lower(os:getenv("GENERATE_PERFORMANCE", "true")))).
--define(GENERATE_RELIABILITY, list_to_atom(string:to_lower(os:getenv("GENERATE_RELIABILITY", "true")))).
+-define(GENERATE_COMPACTED, list_to_atom(string:to_lower(
+    os:getenv("GENERATE_COMPACTED",
+        "true")))).          % TRUE: compacted / FALSE: detailed.
+-define(GENERATE_CT, list_to_atom(
+    string:to_lower(os:getenv("GENERATE_CT", "true")))).
+-define(GENERATE_EUNIT, list_to_atom(
+    string:to_lower(os:getenv("GENERATE_EUNIT", "true")))).
+-define(GENERATE_PERFORMANCE, list_to_atom(
+    string:to_lower(os:getenv("GENERATE_PERFORMANCE", "true")))).
+-define(GENERATE_RELIABILITY, list_to_atom(
+    string:to_lower(os:getenv("GENERATE_RELIABILITY", "true")))).
 
 -define(LOGGING, list_to_atom(string:to_lower(os:getenv("LOGGING", "false")))).
 

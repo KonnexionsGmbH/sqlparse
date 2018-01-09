@@ -1344,7 +1344,7 @@ is_reserved(Word) when is_list(Word) ->
 
 -spec foldbu(fun(), term(), tuple()) -> {error, term()} | binary().
 foldbu(Fun, Ctx, PTree) when is_function(Fun, 2) ->
-    try sqlparse_fold:fold(bottom_up, Fun, Ctx, 0, PTree) of
+    try sqlparse_fold:fold(false, {}, bottom_up, Fun, Ctx, 0, PTree) of
         {Sql, null_fun = Ctx} -> list_to_binary(string:strip(Sql));
         {_Output, NewCtx} -> NewCtx
     catch
@@ -1353,7 +1353,7 @@ foldbu(Fun, Ctx, PTree) when is_function(Fun, 2) ->
 
 -spec foldtd(fun(), term(), tuple() | list()) -> {error, term()} | binary().
 foldtd(Fun, Ctx, PTree) when is_function(Fun, 2) ->
-    try sqlparse_fold:fold(top_down, Fun, Ctx, 0, PTree) of
+    try sqlparse_fold:fold(false, {}, top_down, Fun, Ctx, 0, PTree) of
         {Sql, null_fun = Ctx} -> list_to_binary(string:strip(Sql));
         {_Output, NewCtx} -> NewCtx
     catch
@@ -1362,7 +1362,7 @@ foldtd(Fun, Ctx, PTree) when is_function(Fun, 2) ->
 
 -spec format(fun(), term(), tuple() | list()) -> {error, term()} | binary().
 format(Fun, Ctx, PTree) when is_function(Fun, 2) ->
-    try sqlparse_format:fold({}, top_down, Fun, Ctx, 0, PTree) of
+    try sqlparse_fold:fold(true, {}, top_down, Fun, Ctx, 0, PTree) of
         {Sql, null_fun = Ctx} -> list_to_binary(string:strip(Sql));
         {_Output, NewCtx} -> NewCtx
     catch

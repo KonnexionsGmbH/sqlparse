@@ -225,6 +225,10 @@ UNION ALL
 "SELECT * FROM name_table WHERE name_column_1 NOT LIKE 50 ESCAPE 'Name_atom'".
 "SELECT * FROM name_table WHERE name_column_1 NOT LIKE name_column_2 ESCAPE 'name_atom'".
 
+"select * from dual where column_1 like (3 + 5)".
+"select * from dual where column_1 like (select * from dual)".
+"select * from dual where column_1 like select * from dual".
+
 % predicate null ---------------------------------------------------------------
 
 "SELECT * FROM name_table WHERE name_column_1 IS NULL".

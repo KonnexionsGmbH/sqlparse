@@ -2796,7 +2796,7 @@ fold(Format, State, FType, Fun, Ctx, _Lvl, {Type, E} = ST)
     RT;
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% In operator
+% IN operator
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fold(Format, State, FType, Fun, Ctx, Lvl, {'in', L, R} = ST)
@@ -2824,18 +2824,10 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {'in', L, R} = ST)
                   format_identifier(L),
                   " ",
                   format_keyword("in "),
-                  case lists:prefix("(", RStr) of
-                      true -> RStr;
-                      _ ->
-                          lists:append(["(", RStr, ")"])
-                  end]);
+                  RStr
+              ]);
               _ -> lists:append(
-                  [binary_to_list(L), " in ", case lists:prefix("(", RStr) of
-                                                  true -> RStr;
-                                                  _ ->
-                                                      lists:append(
-                                                          ["(", RStr, ")"])
-                                              end])
+                  [binary_to_list(L), " in ", RStr])
           end, NewCtx3},
     ?debugFmt(?MODULE_STRING ++ ":fold ===>~n RT: ~p~n", [RT]),
     RT;
@@ -3371,7 +3363,9 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {like, Var, Like, OptEsc} = ST) ->
              end,
     {VarStr, NewCtx1} = fold(Format, State, FType, Fun, NewCtx, Lvl + 1, Var),
     {LikeStr, NewCtx2} =
-        fold(Format, State, FType, Fun, NewCtx1, Lvl + 1, Like),
+        fold(Format,
+            State#state{indentation_level = State#state.indentation_level + 1},
+            FType, Fun, NewCtx1, Lvl + 1, Like),
     {OptEscStr, NewCtx3} = case is_binary(OptEsc) of
                                true -> case OptEsc of
                                            <<>> -> {[], NewCtx2};
@@ -3390,11 +3384,7 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {like, Var, Like, OptEsc} = ST) ->
                   VarStr,
                   " ",
                   format_keyword("like "),
-                  case lists:prefix("select ", LikeStr) of
-                      true ->
-                          lists:append(["(", LikeStr, ")"]);
-                      _ -> LikeStr
-                  end,
+                  LikeStr,
                   case OptEscStr of
                       [] -> [];
                       _ -> lists:append(
@@ -3404,11 +3394,7 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {like, Var, Like, OptEsc} = ST) ->
               _ -> lists:append([
                   VarStr,
                   " like ",
-                  case lists:prefix("select ", LikeStr) of
-                      true ->
-                          lists:append(["(", LikeStr, ")"]);
-                      _ -> LikeStr
-                  end,
+                  LikeStr,
                   case OptEscStr of
                       [] -> [];
                       _ -> " escape " ++ OptEscStr
@@ -3875,10 +3861,10 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {Type, ClmList} = ST)
                   top_down -> NewCtx1;
                   bottom_up -> Fun(ST, NewCtx1)
               end,
-    RT = {lists:append([case Format of
-                            true -> format_keyword(Type);
-                            _ -> atom_to_list(Type)
-                        end, " (", ClmStr, ")"]), NewCtx2},
+    RT = {lists:flatten([case Format of
+                             true -> format_keyword(Type);
+                             _ -> atom_to_list(Type)
+                         end, " (", ClmStr, ")"]), NewCtx2},
     ?debugFmt(?MODULE_STRING ++ ":fold ===>~n RT: ~p~n", [RT]),
     RT;
 
@@ -3992,7 +3978,7 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {ref, {Table, Value2}} = ST)
             Acc,
             case length(Acc) == 0 of
                 true -> [];
-                _ -> ","
+                _ -> ", "
             end,
             VNew
         ]), Fun(V, CtxAcc)}
@@ -4090,8 +4076,8 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {R, Sel, Var} = ST)
               _ ->
                   lists:flatten(
                       [atom_to_list(R), " ", string:join(SelStr,
-                          ","), " INTO ", string:join(VarStr,
-                          ",")])
+                          ", "), " INTO ", string:join(VarStr,
+                          ", ")])
           end, NewCtx4},
     ?debugFmt(?MODULE_STRING ++ ":fold ===>~n RT: ~p~n", [RT]),
     RT;
@@ -4194,14 +4180,14 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
               ]);
               _ -> lists:flatten([
                   "revoke ",
-                  string:join(ObjsStr, ","),
+                  string:join(ObjsStr, ", "),
                   " ",
                   case On =/= <<"">> of
                       true -> lists:append([OnTypNew, " ", OnNew, " "]);
                       _ -> []
                   end,
                   "from ",
-                  string:join(TosStr, ","),
+                  string:join(TosStr, ", "),
                   case atom_to_list(Opts) of
                       [] -> [];
                       OptsStr -> " " ++ OptsStr
@@ -4251,7 +4237,7 @@ fold(Format, State, FType, Fun, Ctx, _Lvl, {Role, Roles} = ST)
                   atom_to_list(Role),
                   " ",
                   string:join([binary_to_list(R) || R <- Roles],
-                      ",")
+                      ", ")
               ])
           end, NewCtx1},
     ?debugFmt(?MODULE_STRING ++ ":fold ===>~n RT: ~p~n", [RT]),
@@ -4738,7 +4724,7 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                   "update ",
                   TableStr,
                   " set ",
-                  string:join(Sets, ","),
+                  string:join(Sets, ", "),
                   case WhereStr of
                       [] -> [];
                       _ -> " " ++ WhereStr
@@ -4793,7 +4779,7 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {using, ColumnList} = ST) ->
                   end
               ]);
               _ -> lists:append(
-                  ["using (", string:join(ColumnListStr, ","), ")"])
+                  ["using(", string:join(ColumnListStr, ", "), ")"])
           end, NewCtx2},
     ?debugFmt(?MODULE_STRING ++ ":fold ===>~n RT: ~p~n", [RT]),
     RT;
@@ -5143,29 +5129,22 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {Op, L, R} = ST)
           end, NewCtx4},
     ?debugFmt(?MODULE_STRING ++ ":fold ===>~n RT: ~p~n", [RT]),
     RT;
-fold(true = _Format, _State, FType, Fun, Ctx, _Lvl,
+fold(true = _Format, _State, _FType, Fun, Ctx, _Lvl,
     {is = Op, L, <<"null">> = R} = ST)
     when is_binary(L) ->
     ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p-~p-~p~n ST: ~p~n",
         [_Format, _Lvl, _State#state.indentation_level, ST]),
-    NewCtx = case FType of
-                 top_down -> Fun(ST, Ctx);
-                 bottom_up -> Ctx
-             end,
+    NewCtx = Fun(ST, Ctx),
     NewCtx1 = Fun(L, NewCtx),
     NewCtx2 = Fun(Op, NewCtx1),
     NewCtx3 = Fun(R, NewCtx2),
-    NewCtx4 = case FType of
-                  top_down -> NewCtx3;
-                  bottom_up -> Fun(ST, NewCtx3)
-              end,
     RT = {lists:append([
         format_identifier(L),
         " ",
         format_keyword(Op),
         " ",
         format_keyword(R)
-    ]), NewCtx4},
+    ]), NewCtx3},
     ?debugFmt(?MODULE_STRING ++ ":fold ===>~n RT: ~p~n", [RT]),
     RT;
 fold(Format, State, FType, Fun, Ctx, _Lvl, {Op, L, R} = ST)
@@ -5348,30 +5327,24 @@ format_commalist(IndentationLevel, [Head | Tail], Acc) ->
         Acc,
         ?CHAR_NEWLINE,
         format_column_pos(IndentationLevel),
-        lists:flatten(case is_binary(Head) of
-                          true -> binary_to_list(Head);
-                          _ -> Head
-                      end),
-        case Head == "(" orelse
-            string:slice(lists:append(Tail), 0, 1) == ")" orelse Tail == [] of
+        lists:flatten(Head),
+        case string:slice(lists:append(Tail), 0, 1) == ")" orelse Tail == [] of
             true -> [];
-            _ -> case string:find(lists:nth(1, Tail), "JOIN") of
-                     nomatch -> case string:find(lists:nth(1, Tail), "USING") of
-                                    nomatch ->
-                                        case string:find(lists:nth(1, Tail),
-                                            "UNION") of
-                                            nomatch ->
-                                                case string:find(
-                                                    lists:nth(1, Tail), "ON") of
-                                                    nomatch -> ",";
-                                                    _ -> []
-                                                end;
-                                            _ -> ","
-                                        end;
-                                    _ -> []
-                                end;
-                     _ -> []
-                 end
+            _ -> Next = string:casefold(lists:nth(1, Tail)),
+                case string:slice(Next, 0, 5) == "full " orelse
+                    string:slice(Next, 0, 6) == "cross " orelse
+                    string:slice(Next, 0, 6) == "inner " orelse
+                    string:slice(Next, 0, 5) == "join " orelse
+                    string:slice(Next, 0, 5) == "left " orelse
+                    string:slice(Next, 0, 8) == "natural " orelse
+                    string:slice(Next, 0, 3) == "on " orelse
+                    string:slice(Next, 0, 10) == "partition " orelse
+                    string:slice(Next, 0, 6) == "right " orelse
+                    string:slice(Next, 0, 6) == "using " orelse
+                    string:slice(Next, 0, 6) == "using" ++ ?CHAR_NEWLINE of
+                    true -> [];
+                    _ -> ","
+                end
         end
     ])).
 
@@ -5401,11 +5374,17 @@ format_identifier(Identifier)
 format_identifier(Identifier = _ST) ->
     case Identifier of
         "*" -> Identifier;
-        _ -> case lists:member(string:uppercase(Identifier), get_funs()) of
-                 true -> format_keyword(Identifier);
-                 _ -> format_identifier(string:split(Identifier, ".", all), [],
-                     [])
-             end
+        _ -> I_1 = lists:sublist(Identifier, 1),
+            case I_1 == "'" orelse I_1 == "\"" of
+                true -> Identifier;
+                _ -> case lists:member(string:uppercase(Identifier),
+                    get_funs()) of
+                         true -> format_keyword(Identifier);
+                         _ -> format_identifier(
+                             string:split(Identifier, ".", all), [],
+                             [])
+                     end
+            end
     end.
 
 format_identifier([], _, Acc) ->
@@ -5479,7 +5458,7 @@ format_operator(IndentationLevel, Op = _ST, IsUnary) ->
                  _ -> case IsUnary of
                           true -> case ?WS_OPERATORS of
                                       true -> string:trim(Op, both, " ") ++ " ";
-                                      _ -> op
+                                      _ -> Op
                                   end;
                           _ ->
                               case ?WS_OPERATORS /= true andalso (
@@ -5500,47 +5479,6 @@ format_operator(IndentationLevel, Op = _ST, IsUnary) ->
 % Formatting search conditions.
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-format_search_condition(IndentationLevel,
-    [[_, _, _] = Left, Op, [_, _, _] = Right] = _ST) ->
-    lists:append([
-        format_search_condition(IndentationLevel, Left),
-        ?CHAR_NEWLINE,
-        format_column_pos(IndentationLevel),
-        format_keyword(Op),
-        " ",
-        format_search_condition(IndentationLevel, Right)
-    ]);
-format_search_condition(IndentationLevel, [[_, _, _] = Left, Op, Right] =
-    _ST) ->
-    lists:append([
-        format_search_condition(IndentationLevel, Left),
-        ?CHAR_NEWLINE,
-        format_column_pos(IndentationLevel),
-        format_keyword(Op),
-        " ",
-        Right
-    ]);
-format_search_condition(IndentationLevel, [Left, Op, [_, _, _] = Right] =
-    _ST) ->
-    lists:append([
-        Left,
-        ?CHAR_NEWLINE,
-        format_column_pos(IndentationLevel),
-        format_keyword(Op),
-        " ",
-        format_search_condition(IndentationLevel, Right)
-    ]);
-
-format_search_condition(IndentationLevel, [Left, Op, Right] = _ST)
-    when Op == "AND"; Op == "OR" ->
-    lists:append([
-        Left,
-        ?CHAR_NEWLINE,
-        format_column_pos(IndentationLevel),
-        Op,
-        " ",
-        Right
-    ]);
 format_search_condition(IndentationLevel, [Left, Op, Right] = _ST) ->
     lists:append([
         Left,

@@ -2483,7 +2483,7 @@ WHERE
 select 'S' || ',' || to_char(BD_DATETIME, 'YYYYMMDDHH24MISS') || ',' || 'I' || ',' || BD_IW_SCENARIO || ',' || DECODE(IS_NUMERIC(BD_MSISDN_A), 0, BD_ORIGSCA, BD_MSISDN_A) || ',' || BD_ORIGSCA || ',' || BD_MSISDN_B || ',' || '41794999021' || ',' || LTRIM(TO_CHAR(NVL(BD_IW_AMOUNT, 0.075) * 10000, '00000')) || ',' || BD_IMSI CSV from SBS1_ADMIN.BDETAIL2_HR_SEG_MASTER_09, SBS1_ADMIN.ENUM256 where to_number(ENUM_ID) <= BD_SEG_COUNT - IS_COUNT and not (BD_MSISDN_A is null) and IS_COUNT < BD_SEG_COUNT and BD_SEG_ID = BD_SEG_COUNT and BD_IW_APMN = 'CHEOR' and BD_DATETIME >= to_date('11.09.2017') and BD_DATETIME < to_date('21.09.2017') order by 1 asc").
 
 -define(MISCELLANEOUS_07_RESULT_DEFAULT, "SELECT
-    's' || ',' || TO_CHAR(Bd_Datetime, 'yyyymmddhh24miss') || ',' || 'i' || ',' || Bd_Iw_Scenario || ',' || DECODE(
+    'S' || ',' || TO_CHAR(Bd_Datetime, 'YYYYMMDDHH24MISS') || ',' || 'I' || ',' || Bd_Iw_Scenario || ',' || DECODE(
         Is_Numeric(Bd_Msisdn_A),
         0,
         Bd_Origsca,
@@ -2499,7 +2499,7 @@ WHERE
     AND NOT (Bd_Msisdn_A IS NULL)
     AND Is_Count < Bd_Seg_Count
     AND Bd_Seg_Id = Bd_Seg_Count
-    AND Bd_Iw_Apmn = 'cheor'
+    AND Bd_Iw_Apmn = 'CHEOR'
     AND Bd_Datetime >= TO_DATE('11.09.2017')
     AND Bd_Datetime < TO_DATE('21.09.2017')
 ORDER BY
@@ -2521,8 +2521,8 @@ FROM
     Setdetail
 WHERE
     Sed_Etid = :SQLT_STR_CDR_TYPE
-    AND NOT (Sed_Tarid IN ('x', 'v', 's', 'p', 't'))
-    AND Sed_Order LIKE TO_CHAR(Sysdate, 'yyyy-mm') || '%'
+    AND NOT (Sed_Tarid IN ('X', 'V', 'S', 'P', 'T'))
+    AND Sed_Order LIKE TO_CHAR(Sysdate, 'YYYY-MM') || '%'
 GROUP BY
     Substr(Sed_Order, 1, 10),
     Sed_Etid
@@ -2680,14 +2680,14 @@ WHERE
         '1'
         ) || Bd_Billed || DECODE(
         UPPER(Bd_Pacidhb),
-        '<revah_Pacid>',
+        '<REVAH_PACID>',
         '1',
         '0'
         ) || Bd_Mapsid || DECODE(
         Substr(Bd_Msisdn_A, 1, 5),
         '42377',
-        'f',
-        's'
+        'F',
+        'S'
         ) || Bd_Prepaid LIKE :SQLT_STR_CODE").
 
 %%------------------------------------------------------------------------------
@@ -2819,6 +2819,19 @@ Having
 Order By
     columN_8").
 
+-define(OPTION_01_RESULT_K_L_4_S_F, "select
+    columN_1
+from
+    tablE_1
+where
+    columN_3<>columN_4
+group by
+    columN_5
+having
+    columN_6=columN_7
+order by
+    columN_8").
+
 -define(OPTION_01_RESULT_L_U_4_S_T, "SELECT
     column_1
 FROM
@@ -2832,6 +2845,58 @@ HAVING
 ORDER BY
     column_8").
 
+-define(OPTION_01_RESULT_U_L_0_S_T, "select
+ COLUMN_1
+from
+ TABLE_1
+where
+ COLUMN_3 <> COLUMN_4
+group by
+ COLUMN_5
+having
+ COLUMN_6 = COLUMN_7
+order by
+ COLUMN_8").
+
+-define(OPTION_01_RESULT_U_L_1_S_T, "select
+ COLUMN_1
+from
+ TABLE_1
+where
+ COLUMN_3 <> COLUMN_4
+group by
+ COLUMN_5
+having
+ COLUMN_6 = COLUMN_7
+order by
+ COLUMN_8").
+
+-define(OPTION_01_RESULT_U_L_2_S_T, "select
+  COLUMN_1
+from
+  TABLE_1
+where
+  COLUMN_3 <> COLUMN_4
+group by
+  COLUMN_5
+having
+  COLUMN_6 = COLUMN_7
+order by
+  COLUMN_8").
+
+-define(OPTION_01_RESULT_U_L_3_S_T, "select
+   COLUMN_1
+from
+   TABLE_1
+where
+   COLUMN_3 <> COLUMN_4
+group by
+   COLUMN_5
+having
+   COLUMN_6 = COLUMN_7
+order by
+   COLUMN_8").
+
 -define(OPTION_01_RESULT_U_L_4_S_T, "select
     COLUMN_1
 from
@@ -2844,6 +2909,115 @@ having
     COLUMN_6 = COLUMN_7
 order by
     COLUMN_8").
+
+-define(OPTION_01_RESULT_U_L_5_S_T, "select
+     COLUMN_1
+from
+     TABLE_1
+where
+     COLUMN_3 <> COLUMN_4
+group by
+     COLUMN_5
+having
+     COLUMN_6 = COLUMN_7
+order by
+     COLUMN_8").
+
+-define(OPTION_01_RESULT_U_L_6_S_T, "select
+      COLUMN_1
+from
+      TABLE_1
+where
+      COLUMN_3 <> COLUMN_4
+group by
+      COLUMN_5
+having
+      COLUMN_6 = COLUMN_7
+order by
+      COLUMN_8").
+
+-define(OPTION_01_RESULT_U_L_7_S_T, "select
+       COLUMN_1
+from
+       TABLE_1
+where
+       COLUMN_3 <> COLUMN_4
+group by
+       COLUMN_5
+having
+       COLUMN_6 = COLUMN_7
+order by
+       COLUMN_8").
+
+-define(OPTION_01_RESULT_U_L_8_S_T, "select
+        COLUMN_1
+from
+        TABLE_1
+where
+        COLUMN_3 <> COLUMN_4
+group by
+        COLUMN_5
+having
+        COLUMN_6 = COLUMN_7
+order by
+        COLUMN_8").
+
+-define(OPTION_01_RESULT_U_L_9_S_T, "select
+ COLUMN_1
+from
+ TABLE_1
+where
+ COLUMN_3 <> COLUMN_4
+group by
+ COLUMN_5
+having
+ COLUMN_6 = COLUMN_7
+order by
+ COLUMN_8").
+
+-define(OPTION_01_RESULT_U_L___T_T, "select
+\tCOLUMN_1
+from
+\tTABLE_1
+where
+\tCOLUMN_3 <> COLUMN_4
+group by
+\tCOLUMN_5
+having
+\tCOLUMN_6 = COLUMN_7
+order by
+\tCOLUMN_8").
+
+%%------------------------------------------------------------------------------
+%% OPTION 02.
+%%------------------------------------------------------------------------------
+
+-define(OPTION_02, "
+select columN_1,+columN_2
+from tablE_1
+where columN_3_1 <> columN_4_1
+and columN_3_2 > columN_4_2
+and columN_3_3 >= columN_4_3
+and columN_3_4 <= columN_4_4
+group by columN_5
+having columN_6 = columN_7
+order by columN_8").
+
+-define(OPTION_02_RESULT_K_L_4_S_F, "select
+    columN_1, +(columN_2)
+from
+    tablE_1
+where
+    columN_3_1<>columN_4_1
+    and columN_3_2>columN_4_2
+    and columN_3_3>=columN_4_3
+    and columN_3_4<=columN_4_4
+group by
+    columN_5
+having
+    columN_6=columN_7
+order by
+    columN_8").
 
 %%------------------------------------------------------------------------------
 %% ORDER BY 01 - very simple.
@@ -3701,7 +3875,7 @@ end;").
     FROM
         Dual;
     SELECT
-        Column_1
+        Column_1,
         (SELECT
             *
         FROM
@@ -4019,7 +4193,7 @@ begin schm.proc(:p_first,:p_second,:p_result); dbms_output.put_line('Goodbye cru
 
 -define(PLSQL_20_RESULT_DEFAULT, "BEGIN
     Schm.Proc(:p_first, :p_second, :p_result);
-    Dbms_Output.Put_Line('goodbye cruel world!');
+    Dbms_Output.Put_Line('Goodbye cruel World!');
 END").
 
 %%------------------------------------------------------------------------------
@@ -4770,7 +4944,7 @@ select column_1,(select * from table_1,table_2 natural join table_3,table_4) col
 from dual").
 
 -define(SELECT_19_RESULT_DEFAULT, "SELECT
-    Column_1
+    Column_1,
     (SELECT
         *
     FROM
@@ -4928,6 +5102,46 @@ select (+ column_2)|:b| from table_1").
     (+ (Column_2))|:b|
 FROM
     Table_1").
+
+%%------------------------------------------------------------------------------
+%% SELECT 29 - STRING.
+%%------------------------------------------------------------------------------
+
+-define(SELECT_29, "
+select \"columN_1\" into \"columN_2\" from \"tablE_1\" where \"columN_3\" = \"columN_4\" group by \"columN_5\" having \"columN_6\" = \"columN_7\" order by \"columN_8\"").
+
+-define(SELECT_29_RESULT_DEFAULT, "SELECT
+    \"columN_1\"
+INTO
+    \"columN_2\"
+FROM
+    \"tablE_1\"
+WHERE
+    \"columN_3\" = \"columN_4\"
+GROUP BY
+    \"columN_5\"
+HAVING
+    \"columN_6\" = \"columN_7\"
+ORDER BY
+    \"columN_8\"").
+
+%%------------------------------------------------------------------------------
+%% SELECT 30 - STRING.
+%%------------------------------------------------------------------------------
+
+-define(SELECT_30, "
+select 'columN_1' from 'tablE_1' where 'columN_3' = 'columN_4' having 'columN_6' = 'columN_7' order by 'columN_8'").
+
+-define(SELECT_30_RESULT_DEFAULT, "SELECT
+    'columN_1'
+FROM
+    'tablE_1'
+WHERE
+    'columN_3' = 'columN_4'
+HAVING
+    'columN_6' = 'columN_7'
+ORDER BY
+    'columN_8'").
 
 %%------------------------------------------------------------------------------
 %% STRUCTURE 01 - sinple subquery.
@@ -5504,7 +5718,7 @@ FROM
     Dual").
 
 %%------------------------------------------------------------------------------
-%% UNION 18 - ALIAS.
+%% UNION 18 - ALIAS & MINUS.
 %%------------------------------------------------------------------------------
 
 -define(UNION_18, "
@@ -5525,7 +5739,7 @@ FROM
     Dual").
 
 %%------------------------------------------------------------------------------
-%% UNION 19 - ALIAS.
+%% UNION 19 - ALIAS & MINUS.
 %%------------------------------------------------------------------------------
 
 -define(UNION_19, "
@@ -5547,7 +5761,7 @@ FROM
     Dual").
 
 %%------------------------------------------------------------------------------
-%% UNION 20 - ALIAS.
+%% UNION 20 - ALIAS & MINUS.
 %%------------------------------------------------------------------------------
 
 -define(UNION_20, "
@@ -5561,6 +5775,72 @@ from dual").
     FROM
         Dual
     MINUS
+    SELECT
+        *
+    FROM
+        Dual) Column_2,
+    Column_3
+FROM
+    Dual").
+
+%%------------------------------------------------------------------------------
+%% UNION 21 - ALIAS & INTERSECT.
+%%------------------------------------------------------------------------------
+
+-define(UNION_21, "
+select (select * from dual) intersect (select * from dual) as column_2
+from dual").
+
+-define(UNION_21_RESULT_DEFAULT, "SELECT
+    (SELECT
+        *
+    FROM
+        Dual
+    INTERSECT
+    SELECT
+        *
+    FROM
+        Dual) Column_2
+FROM
+    Dual").
+
+%%------------------------------------------------------------------------------
+%% UNION 22 - ALIAS & INTERSECT.
+%%------------------------------------------------------------------------------
+
+-define(UNION_22, "
+select column_1,(select * from dual) intersect (select * from dual) as column_2
+from dual").
+
+-define(UNION_22_RESULT_DEFAULT, "SELECT
+    Column_1,
+    (SELECT
+        *
+    FROM
+        Dual
+    INTERSECT
+    SELECT
+        *
+    FROM
+        Dual) Column_2
+FROM
+    Dual").
+
+%%------------------------------------------------------------------------------
+%% UNION 23 - ALIAS & INTERSECT.
+%%------------------------------------------------------------------------------
+
+-define(UNION_23, "
+select column_1,(select * from dual) intersect (select * from dual) as column_2,column_3
+from dual").
+
+-define(UNION_23_RESULT_DEFAULT, "SELECT
+    Column_1,
+    (SELECT
+        *
+    FROM
+        Dual
+    INTERSECT
     SELECT
         *
     FROM
@@ -6162,5 +6442,129 @@ CONNECT BY NOCYCLE
 START WITH
     Column_1 IS NULL
     AND Column_2 < 0").
+
+%%------------------------------------------------------------------------------
+%% WHERE 22 - SELECT = SELECT.
+%%------------------------------------------------------------------------------
+
+-define(WHERE_22, "
+select * from dual
+where (select column_1 from dual) = (select column_2 from dual)").
+
+-define(WHERE_22_RESULT_DEFAULT, "SELECT
+    *
+FROM
+    Dual
+WHERE
+    (SELECT
+        Column_1
+    FROM
+        Dual) = (SELECT
+        Column_2
+    FROM
+        Dual)").
+
+%%------------------------------------------------------------------------------
+%% WHERE 23 - = SELECT.
+%%------------------------------------------------------------------------------
+
+-define(WHERE_23, "
+select * from dual
+where column_1 = (select column_2 from dual)").
+
+-define(WHERE_23_RESULT_DEFAULT, "SELECT
+    *
+FROM
+    Dual
+WHERE
+    Column_1 = (SELECT
+        Column_2
+    FROM
+        Dual)").
+
+%%------------------------------------------------------------------------------
+%% WHERE 24 - SELECT =.
+%%------------------------------------------------------------------------------
+
+-define(WHERE_24, "
+select * from dual
+where (select column_1 from dual) = column_2").
+
+-define(WHERE_24_RESULT_DEFAULT, "SELECT
+    *
+FROM
+    Dual
+WHERE
+    (SELECT
+        Column_1
+    FROM
+        Dual) = Column_2").
+
+%%------------------------------------------------------------------------------
+%% WHERE 25 - SELECT =.
+%%------------------------------------------------------------------------------
+
+-define(WHERE_25, "
+select * from dual
+where column_1 = column_2 and column_3 = column_4").
+
+-define(WHERE_25_RESULT_DEFAULT, "SELECT
+    *
+FROM
+    Dual
+WHERE
+    Column_1 = Column_2
+    AND Column_3 = Column_4").
+
+%%------------------------------------------------------------------------------
+%% WHERE 26 - LIKE.
+%%------------------------------------------------------------------------------
+
+-define(WHERE_26, "
+select * from dual
+where column_1 like (3 + 5)").
+
+-define(WHERE_26_RESULT_DEFAULT, "SELECT
+    *
+FROM
+    Dual
+WHERE
+    Column_1 LIKE 3 + 5").
+
+%%------------------------------------------------------------------------------
+%% WHERE 27 - LIKE.
+%%------------------------------------------------------------------------------
+
+-define(WHERE_27, "
+select * from dual
+where column_1 like (select * from dual)").
+
+-define(WHERE_27_RESULT_DEFAULT, "SELECT
+    *
+FROM
+    Dual
+WHERE
+    Column_1 LIKE (SELECT
+        *
+    FROM
+        Dual)").
+
+%%------------------------------------------------------------------------------
+%% WHERE 28 - LIKE.
+%%------------------------------------------------------------------------------
+
+-define(WHERE_28, "
+select * from dual
+where column_1 like select * from dual").
+
+-define(WHERE_28_RESULT_DEFAULT, "SELECT
+    *
+FROM
+    Dual
+WHERE
+    Column_1 LIKE (SELECT
+        *
+    FROM
+        Dual)").
 
 -endif.

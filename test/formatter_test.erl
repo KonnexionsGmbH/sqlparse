@@ -556,7 +556,9 @@ default_SELECT_test_() ->
                 {formatter("SELECT_25", ?SELECT_25, ?SELECT_25_RESULT_DEFAULT)},
                 {formatter("SELECT_26", ?SELECT_26, ?SELECT_26_RESULT_DEFAULT)},
                 {formatter("SELECT_27", ?SELECT_27, ?SELECT_27_RESULT_DEFAULT)},
-                {formatter("SELECT_28", ?SELECT_28, ?SELECT_28_RESULT_DEFAULT)}
+                {formatter("SELECT_28", ?SELECT_28, ?SELECT_28_RESULT_DEFAULT)},
+                {formatter("SELECT_29", ?SELECT_29, ?SELECT_29_RESULT_DEFAULT)},
+                {formatter("SELECT_30", ?SELECT_30, ?SELECT_30_RESULT_DEFAULT)}
             ]
         end
     }.
@@ -660,7 +662,10 @@ default_UNION_test_() ->
                 {formatter("UNION_17", ?UNION_17, ?UNION_17_RESULT_DEFAULT)},
                 {formatter("UNION_18", ?UNION_18, ?UNION_18_RESULT_DEFAULT)},
                 {formatter("UNION_19", ?UNION_19, ?UNION_19_RESULT_DEFAULT)},
-                {formatter("UNION_20", ?UNION_20, ?UNION_20_RESULT_DEFAULT)}
+                {formatter("UNION_20", ?UNION_20, ?UNION_20_RESULT_DEFAULT)},
+                {formatter("UNION_21", ?UNION_21, ?UNION_21_RESULT_DEFAULT)},
+                {formatter("UNION_22", ?UNION_22, ?UNION_22_RESULT_DEFAULT)},
+                {formatter("UNION_23", ?UNION_23, ?UNION_23_RESULT_DEFAULT)}
             ]
         end
     }.
@@ -735,7 +740,14 @@ default_WHERE_test_() ->
                 {formatter("WHERE_18", ?WHERE_18, ?WHERE_18_RESULT_DEFAULT)},
                 {formatter("WHERE_19", ?WHERE_19, ?WHERE_19_RESULT_DEFAULT)},
                 {formatter("WHERE_20", ?WHERE_20, ?WHERE_20_RESULT_DEFAULT)},
-                {formatter("WHERE_21", ?WHERE_21, ?WHERE_21_RESULT_DEFAULT)}
+                {formatter("WHERE_21", ?WHERE_21, ?WHERE_21_RESULT_DEFAULT)},
+                {formatter("WHERE_22", ?WHERE_22, ?WHERE_22_RESULT_DEFAULT)},
+                {formatter("WHERE_23", ?WHERE_23, ?WHERE_23_RESULT_DEFAULT)},
+                {formatter("WHERE_24", ?WHERE_24, ?WHERE_24_RESULT_DEFAULT)},
+                {formatter("WHERE_25", ?WHERE_25, ?WHERE_25_RESULT_DEFAULT)},
+                {formatter("WHERE_26", ?WHERE_26, ?WHERE_26_RESULT_DEFAULT)},
+                {formatter("WHERE_27", ?WHERE_27, ?WHERE_27_RESULT_DEFAULT)},
+                {formatter("WHERE_28", ?WHERE_28, ?WHERE_28_RESULT_DEFAULT)}
             ]
         end
     }.
@@ -765,12 +777,35 @@ option_K_I_4_S_T_test_() ->
 %% Tests with the following options:
 %%
 %% - identifier: keep_unchanged
-%% - keyword:    init_cap
+%% - keyword:    lower
+%% - indent:     4 spaces
+%% - whitespace: false
+%%------------------------------------------------------------------------------
+
+option_K_L_4_S_F_test_() ->
+    {
+        setup,
+        fun setup_K_L_4_S_F/0,
+        fun() ->
+            [
+                {formatter("OPTION_01_K_L_4_S_F", ?OPTION_01,
+                    ?OPTION_01_RESULT_K_L_4_S_F)},
+                {formatter("OPTION_02_K_L_4_S_F", ?OPTION_02,
+                    ?OPTION_02_RESULT_K_L_4_S_F)}
+            ]
+        end
+    }.
+
+%%------------------------------------------------------------------------------
+%% Tests with the following options:
+%%
+%% - identifier: lower
+%% - keyword:    upper
 %% - indent:     4 spaces
 %% - whitespace: true
 %%------------------------------------------------------------------------------
 
-option_L_U_4_S_T_test() ->
+option_L_U_4_S_T_test_() ->
     {
         setup,
         fun setup_L_U_4_S_T/0,
@@ -787,11 +822,95 @@ option_L_U_4_S_T_test() ->
 %%
 %% - identifier: upper
 %% - keyword:    lower
+%% - indent:     0 spaces
+%% - whitespace: true
+%%------------------------------------------------------------------------------
+
+option_U_L_0_S_T_test_() ->
+    {
+        setup,
+        fun setup_U_L_0_S_T/0,
+        fun() ->
+            [
+                {formatter("OPTION_01_U_L_0_S_T", ?OPTION_01,
+                    ?OPTION_01_RESULT_U_L_0_S_T)}
+            ]
+        end
+    }.
+
+%%------------------------------------------------------------------------------
+%% Tests with the following options:
+%%
+%% - identifier: upper
+%% - keyword:    lower
+%% - indent:     1 spaces
+%% - whitespace: true
+%%------------------------------------------------------------------------------
+
+option_U_L_1_S_T_test_() ->
+    {
+        setup,
+        fun setup_U_L_1_S_T/0,
+        fun() ->
+            [
+                {formatter("OPTION_01_U_L_1_S_T", ?OPTION_01,
+                    ?OPTION_01_RESULT_U_L_1_S_T)}
+            ]
+        end
+    }.
+
+%%------------------------------------------------------------------------------
+%% Tests with the following options:
+%%
+%% - identifier: upper
+%% - keyword:    lower
+%% - indent:     2 spaces
+%% - whitespace: true
+%%------------------------------------------------------------------------------
+
+option_U_L_2_S_T_test_() ->
+    {
+        setup,
+        fun setup_U_L_2_S_T/0,
+        fun() ->
+            [
+                {formatter("OPTION_01_U_L_2_S_T", ?OPTION_01,
+                    ?OPTION_01_RESULT_U_L_2_S_T)}
+            ]
+        end
+    }.
+
+%%------------------------------------------------------------------------------
+%% Tests with the following options:
+%%
+%% - identifier: upper
+%% - keyword:    lower
+%% - indent:     3 spaces
+%% - whitespace: true
+%%------------------------------------------------------------------------------
+
+option_U_L_3_S_T_test_() ->
+    {
+        setup,
+        fun setup_U_L_3_S_T/0,
+        fun() ->
+            [
+                {formatter("OPTION_01_U_L_3_S_T", ?OPTION_01,
+                    ?OPTION_01_RESULT_U_L_3_S_T)}
+            ]
+        end
+    }.
+
+%%------------------------------------------------------------------------------
+%% Tests with the following options:
+%%
+%% - identifier: upper
+%% - keyword:    lower
 %% - indent:     4 spaces
 %% - whitespace: true
 %%------------------------------------------------------------------------------
 
-option_U_L_4_S_T_test() ->
+option_U_L_4_S_T_test_() ->
     {
         setup,
         fun setup_U_L_4_S_T/0,
@@ -799,6 +918,132 @@ option_U_L_4_S_T_test() ->
             [
                 {formatter("OPTION_01_U_L_4_S_T", ?OPTION_01,
                     ?OPTION_01_RESULT_U_L_4_S_T)}
+            ]
+        end
+    }.
+
+%%------------------------------------------------------------------------------
+%% Tests with the following options:
+%%
+%% - identifier: upper
+%% - keyword:    lower
+%% - indent:     5 spaces
+%% - whitespace: true
+%%------------------------------------------------------------------------------
+
+option_U_L_5_S_T_test_() ->
+    {
+        setup,
+        fun setup_U_L_5_S_T/0,
+        fun() ->
+            [
+                {formatter("OPTION_01_U_L_5_S_T", ?OPTION_01,
+                    ?OPTION_01_RESULT_U_L_5_S_T)}
+            ]
+        end
+    }.
+
+%%------------------------------------------------------------------------------
+%% Tests with the following options:
+%%
+%% - identifier: upper
+%% - keyword:    lower
+%% - indent:     6 spaces
+%% - whitespace: true
+%%------------------------------------------------------------------------------
+
+option_U_L_6_S_T_test_() ->
+    {
+        setup,
+        fun setup_U_L_6_S_T/0,
+        fun() ->
+            [
+                {formatter("OPTION_01_U_L_6_S_T", ?OPTION_01,
+                    ?OPTION_01_RESULT_U_L_6_S_T)}
+            ]
+        end
+    }.
+
+%%------------------------------------------------------------------------------
+%% Tests with the following options:
+%%
+%% - identifier: upper
+%% - keyword:    lower
+%% - indent:     7 spaces
+%% - whitespace: true
+%%------------------------------------------------------------------------------
+
+option_U_L_7_S_T_test_() ->
+    {
+        setup,
+        fun setup_U_L_7_S_T/0,
+        fun() ->
+            [
+                {formatter("OPTION_01_U_L_7_S_T", ?OPTION_01,
+                    ?OPTION_01_RESULT_U_L_7_S_T)}
+            ]
+        end
+    }.
+
+%%------------------------------------------------------------------------------
+%% Tests with the following options:
+%%
+%% - identifier: upper
+%% - keyword:    lower
+%% - indent:     8 spaces
+%% - whitespace: true
+%%------------------------------------------------------------------------------
+
+option_U_L_8_S_T_test_() ->
+    {
+        setup,
+        fun setup_U_L_8_S_T/0,
+        fun() ->
+            [
+                {formatter("OPTION_01_U_L_8_S_T", ?OPTION_01,
+                    ?OPTION_01_RESULT_U_L_8_S_T)}
+            ]
+        end
+    }.
+
+%%------------------------------------------------------------------------------
+%% Tests with the following options:
+%%
+%% - identifier: upper
+%% - keyword:    lower
+%% - indent:     9 spaces
+%% - whitespace: true
+%%------------------------------------------------------------------------------
+
+option_U_L_9_S_T_test_() ->
+    {
+        setup,
+        fun setup_U_L_9_S_T/0,
+        fun() ->
+            [
+                {formatter("OPTION_01_U_L_9_S_T", ?OPTION_01,
+                    ?OPTION_01_RESULT_U_L_9_S_T)}
+            ]
+        end
+    }.
+
+%%------------------------------------------------------------------------------
+%% Tests with the following options:
+%%
+%% - identifier: upper
+%% - keyword:    lower
+%% - indent:     tab
+%% - whitespace: true
+%%------------------------------------------------------------------------------
+
+option_U_L___T_T_test_() ->
+    {
+        setup,
+        fun setup_U_L___T_T/0,
+        fun() ->
+            [
+                {formatter("OPTION_01_U_L___T_T", ?OPTION_01,
+                    ?OPTION_01_RESULT_U_L___T_T)}
             ]
         end
     }.
@@ -1080,22 +1325,104 @@ setup_default() ->
     os:putenv("CR_LIMIT_USING", "3"),
     os:putenv("CR_LIMIT_VIEW", "3"),
 
-    os:putenv("INDENT_SPACE", "4"),
+    os:putenv("INDENT_SPACES", "4"),
     os:putenv("INDENT_WITH", "spaces"),
     os:putenv("WS_OPERATORS", "true").
 
 setup_K_I_4_S_T() ->
-    setup_default(),
     os:putenv("CASE_IDENTIFIER", "keep_unchanged"),
-    os:putenv("CASE_KEYWORD", "init_cap").
+    os:putenv("CASE_KEYWORD", "init_cap"),
+    os:putenv("INDENT_SPACES", "4"),
+    os:putenv("INDENT_WITH", "spaces"),
+    os:putenv("WS_OPERATORS", "true").
 
+setup_K_L_4_S_F() ->
+    os:putenv("CASE_IDENTIFIER", "keep_unchanged"),
+    os:putenv("CASE_KEYWORD", "lower"),
+    os:putenv("INDENT_SPACES", "4"),
+    os:putenv("INDENT_WITH", "spaces"),
+    os:putenv("WS_OPERATORS", "false").
 
 setup_L_U_4_S_T() ->
-    setup_default(),
-    os:putenv("CASE_IDENTIFIER", "lower").
+    os:putenv("CASE_IDENTIFIER", "lower"),
+    os:putenv("CASE_KEYWORD", "upper"),
+    os:putenv("INDENT_SPACES", "4"),
+    os:putenv("INDENT_WITH", "spaces"),
+    os:putenv("WS_OPERATORS", "true").
+
+setup_U_L_0_S_T() ->
+    os:putenv("CASE_IDENTIFIER", "upper"),
+    os:putenv("CASE_KEYWORD", "lower"),
+    os:putenv("INDENT_SPACES", "0"),
+    os:putenv("INDENT_WITH", "spaces"),
+    os:putenv("WS_OPERATORS", "true").
+
+setup_U_L_1_S_T() ->
+    os:putenv("CASE_IDENTIFIER", "upper"),
+    os:putenv("CASE_KEYWORD", "lower"),
+    os:putenv("INDENT_SPACES", "1"),
+    os:putenv("INDENT_WITH", "spaces"),
+    os:putenv("WS_OPERATORS", "true").
+
+setup_U_L_2_S_T() ->
+    os:putenv("CASE_IDENTIFIER", "upper"),
+    os:putenv("CASE_KEYWORD", "lower"),
+    os:putenv("INDENT_SPACES", "2"),
+    os:putenv("INDENT_WITH", "spaces"),
+    os:putenv("WS_OPERATORS", "true").
+
+setup_U_L_3_S_T() ->
+    os:putenv("CASE_IDENTIFIER", "upper"),
+    os:putenv("CASE_KEYWORD", "lower"),
+    os:putenv("INDENT_SPACES", "3"),
+    os:putenv("INDENT_WITH", "spaces"),
+    os:putenv("WS_OPERATORS", "true").
 
 setup_U_L_4_S_T() ->
-    setup_default(),
     os:putenv("CASE_IDENTIFIER", "upper"),
-    os:putenv("CASE_KEYWORD", "lower")
-.
+    os:putenv("CASE_KEYWORD", "lower"),
+    os:putenv("INDENT_SPACES", "4"),
+    os:putenv("INDENT_WITH", "spaces"),
+    os:putenv("WS_OPERATORS", "true").
+
+setup_U_L_5_S_T() ->
+    os:putenv("CASE_IDENTIFIER", "upper"),
+    os:putenv("CASE_KEYWORD", "lower"),
+    os:putenv("INDENT_SPACES", "5"),
+    os:putenv("INDENT_WITH", "spaces"),
+    os:putenv("WS_OPERATORS", "true").
+
+setup_U_L_6_S_T() ->
+    os:putenv("CASE_IDENTIFIER", "upper"),
+    os:putenv("CASE_KEYWORD", "lower"),
+    os:putenv("INDENT_SPACES", "6"),
+    os:putenv("INDENT_WITH", "spaces"),
+    os:putenv("WS_OPERATORS", "true").
+
+setup_U_L_7_S_T() ->
+    os:putenv("CASE_IDENTIFIER", "upper"),
+    os:putenv("CASE_KEYWORD", "lower"),
+    os:putenv("INDENT_SPACES", "7"),
+    os:putenv("INDENT_WITH", "spaces"),
+    os:putenv("WS_OPERATORS", "true").
+
+setup_U_L_8_S_T() ->
+    os:putenv("CASE_IDENTIFIER", "upper"),
+    os:putenv("CASE_KEYWORD", "lower"),
+    os:putenv("INDENT_SPACES", "8"),
+    os:putenv("INDENT_WITH", "spaces"),
+    os:putenv("WS_OPERATORS", "true").
+
+setup_U_L_9_S_T() ->
+    os:putenv("CASE_IDENTIFIER", "upper"),
+    os:putenv("CASE_KEYWORD", "lower"),
+    os:putenv("INDENT_SPACES", "9"),
+    os:putenv("INDENT_WITH", "spaces"),
+    os:putenv("WS_OPERATORS", "true").
+
+setup_U_L___T_T() ->
+    os:putenv("CASE_IDENTIFIER", "upper"),
+    os:putenv("CASE_KEYWORD", "lower"),
+    os:putenv("INDENT_SPACES", "9"),
+    os:putenv("INDENT_WITH", "tab"),
+    os:putenv("WS_OPERATORS", "true").

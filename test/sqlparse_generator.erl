@@ -5258,7 +5258,13 @@ create_code(special = Rule) ->
         %% ---------------------------------------------------------------------
         %% select_field -> scalar_opt_as_exp
         %% ---------------------------------------------------------------------
-        "Select (Select * From dual) From dual"
+        "Select (Select * From dual) From dual",
+        %% ---------------------------------------------------------------------
+        %% Problem: IN & LIKE
+        %% ---------------------------------------------------------------------
+        "select * from dual where column_1 in (1,2,3)",
+        "select * from dual where column_1 like 1",
+        "select * from dual where column_1 like (1)"
     ],
     ets:insert(?CODE_TEMPLATES, {Rule, Code}),
     ?CREATE_CODE_END;

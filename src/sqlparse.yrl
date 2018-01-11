@@ -1314,7 +1314,7 @@ parsetree_with_tokens(Sql0) ->
     Sql = re:replace(Sql0, "(^[ \r\n]+)|([ \r\n]+$)", "",
         [global, {return, list}]),
     [C | _] = lists:reverse(Sql),
-    NSql = if C =:= $; -> Sql; true -> string:strip(Sql) ++ ";" end,
+    NSql = if C =:= $; -> Sql; true -> string:trim(Sql) ++ ";" end,
     case sql_lex:string(NSql) of
         {ok, Toks, _} ->
             case parse(Toks) of

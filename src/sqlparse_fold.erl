@@ -341,9 +341,8 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {Type, Value} = ST)
     RT = {case Format of
               true -> lists:append([format_keyword(Type), " ", ValueStr]);
               _ -> lists:append(
-                  [atom_to_list(Type), " ", case lists:prefix("select ",
-                      ValueStr) of
-                                                true ->
+                  [atom_to_list(Type), " ", case Value of
+                                                {select, _} ->
                                                     lists:append(
                                                         ["(", ValueStr, ")"]);
                                                 _ -> ValueStr
@@ -730,8 +729,8 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {Type, A, B, C} = ST)
                             {A1Int, NewCtx1Int} =
                                 fold(Format, State, FType, Fun, NewCtx, Lvl + 1,
                                     A),
-                            case lists:prefix("select ", A1Int) of
-                                true ->
+                            case A of
+                                {select, _} ->
                                     {lists:append(
                                         ["(", A1Int, ")"]), NewCtx1Int};
                                 _ ->
@@ -747,8 +746,8 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {Type, A, B, C} = ST)
                             {B1Int, NewCtx2Int} =
                                 fold(Format, State, FType, Fun, NewCtx1,
                                     Lvl + 1, B),
-                            case lists:prefix("select ", B1Int) of
-                                true ->
+                            case B of
+                                {select, _} ->
                                     {lists:append(
                                         ["(", B1Int, ")"]), NewCtx2Int};
                                 _ ->
@@ -764,8 +763,8 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {Type, A, B, C} = ST)
                             {C1Int, NewCtx3Int} =
                                 fold(Format, State, FType, Fun, NewCtx2,
                                     Lvl + 1, C),
-                            case lists:prefix("select ", C1Int) of
-                                true ->
+                            case C of
+                                {select, _} ->
                                     {lists:append(
                                         ["(", C1Int, ")"]), NewCtx3Int};
                                 _ ->
@@ -778,9 +777,15 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {Type, A, B, C} = ST)
               end,
     RT = {case Format of
               true ->
-                  lists:append(
-                      [A1, " ", format_keyword(
-                          "between "), B1, " ", format_keyword("and "), C1]);
+                  lists:append([
+                      A1,
+                      " ",
+                      format_keyword("between "),
+                      B1,
+                      " ",
+                      format_keyword("and "),
+                      C1
+                  ]);
               _ -> lists:append([A1, " between ", B1, " and ", C1])
           end, NewCtx4},
     ?debugFmt(?MODULE_STRING ++ ":fold ===>~n RT: ~p~n", [RT]),
@@ -1264,7 +1269,7 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                             ")",
                             case length(SubAcc) == 0 of
                                 true -> [];
-                                _ -> " " ++ format_keyword(SubAcc)
+                                _ -> " " ++ SubAcc
                             end
                         ];
                         _ -> [C, " ", T, "(", N, ",", N1, ")", SubAcc]
@@ -1287,7 +1292,7 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                             ")",
                             case length(SubAcc) == 0 of
                                 true -> [];
-                                _ -> " " ++ format_keyword(SubAcc)
+                                _ -> " " ++ SubAcc
                             end
                         ];
                         _ -> [C, " ", T, "(", N, ")", SubAcc]
@@ -1306,7 +1311,7 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                             format_data_type(T),
                             case length(SubAcc) == 0 of
                                 true -> [];
-                                _ -> " " ++ format_keyword(SubAcc)
+                                _ -> " " ++ SubAcc
                             end
                         ];
                         _ -> [C, " ", T, " ", SubAcc]
@@ -4870,10 +4875,9 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {where, Where} = ST)
 % WHERE_CURRENT_OF
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(Format, _State, FType, Fun, Ctx, _Lvl, {where_current_of, {cur, CurName}} =
-    ST) ->
-    ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p-~p-~p~n ST: ~p~n",
-        [Format, _Lvl, _State#state.indentation_level, ST]),
+fold(Format, State, FType, Fun, Ctx, _Lvl, {where_current_of, {cur, CurName}} =
+    ST) -> ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p-~p-~p~n ST: ~p~n",
+    [Format, _Lvl, State#state.indentation_level, ST]),
     NewCtx = case FType of
                  top_down -> Fun(ST, Ctx);
                  bottom_up -> Ctx
@@ -4883,9 +4887,16 @@ fold(Format, _State, FType, Fun, Ctx, _Lvl, {where_current_of, {cur, CurName}} =
                   bottom_up -> Fun(ST, NewCtx)
               end,
     RT = {case Format of
-              true -> format_keyword("where current of ");
-              _ -> "where current of "
-          end ++ CurName, NewCtx1},
+              true -> lists:append([
+                  ?CHAR_NEWLINE,
+                  format_column_pos(State#state.indentation_level - 1),
+                  format_keyword("where current of"),
+                  ?CHAR_NEWLINE,
+                  format_column_pos(State#state.indentation_level),
+                  format_identifier(CurName)
+              ]);
+              _ -> "where current of " ++ CurName
+          end, NewCtx1},
     ?debugFmt(?MODULE_STRING ++ ":fold ===>~n RT: ~p~n", [RT]),
     RT;
 
@@ -5374,40 +5385,41 @@ format_identifier(Identifier)
 format_identifier(Identifier = _ST) ->
     case Identifier of
         "*" -> Identifier;
+        _ -> Fun_4 = string:slice(Identifier, 0, 4),
+            case Fun_4 == "fun " orelse Fun_4 == "fun(" of
+                true -> Identifier;
         _ -> I_1 = lists:sublist(Identifier, 1),
             case I_1 == "'" orelse I_1 == "\"" of
                 true -> Identifier;
                 _ -> case lists:member(string:uppercase(Identifier),
                     get_funs()) of
                          true -> format_keyword(Identifier);
-                         _ -> format_identifier(
-                             string:split(Identifier, ".", all), [],
+                                 _ -> case ?CASE_IDENTIFIER of
+                                          keep_unchanged -> Identifier;
+                                          lower -> string:casefold(Identifier);
+                                          upper -> string:uppercase(Identifier);
+                                          _ -> format_init_cap(
+                                              string:casefold(Identifier), [],
                              [])
                      end
             end
+                    end
+            end
     end.
 
-format_identifier([], _, Acc) ->
-    Acc;
-format_identifier([IdentifierPart | Tail], Tz, Acc) ->
-    case ?CASE_IDENTIFIER of
-        keep_unchanged -> IdentifierPart;
-        lower -> string:casefold(IdentifierPart);
-        upper -> string:uppercase(IdentifierPart);
-        _ ->
-            format_identifier(Tail, ".", lists:append(
-                [Acc, Tz, format_identifier_part(
-                    string:tokens(IdentifierPart, "_"), [], [])]))
-    end.
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Formatting init_cap version.
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-format_identifier_part([], _, Acc) ->
+format_init_cap([], _, Acc) ->
     Acc;
-format_identifier_part([IdentifierPart | Tail], Tz, Acc) ->
-    format_identifier_part(Tail, "_", lists:append([
-        Acc,
-        Tz,
-        string:titlecase(string:casefold(IdentifierPart))
-    ])).
+format_init_cap([Head | Tail], Previous, Acc) ->
+    format_init_cap(Tail, Head,
+        Acc ++
+        case Previous == [] orelse lists:member([Previous], [" ", "_", "."]) of
+            true -> string:uppercase([Head]);
+            _ -> [Head]
+        end).
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Formatting keywords.
@@ -5415,27 +5427,18 @@ format_identifier_part([IdentifierPart | Tail], Tz, Acc) ->
 % Allowed values: init_cap, lower,upper
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-format_keyword(Keywords)
-    when is_atom(Keywords) ->
-    format_keyword(atom_to_list(Keywords));
-format_keyword(Keywords)
-    when is_binary(Keywords) ->
-    format_keyword(binary_to_list(Keywords));
-format_keyword(Keywords) ->
+format_keyword(Keyword)
+    when is_atom(Keyword) ->
+    format_keyword(atom_to_list(Keyword));
+format_keyword(Keyword)
+    when is_binary(Keyword) ->
+    format_keyword(binary_to_list(Keyword));
+format_keyword(Keyword) ->
     case ?CASE_KEYWORD of
-        lower -> Keywords;
-        upper -> string:uppercase(Keywords);
-        _ -> format_keyword(string:tokens(Keywords, " "), [], [])
+        lower -> Keyword;
+        upper -> string:uppercase(Keyword);
+        _ -> format_init_cap(Keyword, [], [])
     end.
-
-format_keyword([], _, Acc) ->
-    Acc;
-format_keyword([Keyword | Tail], Tz, Acc) ->
-    format_keyword(Tail, " ", lists:append([
-        Acc,
-        Tz,
-        string:titlecase(Keyword)
-    ])).
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Formatting operators.

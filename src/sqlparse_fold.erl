@@ -2222,7 +2222,7 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {fields, Fields} = ST) ->
                       _ -> format_commalist(State, FieldsStr, true)
                   end
               ]);
-              _ -> columns_join(FieldsStr, ", ", true, [])
+              _ -> columns_join(FieldsStr, ", ", [])
           end, NewCtx2},
     ?debugFmt(?MODULE_STRING ++ ":fold ===>~n RT: ~p~n", [RT]),
     RT;
@@ -2405,7 +2405,7 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {from, Froms} = ST) ->
     {FromStr, NewCtx2} = {case Format of
                               true -> FrmStr;
                               _ -> lists:flatten(
-                                  columns_join(FrmStr, ", ", true, []))
+                                  columns_join(FrmStr, ", ", []))
                           end, NewCtx1},
     NewCtx3 = case FType of
                   top_down -> NewCtx2;
@@ -2542,7 +2542,7 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {'fun', N, Args} = ST)
                                   true -> lists:flatten([
                                       format_identifier(N),
                                       "(",
-                                      columns_join(ArgsStr, ", ", true, []),
+                                      columns_join(ArgsStr, ", ", []),
                                       ")"
                                   ]);
                                   _ -> lists:flatten([
@@ -2566,7 +2566,7 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {'fun', N, Args} = ST)
                            lists:append([
                                binary_to_list(N),
                                "(",
-                               columns_join(ArgsStr, ", ", true, []),
+                               columns_join(ArgsStr, ", ", []),
                                ")"
                            ])
                    end
@@ -2748,14 +2748,14 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {'group by', GroupBy} = ST) ->
                                   true -> lists:append([
                                       ?CHAR_NEWLINE,
                                       format_column_pos(State),
-                                      columns_join(GroupByStr, ", ", true, [])
+                                      columns_join(GroupByStr, ", ", [])
                                   ]);
                                   _ ->
                                       format_commalist(State, GroupByStr, true)
                               end
                           ]);
                           _ -> "group by " ++
-                          columns_join(GroupByStr, ", ", true, [])
+                          columns_join(GroupByStr, ", ", [])
                       end;
               _ -> []
           end, NewCtx2},
@@ -3320,19 +3320,8 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                   bottom_up -> Fun(ST, NewCtx2)
               end,
     IsOuterBracket = case State#state.statement of
-                         select -> case
-                                       State#state.select_clause of
-                                       none -> false;
-                                       _ -> true
-                                   end;
                          UI when UI == intersect;UI == minus;
-                             UI == union;UI ==
-                                 'union all' ->
-                             case
-                                 State#state.indentation_level > 1 of
-                                 true -> true;
-                                 _ -> false
-                             end;
+                             UI == union;UI == 'union all' -> false;
                          _ -> true
                      end,
     RT = {case Format of
@@ -3407,19 +3396,8 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                   bottom_up -> Fun(ST, NewCtx2)
               end,
     IsOuterBracket = case State#state.statement of
-                         select -> case
-                                       State#state.select_clause of
-                                       none -> false;
-                                       _ -> true
-                                   end;
                          UI when UI == intersect;UI == minus;
-                             UI == union;UI ==
-                                 'union all' ->
-                             case
-                                 State#state.indentation_level > 1 of
-                                 true -> true;
-                                 _ -> false
-                             end;
+                             UI == union;UI == 'union all' -> false;
                          _ -> true
                      end,
     IsOuterBracketA = case string:slice(AStr, 0, 1) == "(" of
@@ -3513,19 +3491,8 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                   bottom_up -> Fun(ST, NewCtx2)
               end,
     IsOuterBracket = case State#state.statement of
-                         select -> case
-                                       State#state.select_clause of
-                                       none -> false;
-                                       _ -> true
-                                   end;
                          UI when UI == intersect;UI == minus;
-                             UI == union;UI ==
-                                 'union all' ->
-                             case
-                                 State#state.indentation_level > 1 of
-                                 true -> true;
-                                 _ -> false
-                             end;
+                             UI == union;UI == 'union all' -> false;
                          _ -> true
                      end,
     IsOuterBracketB = case string:slice(BStr, 0, 1) == "(" of
@@ -4427,15 +4394,14 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                                   true -> lists:append([
                                       ?CHAR_NEWLINE,
                                       format_column_pos(State),
-                                      columns_join(OrderByStr,
-                                          ", ", true, [])
+                                      columns_join(OrderByStr, ", ", [])
                                   ]);
                                   _ ->
                                       format_commalist(State, OrderByStr, true)
                               end
                           ]);
                           _ -> "order by " ++
-                          columns_join(OrderByStr, ", ", true, [])
+                          columns_join(OrderByStr, ", ", [])
                       end;
               _ -> []
           end, NewCtx2},
@@ -4552,9 +4518,11 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                       ])
                   end
               ]);
-              _ -> lists:append(
-                  ["partition by (", columns_join(FieldsStr,
-                      ", ", true, []), ")"])
+              _ -> lists:append([
+                  "partition by (",
+                  columns_join(FieldsStr, ", ", []),
+                  ")"
+              ])
           end, NewCtx2},
     ?debugFmt(?MODULE_STRING ++ ":fold ===>~n RT: ~p~n",
         [RT]),
@@ -6297,19 +6265,17 @@ fold(_Format, _State, _FType, Fun, Ctx, _Lvl, PTree) ->
 % Helper functions
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-columns_join([], _Separator, _IsComplex, Result) ->
+columns_join([], _Separator, Result) ->
     Result;
-columns_join([Head | Tail], Separator, IsComplex, Result) ->
-    columns_join(Tail, Separator, IsComplex, lists:append([
+columns_join([Head | Tail], Separator, Result) ->
+    columns_join(Tail, Separator, lists:append([
         Result,
         case Result of
             [] -> [];
             _ -> Separator
         end,
-        case IsComplex == true andalso
-            string:casefold(string:sub_string(Head, 1, 6)) == "select" andalso
-            (string:sub_string(Head, 7, 7) == " " orelse
-                string:sub_string(Head, 7, 7) == ?CHAR_NEWLINE_1) of
+        case string:casefold(string:sub_string(Head, 1, 6)) == "select" andalso
+            string:sub_string(Head, 7, 7) == " " of
             true -> lists:append(["(", Head, ")"]);
             _ -> Head
         end

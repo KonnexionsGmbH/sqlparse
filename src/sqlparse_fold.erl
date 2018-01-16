@@ -27,6 +27,7 @@
 -define(NODEBUG, true).
 -include_lib("eunit/include/eunit.hrl").
 -include("sql_lex.hrl").
+-include("sqlparse_fold.hrl").
 
 %% Allowed values: init_cap, keep_unchanged, lower,upper -----------------------
 -define(CASE_IDENTIFIER, list_to_atom(
@@ -154,18 +155,12 @@
 -define(WS_OPERATORS, list_to_atom(
     string:to_lower(os:getenv("WS_OPERATORS", "true")))).
 
--record(state, {
-    function_level,
-    indentation_level,
-    select_clause,
-    statement
-}).
-
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % List of parsetrees
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(Format, {}, FType, Fun, Ctx, Lvl, [{_, {extra, _}} | _] = STs)
+fold(Format, State, FType, Fun, Ctx, Lvl, [{_, {extra, _}} | _] =
+    STs)
     when is_list(STs) ->
     ?debugFmt(
         ?MODULE_STRING ++ ":fold ===> Start ~p-~p-~p~n ST: ~p~n FType: ~p~n",
@@ -177,21 +172,18 @@ fold(Format, {}, FType, Fun, Ctx, Lvl, [{_, {extra, _}} | _] = STs)
     {SqlStr, NewCtx1}
         = lists:foldl(
         fun(ST, {Sql, AccCtx}) ->
-            State = #state{
-                function_level = 0,
-                indentation_level = 1,
-                select_clause = none,
-                statement = case ST of
-                                {{select, _}, _} -> select;
-                                {{Type, _, _}, _} when Type == intersect orelse
-                                    Type == minus orelse
-                                    Type == union orelse
-                                    Type == 'union all' -> Type;
-                                _ -> none
-                            end
-            },
             {NewSql, NewAccCtx} =
-                fold(Format, State, FType, Fun, AccCtx, Lvl, ST),
+                fold(Format, State#state{
+                    statement = case ST of
+                                    {{select, _}, _} -> select;
+                                    {{Type, _, _}, _} when
+                                        Type == intersect orelse
+                                            Type == minus orelse
+                                            Type == union orelse
+                                            Type == 'union all' -> Type;
+                                    _ -> none
+                                end
+                }, FType, Fun, AccCtx, Lvl, ST),
             {lists:append([
                 Sql,
                 case length(Sql) > 0 of

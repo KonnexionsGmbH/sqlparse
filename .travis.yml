@@ -13,7 +13,6 @@ script:
   - chmod +x test/gen_tests.sh
   - ./test/gen_tests.sh
   - ./rebar3 ct
-  - ./rebar3 eunit
   - ./rebar3 cover
   - ./rebar3 as test coveralls send
   - ./rebar3 dialyzer

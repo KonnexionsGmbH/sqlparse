@@ -3982,16 +3982,16 @@ select column_1,(select * from dual) union (select * from dual) as column_2,colu
 end;").
 
 -define(PLSQL_16_RESULT_DEFAULT, "BEGIN
-    (SELECT
+    ((SELECT
         *
     FROM
-        Table_1
+        Table_1)
     UNION
-    SELECT
+    (SELECT
         *
     FROM
-        Table_2);
-    (SELECT
+        Table_2));
+    ((SELECT
         *
     FROM
         ((SELECT
@@ -4002,9 +4002,9 @@ end;").
         (SELECT
             *
         FROM
-            Table_12))
+            Table_12)))
     UNION ALL
-    SELECT
+    (SELECT
         *
     FROM
         ((SELECT
@@ -4015,8 +4015,8 @@ end;").
         (SELECT
             *
         FROM
-            Table_22)));
-    (SELECT
+            Table_22))));
+    ((SELECT
         *
     FROM
         ((SELECT
@@ -4027,9 +4027,9 @@ end;").
         (SELECT
             *
         FROM
-            Table_12))
+            Table_12)))
     UNION ALL
-    SELECT
+    (SELECT
         *
     FROM
         ((SELECT
@@ -4048,7 +4048,7 @@ end;").
             (SELECT
                 *
             FROM
-                Table_32)))));
+                Table_32))))));
     SELECT
         Column_1,
         ((SELECT
@@ -4429,6 +4429,27 @@ end").
             Dual
     WITH CHECK OPTION;
 END").
+
+%%------------------------------------------------------------------------------
+%% PLSQL 26 - CALL.
+%%------------------------------------------------------------------------------
+
+-define(PLSQL_26, "
+Call function_1
+(select column_1 from table_1 union select column_2 from table_2)").
+
+-define(PLSQL_26_RESULT_DEFAULT, "CALL
+    Function_1(
+        ((SELECT
+            Column_1
+        FROM
+            Table_1)
+        UNION
+        (SELECT
+            Column_2
+        FROM
+            Table_2))
+        )").
 
 %%------------------------------------------------------------------------------
 %% REVOKE 01 - FROM.
@@ -5320,15 +5341,15 @@ PURGE MATERIALIZED VIEW LOG DROP STORAGE").
 select *
 from table_1 union select * from table_2").
 
--define(UNION_01_RESULT_DEFAULT, "SELECT
+-define(UNION_01_RESULT_DEFAULT, "(SELECT
     *
 FROM
-    Table_1
+    Table_1)
 UNION
-SELECT
+(SELECT
     *
 FROM
-    Table_2").
+    Table_2)").
 
 %%------------------------------------------------------------------------------
 %% UNION 02 - nested.
@@ -5338,7 +5359,7 @@ FROM
 select * from (select * from table_11 intersect select * from table_12)
 union all select * from (select * from table_21 minus select * from table_22)").
 
--define(UNION_02_RESULT_DEFAULT, "SELECT
+-define(UNION_02_RESULT_DEFAULT, "(SELECT
     *
 FROM
     ((SELECT
@@ -5349,9 +5370,9 @@ FROM
     (SELECT
         *
     FROM
-        Table_12))
+        Table_12)))
 UNION ALL
-SELECT
+(SELECT
     *
 FROM
     ((SELECT
@@ -5362,7 +5383,7 @@ FROM
     (SELECT
         *
     FROM
-        Table_22))").
+        Table_22)))").
 
 %%------------------------------------------------------------------------------
 %% UNION 03 - nested.
@@ -5372,7 +5393,7 @@ FROM
 select * from (select * from table_11 intersect select * from table_12)
 union all select * from (select * from table_21 minus select * from (select * from table_31 union select * from table_32))").
 
--define(UNION_03_RESULT_DEFAULT, "SELECT
+-define(UNION_03_RESULT_DEFAULT, "(SELECT
     *
 FROM
     ((SELECT
@@ -5383,9 +5404,9 @@ FROM
     (SELECT
         *
     FROM
-        Table_12))
+        Table_12)))
 UNION ALL
-SELECT
+(SELECT
     *
 FROM
     ((SELECT
@@ -5404,7 +5425,7 @@ FROM
         (SELECT
             *
         FROM
-            Table_32))))").
+            Table_32)))))").
 
 %%------------------------------------------------------------------------------
 %% UNION 04 - COLUMN & INTERSECT / MINUS / UNION.
@@ -5858,15 +5879,15 @@ FROM
 select *
 from table_1 union select * from table_2").
 
--define(UNION_24_RESULT_DEFAULT, "SELECT
+-define(UNION_24_RESULT_DEFAULT, "(SELECT
     *
 FROM
-    Table_1
+    Table_1)
 UNION
-SELECT
+(SELECT
     *
 FROM
-    Table_2").
+    Table_2)").
 
 %%------------------------------------------------------------------------------
 %% UNION 25 - SELECT FROM.
@@ -5920,25 +5941,25 @@ WHERE
 (select *
 from table_11 intersect select * from table_12) union (select * from table_21 minus select * from table_22)").
 
--define(UNION_27_RESULT_DEFAULT, "    (SELECT
+-define(UNION_27_RESULT_DEFAULT, "    ((SELECT
         *
     FROM
-        Table_11
+        Table_11)
     INTERSECT
-    SELECT
-        *
-    FROM
-        Table_12)
-UNION
     (SELECT
         *
     FROM
-        Table_21
-    MINUS
-    SELECT
+        Table_12))
+UNION
+    ((SELECT
         *
     FROM
-        Table_22)").
+        Table_21)
+    MINUS
+    (SELECT
+        *
+    FROM
+        Table_22))").
 
 %%------------------------------------------------------------------------------
 %% UNION 28 - UNION FROM.
@@ -5952,25 +5973,25 @@ from ((select * from table_11 intersect select * from table_12) union (select * 
     *
 FROM
     (
-        (SELECT
+        ((SELECT
             *
         FROM
-            Table_11
+            Table_11)
         INTERSECT
-        SELECT
-            *
-        FROM
-            Table_12)
-    UNION
         (SELECT
             *
         FROM
-            Table_21
-        MINUS
-        SELECT
+            Table_12))
+    UNION
+        ((SELECT
             *
         FROM
-            Table_22)
+            Table_21)
+        MINUS
+        (SELECT
+            *
+        FROM
+            Table_22))
     )").
 
 %%------------------------------------------------------------------------------
@@ -5987,25 +6008,25 @@ FROM
     Table_1
 WHERE
     Column_1 IN (
-        (SELECT
+        ((SELECT
             *
         FROM
-            Table_11
+            Table_11)
         INTERSECT
-        SELECT
-            *
-        FROM
-            Table_12)
-    UNION
         (SELECT
             *
         FROM
-            Table_21
-        MINUS
-        SELECT
+            Table_12))
+    UNION
+        ((SELECT
             *
         FROM
-            Table_22)
+            Table_21)
+        MINUS
+        (SELECT
+            *
+        FROM
+            Table_22))
     )").
 
 %%------------------------------------------------------------------------------
@@ -6016,20 +6037,20 @@ WHERE
 select *
 from table_1 union (select * from table_21 minus select * from table_22)").
 
--define(UNION_30_RESULT_DEFAULT, "    SELECT
+-define(UNION_30_RESULT_DEFAULT, "    (SELECT
         *
     FROM
-        Table_1
+        Table_1)
 UNION
+    ((SELECT
+        *
+    FROM
+        Table_21)
+    MINUS
     (SELECT
         *
     FROM
-        Table_21
-    MINUS
-    SELECT
-        *
-    FROM
-        Table_22)").
+        Table_22))").
 
 %%------------------------------------------------------------------------------
 %% UNION 31 - SELECT & UNION FROM.
@@ -6043,20 +6064,20 @@ from (select * from table_1 union (select * from table_21 minus select * from ta
     *
 FROM
     (
-        SELECT
-            *
-        FROM
-            Table_1
-    UNION
         (SELECT
             *
         FROM
-            Table_21
-        MINUS
-        SELECT
+            Table_1)
+    UNION
+        ((SELECT
             *
         FROM
-            Table_22)
+            Table_21)
+        MINUS
+        (SELECT
+            *
+        FROM
+            Table_22))
     )").
 
 %%------------------------------------------------------------------------------
@@ -6073,20 +6094,20 @@ FROM
     Table_1
 WHERE
     Column_1 IN (
-        SELECT
-            *
-        FROM
-            Table_1
-    UNION
         (SELECT
             *
         FROM
-            Table_21
-        MINUS
-        SELECT
+            Table_1)
+    UNION
+        ((SELECT
             *
         FROM
-            Table_22)
+            Table_21)
+        MINUS
+        (SELECT
+            *
+        FROM
+            Table_22))
     )").
 
 %%------------------------------------------------------------------------------
@@ -6097,20 +6118,20 @@ WHERE
 (select *
 from table_11 intersect select * from table_12) union select * from table_2").
 
--define(UNION_33_RESULT_DEFAULT, "    (SELECT
+-define(UNION_33_RESULT_DEFAULT, "    ((SELECT
         *
     FROM
-        Table_11
+        Table_11)
     INTERSECT
-    SELECT
+    (SELECT
         *
     FROM
-        Table_12)
+        Table_12))
 UNION
-    SELECT
+    (SELECT
         *
     FROM
-        Table_2").
+        Table_2)").
 
 %%------------------------------------------------------------------------------
 %% UNION 34 - UNION & SELECT FROM.
@@ -6124,20 +6145,20 @@ from ((select * from table_11 intersect select * from table_12) union select * f
     *
 FROM
     (
+        ((SELECT
+            *
+        FROM
+            Table_11)
+        INTERSECT
         (SELECT
             *
         FROM
-            Table_11
-        INTERSECT
-        SELECT
-            *
-        FROM
-            Table_12)
+            Table_12))
     UNION
-        SELECT
+        (SELECT
             *
         FROM
-            Table_2
+            Table_2)
     )").
 
 %%------------------------------------------------------------------------------
@@ -6154,21 +6175,67 @@ FROM
     Table_1
 WHERE
     Column_1 IN (
+        ((SELECT
+            *
+        FROM
+            Table_11)
+        INTERSECT
         (SELECT
             *
         FROM
-            Table_11
-        INTERSECT
-        SELECT
-            *
-        FROM
-            Table_12)
+            Table_12))
     UNION
-        SELECT
+        (SELECT
             *
         FROM
-            Table_2
+            Table_2)
     )").
+
+%%------------------------------------------------------------------------------
+%% UNION 36 - MINUS & INTERSECT.
+%%------------------------------------------------------------------------------
+
+-define(UNION_36, "
+(select * from table_1)|:_a::b::c|
+Minus ((select * from table_2) Intersect (select * from table_3));").
+
+-define(UNION_36_RESULT_DEFAULT, "    (SELECT
+        *
+    FROM
+        Table_1)|:_a::b::c|
+MINUS
+    ((SELECT
+        *
+    FROM
+        Table_2)
+    INTERSECT
+    (SELECT
+        *
+    FROM
+        Table_3))").
+
+%%------------------------------------------------------------------------------
+%% UNION 37 - INTERSECT & MINUS.
+%%------------------------------------------------------------------------------
+
+-define(UNION_37, "
+((select * from table_2)
+Intersect (select * from table_3)) Minus (select * from table_1)|:_a::b::c|;").
+
+-define(UNION_37_RESULT_DEFAULT, "    ((SELECT
+        *
+    FROM
+        Table_2)
+    INTERSECT
+    (SELECT
+        *
+    FROM
+        Table_3))
+MINUS
+    (SELECT
+        *
+    FROM
+        Table_1)|:_a::b::c|").
 
 %%------------------------------------------------------------------------------
 %% UPDATE 01 - simple.
@@ -6267,6 +6334,24 @@ RETURNING
     Lob_Column
 INTO
     :out_locator").
+
+%%------------------------------------------------------------------------------
+%% UPDATE 07 - SET.
+%%------------------------------------------------------------------------------
+
+-define(UPDATE_07, "
+Update table_1 Set
+column_1 = (Select * from dual) alias_1,
+column_2 = column_3").
+
+-define(UPDATE_07_RESULT_DEFAULT, "UPDATE
+    Table_1
+SET
+    Column_1 = (SELECT
+        *
+    FROM
+        Dual) Alias_1,
+    Column_2 = Column_3").
 
 %%------------------------------------------------------------------------------
 %% VIEW 01 - simple.
@@ -6934,23 +7019,23 @@ Delete From table_1 Where
 -define(WHERE_31_RESULT_DEFAULT, "DELETE FROM
     Table_1
 WHERE
-    NOT ((SELECT
+    NOT (((SELECT
         Column_2
     FROM
-        Table_2
+        Table_2)
     UNION
-    SELECT
+    (SELECT
         Column_3
     FROM
-        Table_3) IN (SELECT
+        Table_3)) IN ((SELECT
         Column_4
     FROM
-        Table_4
+        Table_4)
     UNION
-    SELECT
+    (SELECT
         Column_5
     FROM
-        Table_5))").
+        Table_5)))").
 
 %%------------------------------------------------------------------------------
 %% WHERE 32 - LIKE.
@@ -6998,23 +7083,23 @@ Where ((Select column_2 from table_2) union (Select column_3 from table_3)) Not 
 -define(WHERE_34_RESULT_DEFAULT, "DELETE FROM
     Table_1
 WHERE
-    NOT ((SELECT
+    NOT (((SELECT
         Column_2
     FROM
-        Table_2
+        Table_2)
     UNION
-    SELECT
+    (SELECT
         Column_3
     FROM
-        Table_3) LIKE (SELECT
+        Table_3)) LIKE ((SELECT
         Column_4
     FROM
-        Table_4
+        Table_4)
     UNION
-    SELECT
+    (SELECT
         Column_5
     FROM
-        Table_5))").
+        Table_5)))").
 
 %%------------------------------------------------------------------------------
 %% WHERE 35 - BETWEEN.
@@ -7069,30 +7154,30 @@ and
 -define(WHERE_37_RESULT_DEFAULT, "DELETE FROM
     Table_1
 WHERE
-    NOT ((SELECT
+    NOT (((SELECT
             Column_2
         FROM
-            Table_2
+            Table_2)
         INTERSECT
-        SELECT
+        (SELECT
             Column_2
         FROM
-            Table_2) BETWEEN (SELECT
+            Table_2)) BETWEEN ((SELECT
             Column_3
         FROM
-            Table_3
+            Table_3)
         MINUS
-        SELECT
+        (SELECT
             Column_4
         FROM
-            Table_4) AND (SELECT
+            Table_4)) AND ((SELECT
             Column_5
         FROM
-            Table_5
+            Table_5)
         UNION
-        SELECT
+        (SELECT
             Column_6
         FROM
-            Table_6))").
+            Table_6)))").
 
 -endif.

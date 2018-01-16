@@ -469,7 +469,8 @@ default_PLSQL_test_() ->
                 {formatter("PLSQL_22", ?PLSQL_22, ?PLSQL_22_RESULT_DEFAULT)},
                 {formatter("PLSQL_23", ?PLSQL_23, ?PLSQL_23_RESULT_DEFAULT)},
                 {formatter("PLSQL_24", ?PLSQL_24, ?PLSQL_24_RESULT_DEFAULT)},
-                {formatter("PLSQL_25", ?PLSQL_25, ?PLSQL_25_RESULT_DEFAULT)}
+                {formatter("PLSQL_25", ?PLSQL_25, ?PLSQL_25_RESULT_DEFAULT)},
+                {formatter("PLSQL_26", ?PLSQL_26, ?PLSQL_26_RESULT_DEFAULT)}
             ]
         end
     }.
@@ -677,7 +678,9 @@ default_UNION_test_() ->
                 {formatter("UNION_32", ?UNION_32, ?UNION_32_RESULT_DEFAULT)},
                 {formatter("UNION_33", ?UNION_33, ?UNION_33_RESULT_DEFAULT)},
                 {formatter("UNION_34", ?UNION_34, ?UNION_34_RESULT_DEFAULT)},
-                {formatter("UNION_35", ?UNION_35, ?UNION_35_RESULT_DEFAULT)}
+                {formatter("UNION_35", ?UNION_35, ?UNION_35_RESULT_DEFAULT)},
+                {formatter("UNION_36", ?UNION_36, ?UNION_36_RESULT_DEFAULT)},
+                {formatter("UNION_37", ?UNION_37, ?UNION_37_RESULT_DEFAULT)}
             ]
         end
     }.
@@ -697,7 +700,8 @@ default_UPDATE_test_() ->
                 {formatter("UPDATE_03", ?UPDATE_03, ?UPDATE_03_RESULT_DEFAULT)},
                 {formatter("UPDATE_04", ?UPDATE_04, ?UPDATE_04_RESULT_DEFAULT)},
                 {formatter("UPDATE_05", ?UPDATE_05, ?UPDATE_05_RESULT_DEFAULT)},
-                {formatter("UPDATE_06", ?UPDATE_06, ?UPDATE_06_RESULT_DEFAULT)}
+                {formatter("UPDATE_06", ?UPDATE_06, ?UPDATE_06_RESULT_DEFAULT)},
+                {formatter("UPDATE_07", ?UPDATE_07, ?UPDATE_07_RESULT_DEFAULT)}
             ]
         end
     }.

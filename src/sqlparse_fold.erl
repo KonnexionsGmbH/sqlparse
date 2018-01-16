@@ -39,6 +39,10 @@
                           {unix, _} -> "\n";
                           _ -> "\r\n"
                       end).
+-define(CHAR_NEWLINE_1, case os:type() of
+                            {unix, _} -> "\n";
+                            _ -> "\r"
+                        end).
 -define(CHAR_TAB, "\t").
 
 %% Allowed values: 1 ... n -----------------------------------------------------
@@ -174,7 +178,7 @@ fold(Format, {}, FType, Fun, Ctx, Lvl, [{_, {extra, _}} | _] = STs)
         = lists:foldl(
         fun(ST, {Sql, AccCtx}) ->
             State = #state{
-                function_level = 1,
+                function_level = 0,
                 indentation_level = 1,
                 select_clause = none,
                 statement = case ST of
@@ -234,8 +238,7 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {stmtList, STs})
                     _ -> []
                 end,
                 case Format of
-                    true -> ?CHAR_NEWLINE ++
-                    format_column_pos(State#state.indentation_level);
+                    true -> ?CHAR_NEWLINE ++ format_column_pos(State);
                     _ -> []
                 end,
                 NewSql
@@ -309,7 +312,8 @@ fold(Format, State, FType, Fun, Ctx, _Lvl, {account, LockUnlock} = ST)
     RT = {case Format of
               true -> lists:append([
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword("account "),
                   format_keyword(LockUnlock)
               ]);
@@ -443,10 +447,11 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {'alter user', Usr, {spec, Opts}} =
               end,
     RT = {case Format of
               true -> lists:flatten([
-                  format_column_pos(State#state.indentation_level - 2),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 2}),
                   format_keyword("alter user"),
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
                   format_identifier(Usr),
                   OptsStr
               ]);
@@ -469,7 +474,8 @@ fold(Format, State, FType, Fun, Ctx, _Lvl,
     GrantStr = case Format of
                    true -> lists:flatten([
                        ?CHAR_NEWLINE,
-                       format_column_pos(State#state.indentation_level - 1),
+                       format_column_pos(State#state{indentation_level =
+                       State#state.indentation_level - 1}),
                        case Grant of
                            'grant connect' -> format_keyword("grant ");
                            _ -> format_keyword("revoke ")
@@ -492,17 +498,14 @@ fold(Format, State, FType, Fun, Ctx, _Lvl,
                                                ?CR_LIMIT_ALTER_ROLES of
                                                true -> lists:append([
                                                    ?CHAR_NEWLINE,
-                                                   format_column_pos(
-                                                       State#state.indentation_level),
+                                                   format_column_pos(State),
                                                    lists:join(", ",
                                                        [format_identifier(
                                                            R) || R <- Roles])
                                                ]);
-                                               _ ->
-                                                   format_commalist(
-                                                       State#state.indentation_level,
-                                                       [format_identifier(
-                                                           R) || R <- Roles])
+                                               _ -> format_commalist(State,
+                                                   [format_identifier(
+                                                       R) || R <- Roles], false)
                                            end
                                        ]);
                                    {{W, Roles}, Authrec} when is_atom(W) ->
@@ -512,22 +515,22 @@ fold(Format, State, FType, Fun, Ctx, _Lvl,
                                                ?CR_LIMIT_ALTER_ROLES of
                                                true -> lists:append([
                                                    ?CHAR_NEWLINE,
-                                                   format_column_pos(
-                                                       State#state.indentation_level),
+                                                   format_column_pos(State),
                                                    lists:join(", ",
                                                        [format_identifier(
                                                            R) || R <- Roles])
                                                ]);
                                                _ ->
-                                                   format_commalist(
-                                                       State#state.indentation_level,
+                                                   format_commalist(State,
                                                        [format_identifier(
-                                                           R) || R <- Roles])
+                                                           R) || R <- Roles],
+                                                       false)
                                            end,
                                            ?CHAR_NEWLINE,
                                            format_column_pos(
+                                               State#state{indentation_level =
                                                State#state.indentation_level -
-                                                   1),
+                                                   1}),
                                            format_keyword(Authrec)
                                        ])
                                end
@@ -558,17 +561,17 @@ fold(Format, State, FType, Fun, Ctx, _Lvl,
               end,
     RT = {case Format of
               true -> lists:flatten([
-                  format_column_pos(State#state.indentation_level - 2),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 2}),
                   format_keyword("alter user"),
                   case length(Users) =< ?CR_LIMIT_ALTER_USERS of
                       true -> lists:append([
                           ?CHAR_NEWLINE,
-                          format_column_pos(State#state.indentation_level),
+                          format_column_pos(State),
                           lists:join(", ", [format_identifier(U) || U <- Users])
                       ]);
-                      _ ->
-                          format_commalist(State#state.indentation_level,
-                              [format_identifier(U) || U <- Users])
+                      _ -> format_commalist(State,
+                          [format_identifier(U) || U <- Users], false)
                   end,
                   GrantStr
               ]);
@@ -605,13 +608,14 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {as, {select, _} = QuerySpec, Check} =
               true -> lists:append([
                   format_keyword("as"),
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
                   QuerySpecStr,
                   case Check of
                       [] -> [];
                       _ -> lists:append([
                           ?CHAR_NEWLINE,
-                          format_column_pos(State#state.indentation_level - 1),
+                          format_column_pos(State#state{indentation_level =
+                          State#state.indentation_level - 1}),
                           format_keyword(Check)
 
                       ])
@@ -636,25 +640,34 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {as, L, R} = ST)
                  top_down -> Fun(ST, Ctx);
                  bottom_up -> Ctx
              end,
-    {Fl, NewCtx1} = case Format of
-                        true -> case is_binary(L) of
+    {Fl, NewCtx1} = case is_binary(L) of
+                        true -> case Format of
                                     true -> {format_identifier(L), NewCtx};
-                                    _ -> fold(Format, State, FType, Fun, NewCtx,
-                                        Lvl + 1, L)
+                                    _ -> {binary_to_list(L), NewCtx}
                                 end;
-                        _ -> case is_binary(L) of
-                                 true -> {binary_to_list(L), NewCtx};
-                                 _ ->
-                                     {Ls, NC} =
-                                         fold(Format, State, FType, Fun, NewCtx,
-                                             Lvl + 1, L),
-                                     case L of
-                                         {select, _} ->
-                                             {lists:append(["(", Ls, ")"]), NC};
-                                         _ ->
-                                             {Ls, NC}
-                                     end
-                             end
+                        _ ->
+                            {Ls, NC} =
+                                fold(Format, case L of
+                                                 {select, _} ->
+                                                     case State#state.statement of
+                                                         update ->
+                                                             State#state{indentation_level =
+                                                             State#state.indentation_level +
+                                                                 1};
+                                                         _ -> State
+                                                     end;
+                                                 _ -> State
+                                             end, FType, Fun, NewCtx, Lvl + 1,
+                                    L),
+                            case L of
+                                {select, _} ->
+                                    case string:slice(Ls, 0, 1) == "(" of
+                                        true -> {Ls, NC};
+                                        _ -> {lists:append(["(", Ls, ")"]), NC}
+                                    end;
+                                _ ->
+                                    {Ls, NC}
+                            end
                     end,
     NewCtx2 = Fun(R, NewCtx1),
     NewCtx3 = case FType of
@@ -851,17 +864,20 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {'call procedure', Function} = ST) ->
                  bottom_up -> Ctx
              end,
     {FunctionStr, NewCtx1} =
-        fold(Format, State, FType, Fun, NewCtx, Lvl + 1, Function),
+        fold(Format,
+            State#state{select_clause = none, statement = 'call procedure'},
+            FType, Fun, NewCtx, Lvl + 1, Function),
     NewCtx2 = case FType of
                   top_down -> Fun(ST, NewCtx1);
                   bottom_up -> NewCtx1
               end,
     RT = {case Format of
               true -> lists:append([
-                  format_column_pos(State#state.indentation_level - 2),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 2}),
                   format_keyword("call"),
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
                   FunctionStr
               ]);
               _ -> "call " ++ FunctionStr
@@ -897,11 +913,13 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {'case', Expr, WhenThenList, Else} =
                  true -> lists:append([
                      Sql,
                      ?CHAR_NEWLINE,
-                     format_column_pos(State#state.indentation_level + 1),
+                     format_column_pos(State#state{indentation_level =
+                     State#state.indentation_level + 1}),
                      format_keyword("when "),
                      WhenStr,
                      ?CHAR_NEWLINE,
-                     format_column_pos(State#state.indentation_level + 1),
+                     format_column_pos(State#state{indentation_level =
+                     State#state.indentation_level + 1}),
                      format_keyword("then "),
                      ThenStr
                  ]);
@@ -919,8 +937,9 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {'case', Expr, WhenThenList, Else} =
                                       true -> lists:append([
                                           ?CHAR_NEWLINE,
                                           format_column_pos(
+                                              State#state{indentation_level =
                                               State#state.indentation_level +
-                                                  1),
+                                                  1}),
                                           format_keyword("else "),
                                           EStr
                                       ]);
@@ -941,7 +960,7 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {'case', Expr, WhenThenList, Else} =
                   WhenThenStr,
                   ElseStr,
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
                   format_keyword("end")
               ]);
               _ -> lists:flatten([
@@ -1025,14 +1044,15 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {'connect by', NoCycle, ConnectBy} =
     RT = {case Format of
               true -> lists:append([
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword("connect by"),
                   case byte_size(NoCycle) > 0 of
                       true -> " " ++ format_keyword(NoCycleStr);
                       _ -> []
                   end,
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
                   ConnectByStr
               ]);
               _ -> lists:append([
@@ -1092,7 +1112,8 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
               end,
     RT = {case Format of
               true -> lists:append([
-                  format_column_pos(State#state.indentation_level - 2),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 2}),
                   format_keyword("create "),
                   case length(OptsStr) > 0 of
                       true -> format_keyword(OptsStr) ++ " ";
@@ -1102,16 +1123,17 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                   case length(IdxStr) > 0 of
                       true -> lists:append([
                           ?CHAR_NEWLINE,
-                          format_column_pos(State#state.indentation_level),
+                          format_column_pos(State),
                           IdxStr
                       ]);
                       _ -> []
                   end,
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword("on"),
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
                   TableStr,
                   case length(Specs) > 0 of
                       true ->
@@ -1122,10 +1144,11 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                               _ -> lists:append([
                                   " (",
                                   format_commalist(
-                                      State#state.indentation_level + 1, Specs),
+                                      State#state{indentation_level =
+                                      State#state.indentation_level + 1},
+                                      Specs, false),
                                   ?CHAR_NEWLINE,
-                                  format_column_pos(
-                                      State#state.indentation_level),
+                                  format_column_pos(State),
                                   ")"
                               ])
                           end;
@@ -1134,7 +1157,8 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                   case NormStr =/= [] of
                       true -> lists:append([
                           ?CHAR_NEWLINE,
-                          format_column_pos(State#state.indentation_level - 1),
+                          format_column_pos(State#state{indentation_level =
+                          State#state.indentation_level - 1}),
                           NormStr
                       ]);
                       _ -> []
@@ -1142,7 +1166,8 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                   case FilterStr =/= [] of
                       true -> lists:append([
                           ?CHAR_NEWLINE,
-                          format_column_pos(State#state.indentation_level - 1),
+                          format_column_pos(State#state{indentation_level =
+                          State#state.indentation_level - 1}),
                           FilterStr
                       ]);
                       _ -> []
@@ -1204,10 +1229,11 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {'create role', Role} = ST)
               end,
     RT = {case Format of
               true -> lists:append([
-                  format_column_pos(State#state.indentation_level - 2),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 2}),
                   format_keyword("create role"),
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
                   RoleStr
               ]);
               _ -> "create role " ++ RoleStr
@@ -1252,13 +1278,14 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
               end,
     RT = {case Format of
               true -> lists:append([
-                  format_column_pos(State#state.indentation_level - 2),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 2}),
                   "create schema authorization",
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
                   User,
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
                   SchemaElementsStr
               ]);
               _ -> lists:append([
@@ -1411,7 +1438,8 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
               end,
     RT = {case Format of
               true -> lists:flatten([
-                  format_column_pos(State#state.indentation_level - 2),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 2}),
                   format_keyword("create "),
                   case length(OptsStr) > 0 of
                       true -> OptsStr ++ " ";
@@ -1419,12 +1447,13 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                   end,
                   format_keyword("table"),
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
                   TableStr,
                   " (",
-                  format_commalist(State#state.indentation_level + 1, Clms),
+                  format_commalist(State#state{indentation_level =
+                  State#state.indentation_level + 1}, Clms, true),
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
                   ")"
               ]);
               _ -> lists:flatten([
@@ -1485,10 +1514,11 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {'create user', Usr, Id, Opts} = ST)
               end,
     RT = {case Format of
               true -> lists:append([
-                  format_column_pos(State#state.indentation_level - 2),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 2}),
                   format_keyword("create user"),
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
                   format_identifier(Usr),
                   " ",
                   IdStr,
@@ -1552,10 +1582,11 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
               end,
     RT = {case Format of
               true -> lists:append([
-                  format_column_pos(State#state.indentation_level - 2),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 2}),
                   format_keyword("create view"),
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
                   TableStr,
                   case length(Clms) == 0 of
                       true -> [];
@@ -1566,17 +1597,16 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                                ]);
                                _ -> lists:append([
                                    " (",
-                                   format_commalist(
-                                       State#state.indentation_level, Clms),
+                                   format_commalist(State, Clms, true),
                                    ?CHAR_NEWLINE,
-                                   format_column_pos(
-                                       State#state.indentation_level),
+                                   format_column_pos(State),
                                    ")"
                                ])
                            end
                   end,
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   QuerySpecStr
               ]);
               _ -> lists:append([
@@ -1716,10 +1746,11 @@ fold(Format, State, FType, Fun, Ctx, _Lvl, {TS, Tab} = ST)
     RT = {case Format of
               true -> lists:append([
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword(TS),
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
                   format_identifier(Tab)
               ]);
               _ -> lists:append([atom_to_list(TS), " ", binary_to_list(Tab)])
@@ -1758,10 +1789,11 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {delete, Table, Where, Return} =
               end,
     RT = {case Format of
               true -> lists:append([
-                  format_column_pos(State#state.indentation_level - 2),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 2}),
                   format_keyword("delete from"),
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
                   TableStr,
                   WhereStr,
                   ReturnStr
@@ -1798,10 +1830,11 @@ fold(Format, State, FType, Fun, Ctx, _Lvl, {'drop index', Indx, []} = ST) ->
               end,
     RT = {case Format of
               true -> lists:append([
-                  format_column_pos(State#state.indentation_level - 2),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 2}),
                   format_keyword("drop index"),
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
                   format_identifier(Indx)
               ]);
               _ -> "drop index " ++ binary_to_list(Indx)
@@ -1825,21 +1858,23 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {'drop index', Indx, Table} = ST) ->
               end,
     RT = {case Format of
               true -> lists:append([
-                  format_column_pos(State#state.indentation_level - 2),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 2}),
                   format_keyword("drop index"),
                   case Indx == {} of
                       true -> [];
                       _ -> lists:append([
                           ?CHAR_NEWLINE,
-                          format_column_pos(State#state.indentation_level),
+                          format_column_pos(State),
                           format_identifier(Indx)
                       ])
                   end,
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword("from"),
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
                   format_identifier(TableStr)
               ]);
               _ -> lists:append([
@@ -1876,10 +1911,11 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {'drop role', Role} = ST)
               end,
     RT = {case Format of
               true -> lists:append([
-                  format_column_pos(State#state.indentation_level - 2),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 2}),
                   format_keyword("drop role"),
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
                   format_identifier(RoleStr)
               ]);
               _ -> "drop role " ++ RoleStr
@@ -1918,7 +1954,8 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
               end,
     RT = {case Format of
               true -> lists:flatten([
-                  format_column_pos(State#state.indentation_level - 2),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 2}),
                   format_keyword("drop"),
                   case length(Types) > 0 of
                       true -> " " ++ format_identifier(Types);
@@ -1936,17 +1973,17 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                   case length(TablesList) =< ?CR_LIMIT_DROP_TABLE of
                       true -> lists:append([
                           ?CHAR_NEWLINE,
-                          format_column_pos(State#state.indentation_level),
+                          format_column_pos(State),
                           lists:join(", ", TablesList)
                       ]);
                       _ ->
-                          format_commalist(State#state.indentation_level,
-                              TablesList)
+                          format_commalist(State, TablesList, true)
                   end,
                   case is_atom(RC) of
                       true -> lists:append([
                           ?CHAR_NEWLINE,
-                          format_column_pos(State#state.indentation_level - 1),
+                          format_column_pos(State#state{indentation_level =
+                          State#state.indentation_level - 1}),
                           format_keyword(RC)
                       ]);
                       _ -> []
@@ -1996,16 +2033,18 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {'drop user', Usr, Opts} = ST)
               end,
     RT = {case Format of
               true -> lists:append([
-                  format_column_pos(State#state.indentation_level - 2),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 2}),
                   format_keyword("drop user"),
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
                   format_identifier(Usr),
                   case Opts of
                       [] -> [];
                       _ -> lists:append([
                           ?CHAR_NEWLINE,
-                          format_column_pos(State#state.indentation_level - 1),
+                          format_column_pos(State#state{indentation_level =
+                          State#state.indentation_level - 1}),
                           format_keyword(OptsStr)
                       ])
                   end
@@ -2076,7 +2115,8 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {Pt, {extra, Bin}} = ST) ->
                 ";",
                 case Format of
                     true -> ?CHAR_NEWLINE ++
-                    format_column_pos(State#state.indentation_level - 1);
+                    format_column_pos(State#state{indentation_level =
+                    State#state.indentation_level - 1});
                     _ -> []
                 end,
                 binary_to_list(Bin)
@@ -2176,14 +2216,13 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {fields, Fields} = ST) ->
                   case is_simple_list(Fields, ?CR_LIMIT_SELECT) of
                       true -> lists:append([
                           ?CHAR_NEWLINE,
-                          format_column_pos(State#state.indentation_level),
+                          format_column_pos(State),
                           lists:join(", ", FieldsStr)
                       ]);
-                      _ -> format_commalist(State#state.indentation_level,
-                          FieldsStr)
+                      _ -> format_commalist(State, FieldsStr, true)
                   end
               ]);
-              _ -> columns_join(FieldsStr, ", ", [])
+              _ -> columns_join(FieldsStr, ", ", true, [])
           end, NewCtx2},
     ?debugFmt(?MODULE_STRING ++ ":fold ===>~n RT: ~p~n", [RT]),
     RT;
@@ -2212,7 +2251,7 @@ fold(Format, State, FType, Fun, Ctx, _Lvl, {FunType, FunBody} = ST)
               true -> lists:append([
                   format_keyword(FunHead),
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
                   binary_to_list(FunBody)
               ]);
               _ -> lists:append([FunHead, " ", binary_to_list(FunBody)])
@@ -2365,7 +2404,8 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {from, Froms} = ST) ->
          end || Frm <- Froms]),
     {FromStr, NewCtx2} = {case Format of
                               true -> FrmStr;
-                              _ -> lists:flatten(columns_join(FrmStr, ", ", []))
+                              _ -> lists:flatten(
+                                  columns_join(FrmStr, ", ", true, []))
                           end, NewCtx1},
     NewCtx3 = case FType of
                   top_down -> NewCtx2;
@@ -2374,9 +2414,10 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {from, Froms} = ST) ->
     RT = {case Format of
               true -> lists:append([
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword("from"),
-                  format_commalist(State#state.indentation_level, FromStr)
+                  format_commalist(State, FromStr, true)
               ]);
               _ -> "from " ++ FromStr
           end, NewCtx3},
@@ -2455,21 +2496,26 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {'fun', N, Args} = ST)
                                                  'delete',
                                                  'grant',
                                                  'insert',
+                                                 'insert',
+                                                 'intersect',
                                                  'revoke',
                                                  'select',
                                                  'truncate table',
+                                                 'union',
+                                                 'union all',
                                                  'update'
                                              ]) of
                                              true ->
                                                  {SubAcc, CtxAcc1} =
-                                                     fold(Format, State, FType,
-                                                         Fun, CtxAcc,
-                                                         Lvl + 1, A),
-                                                 {Acc ++ [lists:append([
-                                                     "(",
-                                                     string:trim(SubAcc),
-                                                     ")"
-                                                 ])], CtxAcc1};
+                                                     fold(Format,
+                                                         State#state{function_level =
+                                                         State#state.function_level +
+                                                             1, indentation_level =
+                                                         State#state.indentation_level +
+                                                             1}, FType, Fun,
+                                                         CtxAcc, Lvl + 1, A),
+                                                 {Acc ++ [string:trim(
+                                                     SubAcc)], CtxAcc1};
                                              _ ->
                                                  {SubAcc, CtxAcc1} =
                                                      fold(Format,
@@ -2496,20 +2542,20 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {'fun', N, Args} = ST)
                                   true -> lists:flatten([
                                       format_identifier(N),
                                       "(",
-                                      columns_join(ArgsStr, ", ", []),
+                                      columns_join(ArgsStr, ", ", true, []),
                                       ")"
                                   ]);
                                   _ -> lists:flatten([
                                       format_identifier(N),
                                       "(",
                                       format_commalist(
-                                          State#state.indentation_level +
-                                              State#state.function_level,
-                                          ArgsStr),
+                                          State#state{function_level =
+                                          State#state.function_level + 1},
+                                          ArgsStr, true),
                                       ?CHAR_NEWLINE,
                                       format_column_pos(
-                                          State#state.indentation_level +
-                                              State#state.function_level),
+                                          State#state{function_level =
+                                          State#state.function_level + 1}),
                                       ")"
                                   ])
                               end
@@ -2517,9 +2563,12 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {'fun', N, Args} = ST)
               _ -> case ArgsStr of
                        [] -> binary_to_list(N);
                        _ ->
-                           lists:append(
-                               [binary_to_list(N), "(", columns_join(ArgsStr,
-                                   ", ", []), ")"])
+                           lists:append([
+                               binary_to_list(N),
+                               "(",
+                               columns_join(ArgsStr, ", ", true, []),
+                               ")"
+                           ])
                    end
           end, NewCtx3},
     ?debugFmt(?MODULE_STRING ++ ":fold ===>~n RT: ~p~n", [RT]),
@@ -2586,12 +2635,13 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
               end,
     RT = {case Format of
               true -> lists:flatten([
-                  format_column_pos(State#state.indentation_level - 2),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 2}),
                   format_keyword("grant"),
                   case length(ObjsStr) =< ?CR_LIMIT_GRANT_PRIVILEGE of
                       true -> lists:append([
                           ?CHAR_NEWLINE,
-                          format_column_pos(State#state.indentation_level),
+                          format_column_pos(State),
                           lists:join(", ",
                               [case lists:member(O,
                                   ?OBJECT_PRIVILEGES ++ ?SYSTEM_PRIVILEGES) of
@@ -2600,45 +2650,48 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                                end || O <- ObjsStr])
                       ]);
                       _ ->
-                          format_commalist(State#state.indentation_level,
+                          format_commalist(State,
                               [case lists:member(O, ?OBJECT_PRIVILEGES
                               ++ ?SYSTEM_PRIVILEGES) of
                                    true ->
                                        format_keyword(O);
                                    _ ->
                                        format_identifier(O)
-                               end || O <- ObjsStr])
+                               end || O <- ObjsStr], false)
                   end,
                   case On =/= <<"">> of
                       true -> lists:append([
                           ?CHAR_NEWLINE,
-                          format_column_pos(State#state.indentation_level - 1),
+                          format_column_pos(State#state{indentation_level =
+                          State#state.indentation_level - 1}),
                           format_keyword(OnTypNew),
                           ?CHAR_NEWLINE,
-                          format_column_pos(State#state.indentation_level),
+                          format_column_pos(State),
                           OnNew
                       ]);
                       _ -> []
                   end,
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword("to"),
                   case length(TosStr) =< ?CR_LIMIT_GRANT_GRANTEE of
                       true -> lists:append([
                           ?CHAR_NEWLINE,
-                          format_column_pos(State#state.indentation_level),
+                          format_column_pos(State),
                           lists:join(", ",
                               [format_identifier(T) || T <- TosStr])
                       ]);
                       _ ->
-                          format_commalist(State#state.indentation_level,
-                              [format_identifier(T) || T <- TosStr])
+                          format_commalist(State,
+                              [format_identifier(T) || T <- TosStr], false)
                   end,
                   case format_keyword(Opts) of
                       [] -> [];
                       OptsStr -> lists:append([
                           ?CHAR_NEWLINE,
-                          format_column_pos(State#state.indentation_level - 1),
+                          format_column_pos(State#state{indentation_level =
+                          State#state.indentation_level - 1}),
                           OptsStr
                       ])
                   end
@@ -2687,24 +2740,22 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {'group by', GroupBy} = ST) ->
               true -> case Format of
                           true -> lists:append([
                               ?CHAR_NEWLINE,
-                              format_column_pos(
-                                  State#state.indentation_level - 1),
+                              format_column_pos(State#state{indentation_level =
+                              State#state.indentation_level - 1}),
                               format_keyword("group by"),
                               case is_simple_list(GroupBy,
                                   ?CR_LIMIT_GROUP_BY) of
                                   true -> lists:append([
                                       ?CHAR_NEWLINE,
-                                      format_column_pos(
-                                          State#state.indentation_level),
-                                      columns_join(GroupByStr, ", ", [])
+                                      format_column_pos(State),
+                                      columns_join(GroupByStr, ", ", true, [])
                                   ]);
                                   _ ->
-                                      format_commalist(
-                                          State#state.indentation_level,
-                                          GroupByStr)
+                                      format_commalist(State, GroupByStr, true)
                               end
                           ]);
-                          _ -> "group by " ++ columns_join(GroupByStr, ", ", [])
+                          _ -> "group by " ++
+                          columns_join(GroupByStr, ", ", true, [])
                       end;
               _ -> []
           end, NewCtx2},
@@ -2732,13 +2783,12 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {having, Having} = ST) ->
               true -> case Format of
                           true -> lists:append([
                               ?CHAR_NEWLINE,
-                              format_column_pos(
-                                  State#state.indentation_level - 1),
+                              format_column_pos(State#state{indentation_level =
+                              State#state.indentation_level - 1}),
                               format_keyword("having"),
                               ?CHAR_NEWLINE,
-                              format_column_pos(State#state.indentation_level),
-                              format_search_condition(
-                                  State#state.indentation_level, HavingStr)
+                              format_column_pos(State),
+                              format_search_condition(State, HavingStr)
                           ]);
                           _ -> "having " ++ HavingStr
                       end;
@@ -2823,10 +2873,11 @@ fold(Format, State, FType, Fun, Ctx, _Lvl, {'identified by', Pswd} = ST) ->
     RT = {case Format of
               true -> lists:append([
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword("identified by"),
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
                   binary_to_list(Pswd)
               ]);
               _ -> "identified by " ++ binary_to_list(Pswd)
@@ -2848,7 +2899,8 @@ fold(Format, State, FType, Fun, Ctx, _Lvl, {Type, {}} = ST)
     RT = {case Format of
               true -> lists:append([
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword("identified "),
                   case Type of
                       'identified extern' -> format_keyword("externally");
@@ -2878,7 +2930,8 @@ fold(Format, State, FType, Fun, Ctx, _Lvl, {Type, E} = ST)
     RT = {case Format of
               true -> lists:append([
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword("identified "),
                   case Type of
                       'identified extern' -> format_keyword("externally ");
@@ -2886,7 +2939,7 @@ fold(Format, State, FType, Fun, Ctx, _Lvl, {Type, E} = ST)
                   end,
                   format_keyword("as"),
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
                   binary_to_list(E)
               ]);
               _ -> lists:append([case Type of
@@ -3014,10 +3067,11 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {insert, Table, {}, {}, Return} =
               end,
     RT = {case Format of
               true -> lists:append([
-                  format_column_pos(State#state.indentation_level - 2),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword("insert into"),
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
                   TableStr,
                   Ret
               ]);
@@ -3041,14 +3095,14 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                  bottom_up -> Ctx
              end,
     {TableStr, NewCtx1} =
-        fold(Format, State#state{select_clause = none, statement = insert},
+        fold(Format, State#state{select_clause = values, statement = insert},
             FType, Fun, NewCtx, Lvl + 1, {table, Table}),
     {CStrs, NewCtx2} = case Columns of
                            [] -> {[], NewCtx1};
                            _ -> lists:foldl(fun(C, {Acc, CtxAcc}) ->
                                {CT, CtxAcc1} =
                                    fold(Format,
-                                       State#state{select_clause = none, statement = insert},
+                                       State#state{select_clause = values, statement = insert},
                                        FType, Fun, CtxAcc,
                                        Lvl + 1, C),
                                {Acc ++ [CT], CtxAcc1}
@@ -3059,11 +3113,14 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
     {Vals, NewCtx3} = lists:foldl(fun(V, {Acc1, CtxAcc1}) ->
         case V of
             V when is_binary(V) ->
-                {Acc1 ++ [binary_to_list(V)], Fun(V, CtxAcc1)};
+                {Acc1 ++ [case Format of
+                              true -> format_identifier(V);
+                              _ -> binary_to_list(V)
+                          end], Fun(V, CtxAcc1)};
             V ->
                 {VT, CtxAcc2} =
                     fold(Format,
-                        State#state{select_clause = none, statement = insert},
+                        State#state{select_clause = values, statement = insert},
                         FType, Fun, CtxAcc1, Lvl + 1, V),
                 {Acc1 ++ [VT], CtxAcc2}
         end
@@ -3074,7 +3131,7 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
         case Return of
             {_, {}} -> {[], NewCtx3};
             _ -> fold(Format,
-                State#state{select_clause = none, statement = insert}, FType,
+                State#state{select_clause = values, statement = insert}, FType,
                 Fun, NewCtx3, Lvl + 1, Return)
         end,
     NewCtx5 = case FType of
@@ -3083,10 +3140,11 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
               end,
     RT = {case Format of
               true -> lists:append([
-                  format_column_pos(State#state.indentation_level - 2),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 2}),
                   format_keyword("insert into"),
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
                   TableStr,
                   case length(CStrs) == 0 of
                       true -> [];
@@ -3097,32 +3155,29 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                                ]);
                                _ -> lists:append([
                                    " (",
-                                   format_commalist(
-                                       State#state.indentation_level, CStrs),
+                                   format_commalist(State, CStrs, true),
                                    ?CHAR_NEWLINE,
-                                   format_column_pos(
-                                       State#state.indentation_level),
+                                   format_column_pos(State),
                                    ")"
                                ])
                            end
                   end,
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword("values"),
                   case is_simple_list(Values, ?CR_LIMIT_INSERT) of
                       true -> lists:append([
                           ?CHAR_NEWLINE,
-                          format_column_pos(State#state.indentation_level),
+                          format_column_pos(State),
                           lists:flatten(
-                              ["(", lists:join(", ",
-                                  [format_identifier(V) || V <- Vals]), ")"])
+                              ["(", lists:join(", ", Vals), ")"])
                       ]);
                       _ -> lists:append([
                           " (",
-                          format_commalist(State#state.indentation_level,
-                              [format_identifier(V) || V <- Vals]),
+                          format_commalist(State, Vals, true),
                           ?CHAR_NEWLINE,
-                          format_column_pos(State#state.indentation_level),
+                          format_column_pos(State),
                           ")"
                       ])
                   end,
@@ -3155,14 +3210,14 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                  bottom_up -> Ctx
              end,
     {TableStr, NewCtx1} =
-        fold(Format, State#state{select_clause = none, statement = insert},
+        fold(Format, State#state{select_clause = query, statement = insert},
             FType, Fun, NewCtx, Lvl + 1, {table, Table}),
     {CStrs, NewCtx2} = case Columns of
                            [] -> {[], NewCtx1};
                            _ -> lists:foldl(fun(C, {Acc, CtxAcc}) ->
                                {CT, CtxAcc1} =
                                    fold(Format,
-                                       State#state{select_clause = none, statement = insert},
+                                       State#state{select_clause = query, statement = insert},
                                        FType, Fun, CtxAcc,
                                        Lvl + 1, C),
                                {Acc ++ [CT], CtxAcc1}
@@ -3172,13 +3227,13 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                        end,
     {SubQueryStr, NewCtx3} = fold(Format,
         State#state{indentation_level = State#state.indentation_level +
-            1, select_clause = none, statement = insert},
+            1, select_clause = query, statement = insert},
         FType, Fun, NewCtx2, Lvl + 1, SubQuery),
     {Ret, NewCtx4} =
         case Return of
             {_, {}} -> {[], NewCtx3};
             _ -> fold(Format,
-                State#state{select_clause = none, statement = insert}, FType,
+                State#state{select_clause = query, statement = insert}, FType,
                 Fun, NewCtx3, Lvl + 1, Return)
         end,
     NewCtx5 = case FType of
@@ -3187,10 +3242,11 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
               end,
     RT = {case Format of
               true -> lists:append([
-                  format_column_pos(State#state.indentation_level - 2),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 2}),
                   format_keyword("insert into"),
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
                   TableStr,
                   case length(CStrs) == 0 of
                       true -> [];
@@ -3201,17 +3257,15 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                                ]);
                                _ -> lists:append([
                                    " (",
-                                   format_commalist(
-                                       State#state.indentation_level, CStrs),
+                                   format_commalist(State, CStrs, true),
                                    ?CHAR_NEWLINE,
-                                   format_column_pos(
-                                       State#state.indentation_level),
+                                   format_column_pos(State),
                                    ")"
                                ])
                            end
                   end,
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
                   SubQueryStr,
                   Ret
               ]);
@@ -3234,43 +3288,75 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
     RT;
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Intersect / Minus / Union
+% INTERSECT / MINUS / UNION
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fold(Format, State, FType, Fun, Ctx, Lvl,
-    {Type, {select, _} = A, {select, _} = B} = ST)
-    when Type == intersect; Type == minus; Type == union; Type == 'union all' ->
+    {Type, {TypeA, _, _} = A, {TypeB, _, _} = B} = ST)
+    when (Type == intersect orelse Type == minus orelse Type == union orelse
+    Type == 'union all') andalso
+    (TypeA == intersect orelse TypeA == minus orelse TypeA == union orelse
+        TypeA == 'union all') andalso
+    (TypeB == intersect orelse TypeB == minus orelse TypeB == union orelse
+        TypeB == 'union all') ->
     ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p-~p-~p~n ST: ~p~n",
         [Format, Lvl, State#state.indentation_level, ST]),
     NewCtx = case FType of
                  top_down -> Fun(ST, Ctx);
                  bottom_up -> Ctx
              end,
-    IsOuterBracket = case State#state.indentation_level > 1 of
-                         true -> true;
-                         _ -> false
-                     end,
-    {AStr, NewCtx1} = fold(Format, State, FType, Fun, NewCtx, Lvl + 1, A),
-    {BStr, NewCtx2} = fold(Format, State, FType, Fun, NewCtx1, Lvl + 1, B),
+    {AStr, NewCtx1} =
+        fold(Format,
+            State#state{indentation_level =
+            State#state.indentation_level + 1, statement = Type}, FType, Fun,
+            NewCtx, Lvl + 1, A),
+    {BStr, NewCtx2} =
+        fold(Format,
+            State#state{indentation_level =
+            State#state.indentation_level + 1, statement = Type}, FType, Fun,
+            NewCtx1, Lvl + 1, B),
     NewCtx3 = case FType of
                   top_down -> NewCtx2;
                   bottom_up -> Fun(ST, NewCtx2)
               end,
+    IsOuterBracket = case State#state.statement of
+                         select -> case
+                                       State#state.select_clause of
+                                       none -> false;
+                                       _ -> true
+                                   end;
+                         UI when UI == intersect;UI == minus;
+                             UI == union;UI ==
+                                 'union all' ->
+                             case
+                                 State#state.indentation_level > 1 of
+                                 true -> true;
+                                 _ -> false
+                             end;
+                         _ -> true
+                     end,
     RT = {case Format of
               true -> lists:flatten([
                   case IsOuterBracket of
-                      true -> "(";
+                      true -> "(" ++ ?CHAR_NEWLINE;
                       _ -> []
                   end,
+                  format_column_pos(State),
                   AStr,
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword(Type),
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level - 1),
+                  format_column_pos(State),
                   BStr,
                   case IsOuterBracket of
-                      true -> ")";
+                      true -> lists:append([
+                          ?CHAR_NEWLINE,
+                          format_column_pos(State#state{indentation_level =
+                          State#state.indentation_level - 1}),
+                          ")"
+                      ]);
                       _ -> []
                   end
               ]);
@@ -3295,7 +3381,7 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
     RT;
 
 fold(Format, State, FType, Fun, Ctx, Lvl,
-    {Type, {select, _} = A, {TypeB, _, _} = B} = ST)
+    {Type, A, {TypeB, _, _} = B} = ST)
     when (Type == intersect orelse Type == minus orelse Type == union orelse
     Type == 'union all') andalso
     (TypeB == intersect orelse TypeB == minus orelse TypeB == union orelse
@@ -3306,6 +3392,20 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                  top_down -> Fun(ST, Ctx);
                  bottom_up -> Ctx
              end,
+    {AStr, NewCtx1} =
+        fold(Format,
+            State#state{indentation_level =
+            State#state.indentation_level + 1, statement = Type}, FType, Fun,
+            NewCtx, Lvl + 1, A),
+    {BStr, NewCtx2} =
+        fold(Format,
+            State#state{indentation_level =
+            State#state.indentation_level + 1, statement = Type}, FType, Fun,
+            NewCtx1, Lvl + 1, B),
+    NewCtx3 = case FType of
+                  top_down -> NewCtx2;
+                  bottom_up -> Fun(ST, NewCtx2)
+              end,
     IsOuterBracket = case State#state.statement of
                          select -> case
                                        State#state.select_clause of
@@ -3322,38 +3422,38 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                              end;
                          _ -> true
                      end,
-    {AStr, NewCtx1} =
-        fold(Format,
-            State#state{indentation_level =
-            State#state.indentation_level + 1, statement = Type}, FType, Fun,
-            NewCtx, Lvl + 1, A),
-    {BStr, NewCtx2} =
-        fold(Format,
-            State#state{indentation_level =
-            State#state.indentation_level + 1, statement = Type}, FType, Fun,
-            NewCtx1, Lvl + 1, B),
-    NewCtx3 = case FType of
-                  top_down -> NewCtx2;
-                  bottom_up -> Fun(ST, NewCtx2)
-              end,
+    IsOuterBracketA = case string:slice(AStr, 0, 1) == "(" of
+                          true -> false;
+                          _ -> true
+                      end,
     RT = {case Format of
               true -> lists:flatten([
                   case IsOuterBracket of
                       true -> "(" ++ ?CHAR_NEWLINE;
                       _ -> []
                   end,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
+                  case IsOuterBracketA of
+                      true -> "(";
+                      _ -> []
+                  end,
                   AStr,
+                  case IsOuterBracketA of
+                      true -> ")";
+                      _ -> []
+                  end,
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword(Type),
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
                   BStr,
                   case IsOuterBracket of
                       true -> lists:append([
                           ?CHAR_NEWLINE,
-                          format_column_pos(State#state.indentation_level - 1),
+                          format_column_pos(State#state{indentation_level =
+                          State#state.indentation_level - 1}),
                           ")"
                       ]);
                       _ -> []
@@ -3364,8 +3464,15 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                       true -> "(";
                       _ -> []
                   end,
+                  case IsOuterBracketA of
+                      true -> "(";
+                      _ -> []
+                  end,
                   AStr,
-                  " ",
+                  case IsOuterBracketA of
+                      true -> ") ";
+                      _ -> " "
+                  end,
                   atom_to_list(Type),
                   " ",
                   BStr,
@@ -3391,6 +3498,20 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                  top_down -> Fun(ST, Ctx);
                  bottom_up -> Ctx
              end,
+    {AStr, NewCtx1} =
+        fold(Format,
+            State#state{indentation_level =
+            State#state.indentation_level + 1, statement = Type}, FType, Fun,
+            NewCtx, Lvl + 1, A),
+    {BStr, NewCtx2} =
+        fold(Format,
+            State#state{indentation_level =
+            State#state.indentation_level + 1, statement = Type}, FType, Fun,
+            NewCtx1, Lvl + 1, B),
+    NewCtx3 = case FType of
+                  top_down -> NewCtx2;
+                  bottom_up -> Fun(ST, NewCtx2)
+              end,
     IsOuterBracket = case State#state.statement of
                          select -> case
                                        State#state.select_clause of
@@ -3407,38 +3528,38 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                              end;
                          _ -> true
                      end,
-    {AStr, NewCtx1} =
-        fold(Format,
-            State#state{indentation_level =
-            State#state.indentation_level + 1, statement = Type}, FType, Fun,
-            NewCtx, Lvl + 1, A),
-    {BStr, NewCtx2} =
-        fold(Format,
-            State#state{indentation_level =
-            State#state.indentation_level + 1, statement = Type}, FType, Fun,
-            NewCtx1, Lvl + 1, B),
-    NewCtx3 = case FType of
-                  top_down -> NewCtx2;
-                  bottom_up -> Fun(ST, NewCtx2)
-              end,
+    IsOuterBracketB = case string:slice(BStr, 0, 1) == "(" of
+                          true -> false;
+                          _ -> true
+                      end,
     RT = {case Format of
               true -> lists:flatten([
                   case IsOuterBracket of
                       true -> "(" ++ ?CHAR_NEWLINE;
                       _ -> []
                   end,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
                   AStr,
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword(Type),
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State),
+                  case IsOuterBracketB of
+                      true -> "(";
+                      _ -> []
+                  end,
                   BStr,
+                  case IsOuterBracketB of
+                      true -> ")";
+                      _ -> []
+                  end,
                   case IsOuterBracket of
                       true -> lists:append([
                           ?CHAR_NEWLINE,
-                          format_column_pos(State#state.indentation_level - 1),
+                          format_column_pos(State#state{indentation_level =
+                          State#state.indentation_level - 1}),
                           ")"
                       ]);
                       _ -> []
@@ -3452,8 +3573,15 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                   AStr,
                   " ",
                   atom_to_list(Type),
-                  " ",
+                  case IsOuterBracketB of
+                      true -> " (";
+                      _ -> " "
+                  end,
                   BStr,
+                  case IsOuterBracketB of
+                      true -> ")";
+                      _ -> []
+                  end,
                   case IsOuterBracket of
                       true -> ")";
                       _ -> []
@@ -3465,69 +3593,65 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
     RT;
 
 fold(Format, State, FType, Fun, Ctx, Lvl,
-    {Type, {TypeA, _, _} = A, {TypeB, _, _} = B} = ST)
-    when (Type == intersect orelse Type == minus orelse Type == union orelse
-    Type == 'union all') andalso
-    (TypeA == intersect orelse TypeA == minus orelse TypeA == union orelse
-        TypeA == 'union all') andalso
-    (TypeB == intersect orelse TypeB == minus orelse TypeB == union orelse
-        TypeB == 'union all') ->
+    {Type, A, B} = ST)
+    when Type == intersect; Type == minus; Type == union; Type == 'union all' ->
     ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p-~p-~p~n ST: ~p~n",
         [Format, Lvl, State#state.indentation_level, ST]),
     NewCtx = case FType of
                  top_down -> Fun(ST, Ctx);
                  bottom_up -> Ctx
              end,
-    IsOuterBracket = case State#state.statement of
-                         select -> case
-                                       State#state.select_clause of
-                                       none -> false;
-                                       _ -> true
-                                   end;
-                         UI when UI == intersect;UI == minus;
-                             UI == union;UI ==
-                                 'union all' ->
-                             case
-                                 State#state.indentation_level > 1 of
-                                 true -> true;
-                                 _ -> false
-                             end;
-                         _ -> true
-                     end,
-    {AStr, NewCtx1} =
-        fold(Format,
-            State#state{indentation_level =
-            State#state.indentation_level + 1, statement = Type}, FType, Fun,
-            NewCtx, Lvl + 1, A),
-    {BStr, NewCtx2} =
-        fold(Format,
-            State#state{indentation_level =
-            State#state.indentation_level + 1, statement = Type}, FType, Fun,
-            NewCtx1, Lvl + 1, B),
+    {AStr, NewCtx1} = fold(Format, State, FType, Fun, NewCtx, Lvl + 1, A),
+    {BStr, NewCtx2} = fold(Format, State, FType, Fun, NewCtx1, Lvl + 1, B),
     NewCtx3 = case FType of
                   top_down -> NewCtx2;
                   bottom_up -> Fun(ST, NewCtx2)
               end,
+    IsOuterBracket = case State#state.indentation_level > 1 of
+                         true -> true;
+                         _ -> false
+                     end,
+    IsOuterBracketA = case string:slice(AStr, 0, 1) == "(" of
+                          true -> false;
+                          _ -> true
+                      end,
+    IsOuterBracketB = case string:slice(BStr, 0, 1) == "(" of
+                          true -> false;
+                          _ -> true
+                      end,
     RT = {case Format of
               true -> lists:flatten([
                   case IsOuterBracket of
-                      true -> "(" ++ ?CHAR_NEWLINE;
+                      true -> "(";
                       _ -> []
                   end,
-                  format_column_pos(State#state.indentation_level),
+                  case IsOuterBracketA of
+                      true -> "(";
+                      _ -> []
+                  end,
                   AStr,
+                  case IsOuterBracketA of
+                      true -> ")";
+                      _ -> []
+                  end,
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword(Type),
                   ?CHAR_NEWLINE,
-                  format_column_pos(State#state.indentation_level),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
+                  case IsOuterBracketB of
+                      true -> "(";
+                      _ -> []
+                  end,
                   BStr,
+                  case IsOuterBracketB of
+                      true -> ")";
+                      _ -> []
+                  end,
                   case IsOuterBracket of
-                      true -> lists:append([
-                          ?CHAR_NEWLINE,
-                          format_column_pos(State#state.indentation_level - 1),
-                          ")"
-                      ]);
+                      true -> ")";
                       _ -> []
                   end
               ]);
@@ -3536,11 +3660,25 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                       true -> "(";
                       _ -> []
                   end,
+                  case IsOuterBracketA of
+                      true -> "(";
+                      _ -> []
+                  end,
                   AStr,
-                  " ",
+                  case IsOuterBracketA of
+                      true -> ") ";
+                      _ -> " "
+                  end,
                   atom_to_list(Type),
-                  " ",
+                  case IsOuterBracketB of
+                      true -> " (";
+                      _ -> " "
+                  end,
                   BStr,
+                  case IsOuterBracketB of
+                      true -> ")";
+                      _ -> []
+                  end,
                   case IsOuterBracket of
                       true -> ")";
                       _ -> []
@@ -3585,20 +3723,17 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {into, Into} = ST)
     RT = {case Format of
               true -> lists:append([
                   ?CHAR_NEWLINE,
-                  format_column_pos(
-                      State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword("into"),
                   case length(IntoStr) =< ?CR_LIMIT_INTO of
                       true -> lists:flatten([
                           ?CHAR_NEWLINE,
-                          format_column_pos(
-                              State#state.indentation_level),
+                          format_column_pos(State),
                           lists:flatten(
                               lists:join(", ", IntoStr))
                       ]);
-                      _ -> format_commalist(
-                          State#state.indentation_level,
-                          IntoStr)
+                      _ -> format_commalist(State, IntoStr, false)
                   end
               ]);
               _ -> "into " ++ string:join(IntoStr, ",")
@@ -3975,12 +4110,11 @@ fold(Format, State, FType, Fun, Ctx, _Lvl,
     RT = {case Format of
               true -> lists:append([
                   ?CHAR_NEWLINE,
-                  format_column_pos(
-                      State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword("quota"),
                   ?CHAR_NEWLINE,
-                  format_column_pos(
-                      State#state.indentation_level),
+                  format_column_pos(State),
                   binary_to_list(Q),
                   case U =/= <<"">> of
                       true -> " " ++ format_identifier(U);
@@ -4081,10 +4215,7 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {Op, A} = ST)
                              NewCtx2 = Fun(A, NewCtx1),
                              {case Format of
                                   true -> lists:append([
-                                      format_operator(
-                                          State#state.indentation_level,
-                                          Op,
-                                          true),
+                                      format_operator(State, Op, true),
                                       "(",
                                       format_identifier(A),
                                       ")"
@@ -4102,9 +4233,7 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {Op, A} = ST)
                                      Lvl + 1, A),
                              {lists:append([case Format of
                                                 true ->
-                                                    format_operator(
-                                                        State#state.indentation_level,
-                                                        Op,
+                                                    format_operator(State, Op,
                                                         true);
                                                 _ ->
                                                     atom_to_list(
@@ -4290,27 +4419,23 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
               true -> case Format of
                           true -> lists:append([
                               ?CHAR_NEWLINE,
-                              format_column_pos(
-                                  State#state.indentation_level -
-                                      1),
+                              format_column_pos(State#state{indentation_level =
+                              State#state.indentation_level - 1}),
                               format_keyword("order by"),
                               case is_simple_list(OrderBy,
                                   ?CR_LIMIT_ORDER_BY) of
                                   true -> lists:append([
                                       ?CHAR_NEWLINE,
-                                      format_column_pos(
-                                          State#state.indentation_level),
+                                      format_column_pos(State),
                                       columns_join(OrderByStr,
-                                          ", ", [])
+                                          ", ", true, [])
                                   ]);
                                   _ ->
-                                      format_commalist(
-                                          State#state.indentation_level,
-                                          OrderByStr)
+                                      format_commalist(State, OrderByStr, true)
                               end
                           ]);
                           _ -> "order by " ++
-                          columns_join(OrderByStr, ", ", [])
+                          columns_join(OrderByStr, ", ", true, [])
                       end;
               _ -> []
           end, NewCtx2},
@@ -4417,23 +4542,19 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                                   FieldsStr), ")"]);
                       _ -> lists:append([
                           ?CHAR_NEWLINE,
-                          format_column_pos(
-                              State#state.indentation_level),
+                          format_column_pos(State),
                           "(",
-                          format_commalist(
-                              State#state.indentation_level +
-                                  1,
-                              FieldsStr),
+                          format_commalist(State#state{indentation_level =
+                          State#state.indentation_level + 1}, FieldsStr, true),
                           ?CHAR_NEWLINE,
-                          format_column_pos(
-                              State#state.indentation_level),
+                          format_column_pos(State),
                           ")"
                       ])
                   end
               ]);
               _ -> lists:append(
                   ["partition by (", columns_join(FieldsStr,
-                      ", ", []), ")"])
+                      ", ", true, []), ")"])
           end, NewCtx2},
     ?debugFmt(?MODULE_STRING ++ ":fold ===>~n RT: ~p~n",
         [RT]),
@@ -4459,8 +4580,8 @@ fold(Format, State, FType, Fun, Ctx, _Lvl,
     RT = {case Format of
               true -> lists:append([
                   ?CHAR_NEWLINE,
-                  format_column_pos(
-                      State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword("password expire")
               ]);
               _ -> "password expire "
@@ -4559,12 +4680,11 @@ fold(Format, State, FType, Fun, Ctx, _Lvl,
     RT = {case Format of
               true -> lists:append([
                   ?CHAR_NEWLINE,
-                  format_column_pos(
-                      State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword("profile"),
                   ?CHAR_NEWLINE,
-                  format_column_pos(
-                      State#state.indentation_level),
+                  format_column_pos(State),
                   format_identifier(Profile)
               ]);
               _ -> lists:append(
@@ -4718,38 +4838,32 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {R, Sel, Var} = ST)
     RT = {case Format of
               true -> lists:flatten([
                   ?CHAR_NEWLINE,
-                  format_column_pos(
-                      State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword(R),
                   case length(SelStr) =<
                       ?CR_LIMIT_RETURNING of
                       true -> lists:append([
                           ?CHAR_NEWLINE,
-                          format_column_pos(
-                              State#state.indentation_level),
+                          format_column_pos(State),
                           lists:join(", ", SelStr)
                       ]);
                       _ ->
-                          format_commalist(
-                              State#state.indentation_level,
-                              SelStr)
+                          format_commalist(State, SelStr, false)
                   end,
                   ?CHAR_NEWLINE,
-                  format_column_pos(
-                      State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword("into"),
                   case length(VarStr) =<
                       ?CR_LIMIT_RETURNING of
                       true -> lists:append([
                           ?CHAR_NEWLINE,
-                          format_column_pos(
-                              State#state.indentation_level),
+                          format_column_pos(State),
                           lists:join(", ", VarStr)
                       ]);
                       _ ->
-                          format_commalist(
-                              State#state.indentation_level,
-                              VarStr)
+                          format_commalist(State, VarStr, false)
                   end
               ]);
               _ ->
@@ -4806,15 +4920,14 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
               end,
     RT = {case Format of
               true -> lists:flatten([
-                  format_column_pos(
-                      State#state.indentation_level - 2),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 2}),
                   format_keyword("revoke"),
                   case length(ObjsStr) =<
                       ?CR_LIMIT_REVOKE_PRIVILEGE of
                       true -> lists:append([
                           ?CHAR_NEWLINE,
-                          format_column_pos(
-                              State#state.indentation_level),
+                          format_column_pos(State),
                           lists:join(", ",
                               [case lists:member(O,
                                   ?OBJECT_PRIVILEGES ++
@@ -4824,8 +4937,7 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                                end || O <- ObjsStr])
                       ]);
                       _ ->
-                          format_commalist(
-                              State#state.indentation_level,
+                          format_commalist(State,
                               [case lists:member(O,
                                   ?OBJECT_PRIVILEGES
                                   ++ ?SYSTEM_PRIVILEGES) of
@@ -4833,49 +4945,44 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                                        format_keyword(O);
                                    _ ->
                                        format_identifier(O)
-                               end || O <- ObjsStr])
+                               end || O <- ObjsStr], false)
                   end,
                   case On =/= <<"">> of
                       true -> lists:append([
                           ?CHAR_NEWLINE,
-                          format_column_pos(
-                              State#state.indentation_level -
-                                  1),
+                          format_column_pos(State#state{indentation_level =
+                          State#state.indentation_level - 1}),
                           format_keyword(OnTypNew),
                           ?CHAR_NEWLINE,
-                          format_column_pos(
-                              State#state.indentation_level),
+                          format_column_pos(State),
                           OnNew
                       ]);
                       _ -> []
                   end,
                   ?CHAR_NEWLINE,
-                  format_column_pos(
-                      State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword("from"),
                   case length(TosStr) =<
                       ?CR_LIMIT_REVOKE_REVOKEE of
                       true -> lists:append([
                           ?CHAR_NEWLINE,
-                          format_column_pos(
-                              State#state.indentation_level),
+                          format_column_pos(State),
                           lists:join(", ",
                               [format_identifier(
                                   T) || T <- TosStr])
                       ]);
                       _ ->
-                          format_commalist(
-                              State#state.indentation_level,
+                          format_commalist(State,
                               [format_identifier(
-                                  T) || T <- TosStr])
+                                  T) || T <- TosStr], false)
                   end,
                   case format_keyword(Opts) of
                       [] -> [];
                       OptsStr -> lists:append([
                           ?CHAR_NEWLINE,
-                          format_column_pos(
-                              State#state.indentation_level -
-                                  1),
+                          format_column_pos(State#state{indentation_level =
+                          State#state.indentation_level - 1}),
                           OptsStr
                       ])
                   end
@@ -4922,8 +5029,8 @@ fold(Format, State, FType, Fun, Ctx, _Lvl, {Role, Roles} = ST)
     RT = {case Format of
               true -> lists:flatten([
                   ?CHAR_NEWLINE,
-                  format_column_pos(
-                      State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword("default role"),
                   case Role of
                       'default role' -> [];
@@ -4933,16 +5040,13 @@ fold(Format, State, FType, Fun, Ctx, _Lvl, {Role, Roles} = ST)
                       ?CR_LIMIT_ALTER_ROLES of
                       true -> lists:append([
                           ?CHAR_NEWLINE,
-                          format_column_pos(
-                              State#state.indentation_level),
+                          format_column_pos(State),
                           lists:join(", ", [format_identifier(
                               R) || R <- Roles])
                       ]);
                       _ ->
-                          format_commalist(
-                              State#state.indentation_level,
-                              [format_identifier(
-                                  R) || R <- Roles])
+                          format_commalist(State,
+                              [format_identifier(R) || R <- Roles], false)
                   end
               ]);
               _ -> lists:flatten([
@@ -4973,8 +5077,8 @@ fold(Format, State, FType, Fun, Ctx, _Lvl, ST)
     RT = {case Format of
               true -> lists:append([
                   ?CHAR_NEWLINE,
-                  format_column_pos(
-                      State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword("default role "),
                   case ST of
                       'default role all' ->
@@ -5018,13 +5122,16 @@ fold(_Format, _State, FType, Fun, Ctx, _Lvl, {scope, S} = ST)
 
 fold(Format, State, FType, Fun, Ctx, Lvl,
     {select, Opts} = ST) ->
-    ?debugFmt(?MODULE_STRING ++
-    ":fold ===> Start ~p-~p-~p~n ST: ~p~n",
+    ?debugFmt(?MODULE_STRING ++ ":fold ===> Start ~p-~p-~p~n ST: ~p~n",
         [Format, Lvl, State#state.indentation_level, ST]),
     NewCtx = case FType of
                  top_down -> Fun(ST, Ctx);
                  bottom_up -> Ctx
              end,
+    ?debugFmt(?MODULE_STRING ++ ":fold wwe>~n true indentation_level: ~p~n",
+        [State#state.indentation_level]),
+    ?debugFmt(?MODULE_STRING ++ ":fold wwe>~n true function_level: ~p~n",
+        [State#state.function_level]),
     {NewOs, NewCtx1} =
         lists:foldl(fun({OType, _} = O, {Acc, CtxAcc}) ->
             {SubAcc, CtxAcc1} =
@@ -5053,24 +5160,33 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                   top_down -> NewCtx1;
                   bottom_up -> Fun(ST, NewCtx1)
               end,
+    IsOuterBracket = case State#state.statement =/= select orelse
+        State#state.indentation_level == 1 of
+                         true ->
+                             case State#state.statement ==
+                                 'call procedure' orelse
+                                 State#state.statement == insert andalso
+                                     State#state.select_clause =/= query of
+                                 true -> true;
+                                 _ -> false
+                             end;
+                         _ -> true
+                     end,
     RT = {lists:append([
-        case State#state.statement =/= select orelse
-            State#state.indentation_level == 1 of
-            true -> [];
-            _ -> "("
+        case IsOuterBracket of
+            true -> "(";
+            _ -> []
         end,
         case Format of
             true -> format_keyword("select") ++ NewOs;
             _ -> "select" ++ lists:flatten(NewOs)
         end,
-        case State#state.statement =/= select orelse
-            State#state.indentation_level == 1 of
-            true -> [];
-            _ -> ")"
+        case IsOuterBracket of
+            true -> ")";
+            _ -> []
         end
     ]), NewCtx2},
-    ?debugFmt(?MODULE_STRING ++ ":fold ===>~n RT: ~p~n",
-        [RT]),
+    ?debugFmt(?MODULE_STRING ++ ":fold ===>~n RT: ~p~n", [RT]),
     RT;
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -5096,12 +5212,11 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
     RT = {case Format of
               true -> lists:append([
                   ?CHAR_NEWLINE,
-                  format_column_pos(
-                      State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword("start with"),
                   ?CHAR_NEWLINE,
-                  format_column_pos(
-                      State#state.indentation_level),
+                  format_column_pos(State),
                   StartWithStr
               ]);
               _ -> "start with " ++ StartWithStr
@@ -5340,21 +5455,19 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
               end,
     RT = {case Format of
               true -> lists:append([
-                  format_column_pos(
-                      State#state.indentation_level - 2),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 2}),
                   format_keyword("truncate table"),
                   ?CHAR_NEWLINE,
-                  format_column_pos(
-                      State#state.indentation_level),
+                  format_column_pos(State),
                   TableStr,
                   case Mvl of
                       {} -> [];
                       {'materialized view log', T} ->
                           lists:append([
                               ?CHAR_NEWLINE,
-                              format_column_pos(
-                                  State#state.indentation_level -
-                                      1),
+                              format_column_pos(State#state{indentation_level =
+                              State#state.indentation_level - 1}),
                               format_keyword(T),
                               " ",
                               format_keyword(
@@ -5368,8 +5481,8 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                               {} ->
                                   ?CHAR_NEWLINE ++
                                   format_column_pos(
-                                      State#state.indentation_level -
-                                          1);
+                                      State#state{indentation_level =
+                                      State#state.indentation_level - 1});
                               _ -> " "
                           end,
                           format_keyword(T),
@@ -5447,12 +5560,11 @@ fold(Format, State, FType, Fun, Ctx, _Lvl,
     RT = {case Format of
               true -> lists:append([
                   ?CHAR_NEWLINE,
-                  format_column_pos(
-                      State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword("quota"),
                   ?CHAR_NEWLINE,
-                  format_column_pos(
-                      State#state.indentation_level),
+                  format_column_pos(State),
                   format_keyword("unlimited on "),
                   format_identifier(T)
               ]);
@@ -5506,19 +5618,17 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
               end,
     RT = {case Format of
               true -> lists:append([
-                  format_column_pos(
-                      State#state.indentation_level - 2),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 2}),
                   format_keyword("update"),
                   ?CHAR_NEWLINE,
-                  format_column_pos(
-                      State#state.indentation_level),
+                  format_column_pos(State),
                   TableStr,
                   ?CHAR_NEWLINE,
-                  format_column_pos(
-                      State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword("set"),
-                  format_commalist(
-                      State#state.indentation_level, Sets),
+                  format_commalist(State, Sets, true),
                   case WhereStr of
                       [] -> [];
                       _ -> WhereStr
@@ -5563,8 +5673,7 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
     {ColumnListStr, NewCtx1} =
         lists:foldl(fun(C, {Acc, CtxAcc}) ->
             {SubAcc, CtxAcc1} =
-                fold(Format, State, FType, Fun, CtxAcc,
-                    Lvl + 1, C),
+                fold(Format, State, FType, Fun, CtxAcc, Lvl + 1, C),
             {Acc ++ [SubAcc], CtxAcc1}
                     end,
             {[], NewCtx},
@@ -5584,16 +5693,13 @@ fold(Format, State, FType, Fun, Ctx, Lvl,
                                   ColumnListStr), ")"]);
                       _ -> lists:append([
                           ?CHAR_NEWLINE,
-                          format_column_pos(
-                              State#state.indentation_level),
+                          format_column_pos(State),
                           "(",
-                          format_commalist(
-                              State#state.indentation_level +
-                                  1,
-                              ColumnListStr),
+                          format_commalist(State#state{indentation_level =
+                          State#state.indentation_level + 1}, ColumnListStr,
+                              false),
                           ?CHAR_NEWLINE,
-                          format_column_pos(
-                              State#state.indentation_level),
+                          format_column_pos(State),
                           ")"
                       ])
                   end
@@ -5683,16 +5789,12 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {where, Where} = ST)
               true -> case Format of
                           true -> lists:append([
                               ?CHAR_NEWLINE,
-                              format_column_pos(
-                                  State#state.indentation_level -
-                                      1),
+                              format_column_pos(State#state{indentation_level =
+                              State#state.indentation_level - 1}),
                               format_keyword("where"),
                               ?CHAR_NEWLINE,
-                              format_column_pos(
-                                  State#state.indentation_level),
-                              format_search_condition(
-                                  State#state.indentation_level,
-                                  WhereStr)
+                              format_column_pos(State),
+                              format_search_condition(State, WhereStr)
                           ]);
                           _ -> "where " ++ WhereStr
                       end;
@@ -5722,12 +5824,11 @@ fold(Format, State, FType, Fun, Ctx, _Lvl,
     RT = {case Format of
               true -> lists:append([
                   ?CHAR_NEWLINE,
-                  format_column_pos(
-                      State#state.indentation_level - 1),
+                  format_column_pos(State#state{indentation_level =
+                  State#state.indentation_level - 1}),
                   format_keyword("where current of"),
                   ?CHAR_NEWLINE,
-                  format_column_pos(
-                      State#state.indentation_level),
+                  format_column_pos(State),
                   format_identifier(CurName)
               ]);
               _ -> "where current of " ++ CurName
@@ -5915,16 +6016,10 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {Op, L, R} = ST)
     RT = {case Format of
               true -> case string:slice(Fl, 0, 1) of
                           "(" ->
-                              [Fl, format_operator(
-                                  State#state.indentation_level,
-                                  Op,
-                                  false), Fr];
+                              [Fl, format_operator(State, Op, false), Fr];
                           _ -> lists:flatten([
                               Fl,
-                              format_operator(
-                                  State#state.indentation_level,
-                                  Op,
-                                  false),
+                              format_operator(State, Op, false),
                               Fr
                           ])
                       end;
@@ -5981,9 +6076,8 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {Op, L, R} = ST)
     RT = {case Format of
               true -> lists:append([
                   format_identifier(L),
-                  format_operator(
-                      State#state.indentation_level + 1, Op,
-                      false),
+                  format_operator(State#state{indentation_level =
+                  State#state.indentation_level + 1}, Op, false),
                   Fr]);
               _ -> lists:append(
                   [binary_to_list(L), " ", atom_to_list(
@@ -6024,8 +6118,7 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {Op, L, R} = ST)
                                 State#state{indentation_level =
                                 State#state.indentation_level +
                                     1, statement = select},
-                                FType, Fun, NewCtx,
-                                Lvl + 1, L);
+                                FType, Fun, NewCtx, Lvl + 1, L);
                         _ -> fold(Format, State, FType, Fun,
                             NewCtx, Lvl + 1, L)
                     end,
@@ -6038,9 +6131,7 @@ fold(Format, State, FType, Fun, Ctx, Lvl, {Op, L, R} = ST)
     RT = {case Format of
               true -> lists:append([
                   Fl,
-                  format_operator(
-                      State#state.indentation_level, Op,
-                      false),
+                  format_operator(State, Op, false),
                   format_identifier(R)
               ]);
               _ -> lists:append(
@@ -6089,9 +6180,8 @@ fold(Format, State, FType, Fun, Ctx, _Lvl, {Op, L, R} = ST)
     RT = {case Format of
               true -> lists:append([
                   format_identifier(L),
-                  format_operator(
-                      State#state.indentation_level + 1, Op,
-                      false),
+                  format_operator(State#state{indentation_level =
+                  State#state.indentation_level + 1}, Op, false),
                   format_identifier(R)
               ]);
               _ -> lists:append(
@@ -6207,16 +6297,19 @@ fold(_Format, _State, _FType, Fun, Ctx, _Lvl, PTree) ->
 % Helper functions
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-columns_join([], _Separator, Result) ->
+columns_join([], _Separator, _IsComplex, Result) ->
     Result;
-columns_join([Head | Tail], Separator, Result) ->
-    columns_join(Tail, Separator, lists:append([
+columns_join([Head | Tail], Separator, IsComplex, Result) ->
+    columns_join(Tail, Separator, IsComplex, lists:append([
         Result,
         case Result of
             [] -> [];
             _ -> Separator
         end,
-        case string:sub_string(Head, 1, 7) == "select " of
+        case IsComplex == true andalso
+            string:casefold(string:sub_string(Head, 1, 6)) == "select" andalso
+            (string:sub_string(Head, 7, 7) == " " orelse
+                string:sub_string(Head, 7, 7) == ?CHAR_NEWLINE_1) of
             true -> lists:append(["(", Head, ")"]);
             _ -> Head
         end
@@ -6233,8 +6326,9 @@ decompose_tuple({_, _, empty}) ->
 % Determining the current column position.
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-format_column_pos(IndentationLevel) ->
-    format_column_pos(IndentationLevel, []).
+format_column_pos(State) ->
+    format_column_pos(
+        State#state.indentation_level + State#state.function_level, []).
 
 format_column_pos(IndentationLevel, Acc)
     when IndentationLevel =< 0 ->
@@ -6259,17 +6353,25 @@ format_column_pos(IndentationLevel, Acc) ->
 % Formatting comma separated lists.
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-format_commalist(IndentationLevel, List = _ST) ->
-    format_commalist(IndentationLevel, List, []).
+format_commalist(State, List = _ST, IsComplex) ->
+    format_commalist(State, List, IsComplex, []).
 
-format_commalist(_IndentationLevel, [], Acc) ->
+format_commalist(_State, [], _IsComplex, Acc) ->
     Acc;
-format_commalist(IndentationLevel, [Head | Tail], Acc) ->
-    format_commalist(IndentationLevel, Tail, lists:append([
+format_commalist(State, [Head | Tail], IsComplex, Acc) ->
+    format_commalist(State, Tail, IsComplex, lists:append([
         Acc,
         ?CHAR_NEWLINE,
-        format_column_pos(IndentationLevel),
-        lists:flatten(Head),
+        format_column_pos(State),
+        lists:flatten(
+            case IsComplex == true andalso
+                string:casefold(string:sub_string(Head, 1, 6)) ==
+                    "select" andalso
+                (string:sub_string(Head, 7, 7) == " " orelse
+                    string:sub_string(Head, 7, 7) == ?CHAR_NEWLINE_1) of
+                true -> lists:append(["(", Head, ")"]);
+                _ -> Head
+            end),
         case string:slice(lists:append(Tail), 0, 1) == ")" orelse Tail == [] of
             true -> [];
             _ -> Next = string:casefold(lists:nth(1, Tail)),
@@ -6375,15 +6477,15 @@ format_keyword(Keyword) ->
 % Formatting operators.
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-format_operator(IndentationLevel, Op = _ST, IsUnary)
+format_operator(State, Op = _ST, IsUnary)
     when is_atom(Op) ->
-    format_operator(IndentationLevel, atom_to_list(Op), IsUnary);
+    format_operator(State, atom_to_list(Op), IsUnary);
 
-format_operator(IndentationLevel, Op = _ST, IsUnary) ->
+format_operator(State, Op = _ST, IsUnary) ->
     case Op == "and" orelse Op == "or" of
         true -> lists:append([
             ?CHAR_NEWLINE,
-            format_column_pos(IndentationLevel),
+            format_column_pos(State),
             format_keyword(Op),
             " "
         ]);
@@ -6413,13 +6515,13 @@ format_operator(IndentationLevel, Op = _ST, IsUnary) ->
 % Formatting search conditions.
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-format_search_condition(IndentationLevel, [Left, Op, Right] = _ST) ->
+format_search_condition(State, [Left, Op, Right] = _ST) ->
     lists:append([
         Left,
-        format_operator(IndentationLevel, Op, false),
+        format_operator(State, Op, false),
         Right
     ]);
-format_search_condition(_IndentationLevel, SearchCondition = _ST) ->
+format_search_condition(_State, SearchCondition = _ST) ->
     SearchCondition.
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

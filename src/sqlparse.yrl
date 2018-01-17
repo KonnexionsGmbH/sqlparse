@@ -1258,6 +1258,7 @@ Erlang code.
 -export([
     foldbu/3,
     foldtd/3,
+    format/3,
     is_reserved/1,
     parsetree/1,
     parsetree_with_tokens/1,
@@ -1268,12 +1269,7 @@ Erlang code.
 
 -define(NODEBUG, true).
 -include_lib("eunit/include/eunit.hrl").
-
--define(Dbg(__Rule, __Production),
-    begin
-        io:format(user, "__ "??__Rule" (~p)~n", [__Production]),
-        __Production
-    end).
+-include("sqlparse_fold.hrl").
 
 %%-----------------------------------------------------------------------------
 %%                          parser helper functions
@@ -1344,8 +1340,9 @@ is_reserved(Word) when is_list(Word) ->
 
 -spec foldbu(fun(), term(), tuple()) -> {error, term()} | binary().
 foldbu(Fun, Ctx, PTree) when is_function(Fun, 2) ->
-    try sqlparse_fold:fold(false, {}, bottom_up, Fun, Ctx, 0, PTree) of
-        {Sql, null_fun = Ctx} -> list_to_binary(string:strip(Sql));
+    try sqlparse_fold:fold(false, #state{}, bottom_up, Fun, Ctx, 0, PTree) of
+        {error,_} = Error -> Error;
+        {Sql, null_fun = Ctx} -> list_to_binary(string:trim(Sql));
         {_Output, NewCtx} -> NewCtx
     catch
         _:Error -> {error, Error}
@@ -1353,8 +1350,9 @@ foldbu(Fun, Ctx, PTree) when is_function(Fun, 2) ->
 
 -spec foldtd(fun(), term(), tuple() | list()) -> {error, term()} | binary().
 foldtd(Fun, Ctx, PTree) when is_function(Fun, 2) ->
-    try sqlparse_fold:fold(false, {}, top_down, Fun, Ctx, 0, PTree) of
-        {Sql, null_fun = Ctx} -> list_to_binary(string:strip(Sql));
+    try sqlparse_fold:fold(false, #state{}, top_down, Fun, Ctx, 0, PTree) of
+        {error,_} = Error -> Error;
+        {Sql, null_fun = Ctx} -> list_to_binary(string:trim(Sql));
         {_Output, NewCtx} -> NewCtx
     catch
         _:Error -> {error, Error}
@@ -1362,8 +1360,9 @@ foldtd(Fun, Ctx, PTree) when is_function(Fun, 2) ->
 
 -spec format(fun(), term(), tuple() | list()) -> {error, term()} | binary().
 format(Fun, Ctx, PTree) when is_function(Fun, 2) ->
-    try sqlparse_fold:fold(true, {}, top_down, Fun, Ctx, 0, PTree) of
-        {Sql, null_fun = Ctx} -> list_to_binary(string:strip(Sql));
+    try sqlparse_fold:fold(true, #state{}, top_down, Fun, Ctx, 0, PTree) of
+        {error,_} = Error -> Error;
+        {Sql, null_fun = Ctx} -> list_to_binary(Sql);
         {_Output, NewCtx} -> NewCtx
     catch
         _:Error -> {error, Error}

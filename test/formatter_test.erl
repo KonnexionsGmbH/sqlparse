@@ -469,7 +469,8 @@ default_PLSQL_test_() ->
                 {formatter("PLSQL_22", ?PLSQL_22, ?PLSQL_22_RESULT_DEFAULT)},
                 {formatter("PLSQL_23", ?PLSQL_23, ?PLSQL_23_RESULT_DEFAULT)},
                 {formatter("PLSQL_24", ?PLSQL_24, ?PLSQL_24_RESULT_DEFAULT)},
-                {formatter("PLSQL_25", ?PLSQL_25, ?PLSQL_25_RESULT_DEFAULT)}
+                {formatter("PLSQL_25", ?PLSQL_25, ?PLSQL_25_RESULT_DEFAULT)},
+                {formatter("PLSQL_26", ?PLSQL_26, ?PLSQL_26_RESULT_DEFAULT)}
             ]
         end
     }.
@@ -665,7 +666,21 @@ default_UNION_test_() ->
                 {formatter("UNION_20", ?UNION_20, ?UNION_20_RESULT_DEFAULT)},
                 {formatter("UNION_21", ?UNION_21, ?UNION_21_RESULT_DEFAULT)},
                 {formatter("UNION_22", ?UNION_22, ?UNION_22_RESULT_DEFAULT)},
-                {formatter("UNION_23", ?UNION_23, ?UNION_23_RESULT_DEFAULT)}
+                {formatter("UNION_23", ?UNION_23, ?UNION_23_RESULT_DEFAULT)},
+                {formatter("UNION_24", ?UNION_24, ?UNION_24_RESULT_DEFAULT)},
+                {formatter("UNION_25", ?UNION_25, ?UNION_25_RESULT_DEFAULT)},
+                {formatter("UNION_26", ?UNION_26, ?UNION_26_RESULT_DEFAULT)},
+                {formatter("UNION_27", ?UNION_27, ?UNION_27_RESULT_DEFAULT)},
+                {formatter("UNION_28", ?UNION_28, ?UNION_28_RESULT_DEFAULT)},
+                {formatter("UNION_29", ?UNION_29, ?UNION_29_RESULT_DEFAULT)},
+                {formatter("UNION_30", ?UNION_30, ?UNION_30_RESULT_DEFAULT)},
+                {formatter("UNION_31", ?UNION_31, ?UNION_31_RESULT_DEFAULT)},
+                {formatter("UNION_32", ?UNION_32, ?UNION_32_RESULT_DEFAULT)},
+                {formatter("UNION_33", ?UNION_33, ?UNION_33_RESULT_DEFAULT)},
+                {formatter("UNION_34", ?UNION_34, ?UNION_34_RESULT_DEFAULT)},
+                {formatter("UNION_35", ?UNION_35, ?UNION_35_RESULT_DEFAULT)},
+                {formatter("UNION_36", ?UNION_36, ?UNION_36_RESULT_DEFAULT)},
+                {formatter("UNION_37", ?UNION_37, ?UNION_37_RESULT_DEFAULT)}
             ]
         end
     }.
@@ -685,7 +700,8 @@ default_UPDATE_test_() ->
                 {formatter("UPDATE_03", ?UPDATE_03, ?UPDATE_03_RESULT_DEFAULT)},
                 {formatter("UPDATE_04", ?UPDATE_04, ?UPDATE_04_RESULT_DEFAULT)},
                 {formatter("UPDATE_05", ?UPDATE_05, ?UPDATE_05_RESULT_DEFAULT)},
-                {formatter("UPDATE_06", ?UPDATE_06, ?UPDATE_06_RESULT_DEFAULT)}
+                {formatter("UPDATE_06", ?UPDATE_06, ?UPDATE_06_RESULT_DEFAULT)},
+                {formatter("UPDATE_07", ?UPDATE_07, ?UPDATE_07_RESULT_DEFAULT)}
             ]
         end
     }.
@@ -747,7 +763,16 @@ default_WHERE_test_() ->
                 {formatter("WHERE_25", ?WHERE_25, ?WHERE_25_RESULT_DEFAULT)},
                 {formatter("WHERE_26", ?WHERE_26, ?WHERE_26_RESULT_DEFAULT)},
                 {formatter("WHERE_27", ?WHERE_27, ?WHERE_27_RESULT_DEFAULT)},
-                {formatter("WHERE_28", ?WHERE_28, ?WHERE_28_RESULT_DEFAULT)}
+                {formatter("WHERE_28", ?WHERE_28, ?WHERE_28_RESULT_DEFAULT)},
+                {formatter("WHERE_29", ?WHERE_29, ?WHERE_29_RESULT_DEFAULT)},
+                {formatter("WHERE_30", ?WHERE_30, ?WHERE_30_RESULT_DEFAULT)},
+                {formatter("WHERE_31", ?WHERE_31, ?WHERE_31_RESULT_DEFAULT)},
+                {formatter("WHERE_32", ?WHERE_32, ?WHERE_32_RESULT_DEFAULT)},
+                {formatter("WHERE_33", ?WHERE_33, ?WHERE_33_RESULT_DEFAULT)},
+                {formatter("WHERE_34", ?WHERE_34, ?WHERE_34_RESULT_DEFAULT)},
+                {formatter("WHERE_35", ?WHERE_35, ?WHERE_35_RESULT_DEFAULT)},
+                {formatter("WHERE_36", ?WHERE_36, ?WHERE_36_RESULT_DEFAULT)},
+                {formatter("WHERE_37", ?WHERE_37, ?WHERE_37_RESULT_DEFAULT)}
             ]
         end
     }.
@@ -765,6 +790,7 @@ option_K_I_4_S_T_test_() ->
     {
         setup,
         fun setup_K_I_4_S_T/0,
+        fun teardown_default/1,
         fun() ->
             [
                 {formatter("OPTION_01_K_I_4_S_T", ?OPTION_01,
@@ -786,6 +812,7 @@ option_K_L_4_S_F_test_() ->
     {
         setup,
         fun setup_K_L_4_S_F/0,
+        fun teardown_default/1,
         fun() ->
             [
                 {formatter("OPTION_01_K_L_4_S_F", ?OPTION_01,
@@ -809,6 +836,7 @@ option_L_U_4_S_T_test_() ->
     {
         setup,
         fun setup_L_U_4_S_T/0,
+        fun teardown_default/1,
         fun() ->
             [
                 {formatter("OPTION_01_L_U_4_S_T", ?OPTION_01,
@@ -830,6 +858,7 @@ option_U_L_0_S_T_test_() ->
     {
         setup,
         fun setup_U_L_0_S_T/0,
+        fun teardown_default/1,
         fun() ->
             [
                 {formatter("OPTION_01_U_L_0_S_T", ?OPTION_01,
@@ -851,6 +880,7 @@ option_U_L_1_S_T_test_() ->
     {
         setup,
         fun setup_U_L_1_S_T/0,
+        fun teardown_default/1,
         fun() ->
             [
                 {formatter("OPTION_01_U_L_1_S_T", ?OPTION_01,
@@ -872,6 +902,7 @@ option_U_L_2_S_T_test_() ->
     {
         setup,
         fun setup_U_L_2_S_T/0,
+        fun teardown_default/1,
         fun() ->
             [
                 {formatter("OPTION_01_U_L_2_S_T", ?OPTION_01,
@@ -893,6 +924,7 @@ option_U_L_3_S_T_test_() ->
     {
         setup,
         fun setup_U_L_3_S_T/0,
+        fun teardown_default/1,
         fun() ->
             [
                 {formatter("OPTION_01_U_L_3_S_T", ?OPTION_01,
@@ -914,6 +946,7 @@ option_U_L_4_S_T_test_() ->
     {
         setup,
         fun setup_U_L_4_S_T/0,
+        fun teardown_default/1,
         fun() ->
             [
                 {formatter("OPTION_01_U_L_4_S_T", ?OPTION_01,
@@ -935,6 +968,7 @@ option_U_L_5_S_T_test_() ->
     {
         setup,
         fun setup_U_L_5_S_T/0,
+        fun teardown_default/1,
         fun() ->
             [
                 {formatter("OPTION_01_U_L_5_S_T", ?OPTION_01,
@@ -956,6 +990,7 @@ option_U_L_6_S_T_test_() ->
     {
         setup,
         fun setup_U_L_6_S_T/0,
+        fun teardown_default/1,
         fun() ->
             [
                 {formatter("OPTION_01_U_L_6_S_T", ?OPTION_01,
@@ -977,6 +1012,7 @@ option_U_L_7_S_T_test_() ->
     {
         setup,
         fun setup_U_L_7_S_T/0,
+        fun teardown_default/1,
         fun() ->
             [
                 {formatter("OPTION_01_U_L_7_S_T", ?OPTION_01,
@@ -998,6 +1034,7 @@ option_U_L_8_S_T_test_() ->
     {
         setup,
         fun setup_U_L_8_S_T/0,
+        fun teardown_default/1,
         fun() ->
             [
                 {formatter("OPTION_01_U_L_8_S_T", ?OPTION_01,
@@ -1019,6 +1056,7 @@ option_U_L_9_S_T_test_() ->
     {
         setup,
         fun setup_U_L_9_S_T/0,
+        fun teardown_default/1,
         fun() ->
             [
                 {formatter("OPTION_01_U_L_9_S_T", ?OPTION_01,
@@ -1040,6 +1078,7 @@ option_U_L___T_T_test_() ->
     {
         setup,
         fun setup_U_L___T_T/0,
+        fun teardown_default/1,
         fun() ->
             [
                 {formatter("OPTION_01_U_L___T_T", ?OPTION_01,
@@ -1425,4 +1464,35 @@ setup_U_L___T_T() ->
     os:putenv("CASE_KEYWORD", "lower"),
     os:putenv("INDENT_SPACES", "9"),
     os:putenv("INDENT_WITH", "tab"),
+    os:putenv("WS_OPERATORS", "true").
+
+%%------------------------------------------------------------------------------
+%% Teardown functions.
+%%------------------------------------------------------------------------------
+
+teardown_default(_) ->
+    os:putenv("CASE_IDENTIFIER", "init_cap"),
+    os:putenv("CASE_KEYWORD", "upper"),
+
+    os:putenv("CR_LIMIT_ALTER_ROLES", "3"),
+    os:putenv("CR_LIMIT_ALTER_USERS", "3"),
+    os:putenv("CR_LIMIT_CREATE_INDEX", "3"),
+    os:putenv("CR_LIMIT_DROP_TABLE", "3"),
+    os:putenv("CR_LIMIT_FUNC_ARGS", "3"),
+    os:putenv("CR_LIMIT_GRANT_GRANTEE", "3"),
+    os:putenv("CR_LIMIT_GRANT_PRIVILEGE", "3"),
+    os:putenv("CR_LIMIT_GROUP_BY", "3"),
+    os:putenv("CR_LIMIT_INSERT", "3"),
+    os:putenv("CR_LIMIT_INTO", "3"),
+    os:putenv("CR_LIMIT_ORDER_BY", "3"),
+    os:putenv("CR_LIMIT_PARTITION", "3"),
+    os:putenv("CR_LIMIT_RETURNING", "3"),
+    os:putenv("CR_LIMIT_REVOKE_PRIVILEGE", "3"),
+    os:putenv("CR_LIMIT_REVOKE_REVOKEE", "3"),
+    os:putenv("CR_LIMIT_SELECT", "3"),
+    os:putenv("CR_LIMIT_USING", "3"),
+    os:putenv("CR_LIMIT_VIEW", "3"),
+
+    os:putenv("INDENT_SPACES", "4"),
+    os:putenv("INDENT_WITH", "spaces"),
     os:putenv("WS_OPERATORS", "true").

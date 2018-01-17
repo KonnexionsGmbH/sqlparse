@@ -1,6 +1,6 @@
 %% -----------------------------------------------------------------------------
 %%
-%% formatter_test.erl: SQL - formatter test driver.
+%% sqlparse_formatter_test.erl: SQL - formatter test driver.
 %%
 %% Copyright (c) 2012-18 K2 Informatics GmbH.  All Rights Reserved.
 %%
@@ -20,11 +20,12 @@
 %%
 %% -----------------------------------------------------------------------------
 
--module(formatter_test).
+-module(sqlparse_formatter_test).
 
 -define(NODEBUG, true).
 -include_lib("eunit/include/eunit.hrl").
--include("formatter_test.hrl").
+-include("sqlparse_formatter_test.hrl").
+-include("sqlparse_test.hrl").
 
 %%------------------------------------------------------------------------------
 %% Testing ALTER USER with default options:
@@ -1091,250 +1092,20 @@ option_U_L___T_T_test_() ->
 %% Helper functions.
 %%------------------------------------------------------------------------------
 
-formatter(Title, Statement, Result) ->
-    ?debugFmt(?MODULE_STRING ++ ":formatter ===> Start ~n Title: ~p~n",
-        [Title]),
-
-    %% -------------------------------------------------------------------------
-    %% 1. Source ==> ParseTree
-    %% -------------------------------------------------------------------------
-    case ?PARSER_MODULE:parsetree_with_tokens(Statement) of
-        {ok, {ParseTree, _Tokens}} ->
-            %% -----------------------------------------------------------------
-            %% Test TopDown
-            %% -----------------------------------------------------------------
-            %% 2. ParseTree ==> Source (=NSource_TD)
-            %% -----------------------------------------------------------------
-            NSource_TD = case ?PARSER_MODULE:pt_to_string(ParseTree) of
-                             {error, Error_TD} ->
-                                 io:format(user,
-                                     "~n[TD] Error ParseTree -> NewSource : ParseTree~n > ~p",
-                                     [ParseTree]),
-                                 io:format(user,
-                                     "~n[TD] Error ParseTree -> NewSource : Error~n > ~p",
-                                     [Error_TD]),
-                                 throw({error, Error_TD});
-                             NS_TD ->
-                                 NS_TD
-                         end,
-            %% -----------------------------------------------------------------
-            %% 3. Source (=NSource_TD) ==> ParseTree (=NPT_TD)
-            %% -----------------------------------------------------------------
-            {ok, {NPTree_TD, _NToks_TD}}
-                = try
-                      {ok, {NPT_TD, NT_TD}} =
-                          ?PARSER_MODULE:parsetree_with_tokens(NSource_TD),
-                      {ok, {NPT_TD, NT_TD}}
-                  catch
-                      ExceptionTD:ReasonTD ->
-                          io:format(user, "~n[TD] Error " ++ ?MODULE_STRING ++
-                              ":parsetree_with_tokens : Title    ~n > ~p",
-                              [Title]),
-                          io:format(user, "~n[TD] Error " ++ ?MODULE_STRING ++
-                              ":parsetree_with_tokens : Statement~n > ~p",
-                              [Statement]),
-                          io:format(user, "~n[TD] Error " ++ ?MODULE_STRING ++
-                              ":parsetree_with_tokens : NewSource~n > ~p",
-                              [NSource_TD]),
-                          io:format(user, "~n[TD] Error " ++ ?MODULE_STRING ++
-                              ":parsetree_with_tokens : Exception~n > ~p",
-                              [ExceptionTD]),
-                          io:format(user, "~n[TD] Error " ++ ?MODULE_STRING ++
-                              ":parsetree_with_tokens : Reason   ~n > ~p",
-                              [ReasonTD]),
-                          throw({error, "[TD] Error " ++
-                              ?MODULE_STRING ++ ":parsetree_with_tokens"})
-                  end,
-            if ParseTree /= NPTree_TD ->
-                io:format(user,
-                    "~n[TD] Error ParseTree = NPTree : Title       ~n > ~p",
-                    [Title]),
-                io:format(user,
-                    "~n[TD] Error ParseTree = NPTree : Statement   ~n > ~p",
-                    [Statement]),
-                io:format(user,
-                    "~n[TD] Error ParseTree = NPTree : NewParseTree~n > ~p",
-                    [NPTree_TD]),
-                io:format(user,
-                    "~n[TD] Error ParseTree = NPTree : Tokens      ~n > ~p",
-                    [_Tokens]),
-                io:format(user,
-                    "~n[TD] Error ParseTree = NPTree : NewTokens   ~n > ~p",
-                    [_NToks_TD]);
-                true -> ok
-            end,
-            ?assertEqual(ParseTree, NPTree_TD),
-            StringNSource_TD = binary:bin_to_list(NSource_TD),
-            StringNSource_TDMultipleSpace = string:str(StringNSource_TD, "  "),
-            case StringNSource_TDMultipleSpace of
-                0 -> ok;
-                _ ->
-                    io:format(user,
-                        "~n[TD] Error redundant whitespace(s) : Title          ~n > ~p",
+formatter(Title, Source, Result) ->
+    ?debugFmt(?MODULE_STRING ++
+    ":formatter ===> Start ~nTitle: ~p~nSource: ~p~nResult: ~p~n",
+        [Title, Source, Result]),
+    case sqlparse_test_utils:eunit_test(Source) of
+        {ok, Source_Format} ->
+            ?assertEqual(Result, binary_to_list(Source_Format));
+        ErrorResult ->
+            io:format(user, "~n" ++ ?MODULE_STRING ++
+                " : Error in eunit_test : Title      ~n > ~p~n",
                         [Title]),
-                    io:format(user,
-                        "~n[TD] Error redundant whitespace(s) : Statement      ~n > ~p",
-                        [Statement]),
-                    io:format(user,
-                        "~n[TD] Error redundant whitespace(s) : NewSource      ~n > ~p",
-                        [StringNSource_TD]),
-                    io:format(user,
-                        "~n[TD] Error redundant whitespace(s) : 1. Redundant WS~n > ~p",
-                        [StringNSource_TDMultipleSpace]),
-                    throw({error, "[TD] Error redundant whitespace(s)"})
-            end,
-            %% -----------------------------------------------------------------
-            %% Test BottomUp
-            %% -----------------------------------------------------------------
-            %% 2. ParseTree ==> Source (=NSource_BU)
-            %% -----------------------------------------------------------------
-            NSource_BU = case ?PARSER_MODULE:pt_to_string_bu(ParseTree) of
-                             {error, Error_BU} ->
-                                 io:format(user,
-                                     "~n[BU] Error ParseTree -> NewSource : ParseTree~n > ~p",
-                                     [ParseTree]),
-                                 throw({error,
-                                         "[BU] Error ParseTree -> NewSource : " ++
-                                         Error_BU});
-                             NS_BU ->
-                                 NS_BU
-                         end,
-            %% -----------------------------------------------------------------
-            %% 3. Source (=NSource_BU) ==> ParseTree (=NPT_BU)
-            %% -----------------------------------------------------------------
-            {ok, {NPTree_BU, _NToks_BU}}
-                = try
-                      {ok, {NPT_BU, NT_BU}} =
-                          ?PARSER_MODULE:parsetree_with_tokens(NSource_BU),
-                      {ok, {NPT_BU, NT_BU}}
-                  catch
-                      ExceptionBU:ReasonBU ->
-                          io:format(user, "~n[BU] Error " ++ ?MODULE_STRING ++
-                              ":parsetree_with_tokens : Title    ~n > ~p",
-                              [Title]),
-                          io:format(user, "~n[BU] Error " ++ ?MODULE_STRING ++
-                              ":parsetree_with_tokens : Statement~n > ~p",
-                              [Statement]),
-                          io:format(user, "~n[BU] Error " ++ ?MODULE_STRING ++
-                              ":parsetree_with_tokens : NewSource~n > ~p",
-                              [NSource_BU]),
-                          io:format(user, "~n[BU] Error " ++ ?MODULE_STRING ++
-                              ":parsetree_with_tokens : Exception~n > ~p",
-                              [ExceptionBU]),
-                          io:format(user, "~n[BU] Error " ++ ?MODULE_STRING ++
-                              ":parsetree_with_tokens : Reason   ~n > ~p",
-                              [ReasonBU]),
-                          throw({error, "[BU] Error " ++
-                              ?MODULE_STRING ++ ":parsetree_with_tokens"})
-                  end,
-            if ParseTree /= NPTree_BU ->
-                io:format(user,
-                    "~n[BU] Error ParseTree = NPTree : Title       ~n > ~p",
-                    [Title]),
-                io:format(user,
-                    "~n[BU] Error ParseTree = NPTree : Statement   ~n > ~p",
-                    [Statement]),
-                io:format(user,
-                    "~n[BU] Error ParseTree = NPTree : NewParseTree~n > ~p",
-                    [NPTree_BU]),
-                io:format(user,
-                    "~n[BU] Error ParseTree = NPTree : Tokens      ~n > ~p",
-                    [_Tokens]),
-                io:format(user,
-                    "~n[BU] Error ParseTree = NPTree : NewTokens   ~n > ~p",
-                    [_NToks_BU]);
-                true -> ok
-            end,
-            ?assertEqual(ParseTree, NPTree_BU),
-            StringNSource_BU = binary:bin_to_list(NSource_BU),
-            StringNSource_BUMultipleSpace = string:str(StringNSource_BU, "  "),
-            case StringNSource_BUMultipleSpace of
-                0 -> ok;
-                _ ->
-                    io:format(user,
-                        "~n[BU] Error redundant whitespace(s) : Title          ~n > ~p",
-                        [Title]),
-                    io:format(user,
-                        "~n[BU] Error redundant whitespace(s) : Statement      ~n > ~p",
-                        [Statement]),
-                    io:format(user,
-                        "~n[BU] Error redundant whitespace(s) : NewSource      ~n > ~p",
-                        [StringNSource_BU]),
-                    io:format(user,
-                        "~n[BU] Error redundant whitespace(s) : 1. Redundant WS~n > ~p",
-                        [StringNSource_BUMultipleSpace]),
-                    throw({error, "[BU] Error redundant whitespace(s)"})
-            end,
-            %% -----------------------------------------------------------------
-            %% Test Format
-            %% -----------------------------------------------------------------
-            %% 4. ParseTree ==> Source (=FormattedStatement)
-            %% -----------------------------------------------------------------
-            FormattedStatement =
-                case ?PARSER_MODULE:pt_to_string_format(ParseTree) of
-                    {error, Error_Format} ->
-                        io:format(user,
-                            "~n[BU] Error ParseTree -> NewSource Format : ParseTree~n > ~p",
-                            [ParseTree]),
-                        throw({error,
-                                "[BU] Error ParseTree -> NewSource Format : " ++
-                                Error_Format});
-                    NS_Format ->
-                        NS_Format
-                end,
-            ?debugFmt(
-                ?MODULE_STRING ++ ":formatter ===>~nFormattedStatement:~p~n",
-                [FormattedStatement]),
-            ?assertEqual(Result, binary_to_list(FormattedStatement)),
-            %% -----------------------------------------------------------------
-            %% 5. Source (=FormattedStatement) ==> ParseTree (=NPT_FORMAT)
-            %% -----------------------------------------------------------------
-            {ok, {_NPTree_FORMAT, _NToks_FORMAT}}
-                = try
-                      {ok, {NPT_FORMAT, NT_FORMAT}} =
-                          ?PARSER_MODULE:parsetree_with_tokens(
-                              FormattedStatement),
-                      {ok, {NPT_FORMAT, NT_FORMAT}}
-                  catch
-                      ExceptionFORMAT:ReasonFORMAT ->
-                          io:format(user, "~n[FORMAT] Error " ++
-                              ?MODULE_STRING ++
-                              ":parsetree_with_tokens : Title          ~n > ~p",
-                              [Title]),
-                          io:format(user, "~n[FORMAT] Error " ++
-                              ?MODULE_STRING ++
-                              ":parsetree_with_tokens : Statement      ~n > ~p",
-                              [Statement]),
-                          io:format(user, "~n[FORMAT] Error " ++
-                              ?MODULE_STRING ++
-                              ":parsetree_with_tokens : FormattedSource~n > ~p",
-                              [FormattedStatement]),
-                          io:format(user, "~n[FORMAT] Error " ++
-                              ?MODULE_STRING ++
-                              ":parsetree_with_tokens : Exception      ~n > ~p",
-                              [ExceptionFORMAT]),
-                          io:format(user, "~n[FORMAT] Error " ++
-                              ?MODULE_STRING ++
-                              ":parsetree_with_tokens : Reason         ~n > ~p",
-                              [ReasonFORMAT]),
-                          throw({error, "[FORMAT] Error " ++
-                              ?MODULE_STRING ++ ":parsetree_with_tokens"})
-                  end;
-        {lex_error, _Error} ->
-            io:format(user, "~nFailed lex_error : Title    ~n > ~p", [Title]),
-            io:format(user, "~nFailed lex_error : Statement~n > ~p",
-                [Statement]),
-            io:format(user, "~nFailed lex_error : Error    ~n > ~p", [_Error]),
-            throw({error, "Failed lex_error"});
-        {parse_error, {_Error, _Tokens}} ->
-            io:format(user, "~nFailed parse_error : Title    ~n > ~p", [Title]),
-            io:format(user, "~nFailed parse_error : Statement~n > ~p",
-                [Statement]),
-            io:format(user, "~nFailed parse_error : Tokens   ~n > ~p",
-                [_Tokens]),
-            io:format(user, "~nFailed parse_error : Error    ~n > ~p",
-                [_Error]),
-            throw({error, "Failed parse_error"})
+            io:format(user, "~n" ++ ?MODULE_STRING ++
+                " : Error in eunit_test : ErrorResult~n > ~p~n",
+                [ErrorResult])
     end.
 
 %%------------------------------------------------------------------------------

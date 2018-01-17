@@ -1,6 +1,6 @@
 %% -----------------------------------------------------------------------------
 %%
-%% formatter_test.hrl: SQL - formatter test driver.
+%% sqlpartse_formatter_test.hrl: SQL - formatter test driver.
 %%
 %% Copyright (c) 2012-18 K2 Informatics GmbH.  All Rights Reserved.
 %%
@@ -20,16 +20,14 @@
 %%
 %% -----------------------------------------------------------------------------
 
--ifndef(FORMATTER_TEST_HRL).
--define(FORMATTER_TEST_HRL, true).
+-ifndef(SQLPARSE_FORMATTER_TEST_HRL).
+-define(SQLPARSE_FORMATTER_TEST_HRL, true).
 
 -define(DEFAULT_IDENTIFIER, init_cap).
 -define(DEFAULT_KEYWORD, upper).
 -define(DEFAULT_INDENT_SPACES, 4).
 -define(DEFAULT_INDENT_WITH, spaces).
 -define(DEFAULT_WS, true).
--define(PARSER_MODULE, sqlparse).
--define(TIMEOUT, 60).
 
 %%------------------------------------------------------------------------------
 %% ALTER_USER 01 - GRANT CONNECT.

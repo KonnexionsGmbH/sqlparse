@@ -230,8 +230,8 @@ create_code() ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format(user,
-        "======================================================> create_code: Level 01   <===================~n",
+    erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
+        " : ======================================================> create_code: Level 01   <===================~n",
         [])),
 
     create_code(approxnum),
@@ -346,8 +346,8 @@ create_code() ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format(user,
-        "======================================================> create_code: Level 02   <===================~n",
+    erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
+        " : ======================================================> create_code: Level 02   <===================~n",
         [])),
 
     create_code(column_commalist),
@@ -421,8 +421,8 @@ create_code() ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format(user,
-        "======================================================> create_code: Level 03   <===================~n",
+    erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
+        " : ======================================================> create_code: Level 03   <===================~n",
         [])),
 
     create_code(close_statement),
@@ -471,8 +471,8 @@ create_code() ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format(user,
-        "======================================================> create_code: Level 04   <===================~n",
+    erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
+        " : ======================================================> create_code: Level 04   <===================~n",
         [])),
 
     create_code(create_index_def),
@@ -510,8 +510,8 @@ create_code() ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format(user,
-        "======================================================> create_code: Level 05   <===================~n",
+    erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
+        " : ======================================================> create_code: Level 05   <===================~n",
         [])),
 
     create_code(db_user_proxy),
@@ -532,8 +532,8 @@ create_code() ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format(user,
-        "======================================================> create_code: Level 06   <===================~n",
+    erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
+        " : ======================================================> create_code: Level 06   <===================~n",
         [])),
 
     create_code(fetch_statement),
@@ -552,8 +552,8 @@ create_code() ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format(user,
-        "======================================================> create_code: Level 07   <===================~n",
+    erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
+        " : ======================================================> create_code: Level 07   <===================~n",
         [])),
 
     create_code(alter_user_def),
@@ -562,8 +562,8 @@ create_code() ->
 %% Level 08 = 11-22/1
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format(user,
-        "======================================================> create_code: Level 08   <===================~n",
+    erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
+        " : ======================================================> create_code: Level 08   <===================~n",
         [])),
 
     create_code_layer("1"),
@@ -572,8 +572,8 @@ create_code() ->
 %% Level 09 = 11-22/2
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format(user,
-        "======================================================> create_code: Level 09   <===================~n",
+    erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
+        " : ======================================================> create_code: Level 09   <===================~n",
         [])),
 
     create_code_layer("2"),
@@ -656,8 +656,8 @@ create_code() ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format(user,
-        "======================================================> create_code: Level 99   <===================~n",
+    erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
+        " : ======================================================> create_code: Level 99   <===================~n",
         [])),
 
     create_code(special),
@@ -686,8 +686,8 @@ create_code_layer(Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format(user,
-        "================================================> create_code_layer: Level 11/~s <===================~n",
+    erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
+        " : ================================================> create_code_layer: Level 11/~s <===================~n",
         [Version])),
 
     create_code(fun_args),
@@ -734,8 +734,8 @@ create_code_layer(Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format(user,
-        "================================================> create_code_layer: Level 12/~s <===================~n",
+    erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
+        " : ================================================> create_code_layer: Level 12/~s <===================~n",
         [Version])),
 
     create_code(between_predicate),
@@ -782,8 +782,8 @@ create_code_layer(Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format(user,
-        "================================================> create_code_layer: Level 13/~s <===================~n",
+    erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
+        " : ================================================> create_code_layer: Level 13/~s <===================~n",
         [Version])),
 
     create_code(assignment),
@@ -823,8 +823,8 @@ create_code_layer(Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format(user,
-        "================================================> create_code_layer: Level 14/~s <===================~n",
+    erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
+        " : ================================================> create_code_layer: Level 14/~s <===================~n",
         [Version])),
 
     create_code(assignment_commalist),
@@ -857,8 +857,8 @@ create_code_layer(Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format(user,
-        "================================================> create_code_layer: Level 15/~s <===================~n",
+    erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
+        " : ================================================> create_code_layer: Level 15/~s <===================~n",
         [Version])),
 
     create_code(case_when_exp),
@@ -900,8 +900,8 @@ create_code_layer(Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format(user,
-        "================================================> create_code_layer: Level 16/~s <===================~n",
+    erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
+        " : ================================================> create_code_layer: Level 16/~s <===================~n",
         [Version])),
 
     create_code(column_def),
@@ -920,8 +920,8 @@ create_code_layer(Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format(user,
-        "================================================> create_code_layer: Level 17/~s <===================~n",
+    erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
+        " : ================================================> create_code_layer: Level 17/~s <===================~n",
         [Version])),
 
     create_code(select_field_commalist),
@@ -937,8 +937,8 @@ create_code_layer(Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format(user,
-        "================================================> create_code_layer: Level 18/~s <===================~n",
+    erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
+        " : ================================================> create_code_layer: Level 18/~s <===================~n",
         [Version])),
 
     create_code(join_on_or_using_clause),
@@ -969,8 +969,8 @@ create_code_layer(Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format(user,
-        "================================================> create_code_layer: Level 19/~s <===================~n",
+    erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
+        " : ================================================> create_code_layer: Level 19/~s <===================~n",
         [Version])),
 
     create_code(inner_cross_join),
@@ -1008,8 +1008,8 @@ create_code_layer(Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format(user,
-        "================================================> create_code_layer: Level 20/~s <===================~n",
+    erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
+        " : ================================================> create_code_layer: Level 20/~s <===================~n",
         [Version])),
 
     create_code(insert_statement),
@@ -1036,8 +1036,8 @@ create_code_layer(Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format(user,
-        "================================================> create_code_layer: Level 21/~s <===================~n",
+    erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
+        " : ================================================> create_code_layer: Level 21/~s <===================~n",
         [Version])),
 
     create_code(query_exp),
@@ -1089,7 +1089,7 @@ create_code_layer(Version) ->
 %%                  | column_ref
 %%                  | function_ref
 %%                  | ( '(' scalar_sub_exp ')' )
-%%                  | ( '(' scalar_sub_exp ')' JSON? )    
+%%                  | ( '(' scalar_sub_exp ')' JSON? )
 %%
 %% table_ref ::= table_dblink
 %%             | ( query_term ( NAME )? )
@@ -1098,8 +1098,8 @@ create_code_layer(Version) ->
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    erlang:display(io:format(user,
-        "================================================> create_code_layer: Level 22/~s <===================~n",
+    erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
+        " : ================================================> create_code_layer: Level 22/~s <===================~n",
         [Version])),
 
     create_code(all_or_any_predicate),
@@ -4865,7 +4865,7 @@ create_code(scalar_opt_as_exp = Rule) ->
 %%                  | column_ref
 %%                  | function_ref
 %%                  | ( '(' scalar_sub_exp ')' )
-%%                  | ( '(' scalar_sub_exp ')' JSON? )    
+%%                  | ( '(' scalar_sub_exp ')' JSON? )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(scalar_sub_exp = Rule) ->
@@ -6260,9 +6260,9 @@ file_create_ct(Type, CompleteSemicolon, CompactedDetailed, Rule) ->
     ]),
     {ok, File, _} = file:path_open([?PATH_CT], FileName ++ ".erl", [write]),
 
-    erlang:display(
-        io:format(user, "final common tests ===> ~12.. B file_name: ~s ",
-            [CodeLength, FileName ++ ".erl"])),
+    erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
+        " : final common tests ===> ~12.. B file_name: ~s ",
+        [CodeLength, FileName ++ ".erl"])),
 
     {{Current_Year, Current_Month, Current_Day}, _} = calendar:local_time(),
 
@@ -6449,9 +6449,9 @@ file_create_eunit(Type, CompleteSemicolon, Rule) ->
         lists:append([Type, "_", CompleteSemicolon, "_", RuleStrimg, ".tst"]),
     {ok, File, _} = file:path_open([?PATH_EUNIT], FileName, [write]),
 
-    erlang:display(
-        io:format(user, "final eunit  tests ===> ~12.. B file_name: ~s~n",
-            [length(Code), FileName])),
+    erlang:display(io:format(user, "~n" ++
+        ?MODULE_STRING ++ " : final eunit  tests ===> ~12.. B file_name: ~s~n",
+        [length(Code), FileName])),
 
     io:format(File, "~s~n", ["%%-*- mode: erlang -*-"]),
     io:format(File, "~s~n", ["%%-*- coding: utf-8 -*-"]),
@@ -6490,12 +6490,12 @@ store_code(Rule, Code, Max, Strict) ->
         true ->
             {total_heap_size, MSize} =
                 erlang:process_info(whereis(code_server), total_heap_size),
-            erlang:display(
-                io:format(user, "store total_heap   ===> ~12.. B rule: ~s~n",
-                    [MSize, atom_to_list(Rule)])),
-            erlang:display(
-                io:format(user, "store Code         ===> ~12.. B rule: ~s~n",
-                    [length(Code), atom_to_list(Rule)]));
+            erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
+                " : store total_heap   ===> ~12.. B rule: ~s~n",
+                [MSize, atom_to_list(Rule)])),
+            erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
+                " : store Code         ===> ~12.. B rule: ~s~n",
+                [length(Code), atom_to_list(Rule)]));
         _ -> ok
     end,
 
@@ -6503,8 +6503,8 @@ store_code(Rule, Code, Max, Strict) ->
         true ->
             case ?LOGGING of
                 true ->
-                    erlang:display(io:format(user,
-                        "store CodeNew      ===> ~12.. B rule: ~s~n",
+                    erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
+                        " : store CodeNew      ===> ~12.. B rule: ~s~n",
                         [0, atom_to_list(Rule)]));
                 _ -> ok
             end;
@@ -6534,8 +6534,8 @@ store_code(Rule, Code, Max, Strict) ->
             ets:insert(?CODE_TEMPLATES, {Rule, CodeNew}),
             case ?LOGGING of
                 true ->
-                    erlang:display(io:format(user,
-                        "store CodeNew      ===> ~12.. B rule: ~s~n",
+                    erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
+                        " : store CodeNew      ===> ~12.. B rule: ~s~n",
                         [length(CodeNew), atom_to_list(Rule)]));
                 _ -> ok
             end
@@ -6543,8 +6543,8 @@ store_code(Rule, Code, Max, Strict) ->
 
     case ?LOGGING of
         true ->
-            erlang:display(
-                io:format(user, "store table size   ===> ~12.. B rule: ~s~n",
-                    [ets:info(?CODE_TEMPLATES, memory), atom_to_list(Rule)]));
+            erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
+                " : store table size   ===> ~12.. B rule: ~s~n",
+                [ets:info(?CODE_TEMPLATES, memory), atom_to_list(Rule)]));
         _ -> ok
     end.

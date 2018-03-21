@@ -913,14 +913,12 @@ Returning01.                      Returning ::= "RETURNING" Selection "INTO" Sel
 Returning02.                      Returning ::= "RETURN"    Selection "INTO" Selection ;
 
 -- query_term ->     query_spec          : '$1'.
--- query_term ->     query_spec     JSON : {'$1', jpparse(list_to_binary([unwrap('$2')])), []}.
 -- query_term -> '(' query_exp  ')'      : '$2'.
 -- query_term -> '(' query_exp  ')' JSON : {'$2', jpparse(list_to_binary([unwrap('$4')])), '('}.
 
 QueryTerm01.                      QueryTerm ::=     QuerySpec            ;
-QueryTerm02.                      QueryTerm ::=     QuerySpec     "JSON" ;
-QueryTerm03.                      QueryTerm ::= "(" QueryExp  ")"        ;
-QueryTerm04.                      QueryTerm ::= "(" QueryExp  ")" "JSON" ;
+QueryTerm02.                      QueryTerm ::= "(" QueryExp  ")"        ;
+QueryTerm03.                      QueryTerm ::= "(" QueryExp  ")" "JSON" ;
 
 -- query_spec -> SELECT                   selection      table_exp                                 : {select,
 --                                                                                                    [{fields, '$2'}] ++

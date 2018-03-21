@@ -810,12 +810,11 @@ returning ::= ( 'RETURNING' | 'RETURN' ) selection 'INTO' selection
 
 /* =============================================================================
 query_term ->     query_spec          : '$1'.
-query_term ->     query_spec     JSON : {'$1', jpparse(list_to_binary([unwrap('$2')])), []}.
 query_term -> '(' query_exp  ')'      : '$2'.
 query_term -> '(' query_exp  ')' JSON : {'$2', jpparse(list_to_binary([unwrap('$4')])), '('}.
 ============================================================================= */
 
-query_term ::= (     query_spec     ( JSON )? )
+query_term ::=       query_spec
              | ( '(' query_exp  ')' ( JSON )? )
 
 /* =============================================================================

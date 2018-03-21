@@ -841,7 +841,6 @@ returning -> RETURNING selection INTO selection : {returning, '$2', '$4'}.
 returning -> RETURN    selection INTO selection : {return,    '$2', '$4'}.
 
 query_term ->     query_spec          : '$1'.
-query_term ->     query_spec     JSON : {'$1', jpparse(list_to_binary([unwrap('$2')])), []}.
 query_term -> '(' query_exp  ')'      : '$2'.
 query_term -> '(' query_exp  ')' JSON : {'$2', jpparse(list_to_binary([unwrap('$4')])), '('}.
 

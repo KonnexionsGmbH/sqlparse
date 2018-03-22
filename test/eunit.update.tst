@@ -19,6 +19,7 @@
 "update :param_1 set column_1=value_1 where column_1 = column_2 and column_3 = column_4 return column_1,column_2 into column_3,column_4".
 "update :param_1 set column_1=value_1 where column_1 = column_2 and column_3 = column_4 returning column_1,column_2 into column_3,column_4".
 "update :param_1 set column_1=value_1 where column_1 = column_2 and column_3 = column_4".
+"update :param_1 set column_1=value_1 where column_1".
 "update :param_1 set column_1=value_1 where current of cursor_1 return column_1,column_2 into column_3,column_4".
 "update :param_1 set column_1=value_1 where current of cursor_1 returning column_1,column_2 into column_3,column_4".
 "update :param_1 set column_1=value_1 where current of cursor_1".

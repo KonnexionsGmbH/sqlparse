@@ -1,6 +1,7 @@
 %% -----------------------------------------------------------------------------
 %%
-%% sqlparse_test.hrl: SQL - test data generator.
+%% sqlparse_check_td_vs_bu.hrl: SQL - test driver top-down versus bottom-up
+%%                                    parsing.
 %%
 %% Copyright (c) 2012-18 K2 Informatics GmbH.  All Rights Reserved.
 %%
@@ -20,13 +21,17 @@
 %%
 %% -----------------------------------------------------------------------------
 
--ifndef(SQLPARSE_TEST_HRL).
--define(SQLPARSE_TEST_HRL, true).
+-ifndef(SQLPARSE_CHECK_TD_VS_BU_HRL).
+-define(SQLPARSE_CHECK_TD_VS_BU_HRL, true).
 
--define(ENV_VAR_FILE_TYPE, ".tst").
--define(ENV_VAR_FILE_WILDCARD, "SOURCEFILES").
--define(ENV_VAR_LOGGING_LEVEL, "LOG").
--define(PARSER_MODULE, sqlparse).
--define(TIMEOUT, 60).
+-include("sqlparse_fold.hrl").
+
+-define(LAYOUT_RESULT_CHECK(Ctx, Rule, RT),
+    CtxOut = case RT of
+                 none -> Ctx;
+                 _ -> Ctx ++ [erlang:insert_element(1, RT, atom_to_list(Rule))]
+             end,
+    ?D("Processed~n CtxIn: ~p~n CtxNew: ~p~n CtxOut: ~p~n", [Ctx, RT, CtxOut]),
+    CtxOut).
 
 -endif.

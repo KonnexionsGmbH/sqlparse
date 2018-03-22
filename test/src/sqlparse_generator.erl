@@ -25,7 +25,7 @@
 -export([generate/0]).
 
 -define(NODEBUG, true).
--include_lib("eunit/include/eunit.hrl").
+
 -include("sqlparse_generator.hrl").
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

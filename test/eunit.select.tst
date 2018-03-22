@@ -370,6 +370,7 @@
 "select * from dual where column_1 not like 'wwe*'".
 "select * from dual where column_1 not like column_2 escape :param_1".
 "select * from dual where column_1 not like column_2".
+"select * from dual where column_1".
 "select * from dual where exists (select column_2 from table_2)".
 "select * from dual where exists select column_2 from table_2".
 "select * from dual where not column_1 >= 10 and column_2 <= 20".

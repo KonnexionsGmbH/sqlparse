@@ -1255,20 +1255,14 @@ Erlang code.
 
 % parser and compiler interface
 -export([
-    foldbu/3,
-    foldtd/3,
-    format/3,
     is_reserved/1,
     parsetree/1,
-    parsetree_with_tokens/1,
-    pt_to_string/1,
-    pt_to_string_bu/1,
-    pt_to_string_format/1
+    parsetree_with_tokens/1
 ]).
 
 -define(NODEBUG, true).
--include_lib("eunit/include/eunit.hrl").
--include("sqlparse_fold.hrl").
+
+-include("sqlparse.hrl").
 
 %%-----------------------------------------------------------------------------
 %%                          parser helper functions
@@ -1285,7 +1279,8 @@ unwrap_bin({_, _, X}) when is_list(X) -> list_to_binary([X]);
 unwrap_bin({_, _, X}) when is_atom(X) -> atom_to_binary(X, unicode).
 
 strl2atom(Strs) ->
-    list_to_atom(lists:flatten(string:join([string:to_lower(unwrap(S)) || S <- Strs], " "))).
+    list_to_atom(lists:flatten(
+        string:join([string:to_lower(unwrap(S)) || S <- Strs], " "))).
 
 make_list(L) when is_list(L) -> L;
 make_list(L) -> [L].
@@ -1296,8 +1291,11 @@ make_list(L) -> [L].
 -spec parsetree(binary()|list()) ->
     {parse_error, term()} | {lex_error, term()} | {ok, [tuple()]}.
 parsetree(Sql) ->
+    ?D("Start~n Sql: ~p~n", [Sql]),
     case parsetree_with_tokens(Sql) of
-        {ok, {ParseTree, _Tokens}} -> {ok, ParseTree};
+        {ok, {ParseTree, _Tokens}} ->
+            ?D("~n ParseTree: ~p~n Tokens: ~p~n", [ParseTree, _Tokens]),
+            {ok, ParseTree};
         Error -> Error
     end.
 
@@ -1308,14 +1306,18 @@ parsetree_with_tokens(<<>>) -> {parse_error, invalid_string};
 parsetree_with_tokens(Sql0) ->
     Sql = re:replace(Sql0, "(^[ \r\n]+)|([ \r\n]+$)", "",
         [global, {return, list}]),
+    ?D("Start~n Sql: ~p~n", [Sql]),
     [C | _] = lists:reverse(Sql),
     NSql = if C =:= $; -> Sql; true -> string:trim(Sql) ++ ";" end,
     case sql_lex:string(NSql) of
         {ok, Toks, _} ->
             case parse(Toks) of
-                {ok, PTree} -> {ok, {PTree, Toks}};
+                {ok, PTree} ->
+                    ?D("~n ParseTree: ~p~n Tokens: ~p~n", [PTree, Toks]),
+                    {ok, {PTree, Toks}};
                 {error, {N, ?MODULE, ErrorTerms}} ->
-                    {parse_error, {lists:flatten([integer_to_list(N), ": ", ErrorTerms]), Toks}};
+                    {parse_error, {lists:flatten(
+                        [integer_to_list(N), ": ", ErrorTerms]), Toks}};
                 {error, Error} -> {parse_error, {Error, Toks}}
             end;
         {error, Error, _} -> {lex_error, Error}
@@ -1329,49 +1331,3 @@ is_reserved(Word) when is_atom(Word) ->
 is_reserved(Word) when is_list(Word) ->
     lists:member(erlang:list_to_atom(string:to_upper(Word)),
         sql_lex:reserved_keywords()).
-
-%%-----------------------------------------------------------------------------
-
-
-%%-----------------------------------------------------------------------------
-%%                                  COMPILER
-%%-----------------------------------------------------------------------------
-
--spec foldbu(fun(), term(), tuple()) -> {error, term()} | binary().
-foldbu(Fun, Ctx, PTree) when is_function(Fun, 2) ->
-    try sqlparse_fold:fold(false, #state{}, bottom_up, Fun, Ctx, 0, PTree) of
-        {error,_} = Error -> Error;
-        {Sql, null_fun = Ctx} -> list_to_binary(string:trim(Sql));
-        {_Output, NewCtx} -> NewCtx
-    catch
-        _:Error -> {error, Error}
-    end.
-
--spec foldtd(fun(), term(), tuple() | list()) -> {error, term()} | binary().
-foldtd(Fun, Ctx, PTree) when is_function(Fun, 2) ->
-    try sqlparse_fold:fold(false, #state{}, top_down, Fun, Ctx, 0, PTree) of
-        {error,_} = Error -> Error;
-        {Sql, null_fun = Ctx} -> list_to_binary(string:trim(Sql));
-        {_Output, NewCtx} -> NewCtx
-    catch
-        _:Error -> {error, Error}
-    end.
-
--spec format(fun(), term(), tuple() | list()) -> {error, term()} | binary().
-format(Fun, Ctx, PTree) when is_function(Fun, 2) ->
-    try sqlparse_fold:fold(true, #state{}, top_down, Fun, Ctx, 0, PTree) of
-        {error,_} = Error -> Error;
-        {Sql, null_fun = Ctx} -> list_to_binary(Sql);
-        {_Output, NewCtx} -> NewCtx
-    catch
-        _:Error -> {error, Error}
-    end.
-
--spec pt_to_string(tuple()| list()) -> {error, term()} | binary().
-pt_to_string(PTree) -> foldtd(fun(_, _) -> null_fun end, null_fun, PTree).
-
--spec pt_to_string_bu(tuple()| list()) -> {error, term()} | binary().
-pt_to_string_bu(PTree) -> foldbu(fun(_, _) -> null_fun end, null_fun, PTree).
-
--spec pt_to_string_format(tuple()| list()) -> {error, term()} | binary().
-pt_to_string_format(PTree) -> format(fun(_, _) -> null_fun end, null_fun, PTree).

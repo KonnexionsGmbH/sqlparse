@@ -1,6 +1,6 @@
 %% -----------------------------------------------------------------------------
 %%
-%% sqlpartse_formatter_test.hrl: SQL - formatter test driver.
+%% sqlpartse_pretty_test.hrl: SQL - pretty format test driver.
 %%
 %% Copyright (c) 2012-18 K2 Informatics GmbH.  All Rights Reserved.
 %%
@@ -20,14 +20,13 @@
 %%
 %% -----------------------------------------------------------------------------
 
--ifndef(SQLPARSE_FORMATTER_TEST_HRL).
--define(SQLPARSE_FORMATTER_TEST_HRL, true).
+-ifndef(SQLPARSE_PRETTY_TEST_HRL).
+-define(SQLPARSE_PRETTY_TEST_HRL, true).
 
--define(DEFAULT_IDENTIFIER, init_cap).
--define(DEFAULT_KEYWORD, upper).
--define(DEFAULT_INDENT_SPACES, 4).
--define(DEFAULT_INDENT_WITH, spaces).
--define(DEFAULT_WS, true).
+-include_lib("eunit/include/eunit.hrl").
+-include("sqlparse_fold.hrl").
+-include("sqlparse_pretty_test.hrl").
+-include("sqlparse_test.hrl").
 
 %%------------------------------------------------------------------------------
 %% ALTER_USER 01 - GRANT CONNECT.
@@ -369,10 +368,7 @@ alter user user_1,user_2,user_3,user_4
 grant connect through enterprise users").
 
 -define(ALTER_USER_27_RESULT_DEFAULT, "ALTER USER
-    User_1,
-    User_2,
-    User_3,
-    User_4
+    User_1, User_2, User_3, User_4
 GRANT CONNECT THROUGH ENTERPRISE USERS").
 
 %%------------------------------------------------------------------------------
@@ -386,10 +382,7 @@ revoke connect through with role role_1, role_2,role_3,role_4").
 -define(ALTER_USER_28_RESULT_DEFAULT, "ALTER USER
     User_1
 REVOKE CONNECT THROUGH WITH ROLE
-    Role_1,
-    Role_2,
-    Role_3,
-    Role_4").
+    Role_1, Role_2, Role_3, Role_4").
 
 %%------------------------------------------------------------------------------
 %% ALTER_USER 29 - REVOKE CONNECT.
@@ -402,10 +395,7 @@ revoke connect through with role role_1, role_2,role_3,role_4 authentication req
 -define(ALTER_USER_29_RESULT_DEFAULT, "ALTER USER
     User_1
 REVOKE CONNECT THROUGH WITH ROLE
-    Role_1,
-    Role_2,
-    Role_3,
-    Role_4
+    Role_1, Role_2, Role_3, Role_4
 AUTHENTICATION REQUIRED").
 
 %%------------------------------------------------------------------------------
@@ -419,10 +409,7 @@ revoke connect through with role all except role_1, role_2,role_3,role_4").
 -define(ALTER_USER_30_RESULT_DEFAULT, "ALTER USER
     User_1
 REVOKE CONNECT THROUGH WITH ROLE ALL EXCEPT
-    Role_1,
-    Role_2,
-    Role_3,
-    Role_4").
+    Role_1, Role_2, Role_3, Role_4").
 
 %%------------------------------------------------------------------------------
 %% ALTER_USER 31 - REVOKE CONNECT.
@@ -435,10 +422,7 @@ revoke connect through with role all except role_1, role_2,role_3,role_4 authent
 -define(ALTER_USER_31_RESULT_DEFAULT, "ALTER USER
     User_1
 REVOKE CONNECT THROUGH WITH ROLE ALL EXCEPT
-    Role_1,
-    Role_2,
-    Role_3,
-    Role_4
+    Role_1, Role_2, Role_3, Role_4
 AUTHENTICATION REQUIRED").
 
 %%------------------------------------------------------------------------------
@@ -547,12 +531,7 @@ create bitmap index index_1 on table_1 (column_1,column_2,column_3,column_4) nor
 -define(CREATE_08_RESULT_DEFAULT, "CREATE BITMAP INDEX
     Index_1
 ON
-    Table_1 (
-        Column_1,
-        Column_2,
-        Column_3,
-        Column_4
-    )
+    Table_1 (Column_1, Column_2, Column_3, Column_4)
 NORM_WITH
     'n'
 FILTER_WITH
@@ -708,7 +687,8 @@ create table schema_1.table_1 (column_1 date, column_2 date, foreign key (fkey_1
     Schema_1.Table_1 (
         Column_1 DATE,
         Column_2 DATE,
-        FOREIGN KEY (Fkey_1, Fkey_2) REFERENCES Schema_1.Table_2 (Column_8, Column_9)
+        FOREIGN KEY (Fkey_1, Fkey_2) REFERENCES Schema_1.Table_2 (Column_8,
+        Column_9)
     )").
 
 %%------------------------------------------------------------------------------
@@ -752,7 +732,7 @@ create index a on b (a|:d{}|) norm_with fun() -> norm end. filter_with fun mod:m
 -define(CREATE_23_RESULT_DEFAULT, "CREATE INDEX
     A
 ON
-    B (a|:d{}|)
+    B (A|:d{}|)
 NORM_WITH
     fun() -> norm end.
 FILTER_WITH
@@ -808,15 +788,9 @@ delete from table_1 return column_3,column_4,column_5,column_6 into column_7,col
 -define(DELETE_04_RESULT_DEFAULT, "DELETE FROM
     Table_1
 RETURN
-    Column_3,
-    Column_4,
-    Column_5,
-    Column_6
+    Column_3, Column_4, Column_5, Column_6
 INTO
-    Column_7,
-    Column_8,
-    Column_9,
-    Column_10").
+    Column_7, Column_8, Column_9, Column_10").
 
 %%------------------------------------------------------------------------------
 %% DELETE 05 - CONDITIONED.
@@ -861,15 +835,9 @@ WHERE
     Column_1 = Value_1
     AND Column_2 = Value_2
 RETURN
-    Column_3,
-    Column_4,
-    Column_5,
-    Column_6
+    Column_3, Column_4, Column_5, Column_6
 INTO
-    Column_7,
-    Column_8,
-    Column_9,
-    Column_10").
+    Column_7, Column_8, Column_9, Column_10").
 
 %%------------------------------------------------------------------------------
 %% DROP 01 - INDEX.
@@ -955,10 +923,7 @@ CASCADE").
 drop table if exists table_1, table_2,table_3,table_4 restrict").
 
 -define(DROP_08_RESULT_DEFAULT, "DROP TABLE IF EXISTS
-    Table_1,
-    Table_2,
-    Table_3,
-    Table_4
+    Table_1, Table_2, Table_3, Table_4
 RESTRICT").
 
 %%------------------------------------------------------------------------------
@@ -1129,8 +1094,9 @@ from (schema_1.table_1\"@dblink_1\" full join schema_2.table_2\"@dblink_2\" )").
 -define(FROM_08_RESULT_DEFAULT, "SELECT
     *
 FROM
-    schema_1.table_1\"@dblink_1\"
-    FULL JOIN schema_2.table_2\"@dblink_2\"").
+    Schema_1.Table_1\"@dblink_1\"
+    FULL JOIN
+    Schema_2.Table_2\"@dblink_2\"").
 
 %%------------------------------------------------------------------------------
 %% FROM 09 - PARAM.
@@ -1157,7 +1123,8 @@ from :param_1 alias_1 join :param_2 alias_2 on column_1 = column_2").
     *
 FROM
     :param_1 Alias_1
-    JOIN :param_2 Alias_2
+    JOIN
+    :param_2 Alias_2
     ON Column_1 = Column_2").
 
 %%------------------------------------------------------------------------------
@@ -1247,10 +1214,7 @@ TO
 grant delete, insert, select, update on table_1 to user_1").
 
 -define(GRANT_07_RESULT_DEFAULT, "GRANT
-    DELETE,
-    INSERT,
-    SELECT,
-    UPDATE
+    DELETE, INSERT, SELECT, UPDATE
 ON
     Table_1
 TO
@@ -1288,11 +1252,7 @@ TO
 grant privilege_1, privilege_2, privilege_3, privilege_4, privilege_5 to user_1").
 
 -define(GRANT_10_RESULT_DEFAULT, "GRANT
-    Privilege_1,
-    Privilege_2,
-    Privilege_3,
-    Privilege_4,
-    Privilege_5
+    Privilege_1, Privilege_2, Privilege_3, Privilege_4, Privilege_5
 TO
     User_1").
 
@@ -1361,10 +1321,7 @@ grant create table to user_1,user_2,user_3,user_4").
 -define(GRANT_15_RESULT_DEFAULT, "GRANT
     CREATE TABLE
 TO
-    User_1,
-    User_2,
-    User_3,
-    User_4").
+    User_1, User_2, User_3, User_4").
 
 %%------------------------------------------------------------------------------
 %% GROUP BY 01 - very simple.
@@ -1394,12 +1351,8 @@ group by column_1,table_1.column_1,schema_1.table_1.column_1,column_1|:x:y|,tabl
 FROM
     Dual
 GROUP BY
-    Column_1,
-    Table_1.Column_1,
-    Schema_1.Table_1.Column_1,
-    Column_1|:x:y|,
-    Table_1.Column_1|:x:y|,
-    Schema_1.Table_1.Column_1|:x:y|").
+    Column_1, Table_1.Column_1, Schema_1.Table_1.Column_1, Column_1|:x:y|,
+    Table_1.Column_1|:x:y|, Schema_1.Table_1.Column_1|:x:y|").
 
 %%------------------------------------------------------------------------------
 %% GROUP BY 03 - column_ref.
@@ -1414,10 +1367,7 @@ group by column_1(+),table_1.column_1(+),schema_1.table_1.column_1(+),table_1.*,
 FROM
     Dual
 GROUP BY
-    Column_1(+),
-    Table_1.Column_1(+),
-    Schema_1.Table_1.Column_1(+),
-    Table_1.*,
+    Column_1(+), Table_1.Column_1(+), Schema_1.Table_1.Column_1(+), Table_1.*,
     Schema_1.Table_1.*").
 
 %%------------------------------------------------------------------------------
@@ -1448,11 +1398,9 @@ group by function_1(param_1,param_2),package_1.function_1(param_1,param_2),schem
 FROM
     Dual
 GROUP BY
-    Function_1(Param_1, Param_2),
-    Package_1.Function_1(Param_1, Param_2),
-    Schema_1.Package_1.Function_1(Param_1, Param_2),
-    Function_1(Param_1, Param_2)|:b[f(p:q)]|,
-    Package_1.Function_1(Param_1, Param_2)|:b[f(p:q)]|,
+    Function_1(Param_1, Param_2), Package_1.Function_1(Param_1, Param_2),
+    Schema_1.Package_1.Function_1(Param_1, Param_2), Function_1(Param_1, Param_2
+    )|:b[f(p:q)]|, Package_1.Function_1(Param_1, Param_2)|:b[f(p:q)]|,
     Schema_1.Package_1.Function_1(Param_1, Param_2)|:b[f(p:q)]|").
 
 %%------------------------------------------------------------------------------
@@ -1468,8 +1416,7 @@ group by decode(distinct column_1)|:b[f(p:q)]|,decode(all 6)").
 FROM
     Dual
 GROUP BY
-    DECODE(DISTINCT Column_1)|:b[f(p:q)]|,
-    DECODE(ALL 6)").
+    DECODE(DISTINCT Column_1)|:b[f(p:q)]|, DECODE(ALL 6)").
 
 %%------------------------------------------------------------------------------
 %% GROUP BY 07 - function_ref.
@@ -1484,10 +1431,7 @@ group by decode,decode(param_1,param_2),decode(*),decode(distinct column_1),deco
 FROM
     Dual
 GROUP BY
-    DECODE,
-    DECODE(Param_1, Param_2),
-    DECODE(*),
-    DECODE(DISTINCT Column_1),
+    DECODE, DECODE(Param_1, Param_2), DECODE(*), DECODE(DISTINCT Column_1),
     DECODE(ALL 6)").
 
 %%------------------------------------------------------------------------------
@@ -1503,15 +1447,8 @@ group by function_1(param_11,function_21(param_21,function_31(param_31,param_32,
 FROM
     Dual
 GROUP BY
-    Function_1(
-        Param_11,
-        Function_21(
-            Param_21,
-            Function_31(Param_31, Param_32, Param_33),
-            Param_23
-            ),
-        Param_13
-        )").
+    Function_1(Param_11, Function_21(Param_21, Function_31(Param_31, Param_32,
+    Param_33), Param_23), Param_13)").
 
 %%------------------------------------------------------------------------------
 %% GROUP BY 09 - COLUMN.
@@ -1526,10 +1463,7 @@ group by column_1, column_2,column_3,column_4").
 FROM
     Dual
 GROUP BY
-    Column_1,
-    Column_2,
-    Column_3,
-    Column_4").
+    Column_1, Column_2, Column_3, Column_4").
 
 %%------------------------------------------------------------------------------
 %% HAVING 01 - very simple.
@@ -1572,7 +1506,8 @@ select column_1,column_2 from table_2 where column_3 = column_4 and column_5 = c
 returning column_1,column_2 into :a,:b").
 
 -define(INSERT_01_RESULT_DEFAULT, "INSERT INTO
-    Table_1 (Column_1, Column_2)
+    Table_1 (
+        Column_1, Column_2)
     SELECT
         Column_1, Column_2
     FROM
@@ -1594,7 +1529,8 @@ insert into table_1 (column_1,column_2)
 select column_1,column_2 from table_2 where column_3 = column_4 and column_5 = column_6").
 
 -define(INSERT_02_RESULT_DEFAULT, "INSERT INTO
-    Table_1 (Column_1, Column_2)
+    Table_1 (
+        Column_1, Column_2)
     SELECT
         Column_1, Column_2
     FROM
@@ -1613,7 +1549,8 @@ values (value_1,value_2)
 returning column_1,column_2 into :a,:b").
 
 -define(INSERT_03_RESULT_DEFAULT, "INSERT INTO
-    Table_1 (Column_1, Column_2)
+    Table_1 (
+        Column_1, Column_2)
 VALUES
     (Value_1, Value_2)
 RETURNING
@@ -1630,7 +1567,8 @@ insert into table_1 (column_1,column_2)
 values (value_1,value_2)").
 
 -define(INSERT_04_RESULT_DEFAULT, "INSERT INTO
-    Table_1 (Column_1, Column_2)
+    Table_1 (
+        Column_1, Column_2)
 VALUES
     (Value_1, Value_2)").
 
@@ -1645,31 +1583,18 @@ returning column_1,column_2,column_3,column_4 into :a,:b,:c,:d").
 
 -define(INSERT_05_RESULT_DEFAULT, "INSERT INTO
     Table_1 (
-    Column_1,
-    Column_2,
-    Column_3,
-    Column_4
-    )
+        Column_1, Column_2, Column_3, Column_4)
     SELECT
-        Column_1,
-        Column_2,
-        Column_3,
-        Column_4
+        Column_1, Column_2, Column_3, Column_4
     FROM
         Table_2
     WHERE
         Column_3 = Column_4
         AND Column_5 = Column_6
 RETURNING
-    Column_1,
-    Column_2,
-    Column_3,
-    Column_4
+    Column_1, Column_2, Column_3, Column_4
 INTO
-    :a,
-    :b,
-    :c,
-    :d").
+    :a, :b, :c, :d").
 
 %%------------------------------------------------------------------------------
 %% INSERT 06 - COLUMNS & SELECT.
@@ -1681,16 +1606,9 @@ select column_1,column_2,column_3,column_4 from table_2 where column_3 = column_
 
 -define(INSERT_06_RESULT_DEFAULT, "INSERT INTO
     Table_1 (
-    Column_1,
-    Column_2,
-    Column_3,
-    Column_4
-    )
+        Column_1, Column_2, Column_3, Column_4)
     SELECT
-        Column_1,
-        Column_2,
-        Column_3,
-        Column_4
+        Column_1, Column_2, Column_3, Column_4
     FROM
         Table_2
     WHERE
@@ -1708,27 +1626,13 @@ returning column_1,column_2,column_3,column_4 into :a,:b,:c,:d").
 
 -define(INSERT_07_RESULT_DEFAULT, "INSERT INTO
     Table_1 (
-    Column_1,
-    Column_2,
-    Column_3,
-    Column_4
-    )
-VALUES (
-    Value_1,
-    Value_2,
-    Value_3,
-    Value_4
-    )
+        Column_1, Column_2, Column_3, Column_4)
+VALUES
+    (Value_1, Value_2, Value_3, Value_4)
 RETURNING
-    Column_1,
-    Column_2,
-    Column_3,
-    Column_4
+    Column_1, Column_2, Column_3, Column_4
 INTO
-    :a,
-    :b,
-    :c,
-    :d").
+    :a, :b, :c, :d").
 
 %%------------------------------------------------------------------------------
 %% INSERT 08 - COLUMNS & VALUES.
@@ -1740,17 +1644,9 @@ values (value_1,value_2,value_3,value_4)").
 
 -define(INSERT_08_RESULT_DEFAULT, "INSERT INTO
     Table_1 (
-    Column_1,
-    Column_2,
-    Column_3,
-    Column_4
-    )
-VALUES (
-    Value_1,
-    Value_2,
-    Value_3,
-    Value_4
-    )").
+        Column_1, Column_2, Column_3, Column_4)
+VALUES
+    (Value_1, Value_2, Value_3, Value_4)").
 
 %%------------------------------------------------------------------------------
 %% INSERT 09 - RETURNING.
@@ -1820,25 +1716,16 @@ returning column_1,column_2,column_3,column_4 into :a,:b,:c,:d").
 -define(INSERT_12_RESULT_DEFAULT, "INSERT INTO
     Table_1
     SELECT
-        Column_1,
-        Column_2,
-        Column_3,
-        Column_4
+        Column_1, Column_2, Column_3, Column_4
     FROM
         Table_2
     WHERE
         Column_3 = Column_4
         AND Column_5 = Column_6
 RETURNING
-    Column_1,
-    Column_2,
-    Column_3,
-    Column_4
+    Column_1, Column_2, Column_3, Column_4
 INTO
-    :a,
-    :b,
-    :c,
-    :d").
+    :a, :b, :c, :d").
 
 %%------------------------------------------------------------------------------
 %% INSERT 13 - SELECT.
@@ -1851,10 +1738,7 @@ select column_1,column_2,column_3,column_4 from table_2 where column_3 = column_
 -define(INSERT_13_RESULT_DEFAULT, "INSERT INTO
     Table_1
     SELECT
-        Column_1,
-        Column_2,
-        Column_3,
-        Column_4
+        Column_1, Column_2, Column_3, Column_4
     FROM
         Table_2
     WHERE
@@ -1903,22 +1787,12 @@ returning column_1,column_2,column_3,column_4 into :a,:b,:c,:d").
 
 -define(INSERT_16_RESULT_DEFAULT, "INSERT INTO
     Table_1
-VALUES (
-    Value_1,
-    Value_2,
-    Value_3,
-    Value_4
-    )
+VALUES
+    (Value_1, Value_2, Value_3, Value_4)
 RETURNING
-    Column_1,
-    Column_2,
-    Column_3,
-    Column_4
+    Column_1, Column_2, Column_3, Column_4
 INTO
-    :a,
-    :b,
-    :c,
-    :d").
+    :a, :b, :c, :d").
 
 %%------------------------------------------------------------------------------
 %% INSERT 17 - VALUES.
@@ -1930,12 +1804,8 @@ values (value_1,value_2,value_3,value_4)").
 
 -define(INSERT_17_RESULT_DEFAULT, "INSERT INTO
     Table_1
-VALUES (
-    Value_1,
-    Value_2,
-    Value_3,
-    Value_4
-    )").
+VALUES
+    (Value_1, Value_2, Value_3, Value_4)").
 
 %%------------------------------------------------------------------------------
 %% INSERT 18 - NONE.
@@ -1959,7 +1829,8 @@ from table_1 join table_2 using (column_1)").
     *
 FROM
     Table_1
-    JOIN Table_2
+    JOIN
+    Table_2
     USING (Column_1)").
 
 %%------------------------------------------------------------------------------
@@ -1974,7 +1845,8 @@ from table_1 inner join table_2 using (column_1)").
     *
 FROM
     Table_1
-    INNER JOIN Table_2
+    INNER JOIN
+    Table_2
     USING (Column_1)").
 
 %%------------------------------------------------------------------------------
@@ -1989,7 +1861,8 @@ from table_1 inner join table_2 using (column_1,column_2,column_3)").
     *
 FROM
     Table_1
-    INNER JOIN Table_2
+    INNER JOIN
+    Table_2
     USING (Column_1, Column_2, Column_3)").
 
 %%------------------------------------------------------------------------------
@@ -2004,7 +1877,8 @@ from table_1 cross join table_2").
     *
 FROM
     Table_1
-    CROSS JOIN Table_2").
+    CROSS JOIN
+    Table_2").
 
 %%------------------------------------------------------------------------------
 %% JOIN 05 - NATURAL JOIN.
@@ -2018,7 +1892,8 @@ from table_1 natural join table_2").
     *
 FROM
     Table_1
-    NATURAL JOIN Table_2").
+    NATURAL JOIN
+    Table_2").
 
 %%------------------------------------------------------------------------------
 %% JOIN 06 - NATURAL INNER JOIN.
@@ -2032,7 +1907,8 @@ from table_1 natural inner join table_2").
     *
 FROM
     Table_1
-    NATURAL INNER JOIN Table_2").
+    NATURAL INNER JOIN
+    Table_2").
 
 %%------------------------------------------------------------------------------
 %% JOIN 07 - INNER JOIN USING.
@@ -2046,14 +1922,9 @@ from table_1 inner join table_2 using (column_1,column_2,column_3,column_4)").
     *
 FROM
     Table_1
-    INNER JOIN Table_2
-    USING
-    (
-        Column_1,
-        Column_2,
-        Column_3,
-        Column_4
-    )").
+    INNER JOIN
+    Table_2
+    USING (Column_1, Column_2, Column_3, Column_4)").
 
 %%------------------------------------------------------------------------------
 %% JOIN 08 - JOIN ON.
@@ -2067,7 +1938,8 @@ from table_1 join table_2 on table_1.column_1 = table_2.column_2").
     *
 FROM
     Table_1
-    JOIN Table_2
+    JOIN
+    Table_2
     ON Table_1.Column_1 = Table_2.Column_2").
 
 %%------------------------------------------------------------------------------
@@ -2082,7 +1954,8 @@ from table_1 inner join table_2 on table_1.column_1 = table_2.column_2 or table_
     *
 FROM
     Table_1
-    INNER JOIN Table_2
+    INNER JOIN
+    Table_2
     ON Table_1.Column_1 = Table_2.Column_2
     OR Table_1.Column_3 = Table_2.Column_4").
 
@@ -2101,10 +1974,11 @@ and table_1.column_5 = table_2.column_6").
     *
 FROM
     Table_1
-    INNER JOIN Table_2
+    INNER JOIN
+    Table_2
     ON Table_1.Column_1 = Table_2.Column_2
-    OR Table_1.Column_3 = Table_2.Column_4
-    AND Table_1.Column_5 = Table_2.Column_6").
+    OR (Table_1.Column_3 = Table_2.Column_4
+    AND Table_1.Column_5 = Table_2.Column_6)").
 
 %%------------------------------------------------------------------------------
 %% JOIN 11 - OUTER JOIN.
@@ -2118,7 +1992,8 @@ from table_1 left outer join table_2").
     *
 FROM
     Table_1
-    LEFT OUTER JOIN Table_2").
+    LEFT OUTER JOIN
+    Table_2").
 
 %%------------------------------------------------------------------------------
 %% JOIN 12 - INNER JOIN USING.
@@ -2132,7 +2007,8 @@ from table_1 left outer join table_2 using (column_1)").
     *
 FROM
     Table_1
-    LEFT OUTER JOIN Table_2
+    LEFT OUTER JOIN
+    Table_2
     USING (Column_1)").
 
 %%------------------------------------------------------------------------------
@@ -2147,7 +2023,8 @@ from table_1 left outer join table_2 on column_1 <> column_2").
     *
 FROM
     Table_1
-    LEFT OUTER JOIN Table_2
+    LEFT OUTER JOIN
+    Table_2
     ON Column_1 <> Column_2").
 
 %%------------------------------------------------------------------------------
@@ -2163,7 +2040,8 @@ from table_1 partition by column_1 left outer join table_2").
 FROM
     Table_1
     PARTITION BY (Column_1)
-    LEFT OUTER JOIN Table_2").
+    LEFT OUTER JOIN
+    Table_2").
 
 %%------------------------------------------------------------------------------
 %% JOIN 15 - NATURAL JOIN.
@@ -2177,7 +2055,8 @@ from table_1 natural left outer join table_2").
     *
 FROM
     Table_1
-    NATURAL LEFT OUTER JOIN Table_2").
+    NATURAL LEFT OUTER JOIN
+    Table_2").
 
 %%------------------------------------------------------------------------------
 %% JOIN 16 - NATURAL INNER JOIN.
@@ -2192,7 +2071,8 @@ from table_1 partition by column_1 natural left outer join table_2").
 FROM
     Table_1
     PARTITION BY (Column_1)
-    NATURAL LEFT OUTER JOIN Table_2").
+    NATURAL LEFT OUTER JOIN
+    Table_2").
 
 %%------------------------------------------------------------------------------
 %% JOIN 17 - INNER JOIN USING.
@@ -2206,7 +2086,8 @@ from table_1 natural left outer join table_2 partition by column_1").
     *
 FROM
     Table_1
-    NATURAL LEFT OUTER JOIN Table_2
+    NATURAL LEFT OUTER JOIN
+    Table_2
     PARTITION BY (Column_1)").
 
 %%------------------------------------------------------------------------------
@@ -2222,7 +2103,8 @@ from table_1 partition by column_1 natural left outer join table_2 partition by 
 FROM
     Table_1
     PARTITION BY (Column_1)
-    NATURAL LEFT OUTER JOIN Table_2
+    NATURAL LEFT OUTER JOIN
+    Table_2
     PARTITION BY (Column_2)
     ON Column_1 = Column_2").
 
@@ -2238,7 +2120,8 @@ from table_1 left outer join table_2 using (column_1,column_2,column_3)").
     *
 FROM
     Table_1
-    LEFT OUTER JOIN Table_2
+    LEFT OUTER JOIN
+    Table_2
     USING (Column_1, Column_2, Column_3)").
 
 %%------------------------------------------------------------------------------
@@ -2253,14 +2136,9 @@ from table_1 left outer join table_2 using (column_1,column_2,column_3,column_4)
     *
 FROM
     Table_1
-    LEFT OUTER JOIN Table_2
-    USING
-    (
-        Column_1,
-        Column_2,
-        Column_3,
-        Column_4
-    )").
+    LEFT OUTER JOIN
+    Table_2
+    USING (Column_1, Column_2, Column_3, Column_4)").
 
 %%------------------------------------------------------------------------------
 %% JOIN 21 - MIXED JOIN USING.
@@ -2276,7 +2154,8 @@ table_6 join table_7 using (column_1) left outer join table_8").
     *
 FROM
     Table_1
-    NATURAL JOIN Table_2,
+    NATURAL JOIN
+    Table_2,
     Table_3,
     Table_5,
     (SELECT
@@ -2284,9 +2163,11 @@ FROM
     FROM
         Dual) Alias_1,
     Table_6
-    JOIN Table_7
+    JOIN
+    Table_7
     USING (Column_1)
-    LEFT OUTER JOIN Table_8").
+    LEFT OUTER JOIN
+    Table_8").
 
 %%------------------------------------------------------------------------------
 %% JOIN 22 - MIXED JOIN USING.
@@ -2301,7 +2182,8 @@ from table_1,table_2 natural join table_3,table_4").
 FROM
     Table_1,
     Table_2
-    NATURAL JOIN Table_3,
+    NATURAL JOIN
+    Table_3,
     Table_4").
 
 %%------------------------------------------------------------------------------
@@ -2315,8 +2197,9 @@ from schema_1.table_1\"@dblink_1\" natural full join schema_2.table_2\"@dblink_2
 -define(JOIN_23_RESULT_DEFAULT, "SELECT
     *
 FROM
-    schema_1.table_1\"@dblink_1\"
-    NATURAL FULL JOIN schema_2.table_2\"@dblink_2\"
+    Schema_1.Table_1\"@dblink_1\"
+    NATURAL FULL JOIN
+    Schema_2.Table_2\"@dblink_2\"
     ON Column_1 = Column_2").
 
 %%------------------------------------------------------------------------------
@@ -2330,8 +2213,9 @@ from schema_1.table_1\"@dblink_1\" full join schema_2.table_2\"@dblink_2\" parti
 -define(JOIN_24_RESULT_DEFAULT, "SELECT
     *
 FROM
-    schema_1.table_1\"@dblink_1\"
-    FULL JOIN schema_2.table_2\"@dblink_2\"
+    Schema_1.Table_1\"@dblink_1\"
+    FULL JOIN
+    Schema_2.Table_2\"@dblink_2\"
     PARTITION BY (Column_1)
     ON Column_1 = Column_2").
 
@@ -2347,7 +2231,8 @@ from :param_1\"@link_1\" alias_1 join :param_1\"@link_1\" alias_1 on column_1 = 
     *
 FROM
     :param_1\"@link_1\" Alias_1
-    JOIN :param_1\"@link_1\" Alias_1
+    JOIN
+    :param_1\"@link_1\" Alias_1
     ON Column_1 = Column_2").
 
 %%------------------------------------------------------------------------------
@@ -2481,24 +2366,21 @@ WHERE
 select 'S' || ',' || to_char(BD_DATETIME, 'YYYYMMDDHH24MISS') || ',' || 'I' || ',' || BD_IW_SCENARIO || ',' || DECODE(IS_NUMERIC(BD_MSISDN_A), 0, BD_ORIGSCA, BD_MSISDN_A) || ',' || BD_ORIGSCA || ',' || BD_MSISDN_B || ',' || '41794999021' || ',' || LTRIM(TO_CHAR(NVL(BD_IW_AMOUNT, 0.075) * 10000, '00000')) || ',' || BD_IMSI CSV from SBS1_ADMIN.BDETAIL2_HR_SEG_MASTER_09, SBS1_ADMIN.ENUM256 where to_number(ENUM_ID) <= BD_SEG_COUNT - IS_COUNT and not (BD_MSISDN_A is null) and IS_COUNT < BD_SEG_COUNT and BD_SEG_ID = BD_SEG_COUNT and BD_IW_APMN = 'CHEOR' and BD_DATETIME >= to_date('11.09.2017') and BD_DATETIME < to_date('21.09.2017') order by 1 asc").
 
 -define(MISCELLANEOUS_07_RESULT_DEFAULT, "SELECT
-    'S' || ',' || TO_CHAR(Bd_Datetime, 'YYYYMMDDHH24MISS') || ',' || 'I' || ',' || Bd_Iw_Scenario || ',' || DECODE(
-        Is_Numeric(Bd_Msisdn_A),
-        0,
-        Bd_Origsca,
-        Bd_Msisdn_A
-        ) || ',' || Bd_Origsca || ',' || Bd_Msisdn_B || ',' || '41794999021' || ',' || LTRIM(
-        TO_CHAR(NVL(Bd_Iw_Amount, 0.075) * 10000, '00000')
-        ) || ',' || Bd_Imsi Csv
+    'S' || ',' || TO_CHAR(Bd_Datetime, 'YYYYMMDDHH24MISS') || ',' || 'I' || ','
+    || Bd_Iw_Scenario || ',' || DECODE(Is_Numeric(Bd_Msisdn_A), 0, Bd_Origsca,
+    Bd_Msisdn_A) || ',' || Bd_Origsca || ',' || Bd_Msisdn_B || ',' ||
+    '41794999021' || ',' || LTRIM(TO_CHAR(NVL(Bd_Iw_Amount, 0.075) * 10000,
+    '00000')) || ',' || Bd_Imsi Csv
 FROM
     Sbs1_Admin.Bdetail2_Hr_Seg_Master_09,
     Sbs1_Admin.Enum256
 WHERE
-    To_Number(Enum_Id) <= Bd_Seg_Count - Is_Count
-    AND NOT (Bd_Msisdn_A IS NULL)
-    AND Is_Count < Bd_Seg_Count
-    AND Bd_Seg_Id = Bd_Seg_Count
-    AND Bd_Iw_Apmn = 'CHEOR'
-    AND Bd_Datetime >= TO_DATE('11.09.2017')
+    (((((To_Number(Enum_Id) <= (Bd_Seg_Count - Is_Count)
+    AND NOT (Bd_Msisdn_A IS NULL))
+    AND Is_Count < Bd_Seg_Count)
+    AND Bd_Seg_Id = Bd_Seg_Count)
+    AND Bd_Iw_Apmn = 'CHEOR')
+    AND Bd_Datetime >= TO_DATE('11.09.2017'))
     AND Bd_Datetime < TO_DATE('21.09.2017')
 ORDER BY
     1 ASC").
@@ -2511,19 +2393,16 @@ ORDER BY
 select SUBSTR(SED_ORDER, 1, 10) Day, SUM(SED_COUNT1) Mt_SMS, 10 * SUM(SED_COUNT2) Mo_SMSx10, SED_ETID from SETDETAIL where SED_ETID = :SQLT_STR_CDR_TYPE and not (SED_TARID in ('X', 'V', 'S', 'P', 'T')) and SED_ORDER like to_char(sysdate, 'YYYY-MM') || '%' group by SUBSTR(SED_ORDER, 1, 10), SED_ETID order by SUBSTR(SED_ORDER, 1, 10) asc, 2 asc").
 
 -define(MISCELLANEOUS_08_RESULT_DEFAULT, "SELECT
-    Substr(Sed_Order, 1, 10) Day,
-    SUM(Sed_Count1) Mt_Sms,
-    10 * SUM(Sed_Count2) Mo_Smsx10,
-    Sed_Etid
+    Substr(Sed_Order, 1, 10) Day, SUM(Sed_Count1) Mt_Sms, 10 * SUM(Sed_Count2)
+    Mo_Smsx10, Sed_Etid
 FROM
     Setdetail
 WHERE
-    Sed_Etid = :SQLT_STR_CDR_TYPE
-    AND NOT (Sed_Tarid IN ('X', 'V', 'S', 'P', 'T'))
+    (Sed_Etid = :SQLT_STR_CDR_TYPE
+    AND NOT (Sed_Tarid IN ('X', 'V', 'S', 'P', 'T')))
     AND Sed_Order LIKE TO_CHAR(Sysdate, 'YYYY-MM') || '%'
 GROUP BY
-    Substr(Sed_Order, 1, 10),
-    Sed_Etid
+    Substr(Sed_Order, 1, 10), Sed_Etid
 ORDER BY
     Substr(Sed_Order, 1, 10) ASC, 2 ASC").
 
@@ -2535,21 +2414,17 @@ ORDER BY
 select substr(sed_order, 1, 10) day, sum(sed_total) / sum(sed_count1) avg_charge, sum(sed_total) total_charge, sum(sed_count1) mt_count, sum(sed_count2) mo_count, sed_etid from setdetail where sed_etid = :sqlt_str_cdr_type and not (sed_tarid in ('x', 'v', 's', 'p', 't')) and sed_order like to_char(sysdate, 'yyyy-mm') || '%' group by substr(sed_order, 1, 10), sed_etid order by substr(sed_order, 1, 10) asc, 2 asc").
 
 -define(MISCELLANEOUS_09_RESULT_DEFAULT, "SELECT
-    Substr(Sed_Order, 1, 10) Day,
-    SUM(Sed_Total) / SUM(Sed_Count1) Avg_Charge,
-    SUM(Sed_Total) Total_Charge,
-    SUM(Sed_Count1) Mt_Count,
-    SUM(Sed_Count2) Mo_Count,
-    Sed_Etid
+    Substr(Sed_Order, 1, 10) Day, SUM(Sed_Total) / SUM(Sed_Count1) Avg_Charge,
+    SUM(Sed_Total) Total_Charge, SUM(Sed_Count1) Mt_Count, SUM(Sed_Count2)
+    Mo_Count, Sed_Etid
 FROM
     Setdetail
 WHERE
-    Sed_Etid = :sqlt_str_cdr_type
-    AND NOT (Sed_Tarid IN ('x', 'v', 's', 'p', 't'))
+    (Sed_Etid = :sqlt_str_cdr_type
+    AND NOT (Sed_Tarid IN ('x', 'v', 's', 'p', 't')))
     AND Sed_Order LIKE TO_CHAR(Sysdate, 'yyyy-mm') || '%'
 GROUP BY
-    Substr(Sed_Order, 1, 10),
-    Sed_Etid
+    Substr(Sed_Order, 1, 10), Sed_Etid
 ORDER BY
     Substr(Sed_Order, 1, 10) ASC, 2 ASC").
 
@@ -2561,132 +2436,33 @@ ORDER BY
 select /*+ NO_INDEX(BDETAIL) */ BD_ID, BD_SRCTYPE, BD_DATETIME, BD_DEMO, BD_BIHID, BD_MAPSID, BD_BIRECNO, BD_BOHID1, BD_PACSID1, BD_BORECNO1, BD_BOHID2, BD_PACSID2, BD_BORECNO2, BD_BOHID3, BD_PACSID3, BD_BORECNO3, BD_CONID, BD_PMVID, BD_TARID, BD_NPI_A, BD_TON_A, BD_PID_A, BD_MSISDN_A, BD_TON_B, BD_NPI_B, BD_PID_B, BD_MSISDN_B, BD_IMSI, BD_LENGTH, BD_PREPAID, BD_NODENAME, BD_SERVICE, BD_SHORTID, BD_ITEMNO, BD_KEYWORD, BD_LANGID, BD_REQTYPE, BD_BILLRATE, BD_AMOUNTCU, BD_RETSHAREPV, BD_RETSHAREMO, BD_VSMSCID, BD_CONSOLIDATION, BD_STATUS, BD_TERMDATE, BD_SETTLING, BD_SETID, BD_STORAGE, BD_DBIDSTORE, BD_DATESTORE, BD_ARCHIVE, BD_DBIDARCH, BD_DATEARCH, BD_RECTYPE, BD_IDENTITY, BD_REQSERV, BD_SUBSERV, BD_OPERATION, BD_MULTSM, BD_SMSEQ, BD_ANSTYPE, BD_RETCODE, BD_RESPMEDIA, BD_SMSCRESP, BD_TMINODE, BD_REQID, BD_SERVKEY, BD_BILLTEXT, BD_LOCATION, BD_INFO, BD_ZNID, BD_NETWORK, BD_TPID, BD_STYPE, BD_BILLTIME, BD_MSGID, BD_TRCLASS, BD_AMOUNTTR, BD_TOCID, BD_CDRTID, BD_INT, BD_IW, BD_AAATS, BD_CONSTID, BD_ERRID, BD_BILLED, BD_RATED, BD_PACIDHB, BD_OUTPUTHB, BD_BILLINGDOMAIN, BD_TRANSPORTMEDIUM, BD_CATEGORY, BD_TAXRATE, BD_TESTMODE, BD_REQUESTID, BD_COUNTTR, BD_VSPRCID, BD_ORIGSUBMIT, BD_ONLINECHARGE, BD_LTTREQRECCOUNT, BD_LTTDNRECCOUNT, BD_LTTDNDATETIME, BD_GART, BD_SHOW, BD_CAMPAIGN from BDETAIL where BD_DATETIME >= :SQLT_DAT_FROM and BD_DATETIME < :SQLT_DAT_UNTIL and DECODE(BD_AMOUNTCU, 0.0, '0', '1') || BD_BILLED || DECODE(UPPER(BD_PACIDHB), '<REVAH_PACID>', '1', '0') || BD_MAPSID || DECODE(SUBSTR(BD_MSISDN_A, 1, 5), '42377', 'F', 'S') || BD_PREPAID like :SQLT_STR_CODE").
 
 -define(MISCELLANEOUS_10_RESULT_DEFAULT, "SELECT /*+ NO_INDEX(BDETAIL) */
-    Bd_Id,
-    Bd_Srctype,
-    Bd_Datetime,
-    Bd_Demo,
-    Bd_Bihid,
-    Bd_Mapsid,
-    Bd_Birecno,
-    Bd_Bohid1,
-    Bd_Pacsid1,
-    Bd_Borecno1,
-    Bd_Bohid2,
-    Bd_Pacsid2,
-    Bd_Borecno2,
-    Bd_Bohid3,
-    Bd_Pacsid3,
-    Bd_Borecno3,
-    Bd_Conid,
-    Bd_Pmvid,
-    Bd_Tarid,
-    Bd_Npi_A,
-    Bd_Ton_A,
-    Bd_Pid_A,
-    Bd_Msisdn_A,
-    Bd_Ton_B,
-    Bd_Npi_B,
-    Bd_Pid_B,
-    Bd_Msisdn_B,
-    Bd_Imsi,
-    Bd_Length,
-    Bd_Prepaid,
-    Bd_Nodename,
-    Bd_Service,
-    Bd_Shortid,
-    Bd_Itemno,
-    Bd_Keyword,
-    Bd_Langid,
-    Bd_Reqtype,
-    Bd_Billrate,
-    Bd_Amountcu,
-    Bd_Retsharepv,
-    Bd_Retsharemo,
-    Bd_Vsmscid,
-    Bd_Consolidation,
-    Bd_Status,
-    Bd_Termdate,
-    Bd_Settling,
-    Bd_Setid,
-    Bd_Storage,
-    Bd_Dbidstore,
-    Bd_Datestore,
-    Bd_Archive,
-    Bd_Dbidarch,
-    Bd_Datearch,
-    Bd_Rectype,
-    Bd_Identity,
-    Bd_Reqserv,
-    Bd_Subserv,
-    Bd_Operation,
-    Bd_Multsm,
-    Bd_Smseq,
-    Bd_Anstype,
-    Bd_Retcode,
-    Bd_Respmedia,
-    Bd_Smscresp,
-    Bd_Tminode,
-    Bd_Reqid,
-    Bd_Servkey,
-    Bd_Billtext,
-    Bd_Location,
-    Bd_Info,
-    Bd_Znid,
-    Bd_Network,
-    Bd_Tpid,
-    Bd_Stype,
-    Bd_Billtime,
-    Bd_Msgid,
-    Bd_Trclass,
-    Bd_Amounttr,
-    Bd_Tocid,
-    Bd_Cdrtid,
-    Bd_Int,
-    Bd_Iw,
-    Bd_Aaats,
-    Bd_Constid,
-    Bd_Errid,
-    Bd_Billed,
-    Bd_Rated,
-    Bd_Pacidhb,
-    Bd_Outputhb,
-    Bd_Billingdomain,
-    Bd_Transportmedium,
-    Bd_Category,
-    Bd_Taxrate,
-    Bd_Testmode,
-    Bd_Requestid,
-    Bd_Counttr,
-    Bd_Vsprcid,
-    Bd_Origsubmit,
-    Bd_Onlinecharge,
-    Bd_Lttreqreccount,
-    Bd_Lttdnreccount,
-    Bd_Lttdndatetime,
-    Bd_Gart,
-    Bd_Show,
+    Bd_Id, Bd_Srctype, Bd_Datetime, Bd_Demo, Bd_Bihid, Bd_Mapsid, Bd_Birecno,
+    Bd_Bohid1, Bd_Pacsid1, Bd_Borecno1, Bd_Bohid2, Bd_Pacsid2, Bd_Borecno2,
+    Bd_Bohid3, Bd_Pacsid3, Bd_Borecno3, Bd_Conid, Bd_Pmvid, Bd_Tarid, Bd_Npi_A,
+    Bd_Ton_A, Bd_Pid_A, Bd_Msisdn_A, Bd_Ton_B, Bd_Npi_B, Bd_Pid_B, Bd_Msisdn_B,
+    Bd_Imsi, Bd_Length, Bd_Prepaid, Bd_Nodename, Bd_Service, Bd_Shortid,
+    Bd_Itemno, Bd_Keyword, Bd_Langid, Bd_Reqtype, Bd_Billrate, Bd_Amountcu,
+    Bd_Retsharepv, Bd_Retsharemo, Bd_Vsmscid, Bd_Consolidation, Bd_Status,
+    Bd_Termdate, Bd_Settling, Bd_Setid, Bd_Storage, Bd_Dbidstore, Bd_Datestore,
+    Bd_Archive, Bd_Dbidarch, Bd_Datearch, Bd_Rectype, Bd_Identity, Bd_Reqserv,
+    Bd_Subserv, Bd_Operation, Bd_Multsm, Bd_Smseq, Bd_Anstype, Bd_Retcode,
+    Bd_Respmedia, Bd_Smscresp, Bd_Tminode, Bd_Reqid, Bd_Servkey, Bd_Billtext,
+    Bd_Location, Bd_Info, Bd_Znid, Bd_Network, Bd_Tpid, Bd_Stype, Bd_Billtime,
+    Bd_Msgid, Bd_Trclass, Bd_Amounttr, Bd_Tocid, Bd_Cdrtid, Bd_Int, Bd_Iw,
+    Bd_Aaats, Bd_Constid, Bd_Errid, Bd_Billed, Bd_Rated, Bd_Pacidhb, Bd_Outputhb
+    , Bd_Billingdomain, Bd_Transportmedium, Bd_Category, Bd_Taxrate, Bd_Testmode
+    , Bd_Requestid, Bd_Counttr, Bd_Vsprcid, Bd_Origsubmit, Bd_Onlinecharge,
+    Bd_Lttreqreccount, Bd_Lttdnreccount, Bd_Lttdndatetime, Bd_Gart, Bd_Show,
     Bd_Campaign
 FROM
     Bdetail
 WHERE
-    Bd_Datetime >= :SQLT_DAT_FROM
-    AND Bd_Datetime < :SQLT_DAT_UNTIL
-    AND DECODE(
-        Bd_Amountcu,
-        0.0,
-        '0',
-        '1'
-        ) || Bd_Billed || DECODE(
-        UPPER(Bd_Pacidhb),
-        '<REVAH_PACID>',
-        '1',
-        '0'
-        ) || Bd_Mapsid || DECODE(
-        Substr(Bd_Msisdn_A, 1, 5),
-        '42377',
-        'F',
-        'S'
-        ) || Bd_Prepaid LIKE :SQLT_STR_CODE").
+    (Bd_Datetime >= :SQLT_DAT_FROM
+    AND Bd_Datetime < :SQLT_DAT_UNTIL)
+    AND DECODE(Bd_Amountcu, 0.0, '0', '1') || Bd_Billed ||
+    DECODE(UPPER(Bd_Pacidhb), '<REVAH_PACID>', '1', '0') || Bd_Mapsid ||
+    DECODE(Substr(Bd_Msisdn_A, 1, 5), '42377', 'F', 'S') || Bd_Prepaid LIKE
+    :SQLT_STR_CODE").
 
 %%------------------------------------------------------------------------------
 %% MULTIPLE 01 - CREATE.
@@ -2730,19 +2506,23 @@ insert into hr_regions (region_id,region_name) values (3,'asia');
 insert into hr_regions (region_id,region_name) values (4,'middle east and africa');").
 
 -define(MULTIPLE_02_RESULT_DEFAULT, "INSERT INTO
-    Hr_Regions (Region_Id, Region_Name)
+    Hr_Regions (
+        Region_Id, Region_Name)
 VALUES
     (1, 'europe');
 INSERT INTO
-    Hr_Regions (Region_Id, Region_Name)
+    Hr_Regions (
+        Region_Id, Region_Name)
 VALUES
     (2, 'americas');
 INSERT INTO
-    Hr_Regions (Region_Id, Region_Name)
+    Hr_Regions (
+        Region_Id, Region_Name)
 VALUES
     (3, 'asia');
 INSERT INTO
-    Hr_Regions (Region_Id, Region_Name)
+    Hr_Regions (
+        Region_Id, Region_Name)
 VALUES
     (4, 'middle east and africa')").
 
@@ -2760,21 +2540,25 @@ insert into hr_regions (region_id,region_name) values (4,'middle east and africa
 name_label_3").
 
 -define(MULTIPLE_03_RESULT_DEFAULT, "INSERT INTO
-    Hr_Regions (Region_Id, Region_Name)
+    Hr_Regions (
+        Region_Id, Region_Name)
 VALUES
     (1, 'europe');
 name_label_1;
 INSERT INTO
-    Hr_Regions (Region_Id, Region_Name)
+    Hr_Regions (
+        Region_Id, Region_Name)
 VALUES
     (2, 'americas');
 INSERT INTO
-    Hr_Regions (Region_Id, Region_Name)
+    Hr_Regions (
+        Region_Id, Region_Name)
 VALUES
     (3, 'asia');
 name_label_2;
 INSERT INTO
-    Hr_Regions (Region_Id, Region_Name)
+    Hr_Regions (
+        Region_Id, Region_Name)
 VALUES
     (4, 'middle east and africa');
 name_label_3").
@@ -2842,19 +2626,6 @@ HAVING
     column_6 = column_7
 ORDER BY
     column_8").
-
--define(OPTION_01_RESULT_U_L_0_S_T, "select
- COLUMN_1
-from
- TABLE_1
-where
- COLUMN_3 <> COLUMN_4
-group by
- COLUMN_5
-having
- COLUMN_6 = COLUMN_7
-order by
- COLUMN_8").
 
 -define(OPTION_01_RESULT_U_L_1_S_T, "select
  COLUMN_1
@@ -2960,19 +2731,6 @@ having
 order by
         COLUMN_8").
 
--define(OPTION_01_RESULT_U_L_9_S_T, "select
- COLUMN_1
-from
- TABLE_1
-where
- COLUMN_3 <> COLUMN_4
-group by
- COLUMN_5
-having
- COLUMN_6 = COLUMN_7
-order by
- COLUMN_8").
-
 -define(OPTION_01_RESULT_U_L___T_T, "select
 \tCOLUMN_1
 from
@@ -3002,13 +2760,13 @@ having columN_6 = columN_7
 order by columN_8").
 
 -define(OPTION_02_RESULT_K_L_4_S_F, "select
-    columN_1, +(columN_2)
+    columN_1, +columN_2
 from
     tablE_1
 where
-    columN_3_1<>columN_4_1
-    and columN_3_2>columN_4_2
-    and columN_3_3>=columN_4_3
+    ((columN_3_1<>columN_4_1
+    and columN_3_2>columN_4_2)
+    and columN_3_3>=columN_4_3)
     and columN_3_4<=columN_4_4
 group by
     columN_5
@@ -3060,10 +2818,445 @@ order by column_1,column_2,column_3,column_4").
 FROM
     Dual
 ORDER BY
-    Column_1,
-    Column_2,
-    Column_3,
-    Column_4").
+    Column_1, Column_2, Column_3, Column_4").
+
+%%------------------------------------------------------------------------------
+%% PARENTHESES 01 - Arithmetic operators.
+%%------------------------------------------------------------------------------
+
+-define(PARENTHESES_01, "
+select 1-3+5 from dual").
+
+-define(PARENTHESES_01_RESULT_DEFAULT, "SELECT
+    (1 - 3) + 5
+FROM
+    Dual").
+
+%%------------------------------------------------------------------------------
+%% PARENTHESES 02 - Arithmetic operators.
+%%------------------------------------------------------------------------------
+
+-define(PARENTHESES_02, "
+select (1-3)+5 from dual").
+
+-define(PARENTHESES_02_RESULT_DEFAULT, "SELECT
+    (1 - 3) + 5
+FROM
+    Dual").
+
+%%------------------------------------------------------------------------------
+%% PARENTHESES 03 - Arithmetic operators.
+%%------------------------------------------------------------------------------
+
+-define(PARENTHESES_03, "
+select 1-(3+5) from dual").
+
+-define(PARENTHESES_03_RESULT_DEFAULT, "SELECT
+    1 - (3 + 5)
+FROM
+    Dual").
+
+%%------------------------------------------------------------------------------
+%% PARENTHESES 04 - Arithmetic operators.
+%%------------------------------------------------------------------------------
+
+-define(PARENTHESES_04, "
+select 1-2+3-4 from dual").
+
+-define(PARENTHESES_04_RESULT_DEFAULT, "SELECT
+    ((1 - 2) + 3) - 4
+FROM
+    Dual").
+
+%%------------------------------------------------------------------------------
+%% PARENTHESES 05 - Arithmetic operators.
+%%------------------------------------------------------------------------------
+
+-define(PARENTHESES_05, "
+select 1-(2+3-4) from dual").
+
+-define(PARENTHESES_05_RESULT_DEFAULT, "SELECT
+    1 - ((2 + 3) - 4)
+FROM
+    Dual").
+
+%%------------------------------------------------------------------------------
+%% PARENTHESES 06 - Arithmetic operators.
+%%------------------------------------------------------------------------------
+
+-define(PARENTHESES_06, "
+select 1-2+(3-4) from dual").
+
+-define(PARENTHESES_06_RESULT_DEFAULT, "SELECT
+    (1 - 2) + (3 - 4)
+FROM
+    Dual").
+
+%%------------------------------------------------------------------------------
+%% PARENTHESES 07 - Arithmetic operators.
+%%------------------------------------------------------------------------------
+
+-define(PARENTHESES_07, "
+select 1-(2+3)-4 from dual").
+
+-define(PARENTHESES_07_RESULT_DEFAULT, "SELECT
+    (1 - (2 + 3)) - 4
+FROM
+    Dual").
+
+%%------------------------------------------------------------------------------
+%% PARENTHESES 11 - Logic operators.
+%%------------------------------------------------------------------------------
+
+-define(PARENTHESES_11, "
+select * from dual where a=b and c=d or e=f and g=e").
+
+-define(PARENTHESES_11_RESULT_DEFAULT, "SELECT
+    *
+FROM
+    Dual
+WHERE
+    (A = B
+    AND C = D)
+    OR (E = F
+    AND G = E)").
+
+%%------------------------------------------------------------------------------
+%% PARENTHESES 12 - Logic operators.
+%%------------------------------------------------------------------------------
+
+-define(PARENTHESES_12, "
+select * from dual where a=b and (c=d or e=f) and g=e").
+
+-define(PARENTHESES_12_RESULT_DEFAULT, "SELECT
+    *
+FROM
+    Dual
+WHERE
+    (A = B
+    AND (C = D
+    OR E = F))
+    AND G = E").
+
+%%------------------------------------------------------------------------------
+%% PARENTHESES 13 - Logic operators.
+%%------------------------------------------------------------------------------
+
+-define(PARENTHESES_13, "
+select * from dual where not a=b and (c=d or e=f) and g=e").
+
+-define(PARENTHESES_13_RESULT_DEFAULT, "SELECT
+    *
+FROM
+    Dual
+WHERE
+    (NOT (A = B)
+    AND (C = D
+    OR E = F))
+    AND G = E").
+
+%%------------------------------------------------------------------------------
+%% PARENTHESES 14 - Logic operators.
+%%------------------------------------------------------------------------------
+
+-define(PARENTHESES_14, "
+select * from dual where not a=b and not (c=d or e=f) and g=e").
+
+-define(PARENTHESES_14_RESULT_DEFAULT, "SELECT
+    *
+FROM
+    Dual
+WHERE
+    (NOT (A = B)
+    AND NOT (C = D
+    OR E = F))
+    AND G = E").
+
+%%------------------------------------------------------------------------------
+%% PARENTHESES 21 - Set operators.
+%%------------------------------------------------------------------------------
+
+-define(PARENTHESES_21, "
+select column_1 from table_1
+intersect
+select column_2 from table_2
+").
+
+-define(PARENTHESES_21_RESULT_DEFAULT, "    (SELECT
+        Column_1
+    FROM
+        Table_1)
+INTERSECT
+    (SELECT
+        Column_2
+    FROM
+        Table_2)").
+
+%%------------------------------------------------------------------------------
+%% PARENTHESES 22 - Set operators.
+%%------------------------------------------------------------------------------
+
+-define(PARENTHESES_22, "
+select column_1 from table_1
+intersect
+select column_2 from table_2
+minus
+select column_3 from table_3
+").
+
+-define(PARENTHESES_22_RESULT_DEFAULT, "        ((SELECT
+            Column_1
+        FROM
+            Table_1)
+    INTERSECT
+        (SELECT
+            Column_2
+        FROM
+            Table_2))
+MINUS
+    (SELECT
+        Column_3
+    FROM
+        Table_3)").
+
+%%------------------------------------------------------------------------------
+%% PARENTHESES 23 - Set operators.
+%%------------------------------------------------------------------------------
+
+-define(PARENTHESES_23, "
+select column_1 from table_1
+intersect
+select column_2 from table_2
+minus
+select column_3 from table_3
+union
+select column_4 from table_4
+").
+
+-define(PARENTHESES_23_RESULT_DEFAULT, "            (((SELECT
+                Column_1
+            FROM
+                Table_1)
+        INTERSECT
+            (SELECT
+                Column_2
+            FROM
+                Table_2))
+    MINUS
+        (SELECT
+            Column_3
+        FROM
+            Table_3))
+UNION
+    (SELECT
+        Column_4
+    FROM
+        Table_4)").
+
+%%------------------------------------------------------------------------------
+%% PARENTHESES 24 - Set operators.
+%%------------------------------------------------------------------------------
+
+-define(PARENTHESES_24, "
+select column_1 from table_1
+intersect
+select column_2 from table_2
+minus
+select column_3 from table_3
+union
+select column_4 from table_4
+union all
+select column_5 from table_5
+").
+
+-define(PARENTHESES_24_RESULT_DEFAULT, "                ((((SELECT
+                    Column_1
+                FROM
+                    Table_1)
+            INTERSECT
+                (SELECT
+                    Column_2
+                FROM
+                    Table_2))
+        MINUS
+            (SELECT
+                Column_3
+            FROM
+                Table_3))
+    UNION
+        (SELECT
+            Column_4
+        FROM
+            Table_4))
+UNION ALL
+    (SELECT
+        Column_5
+    FROM
+        Table_5)").
+
+%%------------------------------------------------------------------------------
+%% PARENTHESES 25 - Set operators.
+%%------------------------------------------------------------------------------
+
+-define(PARENTHESES_25, "
+(select column_1 from table_1
+intersect
+select column_2 from table_2)
+minus
+select column_3 from table_3
+union
+select column_4 from table_4
+union all
+select column_5 from table_5
+").
+
+-define(PARENTHESES_25_RESULT_DEFAULT, "                ((((SELECT
+                    Column_1
+                FROM
+                    Table_1)
+            INTERSECT
+                (SELECT
+                    Column_2
+                FROM
+                    Table_2))
+        MINUS
+            (SELECT
+                Column_3
+            FROM
+                Table_3))
+    UNION
+        (SELECT
+            Column_4
+        FROM
+            Table_4))
+UNION ALL
+    (SELECT
+        Column_5
+    FROM
+        Table_5)").
+
+%%------------------------------------------------------------------------------
+%% PARENTHESES 26 - Set operators.
+%%------------------------------------------------------------------------------
+
+-define(PARENTHESES_26, "
+select column_1 from table_1
+intersect
+(select column_2 from table_2
+minus
+select column_3 from table_3)
+union
+select column_4 from table_4
+union all
+select column_5 from table_5
+").
+
+-define(PARENTHESES_26_RESULT_DEFAULT, "            (((SELECT
+                Column_1
+            FROM
+                Table_1)
+        INTERSECT
+                ((SELECT
+                    Column_2
+                FROM
+                    Table_2)
+            MINUS
+                (SELECT
+                    Column_3
+                FROM
+                    Table_3)))
+    UNION
+        (SELECT
+            Column_4
+        FROM
+            Table_4))
+UNION ALL
+    (SELECT
+        Column_5
+    FROM
+        Table_5)").
+
+%%------------------------------------------------------------------------------
+%% PARENTHESES 27 - Set operators.
+%%------------------------------------------------------------------------------
+
+-define(PARENTHESES_27, "
+select column_1 from table_1
+intersect
+select column_2 from table_2
+minus
+(select column_3 from table_3
+union
+select column_4 from table_4)
+union all
+select column_5 from table_5
+").
+
+-define(PARENTHESES_27_RESULT_DEFAULT, "            (((SELECT
+                Column_1
+            FROM
+                Table_1)
+        INTERSECT
+            (SELECT
+                Column_2
+            FROM
+                Table_2))
+    MINUS
+            ((SELECT
+                Column_3
+            FROM
+                Table_3)
+        UNION
+            (SELECT
+                Column_4
+            FROM
+                Table_4)))
+UNION ALL
+    (SELECT
+        Column_5
+    FROM
+        Table_5)").
+
+%%------------------------------------------------------------------------------
+%% PARENTHESES 28 - Set operators.
+%%------------------------------------------------------------------------------
+
+-define(PARENTHESES_28, "
+select column_1 from table_1
+intersect
+select column_2 from table_2
+minus
+select column_3 from table_3
+union
+(select column_4 from table_4
+union all
+select column_5 from table_5)
+").
+
+-define(PARENTHESES_28_RESULT_DEFAULT, "            (((SELECT
+                Column_1
+            FROM
+                Table_1)
+        INTERSECT
+            (SELECT
+                Column_2
+            FROM
+                Table_2))
+    MINUS
+        (SELECT
+            Column_3
+        FROM
+            Table_3))
+UNION
+        ((SELECT
+            Column_4
+        FROM
+            Table_4)
+    UNION ALL
+        (SELECT
+            Column_5
+        FROM
+            Table_5))").
 
 %%------------------------------------------------------------------------------
 %% PLSQL 01 - ALTER.
@@ -3089,10 +3282,7 @@ end;").
     ALTER USER
         User_1
     REVOKE CONNECT THROUGH WITH ROLE
-        Role_1,
-        Role_2,
-        Role_3,
-        Role_4;
+        Role_1, Role_2, Role_3, Role_4;
     ALTER USER
         Test_User_123
     PASSWORD EXPIRE;
@@ -3161,12 +3351,7 @@ end;").
     CREATE BITMAP INDEX
         Index_1
     ON
-        Table_1 (
-            Column_1,
-            Column_2,
-            Column_3,
-            Column_4
-        )
+        Table_1 (Column_1, Column_2, Column_3, Column_4)
     NORM_WITH
         'n'
     FILTER_WITH
@@ -3189,12 +3374,13 @@ end;").
         Schema_1.Table_1 (
             Column_1 DATE,
             Column_2 DATE,
-            FOREIGN KEY (Fkey_1, Fkey_2) REFERENCES Schema_1.Table_2 (Column_8, Column_9)
+            FOREIGN KEY (Fkey_1, Fkey_2) REFERENCES Schema_1.Table_2 (Column_8,
+            Column_9)
         );
     CREATE INDEX
         A
     ON
-        B (a|:d{}|)
+        B (A|:d{}|)
     NORM_WITH
         fun() -> norm end.
     FILTER_WITH
@@ -3248,15 +3434,9 @@ end;").
         Column_1 = Value_1
         AND Column_2 = Value_2
     RETURN
-        Column_3,
-        Column_4,
-        Column_5,
-        Column_6
+        Column_3, Column_4, Column_5, Column_6
     INTO
-        Column_7,
-        Column_8,
-        Column_9,
-        Column_10;
+        Column_7, Column_8, Column_9, Column_10;
 END").
 
 %%------------------------------------------------------------------------------
@@ -3284,10 +3464,7 @@ end;").
         Table_1, Table_2
     CASCADE;
     DROP TABLE IF EXISTS
-        Table_1,
-        Table_2,
-        Table_3,
-        Table_4
+        Table_1, Table_2, Table_3, Table_4
     RESTRICT;
     DROP Imem_Dal_Skvh TABLE
         Skvhtest;
@@ -3297,7 +3474,7 @@ end;").
 END").
 
 %%------------------------------------------------------------------------------
-%% PLSQL 05 - DROP.
+%% PLSQL 05 - SELECT.
 %%------------------------------------------------------------------------------
 
 -define(PLSQL_05, "
@@ -3345,7 +3522,8 @@ end;").
         *
     FROM
         :param_1 Alias_1
-        JOIN :param_2 Alias_2
+        JOIN
+        :param_2 Alias_2
         ON Column_1 = Column_2;
 END").
 
@@ -3381,20 +3559,13 @@ end;").
         User_1
     WITH GRANT OPTION;
     GRANT
-        DELETE,
-        INSERT,
-        SELECT,
-        UPDATE
+        DELETE, INSERT, SELECT, UPDATE
     ON
         Table_1
     TO
         User_1;
     GRANT
-        Privilege_1,
-        Privilege_2,
-        Privilege_3,
-        Privilege_4,
-        Privilege_5
+        Privilege_1, Privilege_2, Privilege_3, Privilege_4, Privilege_5
     TO
         User_1;
     GRANT
@@ -3422,47 +3593,31 @@ end;").
     FROM
         Dual
     GROUP BY
-        Column_1,
-        Table_1.Column_1,
-        Schema_1.Table_1.Column_1,
-        Column_1|:x:y|,
-        Table_1.Column_1|:x:y|,
-        Schema_1.Table_1.Column_1|:x:y|;
+        Column_1, Table_1.Column_1, Schema_1.Table_1.Column_1, Column_1|:x:y|,
+        Table_1.Column_1|:x:y|, Schema_1.Table_1.Column_1|:x:y|;
     SELECT
         *
     FROM
         Dual
     GROUP BY
-        Function_1(Param_1, Param_2),
-        Package_1.Function_1(Param_1, Param_2),
-        Schema_1.Package_1.Function_1(Param_1, Param_2),
-        Function_1(Param_1, Param_2)|:b[f(p:q)]|,
-        Package_1.Function_1(Param_1, Param_2)|:b[f(p:q)]|,
-        Schema_1.Package_1.Function_1(Param_1, Param_2)|:b[f(p:q)]|;
+        Function_1(Param_1, Param_2), Package_1.Function_1(Param_1, Param_2),
+        Schema_1.Package_1.Function_1(Param_1, Param_2), Function_1(Param_1,
+        Param_2)|:b[f(p:q)]|, Package_1.Function_1(Param_1, Param_2)|:b[f(p:q)]|
+        , Schema_1.Package_1.Function_1(Param_1, Param_2)|:b[f(p:q)]|;
     SELECT
         *
     FROM
         Dual
     GROUP BY
-        DECODE,
-        DECODE(Param_1, Param_2),
-        DECODE(*),
-        DECODE(DISTINCT Column_1),
+        DECODE, DECODE(Param_1, Param_2), DECODE(*), DECODE(DISTINCT Column_1),
         DECODE(ALL 6);
     SELECT
         *
     FROM
         Dual
     GROUP BY
-        Function_1(
-            Param_11,
-            Function_21(
-                Param_21,
-                Function_31(Param_31, Param_32, Param_33),
-                Param_23
-                ),
-            Param_13
-            );
+        Function_1(Param_11, Function_21(Param_21, Function_31(Param_31,
+        Param_32, Param_33), Param_23), Param_13);
 END").
 
 %%------------------------------------------------------------------------------
@@ -3504,7 +3659,8 @@ end;").
 
 -define(PLSQL_09_RESULT_DEFAULT, "BEGIN
     INSERT INTO
-        Table_1 (Column_1, Column_2)
+        Table_1 (
+            Column_1, Column_2)
         SELECT
             Column_1, Column_2
         FROM
@@ -3518,45 +3674,21 @@ end;").
         :a, :b;
     INSERT INTO
         Table_1 (
-        Column_1,
-        Column_2,
-        Column_3,
-        Column_4
-        )
-    VALUES (
-        Value_1,
-        Value_2,
-        Value_3,
-        Value_4
-        )
+            Column_1, Column_2, Column_3, Column_4)
+    VALUES
+        (Value_1, Value_2, Value_3, Value_4)
     RETURNING
-        Column_1,
-        Column_2,
-        Column_3,
-        Column_4
+        Column_1, Column_2, Column_3, Column_4
     INTO
-        :a,
-        :b,
-        :c,
-        :d;
+        :a, :b, :c, :d;
     INSERT INTO
         Table_1
-    VALUES (
-        Value_1,
-        Value_2,
-        Value_3,
-        Value_4
-        )
+    VALUES
+        (Value_1, Value_2, Value_3, Value_4)
     RETURNING
-        Column_1,
-        Column_2,
-        Column_3,
-        Column_4
+        Column_1, Column_2, Column_3, Column_4
     INTO
-        :a,
-        :b,
-        :c,
-        :d;
+        :a, :b, :c, :d;
 END").
 
 %%------------------------------------------------------------------------------
@@ -3581,57 +3713,59 @@ end;").
         *
     FROM
         Table_1
-        INNER JOIN Table_2
+        INNER JOIN
+        Table_2
         USING (Column_1, Column_2, Column_3);
     SELECT
         *
     FROM
         Table_1
-        CROSS JOIN Table_2;
+        CROSS JOIN
+        Table_2;
     SELECT
         *
     FROM
         Table_1
-        INNER JOIN Table_2
-        USING
-        (
-            Column_1,
-            Column_2,
-            Column_3,
-            Column_4
-        );
+        INNER JOIN
+        Table_2
+        USING (Column_1, Column_2, Column_3, Column_4);
     SELECT
         *
     FROM
         Table_1
-        INNER JOIN Table_2
+        INNER JOIN
+        Table_2
         ON Table_1.Column_1 = Table_2.Column_2
         OR Table_1.Column_3 = Table_2.Column_4;
     SELECT
         *
     FROM
         Table_1
-        LEFT OUTER JOIN Table_2
+        LEFT OUTER JOIN
+        Table_2
         ON Column_1 <> Column_2;
     SELECT
         *
     FROM
         Table_1
         PARTITION BY (Column_1)
-        NATURAL LEFT OUTER JOIN Table_2;
+        NATURAL LEFT OUTER JOIN
+        Table_2;
     SELECT
         *
     FROM
         Table_1
         PARTITION BY (Column_1)
-        NATURAL LEFT OUTER JOIN Table_2
+        NATURAL LEFT OUTER JOIN
+        Table_2
         PARTITION BY (Column_2)
         ON Column_1 = Column_2;
     SELECT
         *
     FROM
         Table_1
-        NATURAL JOIN Table_2,
+        NATURAL JOIN
+        Table_2,
         Table_3,
         Table_5,
         (SELECT
@@ -3639,14 +3773,17 @@ end;").
         FROM
             Dual) Alias_1,
         Table_6
-        JOIN Table_7
+        JOIN
+        Table_7
         USING (Column_1)
-        LEFT OUTER JOIN Table_8;
+        LEFT OUTER JOIN
+        Table_8;
     SELECT
         *
     FROM
         :param_1\"@link_1\" Alias_1
-        JOIN :param_1\"@link_1\" Alias_1
+        JOIN
+        :param_1\"@link_1\" Alias_1
         ON Column_1 = Column_2;
 END").
 
@@ -3690,37 +3827,45 @@ end;").
             Max_Salary NUMBER(6,0)
         );
     INSERT INTO
-        Hr_Regions (Region_Id, Region_Name)
+        Hr_Regions (
+            Region_Id, Region_Name)
     VALUES
         (1, 'europe');
     INSERT INTO
-        Hr_Regions (Region_Id, Region_Name)
+        Hr_Regions (
+            Region_Id, Region_Name)
     VALUES
         (2, 'americas');
     INSERT INTO
-        Hr_Regions (Region_Id, Region_Name)
+        Hr_Regions (
+            Region_Id, Region_Name)
     VALUES
         (3, 'asia');
     INSERT INTO
-        Hr_Regions (Region_Id, Region_Name)
+        Hr_Regions (
+            Region_Id, Region_Name)
     VALUES
         (4, 'middle east and africa');
     INSERT INTO
-        Hr_Regions (Region_Id, Region_Name)
+        Hr_Regions (
+            Region_Id, Region_Name)
     VALUES
         (1, 'europe');
     name_label_1;
     INSERT INTO
-        Hr_Regions (Region_Id, Region_Name)
+        Hr_Regions (
+            Region_Id, Region_Name)
     VALUES
         (2, 'americas');
     INSERT INTO
-        Hr_Regions (Region_Id, Region_Name)
+        Hr_Regions (
+            Region_Id, Region_Name)
     VALUES
         (3, 'asia');
     name_label_2;
     INSERT INTO
-        Hr_Regions (Region_Id, Region_Name)
+        Hr_Regions (
+            Region_Id, Region_Name)
     VALUES
         (4, 'middle east and africa');
     name_label_3;
@@ -3748,10 +3893,7 @@ end;").
     FROM
         Dual
     ORDER BY
-        Column_1,
-        Column_2,
-        Column_3,
-        Column_4;
+        Column_1, Column_2, Column_3, Column_4;
 END").
 
 %%------------------------------------------------------------------------------
@@ -3782,10 +3924,7 @@ end;").
         User_1
     CASCADE CONSTRAINTS;
     REVOKE
-        DELETE,
-        INSERT,
-        SELECT,
-        UPDATE
+        DELETE, INSERT, SELECT, UPDATE
     ON
         Table_1
     FROM
@@ -3799,20 +3938,13 @@ end;").
     FROM
         User_1;
     REVOKE
-        Privilege_1,
-        Privilege_2,
-        Privilege_3,
-        Privilege_4,
-        Privilege_5
+        Privilege_1, Privilege_2, Privilege_3, Privilege_4, Privilege_5
     FROM
         User_1;
     REVOKE
         CREATE TABLE
     FROM
-        User_1,
-        User_2,
-        User_3,
-        User_4;
+        User_1, User_2, User_3, User_4;
 END").
 
 %%------------------------------------------------------------------------------
@@ -3839,8 +3971,7 @@ end;").
         (SELECT
             *
         FROM
-            Table_1),
-        Column_1,
+            Table_1), Column_1, " ++ "
         (SELECT
             *
         FROM
@@ -3848,12 +3979,11 @@ end;").
     FROM
         Dual;
     SELECT
-        Column_1 Alias_1,
+        Column_1 Alias_1, " ++ "
         (SELECT
             *
         FROM
-            Table_1) Alias_2,
-        Column_3 Alias_3
+            Table_1) Alias_2, Column_3 Alias_3
     FROM
         Dual;
     SELECT DISTINCT
@@ -3865,58 +3995,50 @@ end;").
     FROM
         Dual;
     SELECT
-        AVG(
-            SUM(
-                MIN(1)
-                )
-            )
+        AVG(SUM(MIN(1)))
     FROM
         Dual;
     SELECT
-        Column_1,
+        Column_1, " ++ "
         (SELECT
             *
         FROM
             Table_1,
             Table_2
-            NATURAL JOIN Table_3,
-            Table_4) Column_2,
-        Column_3
+            NATURAL JOIN
+            Table_3,
+            Table_4) Column_2, Column_3
     FROM
         Dual;
     SELECT
         *
     INTO
-        Column_1,
-        Column_2,
-        Column_3,
-        Column_4
+        Column_1, Column_2, Column_3, Column_4
     FROM
         Dual;
     SELECT
-        CASE column_0
+        CASE Column_0
             WHEN Column_1
-            OR Column_2
-            AND Column_3
+            OR (Column_2
+            AND Column_3)
             THEN Column_4
             ELSE Column_5
         END
     FROM
         Dual;
     SELECT
-        Column_11,
-        CASE column_0
+        Column_11, " ++ "
+        CASE Column_0
             WHEN Column_1
-            OR Column_2
-            AND Column_3
+            OR (Column_2
+            AND Column_3)
             THEN Column_4
             ELSE Column_5
-        END Column_12,
-        Column_13
+        END Column_12, Column_13
     FROM
         Dual;
     SELECT
-        (+ (Column_2))|:b|
+        (+ Column_2)|:b|
     FROM
         Table_1;
 END").
@@ -3980,112 +4102,110 @@ select column_1,(select * from dual) union (select * from dual) as column_2,colu
 end;").
 
 -define(PLSQL_16_RESULT_DEFAULT, "BEGIN
-    ((SELECT
-        *
-    FROM
-        Table_1)
+        ((SELECT
+            *
+        FROM
+            Table_1)
     UNION
-    (SELECT
-        *
-    FROM
-        Table_2));
-    ((SELECT
-        *
-    FROM
-        ((SELECT
-            *
-        FROM
-            Table_11)
-        INTERSECT
         (SELECT
             *
         FROM
-            Table_12)))
+            Table_2));
+        ((SELECT
+            *
+        FROM
+                ((SELECT
+                    *
+                FROM
+                    Table_11)
+            INTERSECT
+                (SELECT
+                    *
+                FROM
+                    Table_12)))
     UNION ALL
-    (SELECT
-        *
-    FROM
-        ((SELECT
-            *
-        FROM
-            Table_21)
-        MINUS
         (SELECT
             *
         FROM
-            Table_22))));
-    ((SELECT
-        *
-    FROM
+                ((SELECT
+                    *
+                FROM
+                    Table_21)
+            MINUS
+                (SELECT
+                    *
+                FROM
+                    Table_22))));
         ((SELECT
             *
         FROM
-            Table_11)
-        INTERSECT
-        (SELECT
-            *
-        FROM
-            Table_12)))
+                ((SELECT
+                    *
+                FROM
+                    Table_11)
+            INTERSECT
+                (SELECT
+                    *
+                FROM
+                    Table_12)))
     UNION ALL
-    (SELECT
-        *
-    FROM
-        ((SELECT
-            *
-        FROM
-            Table_21)
-        MINUS
         (SELECT
             *
         FROM
+                ((SELECT
+                    *
+                FROM
+                    Table_21)
+            MINUS
+                (SELECT
+                    *
+                FROM
+                        ((SELECT
+                            *
+                        FROM
+                            Table_31)
+                    UNION
+                        (SELECT
+                            *
+                        FROM
+                            Table_32))))));
+    SELECT
+        Column_1, " ++ "
             ((SELECT
                 *
             FROM
-                Table_31)
-            UNION
+                Dual)
+        UNION
             (SELECT
                 *
             FROM
-                Table_32))))));
-    SELECT
-        Column_1,
-        ((SELECT
-            *
-        FROM
-            Dual)
-        UNION
-        (SELECT
-            *
-        FROM
-            Dual))
+                Dual))
     FROM
         Dual;
     SELECT
-        Column_1,
-        ((SELECT
-            *
-        FROM
-            Dual)
+        Column_1, " ++ "
+            ((SELECT
+                *
+            FROM
+                Dual)
         UNION
-        (SELECT
-            *
-        FROM
-            Dual)),
-        Column_2
+            (SELECT
+                *
+            FROM
+                Dual)), Column_2
     FROM
         Dual;
     SELECT
-        Column_1,
-        ((SELECT
-            *
-        FROM
-            Dual)
+        Column_1, " ++ "
+            ((SELECT
+                *
+            FROM
+                Dual)
         UNION
-        (SELECT
-            *
-        FROM
-            Dual)) Column_2,
-        Column_3
+            (SELECT
+                *
+            FROM
+                Dual)) Column_2, Column_3
     FROM
         Dual;
 END").
@@ -4120,10 +4240,10 @@ end;").
     FROM
         Dual
     WHERE
-        Column_11 <> Column_12
-        AND Column_21 != Column_22
-        OR Column_31 <> Column_32
-        AND Column_41 != Column_42;
+        (Column_11 <> Column_12
+        AND Column_21 != Column_22)
+        OR (Column_31 <> Column_32
+        AND Column_41 != Column_42);
     SELECT
         *
     FROM
@@ -4145,7 +4265,8 @@ end;").
     FROM
         Dual
     WHERE
-        Column_1 > ALL (SELECT
+        Column_1 > ALL
+        (SELECT
             *
         FROM
             Table_1);
@@ -4271,16 +4392,20 @@ end").
     REUSE STORAGE;
     TRUNCATE TABLE
         Tbl
-    PRESERVE MATERIALIZED VIEW LOG DROP STORAGE;
+    PRESERVE MATERIALIZED VIEW LOG
+    DROP STORAGE;
     TRUNCATE TABLE
         Tbl
-    PRESERVE MATERIALIZED VIEW LOG REUSE STORAGE;
+    PRESERVE MATERIALIZED VIEW LOG
+    REUSE STORAGE;
     TRUNCATE TABLE
         Tbl
-    PURGE MATERIALIZED VIEW LOG DROP STORAGE;
+    PURGE MATERIALIZED VIEW LOG
+    DROP STORAGE;
     TRUNCATE TABLE
         Tbl
-    PURGE MATERIALIZED VIEW LOG REUSE STORAGE;
+    PURGE MATERIALIZED VIEW LOG
+    REUSE STORAGE;
     TRUNCATE TABLE
         Table_1
     DROP STORAGE;
@@ -4402,24 +4527,14 @@ end").
             Dual
     WITH CHECK OPTION;
     CREATE VIEW
-        Table_1 (
-        Column_1,
-        Column_2,
-        Column_3,
-        Column_4
-        )
+        Table_1 (Column_1, Column_2, Column_3, Column_4)
     AS
         SELECT
             *
         FROM
             Dual;
     CREATE VIEW
-        Table_1 (
-        Column_1,
-        Column_2,
-        Column_3,
-        Column_4
-        )
+        Table_1 (Column_1, Column_2, Column_3, Column_4)
     AS
         SELECT
             *
@@ -4438,16 +4553,247 @@ Call function_1
 
 -define(PLSQL_26_RESULT_DEFAULT, "CALL
     Function_1(
-        ((SELECT
-            Column_1
+            ((SELECT
+                Column_1
+            FROM
+                Table_1)
+        UNION
+            (SELECT
+                Column_2
+            FROM
+                Table_2)))").
+
+%%------------------------------------------------------------------------------
+%% PLSQL 27 - CALL.
+%%------------------------------------------------------------------------------
+
+-define(PLSQL_27, "
+Call function_1
+(parameter_1,(select column_1 from table_1 union select column_2 from table_2),parameter_3)").
+
+-define(PLSQL_27_RESULT_DEFAULT, "CALL
+    Function_1(Parameter_1, " ++ "
+            ((SELECT
+                Column_1
+            FROM
+                Table_1)
+        UNION
+            (SELECT
+                Column_2
+            FROM
+                Table_2)), Parameter_3)").
+
+%%------------------------------------------------------------------------------
+%% PLSQL 28 - CALL.
+%%------------------------------------------------------------------------------
+
+-define(PLSQL_28, "
+call i1ident_8 ((select * from table_1),(select * from table_2),(select * from table_3));").
+
+-define(PLSQL_28_RESULT_DEFAULT, "CALL
+    I1ident_8(
+        (SELECT
+            *
+        FROM
+            Table_1), " ++ "
+        (SELECT
+            *
+        FROM
+            Table_2), " ++ "
+        (SELECT
+            *
+        FROM
+            Table_3))").
+
+%%------------------------------------------------------------------------------
+%% PLSQL 29 - CALL.
+%%------------------------------------------------------------------------------
+
+-define(PLSQL_29, "
+begin i1ident_5.m@oney~~$tree_ident ((select * from table_1),(select * from table_2) minus (select * from table_3),(select * from table_4),6.34e8f);end;").
+
+-define(PLSQL_29_RESULT_DEFAULT, "BEGIN
+    I1ident_5.M@oney~~$tree_Ident(
+        (SELECT
+            *
+        FROM
+            Table_1), " ++ "
+            ((SELECT
+                *
+            FROM
+                Table_2)
+        MINUS
+            (SELECT
+                *
+            FROM
+                Table_3)), " ++ "
+        (SELECT
+            *
+        FROM
+            Table_4), 6.34e8f);
+END").
+
+%%------------------------------------------------------------------------------
+%% UNION 25 - SELECT FROM.
+%%------------------------------------------------------------------------------
+
+-define(PROBLEM_01, "
+select *
+from (select * from table_1 union select * from table_2)").
+
+% line 04
+
+-define(PROBLEM_01_RESULT_DEFAULT, "SELECT
+    *
+FROM
+            ((SELECT
+            *
         FROM
             Table_1)
-        UNION
+    UNION
         (SELECT
-            Column_2
+            *
         FROM
-            Table_2))
-        )").
+            Table_2))").
+
+%%------------------------------------------------------------------------------
+%% UNION 28 - UNION FROM.
+%%------------------------------------------------------------------------------
+
+-define(PROBLEM_02, "
+select *
+from ((select * from table_11 intersect select * from table_12) union (select * from table_21 minus select * from table_22))").
+
+% line 04
+
+-define(PROBLEM_02_RESULT_DEFAULT, "SELECT
+    *
+FROM
+                (((SELECT
+                *
+            FROM
+                Table_11)
+        INTERSECT
+            (SELECT
+                *
+            FROM
+                Table_12))
+    UNION
+            ((SELECT
+                *
+            FROM
+                Table_21)
+        MINUS
+            (SELECT
+                *
+            FROM
+                Table_22)))").
+
+%%------------------------------------------------------------------------------
+%% UNION 31 - SELECT & UNION FROM.
+%%------------------------------------------------------------------------------
+
+-define(PROBLEM_03, "
+select *
+from (select * from table_1 union (select * from table_21 minus select * from table_22))").
+
+% line 04
+
+-define(PROBLEM_03_RESULT_DEFAULT, "SELECT
+    *
+FROM
+            ((SELECT
+            *
+        FROM
+            Table_1)
+    UNION
+            ((SELECT
+                *
+            FROM
+                Table_21)
+        MINUS
+            (SELECT
+                *
+            FROM
+                Table_22)))").
+
+%%------------------------------------------------------------------------------
+%% UNION 34 - UNION & SELECT FROM.
+%%------------------------------------------------------------------------------
+
+-define(PROBLEM_04, "
+select *
+from ((select * from table_11 intersect select * from table_12) union select * from table_2)").
+
+% line 04
+
+-define(PROBLEM_04_RESULT_DEFAULT, "SELECT
+    *
+FROM
+                (((SELECT
+                *
+            FROM
+                Table_11)
+        INTERSECT
+            (SELECT
+                *
+            FROM
+                Table_12))
+    UNION
+        (SELECT
+            *
+        FROM
+            Table_2))").
+
+%%------------------------------------------------------------------------------
+%% UNION 36 - MINUS & INTERSECT.
+%%------------------------------------------------------------------------------
+
+-define(PROBLEM_05, "
+(select * from table_1)|:_a::b::c|
+Minus ((select * from table_2) Intersect (select * from table_3));").
+
+% first SELECT
+
+-define(PROBLEM_05_RESULT_DEFAULT, "((SELECT
+    *
+FROM
+    Table_1))|:_a::b::c|
+MINUS
+        ((SELECT
+            *
+        FROM
+            Table_2)
+    INTERSECT
+        (SELECT
+            *
+        FROM
+            Table_3))").
+
+%%------------------------------------------------------------------------------
+%% UNION 37 - INTERSECT & MINUS.
+%%------------------------------------------------------------------------------
+
+% lasr SELECT
+
+-define(PROBLEM_06, "
+((select * from table_2)
+Intersect (select * from table_3)) Minus (select * from table_1)|:_a::b::c|;").
+
+-define(PROBLEM_06_RESULT_DEFAULT, "        ((SELECT
+            *
+        FROM
+            Table_2)
+    INTERSECT
+        (SELECT
+            *
+        FROM
+            Table_3))
+MINUS
+((SELECT
+    *
+FROM
+    Table_1))|:_a::b::c|").
 
 %%------------------------------------------------------------------------------
 %% REVOKE 01 - FROM.
@@ -4540,10 +4886,7 @@ FROM
 revoke delete, insert, select, update on table_1 from user_1").
 
 -define(REVOKE_07_RESULT_DEFAULT, "REVOKE
-    DELETE,
-    INSERT,
-    SELECT,
-    UPDATE
+    DELETE, INSERT, SELECT, UPDATE
 ON
     Table_1
 FROM
@@ -4581,11 +4924,7 @@ FROM
 revoke privilege_1, privilege_2, privilege_3, privilege_4, privilege_5 from user_1").
 
 -define(REVOKE_10_RESULT_DEFAULT, "REVOKE
-    Privilege_1,
-    Privilege_2,
-    Privilege_3,
-    Privilege_4,
-    Privilege_5
+    Privilege_1, Privilege_2, Privilege_3, Privilege_4, Privilege_5
 FROM
     User_1").
 
@@ -4653,10 +4992,7 @@ revoke create table from user_1,user_2,user_3,user_4").
 -define(REVOKE_15_RESULT_DEFAULT, "REVOKE
     CREATE TABLE
 FROM
-    User_1,
-    User_2,
-    User_3,
-    User_4").
+    User_1, User_2, User_3, User_4").
 
 %%------------------------------------------------------------------------------
 %% ROLE 01 - CREATE.
@@ -4745,7 +5081,7 @@ from dual").
     (SELECT
         *
     FROM
-        Table_1),
+        Table_1), " ++ "
     (SELECT
         *
     FROM
@@ -4762,12 +5098,11 @@ select column_1,(select * from table_1),column_2
 from dual").
 
 -define(SELECT_06_RESULT_DEFAULT, "SELECT
-    Column_1,
+    Column_1, " ++ "
     (SELECT
         *
     FROM
-        Table_1),
-    Column_2
+        Table_1), Column_2
 FROM
     Dual").
 
@@ -4783,8 +5118,7 @@ from dual").
     (SELECT
         *
     FROM
-        Table_1),
-    Column_1,
+        Table_1), Column_1, " ++ "
     (SELECT
         *
     FROM
@@ -4830,12 +5164,11 @@ select column_1 alias_1,(select * from table_1) alias_2,column_3 alias_3
 from dual").
 
 -define(SELECT_10_RESULT_DEFAULT, "SELECT
-    Column_1 Alias_1,
+    Column_1 Alias_1, " ++ "
     (SELECT
         *
     FROM
-        Table_1) Alias_2,
-    Column_3 Alias_3
+        Table_1) Alias_2, Column_3 Alias_3
 FROM
     Dual").
 
@@ -4887,9 +5220,7 @@ select sum(sum(1))
 from dual").
 
 -define(SELECT_14_RESULT_DEFAULT, "SELECT
-    SUM(
-        SUM(1)
-        )
+    SUM(SUM(1))
 FROM
     Dual").
 
@@ -4915,12 +5246,7 @@ select sum(1,2,3,4)
 from dual").
 
 -define(SELECT_16_RESULT_DEFAULT, "SELECT
-    SUM(
-        1,
-        2,
-        3,
-        4
-        )
+    SUM(1, 2, 3, 4)
 FROM
     Dual").
 
@@ -4933,11 +5259,7 @@ select avg(sum(min(1)))
 from dual").
 
 -define(SELECT_17_RESULT_DEFAULT, "SELECT
-    AVG(
-        SUM(
-            MIN(1)
-            )
-        )
+    AVG(SUM(MIN(1)))
 FROM
     Dual").
 
@@ -4963,15 +5285,15 @@ select column_1,(select * from table_1,table_2 natural join table_3,table_4) col
 from dual").
 
 -define(SELECT_19_RESULT_DEFAULT, "SELECT
-    Column_1,
+    Column_1, " ++ "
     (SELECT
         *
     FROM
         Table_1,
         Table_2
-        NATURAL JOIN Table_3,
-        Table_4) Column_2,
-    Column_3
+        NATURAL JOIN
+        Table_3,
+        Table_4) Column_2, Column_3
 FROM
     Dual").
 
@@ -5016,10 +5338,7 @@ from dual").
 -define(SELECT_22_RESULT_DEFAULT, "SELECT
     *
 INTO
-    Column_1,
-    Column_2,
-    Column_3,
-    Column_4
+    Column_1, Column_2, Column_3, Column_4
 FROM
     Dual").
 
@@ -5045,10 +5364,7 @@ select column_1,column_2,column_3,column_4
 from dual").
 
 -define(SELECT_24_RESULT_DEFAULT, "SELECT
-    Column_1,
-    Column_2,
-    Column_3,
-    Column_4
+    Column_1, Column_2, Column_3, Column_4
 FROM
     Dual").
 
@@ -5062,10 +5378,10 @@ case column_0 when column_1 or (column_2 and column_3) then column_4 else column
 from dual").
 
 -define(SELECT_25_RESULT_DEFAULT, "SELECT
-    CASE column_0
+    CASE Column_0
         WHEN Column_1
-        OR Column_2
-        AND Column_3
+        OR (Column_2
+        AND Column_3)
         THEN Column_4
         ELSE Column_5
     END
@@ -5082,15 +5398,14 @@ column_11, case column_0 when column_1 or (column_2 and column_3) then column_4 
 from dual").
 
 -define(SELECT_26_RESULT_DEFAULT, "SELECT
-    Column_11,
-    CASE column_0
+    Column_11, " ++ "
+    CASE Column_0
         WHEN Column_1
-        OR Column_2
-        AND Column_3
+        OR (Column_2
+        AND Column_3)
         THEN Column_4
         ELSE Column_5
-    END Column_12,
-    Column_13
+    END Column_12, Column_13
 FROM
     Dual").
 
@@ -5103,10 +5418,7 @@ select column_1,column_2,column_3,column_4
 from dual").
 
 -define(SELECT_27_RESULT_DEFAULT, "SELECT
-    Column_1,
-    Column_2,
-    Column_3,
-    Column_4
+    Column_1, Column_2, Column_3, Column_4
 FROM
     Dual").
 
@@ -5118,7 +5430,7 @@ FROM
 select (+ column_2)|:b| from table_1").
 
 -define(SELECT_28_RESULT_DEFAULT, "SELECT
-    (+ (Column_2))|:b|
+    (+ Column_2)|:b|
 FROM
     Table_1").
 
@@ -5318,7 +5630,8 @@ truncate table tbl preserve materialized view log drop storage").
 
 -define(TRUNCATE_06_RESULT_DEFAULT, "TRUNCATE TABLE
     Tbl
-PRESERVE MATERIALIZED VIEW LOG DROP STORAGE").
+PRESERVE MATERIALIZED VIEW LOG
+DROP STORAGE").
 
 %%------------------------------------------------------------------------------
 %% TRUNCATE 07 - PURGE & DROP.
@@ -5329,7 +5642,180 @@ truncate table tbl purge materialized view log drop storage").
 
 -define(TRUNCATE_07_RESULT_DEFAULT, "TRUNCATE TABLE
     Tbl
-PURGE MATERIALIZED VIEW LOG DROP STORAGE").
+PURGE MATERIALIZED VIEW LOG
+DROP STORAGE").
+
+%%------------------------------------------------------------------------------
+%% UNBREAKABLE 01 - |.
+%%------------------------------------------------------------------------------
+
+-define(UNBREAKABLE_01, "
+select column_1,column_2,column_3,column_4,column_5,column_6,column_7,
+c_8|:abc defghijkl|
+from dual").
+
+-define(UNBREAKABLE_01_RESULT_DEFAULT, "SELECT
+    Column_1, Column_2, Column_3, Column_4, Column_5, Column_6, Column_7, C_8
+    |:abc| Defghijkl
+FROM
+    Dual").
+
+%%------------------------------------------------------------------------------
+%% UNBREAKABLE 02 - '.
+%%------------------------------------------------------------------------------
+
+-define(UNBREAKABLE_02, "
+select column_1,column_2,column_3,column_4,column_5,column_6,column_7,
+'abc\"de f|gh,i\*jkl'
+from dual").
+
+-define(UNBREAKABLE_02_RESULT_DEFAULT, "SELECT
+    Column_1, Column_2, Column_3, Column_4, Column_5, Column_6, Column_7,
+    'abc\"de f|gh,i*jkl'
+FROM
+    Dual").
+
+%%------------------------------------------------------------------------------
+%% UNBREAKABLE 03 - ".
+%%------------------------------------------------------------------------------
+
+-define(UNBREAKABLE_03, "
+select column_1,column_2,column_3,column_4,column_5,column_6,column_7,
+\"ab c'de,f|ghi\*jkl\"
+from dual").
+
+-define(UNBREAKABLE_03_RESULT_DEFAULT, "SELECT
+    Column_1, Column_2, Column_3, Column_4, Column_5, Column_6, Column_7,
+    \"ab c'de,f|ghi*jkl\"
+FROM
+    Dual").
+
+%%------------------------------------------------------------------------------
+%% UNBREAKABLE 04 - /* */.
+%%------------------------------------------------------------------------------
+
+-define(UNBREAKABLE_04, "
+select /* xxaxx xxbxx xxcxx ' xxdxx xxexx , xxfxx | xxgxx xxhxx xxixx \" xxjxxkxxlxx*/
+column_1,column_2,column_3,column_4,column_5,column_6,column_7, column_8
+from dual").
+
+-define(UNBREAKABLE_04_RESULT_DEFAULT, "SELECT /* xxaxx xxbxx xxcxx ' xxdxx xxexx , xxfxx | xxgxx xxhxx xxixx \" xxjxxkxxlxx*/
+    Column_1, Column_2, Column_3, Column_4, Column_5, Column_6, Column_7,
+    Column_8
+FROM
+    Dual").
+
+%%------------------------------------------------------------------------------
+%% UNBREAKABLE 05 - limit.
+%%------------------------------------------------------------------------------
+
+-define(UNBREAKABLE_05, "
+select column_1,column_2,column_3,column_4,column_5,column_6,column_7, Colu_8, column_9
+from dual").
+
+-define(UNBREAKABLE_05_RESULT_DEFAULT, "SELECT
+    Column_1, Column_2, Column_3, Column_4, Column_5, Column_6, Column_7, Colu_8
+    , Column_9
+FROM
+    Dual").
+
+%%------------------------------------------------------------------------------
+%% UNBREAKABLE 06 - limit.
+%%------------------------------------------------------------------------------
+
+-define(UNBREAKABLE_06, "
+select column_1,column_2,column_3,column_4,column_5,column_6,column_7, Col_8, column_9
+from dual").
+
+-define(UNBREAKABLE_06_RESULT_DEFAULT, "SELECT
+    Column_1, Column_2, Column_3, Column_4, Column_5, Column_6, Column_7, Col_8,
+    Column_9
+FROM
+    Dual").
+
+%%------------------------------------------------------------------------------
+%% UNBREAKABLE 07 - limit.
+%%------------------------------------------------------------------------------
+
+-define(UNBREAKABLE_07, "
+select column_1,column_2,column_3,column_4,column_5,column_6,column_7, \"Col8\" column_8
+from dual").
+
+-define(UNBREAKABLE_07_RESULT_DEFAULT, "SELECT
+    Column_1, Column_2, Column_3, Column_4, Column_5, Column_6, Column_7, \"Col8\"
+    Column_8
+FROM
+    Dual").
+
+%%------------------------------------------------------------------------------
+%% UNBREAKABLE 08 - limit.
+%%------------------------------------------------------------------------------
+
+-define(UNBREAKABLE_08, "
+select column_1,column_2,column_3,column_4,column_5,column_6,column_7, colum8(+) column_8
+from dual").
+
+-define(UNBREAKABLE_08_RESULT_DEFAULT, "SELECT
+    Column_1, Column_2, Column_3, Column_4, Column_5, Column_6, Column_7, Colum8
+    (+) Column_8
+FROM
+    Dual").
+
+%%------------------------------------------------------------------------------
+%% UNBREAKABLE 09 - limit.
+%%------------------------------------------------------------------------------
+
+-define(UNBREAKABLE_09, "
+select column_1,column_2,column_3,column_4,(column_51+column_62+column_73+colum84(+)) column_5_8
+from dual").
+
+-define(UNBREAKABLE_09_RESULT_DEFAULT, "SELECT
+    Column_1, Column_2, Column_3, Column_4, ((Column_51 + Column_62) + Column_73
+    ) + Colum84(+) Column_5_8
+FROM
+    Dual").
+
+%%------------------------------------------------------------------------------
+%% UNBREAKABLE 10 - limit.
+%%------------------------------------------------------------------------------
+
+-define(UNBREAKABLE_10, "
+select column_1,column_2,column_3,column_4,column_5,column_6,column_7|:a_obj:x|,colum8(+)
+from dual").
+
+-define(UNBREAKABLE_10_RESULT_DEFAULT, "SELECT
+    Column_1, Column_2, Column_3, Column_4, Column_5, Column_6, Column_7
+    |:a_obj:x|, Colum8(+)
+FROM
+    Dual").
+
+%%------------------------------------------------------------------------------
+%% UNBREAKABLE 11 - limit.
+%%------------------------------------------------------------------------------
+
+-define(UNBREAKABLE_11, "
+select column_1,column_2,column_3,column_4,column_5,column_6,column_7|:a_o:x|,colum8(+)
+from dual").
+
+-define(UNBREAKABLE_11_RESULT_DEFAULT, "SELECT
+    Column_1, Column_2, Column_3, Column_4, Column_5, Column_6, Column_7|:a_o:x|
+    , Colum8(+)
+FROM
+    Dual").
+
+%%------------------------------------------------------------------------------
+%% UNBREAKABLE 12 - limit.
+%%------------------------------------------------------------------------------
+
+-define(UNBREAKABLE_12, "
+select column_1,column_2,column_3,column_4,column_5,column_6,column_7, 'Col8' column_8
+from dual").
+
+-define(UNBREAKABLE_12_RESULT_DEFAULT, "SELECT
+    Column_1, Column_2, Column_3, Column_4, Column_5, Column_6, Column_7, 'Col8'
+    Column_8
+FROM
+    Dual").
 
 %%------------------------------------------------------------------------------
 %% UNION 01 - very simple.
@@ -5339,15 +5825,15 @@ PURGE MATERIALIZED VIEW LOG DROP STORAGE").
 select *
 from table_1 union select * from table_2").
 
--define(UNION_01_RESULT_DEFAULT, "(SELECT
-    *
-FROM
-    Table_1)
+-define(UNION_01_RESULT_DEFAULT, "    (SELECT
+        *
+    FROM
+        Table_1)
 UNION
-(SELECT
-    *
-FROM
-    Table_2)").
+    (SELECT
+        *
+    FROM
+        Table_2)").
 
 %%------------------------------------------------------------------------------
 %% UNION 02 - nested.
@@ -5357,31 +5843,31 @@ FROM
 select * from (select * from table_11 intersect select * from table_12)
 union all select * from (select * from table_21 minus select * from table_22)").
 
--define(UNION_02_RESULT_DEFAULT, "(SELECT
-    *
-FROM
-    ((SELECT
+-define(UNION_02_RESULT_DEFAULT, "    (SELECT
         *
     FROM
-        Table_11)
-    INTERSECT
-    (SELECT
-        *
-    FROM
-        Table_12)))
+            ((SELECT
+                *
+            FROM
+                Table_11)
+        INTERSECT
+            (SELECT
+                *
+            FROM
+                Table_12)))
 UNION ALL
-(SELECT
-    *
-FROM
-    ((SELECT
-        *
-    FROM
-        Table_21)
-    MINUS
     (SELECT
         *
     FROM
-        Table_22)))").
+            ((SELECT
+                *
+            FROM
+                Table_21)
+        MINUS
+            (SELECT
+                *
+            FROM
+                Table_22)))").
 
 %%------------------------------------------------------------------------------
 %% UNION 03 - nested.
@@ -5391,39 +5877,39 @@ FROM
 select * from (select * from table_11 intersect select * from table_12)
 union all select * from (select * from table_21 minus select * from (select * from table_31 union select * from table_32))").
 
--define(UNION_03_RESULT_DEFAULT, "(SELECT
-    *
-FROM
-    ((SELECT
+-define(UNION_03_RESULT_DEFAULT, "    (SELECT
         *
     FROM
-        Table_11)
-    INTERSECT
-    (SELECT
-        *
-    FROM
-        Table_12)))
+            ((SELECT
+                *
+            FROM
+                Table_11)
+        INTERSECT
+            (SELECT
+                *
+            FROM
+                Table_12)))
 UNION ALL
-(SELECT
-    *
-FROM
-    ((SELECT
-        *
-    FROM
-        Table_21)
-    MINUS
     (SELECT
         *
     FROM
-        ((SELECT
-            *
-        FROM
-            Table_31)
-        UNION
-        (SELECT
-            *
-        FROM
-            Table_32)))))").
+            ((SELECT
+                *
+            FROM
+                Table_21)
+        MINUS
+            (SELECT
+                *
+            FROM
+                    ((SELECT
+                        *
+                    FROM
+                        Table_31)
+                UNION
+                    (SELECT
+                        *
+                    FROM
+                        Table_32)))))").
 
 %%------------------------------------------------------------------------------
 %% UNION 04 - COLUMN & INTERSECT / MINUS / UNION.
@@ -5434,16 +5920,16 @@ select column_1,(select * from dual) union (select * from dual)
 from dual").
 
 -define(UNION_04_RESULT_DEFAULT, "SELECT
-    Column_1,
-    ((SELECT
-        *
-    FROM
-        Dual)
+    Column_1, " ++ "
+        ((SELECT
+            *
+        FROM
+            Dual)
     UNION
-    (SELECT
-        *
-    FROM
-        Dual))
+        (SELECT
+            *
+        FROM
+            Dual))
 FROM
     Dual").
 
@@ -5456,17 +5942,16 @@ select column_1,(select * from dual) union (select * from dual),column_2
 from dual").
 
 -define(UNION_05_RESULT_DEFAULT, "SELECT
-    Column_1,
-    ((SELECT
-        *
-    FROM
-        Dual)
+    Column_1, " ++ "
+        ((SELECT
+            *
+        FROM
+            Dual)
     UNION
-    (SELECT
-        *
-    FROM
-        Dual)),
-    Column_2
+        (SELECT
+            *
+        FROM
+            Dual)), Column_2
 FROM
     Dual").
 
@@ -5479,16 +5964,16 @@ select column_1,(select * from dual) union all (select * from dual)
 from dual").
 
 -define(UNION_06_RESULT_DEFAULT, "SELECT
-    Column_1,
-    ((SELECT
-        *
-    FROM
-        Dual)
+    Column_1, " ++ "
+        ((SELECT
+            *
+        FROM
+            Dual)
     UNION ALL
-    (SELECT
-        *
-    FROM
-        Dual))
+        (SELECT
+            *
+        FROM
+            Dual))
 FROM
     Dual").
 
@@ -5501,17 +5986,16 @@ select column_1,(select * from dual) union all (select * from dual),column_2
 from dual").
 
 -define(UNION_07_RESULT_DEFAULT, "SELECT
-    Column_1,
-    ((SELECT
-        *
-    FROM
-        Dual)
+    Column_1, " ++ "
+        ((SELECT
+            *
+        FROM
+            Dual)
     UNION ALL
-    (SELECT
-        *
-    FROM
-        Dual)),
-    Column_2
+        (SELECT
+            *
+        FROM
+            Dual)), Column_2
 FROM
     Dual").
 
@@ -5524,16 +6008,16 @@ select column_1,(select * from dual) minus (select * from dual)
 from dual").
 
 -define(UNION_08_RESULT_DEFAULT, "SELECT
-    Column_1,
-    ((SELECT
-        *
-    FROM
-        Dual)
+    Column_1, " ++ "
+        ((SELECT
+            *
+        FROM
+            Dual)
     MINUS
-    (SELECT
-        *
-    FROM
-        Dual))
+        (SELECT
+            *
+        FROM
+            Dual))
 FROM
     Dual").
 
@@ -5546,17 +6030,16 @@ select column_1,(select * from dual) minus (select * from dual),column_2
 from dual").
 
 -define(UNION_09_RESULT_DEFAULT, "SELECT
-    Column_1,
-    ((SELECT
-        *
-    FROM
-        Dual)
+    Column_1, " ++ "
+        ((SELECT
+            *
+        FROM
+            Dual)
     MINUS
-    (SELECT
-        *
-    FROM
-        Dual)),
-    Column_2
+        (SELECT
+            *
+        FROM
+            Dual)), Column_2
 FROM
     Dual").
 
@@ -5569,16 +6052,16 @@ select column_1,(select * from dual) intersect (select * from dual)
 from dual").
 
 -define(UNION_10_RESULT_DEFAULT, "SELECT
-    Column_1,
-    ((SELECT
-        *
-    FROM
-        Dual)
+    Column_1, " ++ "
+        ((SELECT
+            *
+        FROM
+            Dual)
     INTERSECT
-    (SELECT
-        *
-    FROM
-        Dual))
+        (SELECT
+            *
+        FROM
+            Dual))
 FROM
     Dual").
 
@@ -5591,17 +6074,16 @@ select column_1,(select * from dual) intersect (select * from dual),column_2
 from dual").
 
 -define(UNION_11_RESULT_DEFAULT, "SELECT
-    Column_1,
-    ((SELECT
-        *
-    FROM
-        Dual)
+    Column_1, " ++ "
+        ((SELECT
+            *
+        FROM
+            Dual)
     INTERSECT
-    (SELECT
-        *
-    FROM
-        Dual)),
-    Column_2
+        (SELECT
+            *
+        FROM
+            Dual)), Column_2
 FROM
     Dual").
 
@@ -5614,15 +6096,15 @@ select (select * from dual) union (select * from dual) as column_2
 from dual").
 
 -define(UNION_12_RESULT_DEFAULT, "SELECT
-    ((SELECT
-        *
-    FROM
-        Dual)
+        ((SELECT
+            *
+        FROM
+            Dual)
     UNION
-    (SELECT
-        *
-    FROM
-        Dual)) Column_2
+        (SELECT
+            *
+        FROM
+            Dual)) Column_2
 FROM
     Dual").
 
@@ -5635,16 +6117,16 @@ select column_1,(select * from dual) union (select * from dual) as column_2
 from dual").
 
 -define(UNION_13_RESULT_DEFAULT, "SELECT
-    Column_1,
-    ((SELECT
-        *
-    FROM
-        Dual)
+    Column_1, " ++ "
+        ((SELECT
+            *
+        FROM
+            Dual)
     UNION
-    (SELECT
-        *
-    FROM
-        Dual)) Column_2
+        (SELECT
+            *
+        FROM
+            Dual)) Column_2
 FROM
     Dual").
 
@@ -5657,17 +6139,16 @@ select column_1,(select * from dual) union (select * from dual) as column_2,colu
 from dual").
 
 -define(UNION_14_RESULT_DEFAULT, "SELECT
-    Column_1,
-    ((SELECT
-        *
-    FROM
-        Dual)
+    Column_1, " ++ "
+        ((SELECT
+            *
+        FROM
+            Dual)
     UNION
-    (SELECT
-        *
-    FROM
-        Dual)) Column_2,
-    Column_3
+        (SELECT
+            *
+        FROM
+            Dual)) Column_2, Column_3
 FROM
     Dual").
 
@@ -5680,15 +6161,15 @@ select (select * from dual) union all (select * from dual) as column_2
 from dual").
 
 -define(UNION_15_RESULT_DEFAULT, "SELECT
-    ((SELECT
-        *
-    FROM
-        Dual)
+        ((SELECT
+            *
+        FROM
+            Dual)
     UNION ALL
-    (SELECT
-        *
-    FROM
-        Dual)) Column_2
+        (SELECT
+            *
+        FROM
+            Dual)) Column_2
 FROM
     Dual").
 
@@ -5701,16 +6182,16 @@ select column_1,(select * from dual) union all (select * from dual) as column_2
 from dual").
 
 -define(UNION_16_RESULT_DEFAULT, "SELECT
-    Column_1,
-    ((SELECT
-        *
-    FROM
-        Dual)
+    Column_1, " ++ "
+        ((SELECT
+            *
+        FROM
+            Dual)
     UNION ALL
-    (SELECT
-        *
-    FROM
-        Dual)) Column_2
+        (SELECT
+            *
+        FROM
+            Dual)) Column_2
 FROM
     Dual").
 
@@ -5723,17 +6204,16 @@ select column_1,(select * from dual) union all (select * from dual) as column_2,
 from dual").
 
 -define(UNION_17_RESULT_DEFAULT, "SELECT
-    Column_1,
-    ((SELECT
-        *
-    FROM
-        Dual)
+    Column_1, " ++ "
+        ((SELECT
+            *
+        FROM
+            Dual)
     UNION ALL
-    (SELECT
-        *
-    FROM
-        Dual)) Column_2,
-    Column_3
+        (SELECT
+            *
+        FROM
+            Dual)) Column_2, Column_3
 FROM
     Dual").
 
@@ -5746,15 +6226,15 @@ select (select * from dual) minus (select * from dual) as column_2
 from dual").
 
 -define(UNION_18_RESULT_DEFAULT, "SELECT
-    ((SELECT
-        *
-    FROM
-        Dual)
+        ((SELECT
+            *
+        FROM
+            Dual)
     MINUS
-    (SELECT
-        *
-    FROM
-        Dual)) Column_2
+        (SELECT
+            *
+        FROM
+            Dual)) Column_2
 FROM
     Dual").
 
@@ -5767,16 +6247,16 @@ select column_1,(select * from dual) minus (select * from dual) as column_2
 from dual").
 
 -define(UNION_19_RESULT_DEFAULT, "SELECT
-    Column_1,
-    ((SELECT
-        *
-    FROM
-        Dual)
+    Column_1, " ++ "
+        ((SELECT
+            *
+        FROM
+            Dual)
     MINUS
-    (SELECT
-        *
-    FROM
-        Dual)) Column_2
+        (SELECT
+            *
+        FROM
+            Dual)) Column_2
 FROM
     Dual").
 
@@ -5789,17 +6269,16 @@ select column_1,(select * from dual) minus (select * from dual) as column_2,colu
 from dual").
 
 -define(UNION_20_RESULT_DEFAULT, "SELECT
-    Column_1,
-    ((SELECT
-        *
-    FROM
-        Dual)
+    Column_1, " ++ "
+        ((SELECT
+            *
+        FROM
+            Dual)
     MINUS
-    (SELECT
-        *
-    FROM
-        Dual)) Column_2,
-    Column_3
+        (SELECT
+            *
+        FROM
+            Dual)) Column_2, Column_3
 FROM
     Dual").
 
@@ -5812,15 +6291,15 @@ select (select * from dual) intersect (select * from dual) as column_2
 from dual").
 
 -define(UNION_21_RESULT_DEFAULT, "SELECT
-    ((SELECT
-        *
-    FROM
-        Dual)
+        ((SELECT
+            *
+        FROM
+            Dual)
     INTERSECT
-    (SELECT
-        *
-    FROM
-        Dual)) Column_2
+        (SELECT
+            *
+        FROM
+            Dual)) Column_2
 FROM
     Dual").
 
@@ -5833,16 +6312,16 @@ select column_1,(select * from dual) intersect (select * from dual) as column_2
 from dual").
 
 -define(UNION_22_RESULT_DEFAULT, "SELECT
-    Column_1,
-    ((SELECT
-        *
-    FROM
-        Dual)
+    Column_1, " ++ "
+        ((SELECT
+            *
+        FROM
+            Dual)
     INTERSECT
-    (SELECT
-        *
-    FROM
-        Dual)) Column_2
+        (SELECT
+            *
+        FROM
+            Dual)) Column_2
 FROM
     Dual").
 
@@ -5855,17 +6334,16 @@ select column_1,(select * from dual) intersect (select * from dual) as column_2,
 from dual").
 
 -define(UNION_23_RESULT_DEFAULT, "SELECT
-    Column_1,
-    ((SELECT
-        *
-    FROM
-        Dual)
+    Column_1, " ++ "
+        ((SELECT
+            *
+        FROM
+            Dual)
     INTERSECT
-    (SELECT
-        *
-    FROM
-        Dual)) Column_2,
-    Column_3
+        (SELECT
+            *
+        FROM
+            Dual)) Column_2, Column_3
 FROM
     Dual").
 
@@ -5877,15 +6355,15 @@ FROM
 select *
 from table_1 union select * from table_2").
 
--define(UNION_24_RESULT_DEFAULT, "(SELECT
-    *
-FROM
-    Table_1)
+-define(UNION_24_RESULT_DEFAULT, "    (SELECT
+        *
+    FROM
+        Table_1)
 UNION
-(SELECT
-    *
-FROM
-    Table_2)").
+    (SELECT
+        *
+    FROM
+        Table_2)").
 
 %%------------------------------------------------------------------------------
 %% UNION 25 - SELECT FROM.
@@ -5898,15 +6376,15 @@ from (select * from table_1 union select * from table_2)").
 -define(UNION_25_RESULT_DEFAULT, "SELECT
     *
 FROM
-    ((SELECT
-        *
-    FROM
-        Table_1)
+          ((SELECT
+            *
+        FROM
+            Table_1)
     UNION
-    (SELECT
-        *
-    FROM
-        Table_2))").
+        (SELECT
+            *
+        FROM
+            Table_2))").
 
 %%------------------------------------------------------------------------------
 %% UNION 26 - SELECT WHERE.
@@ -5921,43 +6399,44 @@ from table_1 where column_1 in (select * from table_1 union select * from table_
 FROM
     Table_1
 WHERE
-    Column_1 IN ((SELECT
-        *
-    FROM
-        Table_1)
+    Column_1 IN (((SELECT
+            *
+        FROM
+            Table_1)
     UNION
-    (SELECT
-        *
-    FROM
-        Table_2))").
+        (SELECT
+            *
+        FROM
+            Table_2)))").
 
 %%------------------------------------------------------------------------------
 %% UNION 27 - UNION.
 %%------------------------------------------------------------------------------
 
 -define(UNION_27, "
-(select *
-from table_11 intersect select * from table_12) union (select * from table_21 minus select * from table_22)").
+(select * from table_11 intersect select * from table_12)
+union
+(select * from table_21 minus select * from table_22)").
 
--define(UNION_27_RESULT_DEFAULT, "    ((SELECT
-        *
-    FROM
-        Table_11)
+-define(UNION_27_RESULT_DEFAULT, "        ((SELECT
+            *
+        FROM
+            Table_11)
     INTERSECT
-    (SELECT
-        *
-    FROM
-        Table_12))
+        (SELECT
+            *
+        FROM
+            Table_12))
 UNION
-    ((SELECT
-        *
-    FROM
-        Table_21)
+        ((SELECT
+            *
+        FROM
+            Table_21)
     MINUS
-    (SELECT
-        *
-    FROM
-        Table_22))").
+        (SELECT
+            *
+        FROM
+            Table_22))").
 
 %%------------------------------------------------------------------------------
 %% UNION 28 - UNION FROM.
@@ -5970,27 +6449,25 @@ from ((select * from table_11 intersect select * from table_12) union (select * 
 -define(UNION_28_RESULT_DEFAULT, "SELECT
     *
 FROM
-    (
-        ((SELECT
-            *
-        FROM
-            Table_11)
+            (((SELECT
+                *
+            FROM
+                Table_11)
         INTERSECT
-        (SELECT
-            *
-        FROM
-            Table_12))
+            (SELECT
+                *
+            FROM
+                Table_12))
     UNION
-        ((SELECT
-            *
-        FROM
-            Table_21)
+            ((SELECT
+                *
+            FROM
+                Table_21)
         MINUS
-        (SELECT
-            *
-        FROM
-            Table_22))
-    )").
+            (SELECT
+                *
+            FROM
+                Table_22)))").
 
 %%------------------------------------------------------------------------------
 %% UNION 29 - UNION WHERE.
@@ -6005,27 +6482,25 @@ from table_1 where column_1 in ((select * from table_11 intersect select * from 
 FROM
     Table_1
 WHERE
-    Column_1 IN (
-        ((SELECT
-            *
-        FROM
-            Table_11)
+    Column_1 IN ((((SELECT
+                *
+            FROM
+                Table_11)
         INTERSECT
-        (SELECT
-            *
-        FROM
-            Table_12))
+            (SELECT
+                *
+            FROM
+                Table_12))
     UNION
-        ((SELECT
-            *
-        FROM
-            Table_21)
+            ((SELECT
+                *
+            FROM
+                Table_21)
         MINUS
-        (SELECT
-            *
-        FROM
-            Table_22))
-    )").
+            (SELECT
+                *
+            FROM
+                Table_22))))").
 
 %%------------------------------------------------------------------------------
 %% UNION 30 - SELECT & UNION.
@@ -6040,15 +6515,15 @@ from table_1 union (select * from table_21 minus select * from table_22)").
     FROM
         Table_1)
 UNION
-    ((SELECT
-        *
-    FROM
-        Table_21)
+        ((SELECT
+            *
+        FROM
+            Table_21)
     MINUS
-    (SELECT
-        *
-    FROM
-        Table_22))").
+        (SELECT
+            *
+        FROM
+            Table_22))").
 
 %%------------------------------------------------------------------------------
 %% UNION 31 - SELECT & UNION FROM.
@@ -6061,22 +6536,20 @@ from (select * from table_1 union (select * from table_21 minus select * from ta
 -define(UNION_31_RESULT_DEFAULT, "SELECT
     *
 FROM
-    (
-        (SELECT
+        ((SELECT
             *
         FROM
             Table_1)
     UNION
-        ((SELECT
-            *
-        FROM
-            Table_21)
+            ((SELECT
+                *
+            FROM
+                Table_21)
         MINUS
-        (SELECT
-            *
-        FROM
-            Table_22))
-    )").
+            (SELECT
+                *
+            FROM
+                Table_22)))").
 
 %%------------------------------------------------------------------------------
 %% UNION 32 - SELECT & UNION WHERE.
@@ -6091,22 +6564,20 @@ from table_1 where column_1 in (select * from table_1 union (select * from table
 FROM
     Table_1
 WHERE
-    Column_1 IN (
-        (SELECT
+    Column_1 IN (((SELECT
             *
         FROM
             Table_1)
     UNION
-        ((SELECT
-            *
-        FROM
-            Table_21)
+            ((SELECT
+                *
+            FROM
+                Table_21)
         MINUS
-        (SELECT
-            *
-        FROM
-            Table_22))
-    )").
+            (SELECT
+                *
+            FROM
+                Table_22))))").
 
 %%------------------------------------------------------------------------------
 %% UNION 33 - UNION & SELECT.
@@ -6116,15 +6587,15 @@ WHERE
 (select *
 from table_11 intersect select * from table_12) union select * from table_2").
 
--define(UNION_33_RESULT_DEFAULT, "    ((SELECT
-        *
-    FROM
-        Table_11)
+-define(UNION_33_RESULT_DEFAULT, "        ((SELECT
+            *
+        FROM
+            Table_11)
     INTERSECT
-    (SELECT
-        *
-    FROM
-        Table_12))
+        (SELECT
+            *
+        FROM
+            Table_12))
 UNION
     (SELECT
         *
@@ -6142,22 +6613,20 @@ from ((select * from table_11 intersect select * from table_12) union select * f
 -define(UNION_34_RESULT_DEFAULT, "SELECT
     *
 FROM
-    (
-        ((SELECT
-            *
-        FROM
-            Table_11)
+            (((SELECT
+                *
+            FROM
+                Table_11)
         INTERSECT
-        (SELECT
-            *
-        FROM
-            Table_12))
+            (SELECT
+                *
+            FROM
+                Table_12))
     UNION
         (SELECT
             *
         FROM
-            Table_2)
-    )").
+            Table_2))").
 
 %%------------------------------------------------------------------------------
 %% UNION 35 - UNION & SELECT WHERE.
@@ -6172,22 +6641,20 @@ from table_1 where column_1 in ((select * from table_11 intersect select * from 
 FROM
     Table_1
 WHERE
-    Column_1 IN (
-        ((SELECT
-            *
-        FROM
-            Table_11)
+    Column_1 IN ((((SELECT
+                *
+            FROM
+                Table_11)
         INTERSECT
-        (SELECT
-            *
-        FROM
-            Table_12))
+            (SELECT
+                *
+            FROM
+                Table_12))
     UNION
         (SELECT
             *
         FROM
-            Table_2)
-    )").
+            Table_2)))").
 
 %%------------------------------------------------------------------------------
 %% UNION 36 - MINUS & INTERSECT.
@@ -6197,20 +6664,20 @@ WHERE
 (select * from table_1)|:_a::b::c|
 Minus ((select * from table_2) Intersect (select * from table_3));").
 
--define(UNION_36_RESULT_DEFAULT, "    (SELECT
+-define(UNION_36_RESULT_DEFAULT, "((SELECT
         *
     FROM
-        Table_1)|:_a::b::c|
+        Table_1))|:_A::b::c|
 MINUS
-    ((SELECT
-        *
-    FROM
-        Table_2)
+        ((SELECT
+            *
+        FROM
+            Table_2)
     INTERSECT
-    (SELECT
-        *
-    FROM
-        Table_3))").
+        (SELECT
+            *
+        FROM
+            Table_3))").
 
 %%------------------------------------------------------------------------------
 %% UNION 37 - INTERSECT & MINUS.
@@ -6220,20 +6687,20 @@ MINUS
 ((select * from table_2)
 Intersect (select * from table_3)) Minus (select * from table_1)|:_a::b::c|;").
 
--define(UNION_37_RESULT_DEFAULT, "    ((SELECT
-        *
-    FROM
-        Table_2)
+-define(UNION_37_RESULT_DEFAULT, "        ((SELECT
+            *
+        FROM
+            Table_2)
     INTERSECT
-    (SELECT
-        *
-    FROM
-        Table_3))
+        (SELECT
+            *
+        FROM
+            Table_3))
 MINUS
-    (SELECT
+    ((SELECT
         *
     FROM
-        Table_1)|:_a::b::c|").
+        Table_1))|:_A::b::c|").
 
 %%------------------------------------------------------------------------------
 %% UPDATE 01 - simple.
@@ -6431,12 +6898,7 @@ create view table_1
 as select * from dual").
 
 -define(VIEW_05_RESULT_DEFAULT, "CREATE VIEW
-    Table_1 (
-    Column_1,
-    Column_2,
-    Column_3,
-    Column_4
-    )
+    Table_1 (Column_1, Column_2, Column_3, Column_4)
 AS
     SELECT
         *
@@ -6454,12 +6916,7 @@ as select * from dual
 with check option").
 
 -define(VIEW_06_RESULT_DEFAULT, "CREATE VIEW
-    Table_1 (
-    Column_1,
-    Column_2,
-    Column_3,
-    Column_4
-    )
+    Table_1 (Column_1, Column_2, Column_3, Column_4)
 AS
     SELECT
         *
@@ -6515,10 +6972,10 @@ and column_41 != column_42").
 FROM
     Dual
 WHERE
-    Column_11 <> Column_12
-    AND Column_21 != Column_22
-    OR Column_31 <> Column_32
-    AND Column_41 != Column_42").
+    (Column_11 <> Column_12
+    AND Column_21 != Column_22)
+    OR (Column_31 <> Column_32
+    AND Column_41 != Column_42)").
 
 %%------------------------------------------------------------------------------
 %% WHERE 04 - AND.
@@ -6538,12 +6995,12 @@ and column_61 != column_62").
 FROM
     Dual
 WHERE
-    Column_11 <> Column_12
-    AND Column_21 != Column_22
-    OR Column_31 <> Column_32
-    AND Column_41 != Column_42
-    OR Column_51 <> Column_52
-    AND Column_61 != Column_62").
+    ((Column_11 <> Column_12
+    AND Column_21 != Column_22)
+    OR (Column_31 <> Column_32
+    AND Column_41 != Column_42))
+    OR (Column_51 <> Column_52
+    AND Column_61 != Column_62)").
 
 %%------------------------------------------------------------------------------
 %% WHERE 05 - left subquery.
@@ -6647,9 +7104,9 @@ where column_1 = column_2 and not column_3 = column_4 and column_5 = column_6 an
 FROM
     Dual
 WHERE
-    Column_1 = Column_2
-    AND NOT (Column_3 = Column_4)
-    AND Column_5 = Column_6
+    ((Column_1 = Column_2
+    AND NOT (Column_3 = Column_4))
+    AND Column_5 = Column_6)
     AND NOT (Column_7 = Column_8)").
 
 %%------------------------------------------------------------------------------
@@ -6665,9 +7122,9 @@ where column_1 is null and column_2 is not null and column_3 between column_4 an
 FROM
     Dual
 WHERE
-    Column_1 IS NULL
-    AND NOT (Column_2 IS NULL)
-    AND Column_3 BETWEEN Column_4 AND Column_6
+    ((Column_1 IS NULL
+    AND NOT (Column_2 IS NULL))
+    AND Column_3 BETWEEN Column_4 AND Column_6)
     AND Column_7 LIKE Column_8").
 
 %%------------------------------------------------------------------------------
@@ -6731,7 +7188,8 @@ where column_1 > all (select * from table_1)").
 FROM
     Dual
 WHERE
-    Column_1 > ALL (SELECT
+    Column_1 > ALL
+    (SELECT
         *
     FROM
         Table_1)").
@@ -6749,7 +7207,8 @@ where column_1 > any (select * from table_1)").
 FROM
     Dual
 WHERE
-    Column_1 > ANY (SELECT
+    Column_1 > ANY
+    (SELECT
         *
     FROM
         Table_1)").
@@ -6767,7 +7226,8 @@ where exists (select * from table_1)").
 FROM
     Dual
 WHERE
-    EXISTS (SELECT
+    EXISTS
+    (SELECT
         *
     FROM
         Table_1)").
@@ -6785,7 +7245,8 @@ where not exists (select * from table_1)").
 FROM
     Dual
 WHERE
-    NOT (EXISTS (SELECT
+    NOT (EXISTS
+    (SELECT
         *
     FROM
         Table_1))").
@@ -6997,10 +7458,10 @@ Delete From table_1 Where
 -define(WHERE_30_RESULT_DEFAULT, "DELETE FROM
     Table_1
 WHERE
-    NOT (SELECT
+    NOT ((SELECT
         Column_1
     FROM
-        Table_1 IN (SELECT
+        Table_1) IN (SELECT
         Column_2
     FROM
         Table_2))").
@@ -7018,22 +7479,22 @@ Delete From table_1 Where
     Table_1
 WHERE
     NOT (((SELECT
-        Column_2
-    FROM
-        Table_2)
+            Column_2
+        FROM
+            Table_2)
     UNION
-    (SELECT
-        Column_3
-    FROM
-        Table_3)) IN ((SELECT
-        Column_4
-    FROM
-        Table_4)
+        (SELECT
+            Column_3
+        FROM
+            Table_3)) IN (((SELECT
+            Column_4
+        FROM
+            Table_4)
     UNION
-    (SELECT
-        Column_5
-    FROM
-        Table_5)))").
+        (SELECT
+            Column_5
+        FROM
+            Table_5))))").
 
 %%------------------------------------------------------------------------------
 %% WHERE 32 - LIKE.
@@ -7061,10 +7522,10 @@ Where (Select column_1 from table_1) Not Like
 -define(WHERE_33_RESULT_DEFAULT, "DELETE FROM
     Table_1
 WHERE
-    NOT (SELECT
+    NOT ((SELECT
         Column_1
     FROM
-        Table_1 LIKE (SELECT
+        Table_1) LIKE (SELECT
         Column_2
     FROM
         Table_2))").
@@ -7082,22 +7543,22 @@ Where ((Select column_2 from table_2) union (Select column_3 from table_3)) Not 
     Table_1
 WHERE
     NOT (((SELECT
-        Column_2
-    FROM
-        Table_2)
+            Column_2
+        FROM
+            Table_2)
     UNION
-    (SELECT
-        Column_3
-    FROM
-        Table_3)) LIKE ((SELECT
-        Column_4
-    FROM
-        Table_4)
+        (SELECT
+            Column_3
+        FROM
+            Table_3)) LIKE (((SELECT
+            Column_4
+        FROM
+            Table_4)
     UNION
-    (SELECT
-        Column_5
-    FROM
-        Table_5)))").
+        (SELECT
+            Column_5
+        FROM
+            Table_5))))").
 
 %%------------------------------------------------------------------------------
 %% WHERE 35 - BETWEEN.
@@ -7156,7 +7617,7 @@ WHERE
             Column_2
         FROM
             Table_2)
-        INTERSECT
+    INTERSECT
         (SELECT
             Column_2
         FROM
@@ -7164,7 +7625,7 @@ WHERE
             Column_3
         FROM
             Table_3)
-        MINUS
+    MINUS
         (SELECT
             Column_4
         FROM
@@ -7172,7 +7633,7 @@ WHERE
             Column_5
         FROM
             Table_5)
-        UNION
+    UNION
         (SELECT
             Column_6
         FROM

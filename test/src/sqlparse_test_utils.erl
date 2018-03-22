@@ -22,10 +22,15 @@
 
 -module(sqlparse_test_utils).
 
--export([eunit_test/1]).
+-export([
+    eunit_test/1,
+    eunit_test/2
+]).
 
 -define(NODEBUG, true).
+
 -include_lib("eunit/include/eunit.hrl").
+-include("sqlparse.hrl").
 -include("sqlparse_test.hrl").
 
 %%------------------------------------------------------------------------------
@@ -33,37 +38,38 @@
 %%------------------------------------------------------------------------------
 
 eunit_test(Source) ->
-    ?debugFmt(?MODULE_STRING ++ ":eunit_test ===> Start ~nSource: ~p~n",
-        [Source]),
-    ?debugFmt(?MODULE_STRING ++ ":eunit_test ===>~n CASE_IDENTIFIER: ~p~n",
-        [string:to_lower(os:getenv("CASE_IDENTIFIER"))]),
-    ?debugFmt(?MODULE_STRING ++ ":eunit_test ===>~n CASE_KEYWORD   : ~p~n",
-        [string:to_lower(os:getenv("CASE_KEYWORD"))]),
+    eunit_test(Source, []).
+
+eunit_test(Source, LOpts) ->
+    ?D("Start ~nSource: ~p~n LOpts: ~p~n", [Source, LOpts]),
     %% -------------------------------------------------------------------------
     %% 1. Source ==> ParseTree
     %% -------------------------------------------------------------------------
     case ?PARSER_MODULE:parsetree_with_tokens(Source) of
         {ok, {ParseTree, Tokens}} ->
+            ?D("~n ParseTree: ~p~n Tokens: ~p~n", [ParseTree, Tokens]),
             %% -----------------------------------------------------------------
             %% Test TopDown
             %% -----------------------------------------------------------------
             %% 2. ParseTree ==> Source_TD
             %% -----------------------------------------------------------------
-            Source_TD = case ?PARSER_MODULE:pt_to_string(ParseTree) of
-                            {error, Error_1_TD} ->
-                                io:format(user, "~n" ++ ?MODULE_STRING ++
-                                    " : [TD] Error ParseTree ==> Source_TD : Error    ~n > ~p",
-                                    [Error_1_TD]),
-                                io:format(user, "~n" ++ ?MODULE_STRING ++
-                                    " : [TD] Error ParseTree ==> Source_TD : Source   ~n > ~p",
-                                    [Source]),
-                                io:format(user, "~n" ++ ?MODULE_STRING ++
-                                    " : [TD] Error ParseTree ==> Source_TD : ParseTree~n > ~p",
-                                    [ParseTree]),
-                                throw("[TD] Error ParseTree ==> Source_TD");
-                            NS_TD ->
-                                NS_TD
-                        end,
+            Source_TD =
+                case sqlparse_fold:top_down(sqlparse_format_flat, ParseTree,
+                    []) of
+                    {error, Error_1_TD} ->
+                        io:format(user, "~n" ++ ?MODULE_STRING ++
+                            " : [TD] Error ParseTree ==> Source_TD : Error    ~n > ~p",
+                            [Error_1_TD]),
+                        io:format(user, "~n" ++ ?MODULE_STRING ++
+                            " : [TD] Error ParseTree ==> Source_TD : Source   ~n > ~p",
+                            [Source]),
+                        io:format(user, "~n" ++ ?MODULE_STRING ++
+                            " : [TD] Error ParseTree ==> Source_TD : ParseTree~n > ~p",
+                            [ParseTree]),
+                        throw("[TD] Error ParseTree ==> Source_TD");
+                    NS_TD ->
+                        binary_to_list(NS_TD)
+                end,
             %% -----------------------------------------------------------------
             %% 3. Source_TD ==> ParseTree_TD
             %% -----------------------------------------------------------------
@@ -88,6 +94,9 @@ eunit_test(Source) ->
                               " : [TD] Error Source_TD ==> ParseTree_TD : Source_TD~n > ~p",
                               [Source_TD])
                   end,
+            %% -----------------------------------------------------------------
+            %% 4. ParseTree == ParseTree_TD ?
+            %% -----------------------------------------------------------------
             if ParseTree /= ParseTree_TD ->
                 io:format(user, "~n" ++ ?MODULE_STRING ++
                     " : [TD] Error ParseTree /= ParseTree_TD : Source      ~n > ~p",
@@ -111,8 +120,10 @@ eunit_test(Source) ->
                 true -> ok
             end,
             ?assertEqual(ParseTree, ParseTree_TD),
-            Source_TD_String = binary:bin_to_list(Source_TD),
-            Source_TD_MultipleSpace = string:str(Source_TD_String, "  "),
+            %% -----------------------------------------------------------------
+            %% 5. No redundant whitespaces.
+            %% -----------------------------------------------------------------
+            Source_TD_MultipleSpace = string:str(Source_TD, "  "),
             case Source_TD_MultipleSpace of
                 0 -> ok;
                 _ ->
@@ -124,99 +135,78 @@ eunit_test(Source) ->
                         [Source]),
                     io:format(user, "~n" ++ ?MODULE_STRING ++
                         " : [TD] Error redundant whitespace(s) : Source_TD      ~n > ~p",
-                        [Source_TD_String]),
+                        [Source_TD]),
                     throw("[TD] Error redundant whitespace(s)")
             end,
             %% -----------------------------------------------------------------
-            %% Test BottomUp
+            %% Test TopDown == BottomUp
             %% -----------------------------------------------------------------
-            %% 4. ParseTree ==> Source_BU
+            %% 6. ParseTree ==> Source_Check_TD
             %% -----------------------------------------------------------------
-            Source_BU = case ?PARSER_MODULE:pt_to_string_bu(ParseTree) of
-                            {error, Error_1_BU} ->
-                                io:format(user, "~n" ++ ?MODULE_STRING ++
-                                    " : [BU] Error ParseTree ==> Source_BU : Error    ~n > ~p",
-                                    [Error_1_BU]),
-                                io:format(user, "~n" ++ ?MODULE_STRING ++
-                                    " : [BU] Error ParseTree ==> Source_BU : Source   ~n > ~p",
-                                    [Source]),
-                                io:format(user, "~n" ++ ?MODULE_STRING ++
-                                    " : [BU] Error ParseTree ==> Source_BU : ParseTree~n > ~p",
-                                    [ParseTree]),
-                                throw("[BU] Error ParseTree ==> Source_BU");
-                            NS_BU ->
-                                NS_BU
-                        end,
+            Source_Check_TD =
+                case sqlparse_fold:top_down(sqlparse_check_td_vs_bu, ParseTree,
+                    top_down) of
+                    {error, Error_Check_TD} ->
+                        io:format(user, "~n" ++ ?MODULE_STRING ++
+                            " : [TD==BU] Error ParseTree ==> Check_TD : Error    ~n > ~p",
+                            [Error_Check_TD]),
+                        io:format(user, "~n" ++ ?MODULE_STRING ++
+                            " : [TD==BU] Error ParseTree ==> Check_TD : Source   ~n > ~p",
+                            [Source]),
+                        io:format(user, "~n" ++ ?MODULE_STRING ++
+                            " : [TD==BU] Error ParseTree ==> Check_TD : ParseTree~n > ~p",
+                            [ParseTree]),
+                        throw(
+                            "[TD==BU] Error ParseTree ==> Check_TD");
+                    NS_Check_TD ->
+                        NS_Check_TD
+                end,
             %% -----------------------------------------------------------------
-            %% 5. Source_BU ==> ParseTree_BU
+            %% 7 ParseTree ==> Source_Check_BU
             %% -----------------------------------------------------------------
-            {ok, {ParseTree_BU, Tokens_BU}}
-                = try
-                      case ?PARSER_MODULE:parsetree_with_tokens(Source_BU) of
-                          {ok, RT_BU} -> {ok, RT_BU};
-                          Error_2_BU -> throw(Error_2_BU)
-                      end
-                  catch
-                      Exception_BU:Reason_BU ->
-                          io:format(user, "~n" ++ ?MODULE_STRING ++
-                              " : [BU] Error Source_BU ==> ParseTree_BU : Exception~n > ~p",
-                              [Exception_BU]),
-                          io:format(user, "~n" ++ ?MODULE_STRING ++
-                              " : [BU] Error Source_BU ==> ParseTree_BU : Reason   ~n > ~p",
-                              [Reason_BU]),
-                          io:format(user, "~n" ++ ?MODULE_STRING ++
-                              " : [BU] Error Source_BU ==> ParseTree_BU : Source   ~n > ~p",
-                              [Source]),
-                          io:format(user, "~n" ++ ?MODULE_STRING ++
-                              " : [BU] Error Source_BU ==> ParseTree_BU : Source_BU~n > ~p",
-                              [Source_BU])
-                  end,
-            if ParseTree /= ParseTree_BU ->
+            Source_Check_BU =
+                case sqlparse_fold:bottom_up(sqlparse_check_td_vs_bu, ParseTree,
+                    bottom_up) of
+                    {error, Error_Check_BU} ->
+                        io:format(user, "~n" ++ ?MODULE_STRING ++
+                            " : [TD==BU] Error ParseTree ==> Check_BU : Error    ~n > ~p",
+                            [Error_Check_BU]),
+                        io:format(user, "~n" ++ ?MODULE_STRING ++
+                            " : [TD==BU] Error ParseTree ==> Check_BU : Source   ~n > ~p",
+                            [Source]),
+                        io:format(user, "~n" ++ ?MODULE_STRING ++
+                            " : [TD==BU] Error ParseTree ==> Check_BU : ParseTree~n > ~p",
+                            [ParseTree]),
+                        throw(
+                            "[TD==BU] Error ParseTree ==> Check_BU");
+                    NS_Check_BU ->
+                        NS_Check_BU
+                end,
+            %% -----------------------------------------------------------------
+            %% 8. Source_Check_TD == Source_Check_BU ?
+            %% -----------------------------------------------------------------
+            if Source_Check_TD /= Source_Check_BU ->
                 io:format(user, "~n" ++ ?MODULE_STRING ++
-                    " : [BU] Error ParseTree /= ParseTree_BU : Source      ~n > ~p",
+                    " : [TD==BU] Error Source_Check_TD /= Source_Check_BU : Source  ~n > ~p",
                     [Source]),
                 io:format(user, "~n" ++ ?MODULE_STRING ++
-                    " : [BU] Error ParseTree /= ParseTree_BU : Source_BU   ~n > ~p",
-                    [Source_BU]),
+                    " : [TD==BU] Error Source_Check_TD /= Source_Check_BU : Check_TD~n > ~p",
+                    [Source_Check_TD]),
                 io:format(user, "~n" ++ ?MODULE_STRING ++
-                    " : [BU] Error ParseTree /= ParseTree_BU : ParseTree   ~n > ~p",
-                    [ParseTree]),
-                io:format(user, "~n" ++ ?MODULE_STRING ++
-                    " : [BU] Error ParseTree /= ParseTree_BU : ParseTree_BU~n > ~p",
-                    [ParseTree_BU]),
-                io:format(user, "~n" ++ ?MODULE_STRING ++
-                    " : [BU] Error ParseTree /= ParseTree_BU : Tokens      ~n > ~p",
-                    [Tokens]),
-                io:format(user, "~n" ++ ?MODULE_STRING ++
-                    " : [BU] Error ParseTree /= ParseTree_BU : Tokens_BU   ~n > ~p",
-                    [Tokens_BU]),
-                throw("[BU] Error ParseTree /= ParseTree_BU");
+                    " : [TD==BU] Error Source_Check_TD /= Source_Check_BU : Check_BU~n > ~p",
+                    [Source_Check_BU]),
+                throw("[TD==BU] Error Source_Check_TD /= Source_Check_BU");
                 true -> ok
             end,
-            ?assertEqual(ParseTree, ParseTree_BU),
-            Source_BU_String = binary:bin_to_list(Source_BU),
-            Source_BU_MultipleSpace = string:str(Source_BU_String, "  "),
-            case Source_BU_MultipleSpace of
-                0 -> ok;
-                _ ->
-                    io:format(user, "~n" ++ ?MODULE_STRING ++
-                        " : [BU] Error redundant whitespace(s) : 1. Redundant WS~n > ~p",
-                        [Source_BU_MultipleSpace]),
-                    io:format(user, "~n" ++ ?MODULE_STRING ++
-                        " : [BU] Error redundant whitespace(s) : Source         ~n > ~p",
-                        [Source]),
-                    io:format(user, "~n" ++ ?MODULE_STRING ++
-                        " : [BU] Error redundant whitespace(s) : Source_BU      ~n > ~p",
-                        [Source_BU_String]),
-                    throw("[BU] Error redundant whitespace(s)")
-            end,
+            ?assertEqual(Source_Check_TD, Source_Check_BU),
             %% -----------------------------------------------------------------
             %% Test FORMAT
             %% -----------------------------------------------------------------
-            %% 6. ParseTree ==> Source_FORMAT
+            %% 9. ParseTree ==> Source_FORMAT
             %% -----------------------------------------------------------------
             Source_FORMAT =
-                case ?PARSER_MODULE:pt_to_string_format(ParseTree) of
+                case sqlparse_fold:top_down(sqlparse_format_pretty, ParseTree,
+                    LOpts) of
                     {error, Error_1_FORMAT} ->
                         io:format(user, "~n" ++ ?MODULE_STRING ++
                             " : [FORMAT] Error ParseTree ==> Source_FORMAT : Error    ~n > ~p",
@@ -228,11 +218,10 @@ eunit_test(Source) ->
                             " : [FORMAT] Error ParseTree ==> Source_FORMAT : ParseTree~n > ~p",
                             [ParseTree]),
                         throw({error, Error_1_FORMAT});
-                    NS_FORMAT ->
-                        NS_FORMAT
+                    NS_FORMAT -> NS_FORMAT
                 end,
             %% -----------------------------------------------------------------
-            %% 7. Source_FORMAT ==> ParseTree_FORMAT
+            %% 10. Source_FORMAT ==> ParseTree_FORMAT
             %% -----------------------------------------------------------------
             {ok, {ParseTree_FORMAT, Tokens_FORMAT}}
                 = try

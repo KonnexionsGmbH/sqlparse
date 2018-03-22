@@ -26,8 +26,7 @@
 -export([eunit_test_source/2]).
 
 -define(NODEBUG, true).
--include_lib("common_test/include/ct.hrl").
--include_lib("eunit/include/eunit.hrl").
+
 -include("sqlparse_test.hrl").
 
 %%------------------------------------------------------------------------------
@@ -36,7 +35,7 @@
 
 common_test_source(Source) ->
     % ct:pal(info, ?MAX_IMPORTANCE,
-    %     ?MODULE_STRING ++ ":common_test_source ===>~nSource = ~p~n", [Source]),
+    %     ?MODULE_STRING ++ ":common_test_source ===>~n Source = ~p~n", [Source]),
     %% -------------------------------------------------------------------------
     %% 1. Source ==> ParseTree
     %% -------------------------------------------------------------------------
@@ -47,21 +46,23 @@ common_test_source(Source) ->
             %% -----------------------------------------------------------------
             %% 2. ParseTree ==> Source_TD
             %% -----------------------------------------------------------------
-            Source_TD = case ?PARSER_MODULE:pt_to_string(ParseTree) of
-                            {error, Error_1_TD} ->
-                                ct:pal(
-                                    "[TD] Error ParseTree ==> Source_TD : Error    ~n > ~p~n",
-                                    [Error_1_TD]),
-                                ct:pal(
-                                    "[TD] Error ParseTree ==> Source_TD : Source   ~n > ~p~n",
-                                    [Source]),
-                                ct:pal(
-                                    "[TD] Error ParseTree ==> Source_TD : ParseTree~n > ~p~n",
-                                    [ParseTree]),
-                                throw("[TD] Error ParseTree ==> Source_TD");
-                            NS_TD ->
-                                NS_TD
-                        end,
+            Source_TD =
+                case sqlparse_fold:top_down(sqlparse_format_flat, ParseTree,
+                    []) of
+                    {error, Error_1_TD} ->
+                        ct:pal(
+                            "[TD] Error ParseTree ==> Source_TD : Error    ~n > ~p~n",
+                            [Error_1_TD]),
+                        ct:pal(
+                            "[TD] Error ParseTree ==> Source_TD : Source   ~n > ~p~n",
+                            [Source]),
+                        ct:pal(
+                            "[TD] Error ParseTree ==> Source_TD : ParseTree~n > ~p~n",
+                            [ParseTree]),
+                        throw("[TD] Error ParseTree ==> Source_TD");
+                    NS_TD ->
+                        binary_to_list(NS_TD)
+                end,
             %% -----------------------------------------------------------------
             %% 3. Source_TD ==> ParseTree_TD
             %% -----------------------------------------------------------------
@@ -86,6 +87,9 @@ common_test_source(Source) ->
                               "[TD] Error Source_TD ==> ParseTree_TD : Source_TD~n > ~p~n",
                               [Source_TD])
                   end,
+            %% -----------------------------------------------------------------
+            %% 4. ParseTree == ParseTree_TD ?
+            %% -----------------------------------------------------------------
             if ParseTree /= ParseTree_TD ->
                 ct:pal(
                     "[TD] Error ParseTree /= ParseTree_TD : Source      ~n > ~p~n",
@@ -109,112 +113,93 @@ common_test_source(Source) ->
                 true -> ok
             end,
             ?assertEqual(ParseTree, ParseTree_TD),
-            StringSource_TD = binary:bin_to_list(Source_TD),
-            StringSource_TDMultipleSpace = string:str(StringSource_TD, "  "),
-            case StringSource_TDMultipleSpace of
+            %% -----------------------------------------------------------------
+            %% 5. No redundant whitespaces.
+            %% -----------------------------------------------------------------
+            Source_TD_MultipleSpace = string:str(Source_TD, "  "),
+            case Source_TD_MultipleSpace of
                 0 -> ok;
                 _ ->
                     ct:pal(
                         "[TD] Error redundant whitespace(s) : 1. Redundant WS~n > ~p~n",
-                        [StringSource_TDMultipleSpace]),
+                        [Source_TD_MultipleSpace]),
                     ct:pal(
                         "[TD] Error redundant whitespace(s) : Source         ~n > ~p~n",
                         [Source]),
                     ct:pal(
                         "[TD] Error redundant whitespace(s) : Source_TD      ~n > ~p~n",
-                        [StringSource_TD]),
+                        [Source_TD]),
                     throw("[TD] Error redundant whitespace(s)")
             end,
             %% -----------------------------------------------------------------
-            %% Test BottomUp
+            %% Test TopDown == BottomUp
             %% -----------------------------------------------------------------
-            %% 4. ParseTree ==> Source_BU
+            %% 6. ParseTree ==> Source_Check_TD
             %% -----------------------------------------------------------------
-            Source_BU = case ?PARSER_MODULE:pt_to_string_bu(ParseTree) of
-                            {error, Error_1_BU} ->
-                                ct:pal(
-                                    "[BU] Error ParseTree ==> Source_BU : Error    ~n > ~p~n",
-                                    [Error_1_BU]),
-                                ct:pal(
-                                    "[BU] Error ParseTree ==> Source_BU : Source   ~n > ~p~n",
-                                    [Source]),
-                                ct:pal(
-                                    "[BU] Error ParseTree ==> Source_BU : ParseTree~n > ~p~n",
-                                    [ParseTree]),
-                                throw("[BU] Error ParseTree ==> Source_BU");
-                            NS_BU ->
-                                NS_BU
-                        end,
+            Source_Check_TD =
+                case sqlparse_fold:top_down(sqlparse_check_td_vs_bu, ParseTree,
+                    top_down) of
+                    {error, Error_Check_TD} ->
+                        ct:pal(
+                            "[TD==BU] Error ParseTree ==> Check_TD : Error    ~n > ~p",
+                            [Error_Check_TD]),
+                        ct:pal(
+                            "[TD==BU] Error ParseTree ==> Check_TD : Source   ~n > ~p",
+                            [Source]),
+                        ct:pal(
+                            "[TD==BU] Error ParseTree ==> Check_TD : ParseTree~n > ~p",
+                            [ParseTree]),
+                        throw(
+                            "[TD==BU] Error ParseTree ==> Check_TD");
+                    NS_Check_TD ->
+                        NS_Check_TD
+                end,
             %% -----------------------------------------------------------------
-            %% 5. Source_BU ==> ParseTree_BU
+            %% 7 ParseTree ==> Source_Check_BU
             %% -----------------------------------------------------------------
-            {ok, {ParseTree_BU, Tokens_BU}}
-                = try
-                      case ?PARSER_MODULE:parsetree_with_tokens(Source_BU) of
-                          {ok, RT_BU} -> {ok, RT_BU};
-                          Error_2_BU -> throw(Error_2_BU)
-                      end
-                  catch
-                      Exception_BU:Reason_BU ->
-                          ct:pal(
-                              "[BU] Error Source_BU ==> ParseTree_BU : Exception~n > ~p~n",
-                              [Exception_BU]),
-                          ct:pal(
-                              "[BU] Error Source_BU ==> ParseTree_BU : Reason   ~n > ~p~n",
-                              [Reason_BU]),
-                          ct:pal(
-                              "[BU] Error Source_BU ==> ParseTree_BU : Source   ~n > ~p~n",
-                              [Source]),
-                          ct:pal(
-                              "[BU] Error Source_BU ==> ParseTree_BU : Source_BU~n > ~p~n",
-                              [Source_BU])
-                  end,
-            if ParseTree /= ParseTree_BU ->
+            Source_Check_BU =
+                case sqlparse_fold:bottom_up(sqlparse_check_td_vs_bu, ParseTree,
+                    bottom_up) of
+                    {error, Error_Check_BU} ->
+                        ct:pal(
+                            "[TD==BU] Error ParseTree ==> Check_BU : Error    ~n > ~p",
+                            [Error_Check_BU]),
+                        ct:pal(
+                            "[TD==BU] Error ParseTree ==> Check_BU : Source   ~n > ~p",
+                            [Source]),
+                        ct:pal(
+                            "[TD==BU] Error ParseTree ==> Check_BU : ParseTree~n > ~p",
+                            [ParseTree]),
+                        throw(
+                            "[TD==BU] Error ParseTree ==> Check_BU");
+                    NS_Check_BU ->
+                        NS_Check_BU
+                end,
+            %% -----------------------------------------------------------------
+            %% 8. Source_Check_TD == Source_Check_BU ?
+            %% -----------------------------------------------------------------
+            if Source_Check_TD /= Source_Check_BU ->
                 ct:pal(
-                    "[BU] Error ParseTree /= ParseTree_BU : Source      ~n > ~p~n",
+                    "[TD==BU] Error Source_Check_TD /= Source_Check_BU : Source  ~n > ~p",
                     [Source]),
                 ct:pal(
-                    "[BU] Error ParseTree /= ParseTree_BU : Source_BU   ~n > ~p~n",
-                    [Source_BU]),
+                    "[TD==BU] Error Source_Check_TD /= Source_Check_BU : Check_TD~n > ~p",
+                    [Source_Check_TD]),
                 ct:pal(
-                    "[BU] Error ParseTree /= ParseTree_BU : ParseTree   ~n > ~p~n",
-                    [ParseTree]),
-                ct:pal(
-                    "[BU] Error ParseTree /= ParseTree_BU : ParseTree_BU~n > ~p~n",
-                    [ParseTree_BU]),
-                ct:pal(
-                    "[BU] Error ParseTree /= ParseTree_BU : Tokens      ~n > ~p~n",
-                    [Tokens]),
-                ct:pal(
-                    "[BU] Error ParseTree /= ParseTree_BU : Tokens_BU   ~n > ~p~n",
-                    [Tokens_BU]),
-                throw("[BU] Error ParseTree /= ParseTree_BU");
+                    "[TD==BU] Error Source_Check_TD /= Source_Check_BU : Check_BU~n > ~p",
+                    [Source_Check_BU]),
+                throw("[TD==BU] Error Source_Check_TD /= Source_Check_BU");
                 true -> ok
             end,
-            ?assertEqual(ParseTree, ParseTree_BU),
-            StringSource_BU = binary:bin_to_list(Source_BU),
-            StringSource_BUMultipleSpace = string:str(StringSource_BU, "  "),
-            case StringSource_BUMultipleSpace of
-                0 -> ok;
-                _ ->
-                    ct:pal(
-                        "[BU] Error redundant whitespace(s) : 1. Redundant WS~n > ~p~n",
-                        [StringSource_BUMultipleSpace]),
-                    ct:pal(
-                        "[BU] Error redundant whitespace(s) : Source         ~n > ~p~n",
-                        [Source]),
-                    ct:pal(
-                        "[BU] Error redundant whitespace(s) : Source_BU      ~n > ~p~n",
-                        [StringSource_BU]),
-                    throw("[BU] Error redundant whitespace(s)")
-            end,
+            ?assertEqual(Source_Check_TD, Source_Check_BU),
             %% -----------------------------------------------------------------
             %% Test Format
             %% -----------------------------------------------------------------
-            %% 6. ParseTree ==> Source_FORMAT
+            %% 9. ParseTree ==> Source_FORMAT
             %% -----------------------------------------------------------------
             Source_FORMAT =
-                case ?PARSER_MODULE:pt_to_string_format(ParseTree) of
+                case sqlparse_fold:top_down(sqlparse_format_pretty, ParseTree,
+                    []) of
                     {error, Error_1_FORMAT} ->
                         ct:pal(
                             "[FORMAT] Error ParseTree ==> Source_FORMAT : Error    ~n > ~p~n",
@@ -226,11 +211,10 @@ common_test_source(Source) ->
                             "[FORMAT] Error ParseTree ==> Source_FORMAT : ParseTree~n > ~p~n",
                             [ParseTree]),
                         throw("[FORMAT] Error ParseTree ==> Source_FORMAT");
-                    NS_FORMAT ->
-                        NS_FORMAT
+                    NS_FORMAT -> NS_FORMAT
                 end,
             %% -----------------------------------------------------------------
-            %% 7. Source_FORMAT ==> ParseTree_FORMAT
+            %% 10. Source_FORMAT ==> ParseTree_FORMAT
             %% -----------------------------------------------------------------
             {ok, {ParseTree_FORMAT, Tokens_FORMAT}}
                 = try
@@ -319,9 +303,7 @@ eunit_test_() ->
 %%------------------------------------------------------------------------------
 
 eunit_test_source(TestGroup, Source) ->
-    ?debugFmt(?MODULE_STRING ++
-    ":eunit_test_source ===> Start ~nTestGroup: ~p~nSource: ~p~n",
-        [TestGroup, Source]),
+    ?D("Start~n TestGroup: ~p~n Source: ~p~n", [TestGroup, Source]),
     case sqlparse_test_utils:eunit_test(Source) of
         {ok, _} -> ok;
         Result ->

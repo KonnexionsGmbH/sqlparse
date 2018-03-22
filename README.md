@@ -93,7 +93,7 @@ SELECT column_a|:f()|, column_b
 ### Compile the code from a parse tree:
 
 ```erlang
-4> sqlparse:pt_to_string(ParseTree).
+4> sqlparse_fold:top_down(sqlparse_format_flat, ParseTree, []).
 <<"select column_a|:f()|, column_b from table_a where column_b = 'test' order by 2 desc, 1">>
 ```
 

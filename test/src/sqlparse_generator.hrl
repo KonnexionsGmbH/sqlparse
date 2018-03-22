@@ -23,6 +23,8 @@
 -ifndef(SQLPARSE_GENERATOR_HRL).
 -define(SQLPARSE_GENERATOR_HRL, true).
 
+-include("sqlparse.hrl").
+
 -define(ALIVE_COUNTER, 500).
 
 -define(ALL_CLAUSE_PERFORMANCE, [
@@ -205,11 +207,11 @@
 -define(CREATE_CODE_END,
     [_CodeFirst | _] = Code,
     {_, _MemorySize} = erlang:process_info(self(), memory),
-    ?debugFmt("~ntime (ms)          ===  ~12.. B rule: ~s ~n",
+    ?D("~n time (ms)          ===  ~12.. B rule: ~s ~n",
         [erlang:monotonic_time(1000) - _Start, atom_to_list(Rule)]),
-    ?debugFmt("~nmemory (bytes)     ===  ~12.. B rule: ~s ~n",
+    ?D("~n memory (bytes)     ===  ~12.. B rule: ~s ~n",
         [_MemorySize, atom_to_list(Rule)]),
-    ?debugFmt("~ncode size (bytes) <===  ~12.. B rule: ~s ~n",
+    ?D("~n code size (bytes) <===  ~12.. B rule: ~s ~n",
         [length(_CodeFirst), atom_to_list(Rule)]),
     ok
 ).

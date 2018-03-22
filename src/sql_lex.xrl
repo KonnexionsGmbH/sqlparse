@@ -92,15 +92,7 @@ Erlang code.
 -export([reserved_keywords/0]).
 
 -define(NODEBUG, true).
--include_lib("eunit/include/eunit.hrl").
 -include("sql_lex.hrl").
-
-%-define(DEBUG, true).
--ifdef(DEBUG).
--define(Dbg(F, A), io:format(user, "[~p] " ++ F ++ "~n", [?LINE | A])).
--else.
--define(Dbg(F, A), ok).
--endif.
 
 reserved_keywords() -> [T || {_, T} <- ?TOKENPATTERNS].
 
@@ -123,7 +115,7 @@ match_fun(TokenLine, TokenChars) ->
 
 parse_json(TokenLine, TokenCharsIn) ->
     TokenChars = string:substr(TokenCharsIn, 2, length(TokenCharsIn) - 2),
-    ?Dbg("TokenChars=~p", [TokenChars]),
+    ?D("TokenChars=~p", [TokenChars]),
     parse_json(TokenLine, TokenChars, "", "", 0).
 
 parse_json(TokenLine, [], Json, PushBack, 0) ->
@@ -135,7 +127,7 @@ parse_json(_TokenLine, [], Json, _PushBack, Open) ->
             , [lists:reverse(Json), Open]))};
 parse_json(TokenLine, [T | TokenChars], Json, PushBack, Open)
     when T =:= $]; T =:= $}; T =:= $) ->
-    ?Dbg("T=~p TChrs=~p Json=~p PB=~p Open=~p", [[T], TokenChars, Json, PushBack, Open]),
+    ?D("T=~p TChrs=~p Json=~p PB=~p Open=~p", [[T], TokenChars, Json, PushBack, Open]),
     if Open > 0 ->
         parse_json(TokenLine, TokenChars, [T | Json], PushBack, Open - 1);
         true ->
@@ -143,11 +135,11 @@ parse_json(TokenLine, [T | TokenChars], Json, PushBack, Open)
     end;
 parse_json(TokenLine, [T | TokenChars], Json, PushBack, Open)
     when T =:= $[; T =:= ${; T =:= $( ->
-    ?Dbg("T=~p TChrs=~p Json=~p PB=~p Open=~p", [[T], TokenChars, Json, PushBack, Open]),
+    ?D("T=~p TChrs=~p Json=~p PB=~p Open=~p", [[T], TokenChars, Json, PushBack, Open]),
     parse_json(TokenLine, TokenChars, [T | Json], PushBack, Open + 1);
 parse_json(TokenLine, [T | TokenChars], Json, PushBack, Open)
     when Open > 0 ->
-    ?Dbg("T=~p TChrs=~p Json=~p PB=~p Open=~p", [[T], TokenChars, Json, PushBack, Open]),
+    ?D("T=~p TChrs=~p Json=~p PB=~p Open=~p", [[T], TokenChars, Json, PushBack, Open]),
     parse_json(TokenLine, TokenChars, [T | Json], PushBack, Open);
 parse_json(TokenLine, [T | TokenChars], Json, PushBack, Open)
     when (Open =:= 0) andalso (
@@ -157,11 +149,11 @@ parse_json(TokenLine, [T | TokenChars], Json, PushBack, Open)
         orelse ((T >= $a) andalso (T =< $z))
         orelse ((T >= $0) andalso (T =< $9))
 ) ->
-    ?Dbg("T=~p TChrs=~p Json=~p PB=~p Open=~p", [[T], TokenChars, Json, PushBack, Open]),
+    ?D("T=~p TChrs=~p Json=~p PB=~p Open=~p", [[T], TokenChars, Json, PushBack, Open]),
     parse_json(TokenLine, TokenChars, [T | Json], PushBack, Open);
 parse_json(TokenLine, [T | TokenChars], Json, PushBack, Open)
     when (Open =:= 0) ->
-    ?Dbg("T=~p TChrs=~p Json=~p PB=~p Open=~p", [[T], TokenChars, Json, PushBack, Open]),
+    ?D("T=~p TChrs=~p Json=~p PB=~p Open=~p", [[T], TokenChars, Json, PushBack, Open]),
     {NewTokenChars, NewJson, NewPushBack} =
         case T of
             T when [T] =:= " ";T =:= $\n;T =:= $\t;T =:= $\r -> % white space characters
@@ -173,5 +165,5 @@ parse_json(TokenLine, [T | TokenChars], Json, PushBack, Open)
                 end;
             _ -> {[], Json, [T | TokenChars]}
         end,
-    ?Dbg("NewTokenChars=~p NewJson=~p NewPushBack=~p", [NewTokenChars, NewJson, NewPushBack]),
+    ?D("NewTokenChars=~p NewJson=~p NewPushBack=~p", [NewTokenChars, NewJson, NewPushBack]),
     parse_json(TokenLine, NewTokenChars, NewJson, NewPushBack, Open).

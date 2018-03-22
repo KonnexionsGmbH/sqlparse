@@ -23,6 +23,8 @@
 -ifndef(SQL_LEX_HRL).
 -define(SQL_LEX_HRL, true).
 
+-include("sqlparse.hrl").
+
 -define(TOKENPATTERNS, [
 
     % sql joins

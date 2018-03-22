@@ -3446,9 +3446,12 @@ list_elem_sql(FType, Fun, LOpts, FunState, Ctx, [{SQL, Extra} | Tail], Counter, 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 set_state_clause(FunState, Clause) ->
-    {Stmnt, _, _} = lists:last(FunState#fstate.stmnts),
-    FunState#fstate{stmnts = lists:droplast(FunState#fstate.stmnts) ++
-    [{Stmnt, Clause, none}]}.
+    case FunState#fstate.stmnts of
+        [] -> FunState#fstate{stmnts = [{none, Clause, none}]};
+        _ -> {Stmnt, _, _} = lists:last(FunState#fstate.stmnts),
+            FunState#fstate{stmnts = lists:droplast(FunState#fstate.stmnts) ++
+            [{Stmnt, Clause, none}]}
+    end.
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Set the function state for a special rule:
@@ -3468,9 +3471,12 @@ set_state_clause(FunState, Clause) ->
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 set_state_rule(FunState, Rule) ->
-    {Stmnt, Clause, _} = lists:last(FunState#fstate.stmnts),
-    FunState#fstate{stmnts = lists:droplast(FunState#fstate.stmnts) ++
-    [{Stmnt, Clause, Rule}]}.
+    case FunState#fstate.stmnts of
+        [] -> FunState#fstate{stmnts = [{none, none, Rule}]};
+        _ -> {Stmnt, Clause, _} = lists:last(FunState#fstate.stmnts),
+            FunState#fstate{stmnts = lists:droplast(FunState#fstate.stmnts) ++
+            [{Stmnt, Clause, Rule}]}
+    end.
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Set the function state for a new statement:

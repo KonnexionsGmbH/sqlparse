@@ -23,11 +23,15 @@
 %% -*- erlang -*-
 Definitions.
 
+W = \s\r\n
+A = [A-Za-z0-9,_{W}]
+OS = (.*|[{W}]*)
+
 Rules.
 
 % erlang funcs
-(fun\([A-Za-z0-9,_]*\).*\->.*end\.)                 : match_fun(TokenLine, TokenChars).
-(fun\s['A-Za-z0-9_]+:['A-Za-z0-9_]+\/[0-9]+\.)      : {token, {'STRING', TokenLine, TokenChars}}.
+(fun[{W}]*\({A}*\){OS}*\->{OS}*end\.)               : match_fun(TokenLine, TokenChars).
+(fun[{W}]+['A-Za-z0-9_]+:['A-Za-z0-9_]+\/[0-9]+\.)  : {token, {'STRING', TokenLine, TokenChars}}.
 
 % database link
 (\"@[A-Za-z0-9_\$#\.@]+\")                          : {token, {'DBLINK', TokenLine, TokenChars}}.

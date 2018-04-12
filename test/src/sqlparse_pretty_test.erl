@@ -730,7 +730,23 @@ default_PARENTHESES_test_() ->
                 {formatter("PARENTHESES_27", ?PARENTHESES_27,
                     ?PARENTHESES_27_RESULT_DEFAULT, LOpts)},
                 {formatter("PARENTHESES_28", ?PARENTHESES_28,
-                    ?PARENTHESES_28_RESULT_DEFAULT, LOpts)}
+                    ?PARENTHESES_28_RESULT_DEFAULT, LOpts)},
+                {formatter("PARENTHESES_29", ?PARENTHESES_29,
+                    ?PARENTHESES_29_RESULT_DEFAULT, LOpts)},
+                {formatter("PARENTHESES_30", ?PARENTHESES_30,
+                    ?PARENTHESES_30_RESULT_DEFAULT, LOpts)},
+                {formatter("PARENTHESES_31", ?PARENTHESES_31,
+                    ?PARENTHESES_31_RESULT_DEFAULT, LOpts)},
+                {formatter("PARENTHESES_32", ?PARENTHESES_32,
+                    ?PARENTHESES_32_RESULT_DEFAULT, LOpts)},
+                {formatter("PARENTHESES_40", ?PARENTHESES_40,
+                    ?PARENTHESES_40_RESULT_DEFAULT, LOpts)},
+                {formatter("PARENTHESES_41", ?PARENTHESES_41,
+                    ?PARENTHESES_41_RESULT_DEFAULT, LOpts)},
+                {formatter("PARENTHESES_42", ?PARENTHESES_42,
+                    ?PARENTHESES_42_RESULT_DEFAULT, LOpts)},
+                {formatter("PARENTHESES_43", ?PARENTHESES_43,
+                    ?PARENTHESES_43_RESULT_DEFAULT, LOpts)}
             ]
         end
     }.
@@ -991,6 +1007,9 @@ default_SELECT_test_() ->
                     LOpts)},
                 {formatter("SELECT_30", ?SELECT_30,
                     ?SELECT_30_RESULT_DEFAULT,
+                    LOpts)},
+                {formatter("SELECT_31", ?SELECT_31,
+                    ?SELECT_31_RESULT_DEFAULT,
                     LOpts)}
             ]
         end

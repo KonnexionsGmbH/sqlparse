@@ -3186,16 +3186,14 @@ fold_i(FType, Fun, LOpts, FunState, Ctx, {Op, L, R} = PTree)
     Rule = binary,
     NewCtxS =
         Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
-    NewCtx1 = case L of
-                  {OpL, _, _} when OpL == '+'; OpL == '-'; OpL == '*'; OpL ==
-                      '/'          ; OpL == 'div'; OpL == 'and'; OpL == 'or' ->
+    NewCtx1 = case binary_needs_paren(L, Op) of
+                  true ->
                       fold_i(FType, Fun, LOpts, FunState, NewCtxS, {"(", L});
                   _ -> fold_i(FType, Fun, LOpts, FunState, NewCtxS, L)
               end,
     NewCtx2 = fold_i(FType, Fun, LOpts, FunState, NewCtx1, {binary, Op}),
-    NewCtx3 = case R of
-                  {OpR, _, _} when OpR == '+'; OpR == '-'; OpR == '*'; OpR ==
-                      '/'          ; OpR == 'div'; OpR == 'and'; OpR == 'or' ->
+    NewCtx3 = case binary_needs_paren(R, Op) of
+                  true ->
                       fold_i(FType, Fun, LOpts, FunState, NewCtx2, {"(", R});
                   _ -> fold_i(FType, Fun, LOpts, FunState, NewCtx2, R)
               end,
@@ -3209,9 +3207,8 @@ fold_i(FType, Fun, LOpts, FunState, Ctx, {Op, L, R} = PTree)
     Rule = binary,
     NewCtxS =
         Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
-    NewCtx1 = case R of
-                  {OpR, _, _} when OpR == '+'; OpR == '-'; OpR == '*'; OpR ==
-                      '/'          ; OpR == 'div'; OpR == 'and'; OpR == 'or' ->
+    NewCtx1 = case binary_needs_paren(R, Op) of
+                  true ->
                       fold_i(FType, Fun, LOpts, FunState, NewCtxS, {"(", R});
                   _ -> fold_i(FType, Fun, LOpts, FunState, NewCtxS, R)
               end,
@@ -3225,9 +3222,8 @@ fold_i(FType, Fun, LOpts, FunState, Ctx, {Op, L, R} = PTree)
     Rule = binary,
     NewCtxS =
         Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
-    NewCtx1 = case L of
-                  {OpL, _, _} when OpL == '+'; OpL == '-'; OpL == '*'; OpL ==
-                      '/'          ; OpL == 'div'; OpL == 'and'; OpL == 'or' ->
+    NewCtx1 = case binary_needs_paren(L, Op) of
+                  true ->
                       fold_i(FType, Fun, LOpts, FunState, NewCtxS, {"(", L});
                   _ -> fold_i(FType, Fun, LOpts, FunState, NewCtxS, L)
               end,
@@ -3303,6 +3299,29 @@ get_stmnt_clause_pred(FunState, Pos) ->
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Helper functions.
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Determine if the binary operation needs a set of parentheses.
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+binary_needs_paren(LOrR, Op) when is_tuple(LOrR), is_atom(Op) ->
+    binary_needs_paren(element(1, LOrR), Op);
+
+binary_needs_paren('fun', _)    -> false;
+binary_needs_paren('or', 'and') -> true;
+binary_needs_paren('+', '*')    -> true;
+binary_needs_paren('+', '/')    -> true;
+binary_needs_paren('+', 'div')  -> true;
+binary_needs_paren('-', '*')    -> true;
+binary_needs_paren('-', '/')    -> true;
+binary_needs_paren('-', 'div')  -> true;
+binary_needs_paren('-', '+')    -> true;
+binary_needs_paren('/', '*')    -> true;
+binary_needs_paren('div', '*')  -> true;
+binary_needs_paren(_, '/')      -> true;
+binary_needs_paren(_, 'div')    -> true;
+binary_needs_paren(_, '-')      -> true;
+binary_needs_paren(_, _)        -> false.
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Find the innermost value.
@@ -3466,7 +3485,7 @@ set_state_clause(FunState, Clause) ->
 %     select_right
 %     table_alias
 %     table_constraint_def
-%     union_ledft
+%     union_left
 %     union_right
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

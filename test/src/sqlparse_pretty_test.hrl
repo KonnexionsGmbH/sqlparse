@@ -25,7 +25,6 @@
 
 -include_lib("eunit/include/eunit.hrl").
 -include("sqlparse_fold.hrl").
--include("sqlparse_pretty_test.hrl").
 -include("sqlparse_test.hrl").
 
 %%------------------------------------------------------------------------------
@@ -1977,8 +1976,8 @@ FROM
     INNER JOIN
     Table_2
     ON Table_1.Column_1 = Table_2.Column_2
-    OR (Table_1.Column_3 = Table_2.Column_4
-    AND Table_1.Column_5 = Table_2.Column_6)").
+    OR Table_1.Column_3 = Table_2.Column_4
+    AND Table_1.Column_5 = Table_2.Column_6").
 
 %%------------------------------------------------------------------------------
 %% JOIN 11 - OUTER JOIN.
@@ -2375,12 +2374,12 @@ FROM
     Sbs1_Admin.Bdetail2_Hr_Seg_Master_09,
     Sbs1_Admin.Enum256
 WHERE
-    (((((To_Number(Enum_Id) <= (Bd_Seg_Count - Is_Count)
-    AND NOT (Bd_Msisdn_A IS NULL))
-    AND Is_Count < Bd_Seg_Count)
-    AND Bd_Seg_Id = Bd_Seg_Count)
-    AND Bd_Iw_Apmn = 'CHEOR')
-    AND Bd_Datetime >= TO_DATE('11.09.2017'))
+    To_Number(Enum_Id) <= Bd_Seg_Count - Is_Count
+    AND NOT (Bd_Msisdn_A IS NULL)
+    AND Is_Count < Bd_Seg_Count
+    AND Bd_Seg_Id = Bd_Seg_Count
+    AND Bd_Iw_Apmn = 'CHEOR'
+    AND Bd_Datetime >= TO_DATE('11.09.2017')
     AND Bd_Datetime < TO_DATE('21.09.2017')
 ORDER BY
     1 ASC").
@@ -2398,8 +2397,8 @@ select SUBSTR(SED_ORDER, 1, 10) Day, SUM(SED_COUNT1) Mt_SMS, 10 * SUM(SED_COUNT2
 FROM
     Setdetail
 WHERE
-    (Sed_Etid = :SQLT_STR_CDR_TYPE
-    AND NOT (Sed_Tarid IN ('X', 'V', 'S', 'P', 'T')))
+    Sed_Etid = :SQLT_STR_CDR_TYPE
+    AND NOT (Sed_Tarid IN ('X', 'V', 'S', 'P', 'T'))
     AND Sed_Order LIKE TO_CHAR(Sysdate, 'YYYY-MM') || '%'
 GROUP BY
     Substr(Sed_Order, 1, 10), Sed_Etid
@@ -2420,8 +2419,8 @@ select substr(sed_order, 1, 10) day, sum(sed_total) / sum(sed_count1) avg_charge
 FROM
     Setdetail
 WHERE
-    (Sed_Etid = :sqlt_str_cdr_type
-    AND NOT (Sed_Tarid IN ('x', 'v', 's', 'p', 't')))
+    Sed_Etid = :sqlt_str_cdr_type
+    AND NOT (Sed_Tarid IN ('x', 'v', 's', 'p', 't'))
     AND Sed_Order LIKE TO_CHAR(Sysdate, 'yyyy-mm') || '%'
 GROUP BY
     Substr(Sed_Order, 1, 10), Sed_Etid
@@ -2457,8 +2456,8 @@ select /*+ NO_INDEX(BDETAIL) */ BD_ID, BD_SRCTYPE, BD_DATETIME, BD_DEMO, BD_BIHI
 FROM
     Bdetail
 WHERE
-    (Bd_Datetime >= :SQLT_DAT_FROM
-    AND Bd_Datetime < :SQLT_DAT_UNTIL)
+    Bd_Datetime >= :SQLT_DAT_FROM
+    AND Bd_Datetime < :SQLT_DAT_UNTIL
     AND DECODE(Bd_Amountcu, 0.0, '0', '1') || Bd_Billed ||
     DECODE(UPPER(Bd_Pacidhb), '<REVAH_PACID>', '1', '0') || Bd_Mapsid ||
     DECODE(Substr(Bd_Msisdn_A, 1, 5), '42377', 'F', 'S') || Bd_Prepaid LIKE
@@ -2764,9 +2763,9 @@ order by columN_8").
 from
     tablE_1
 where
-    ((columN_3_1<>columN_4_1
-    and columN_3_2>columN_4_2)
-    and columN_3_3>=columN_4_3)
+    columN_3_1<>columN_4_1
+    and columN_3_2>columN_4_2
+    and columN_3_3>=columN_4_3
     and columN_3_4<=columN_4_4
 group by
     columN_5
@@ -2916,10 +2915,10 @@ select * from dual where a=b and c=d or e=f and g=e").
 FROM
     Dual
 WHERE
-    (A = B
-    AND C = D)
-    OR (E = F
-    AND G = E)").
+    A = B
+    AND C = D
+    OR E = F
+    AND G = E").
 
 %%------------------------------------------------------------------------------
 %% PARENTHESES 12 - Logic operators.
@@ -2933,9 +2932,9 @@ select * from dual where a=b and (c=d or e=f) and g=e").
 FROM
     Dual
 WHERE
-    (A = B
+    A = B
     AND (C = D
-    OR E = F))
+    OR E = F)
     AND G = E").
 
 %%------------------------------------------------------------------------------
@@ -2950,9 +2949,9 @@ select * from dual where not a=b and (c=d or e=f) and g=e").
 FROM
     Dual
 WHERE
-    (NOT (A = B)
+    NOT (A = B)
     AND (C = D
-    OR E = F))
+    OR E = F)
     AND G = E").
 
 %%------------------------------------------------------------------------------
@@ -2967,9 +2966,9 @@ select * from dual where not a=b and not (c=d or e=f) and g=e").
 FROM
     Dual
 WHERE
-    (NOT (A = B)
+    NOT (A = B)
     AND NOT (C = D
-    OR E = F))
+    OR E = F)
     AND G = E").
 
 %%------------------------------------------------------------------------------
@@ -3257,6 +3256,380 @@ UNION
             Column_5
         FROM
             Table_5))").
+
+%%------------------------------------------------------------------------------
+%% PARENTHESES 29 - MINIMAL.
+%%------------------------------------------------------------------------------
+
+-define(PARENTHESES_29, "
+select 1 * 2 + 3 * 4 from dual where a and b or c and d;
+select 1 * (2 + 3) * 4 from dual where a and (b or c) and d;
+select 1 + 2 * 3 + 4 from dual where a or b and c or d;
+select (1 + 2) * (3 + 4) from dual where (a or b) and (c or d)
+").
+
+-define(PARENTHESES_29_RESULT_DEFAULT, "SELECT
+    1 * 2 + 3 * 4
+FROM
+    Dual
+WHERE
+    A
+    AND B
+    OR C
+    AND D;
+SELECT
+    1 * (2 + 3) * 4
+FROM
+    Dual
+WHERE
+    A
+    AND (B
+    OR C)
+    AND D;
+SELECT
+    1 + 2 * 3 + 4
+FROM
+    Dual
+WHERE
+    A
+    OR B
+    AND C
+    OR D;
+SELECT
+    (1 + 2) * (3 + 4)
+FROM
+    Dual
+WHERE
+    (A
+    OR B)
+    AND (C
+    OR D)").
+
+%%------------------------------------------------------------------------------
+%% PARENTHESES 30 - MINIMAL.
+%%------------------------------------------------------------------------------
+
+-define(PARENTHESES_30, "
+select 1-(3+5) from dual;
+select 1-(3-5) from dual
+").
+
+-define(PARENTHESES_30_RESULT_DEFAULT, "SELECT
+    1 - (3 + 5)
+FROM
+    Dual;
+SELECT
+    1 - (3 - 5)
+FROM
+    Dual").
+
+%%------------------------------------------------------------------------------
+%% PARENTHESES 31 - MINIMAL.
+%%------------------------------------------------------------------------------
+
+-define(PARENTHESES_31, "
+select 1-2+3-4 from dual;
+select (1-2)+3-4 from dual;
+select 1-2+(3-4) from dual;
+select (1-2)+(3-4) from dual
+").
+
+-define(PARENTHESES_31_RESULT_DEFAULT, "SELECT
+    ((1 - 2) + 3) - 4
+FROM
+    Dual;
+SELECT
+    ((1 - 2) + 3) - 4
+FROM
+    Dual;
+SELECT
+    (1 - 2) + (3 - 4)
+FROM
+    Dual;
+SELECT
+    (1 - 2) + (3 - 4)
+FROM
+    Dual").
+
+%%------------------------------------------------------------------------------
+%% PARENTHESES 32 - SET.
+%%------------------------------------------------------------------------------
+
+-define(PARENTHESES_32, "
+select * from table_1 union select * from table_2 intersect select * from table_3 union select * from table_4;
+select * from table_1 union all select * from table_2 union select * from table_3 union all select * from table_4;
+select * from table_1 minus select * from table_2 union select * from table_3 union all select * from table_4;
+select * from table_1 union all select * from table_2 minus select * from table_3 union all select * from table_4;
+select * from table_1 union all (select * from table_2 minus select * from table_3) union all select * from table_4;
+select * from table_1 minus select * from table_2 minus select * from table_3 minus select * from table_4;
+select * from table_1 minus (select * from table_2 union select * from table_3 union all select * from table_4);
+(select * from table_1 union all select * from table_2) minus (select * from table_3 union all select * from table_4);
+select * from table_1 minus (select * from table_2 minus select * from table_3 minus select * from table_4);
+").
+
+-define(PARENTHESES_32_RESULT_DEFAULT, "            (((SELECT
+                *
+            FROM
+                Table_1)
+        UNION
+            (SELECT
+                *
+            FROM
+                Table_2))
+    INTERSECT
+        (SELECT
+            *
+        FROM
+            Table_3))
+UNION
+    (SELECT
+        *
+    FROM
+        Table_4);
+            (((SELECT
+                *
+            FROM
+                Table_1)
+        UNION ALL
+            (SELECT
+                *
+            FROM
+                Table_2))
+    UNION
+        (SELECT
+            *
+        FROM
+            Table_3))
+UNION ALL
+    (SELECT
+        *
+    FROM
+        Table_4);
+            (((SELECT
+                *
+            FROM
+                Table_1)
+        MINUS
+            (SELECT
+                *
+            FROM
+                Table_2))
+    UNION
+        (SELECT
+            *
+        FROM
+            Table_3))
+UNION ALL
+    (SELECT
+        *
+    FROM
+        Table_4);
+            (((SELECT
+                *
+            FROM
+                Table_1)
+        UNION ALL
+            (SELECT
+                *
+            FROM
+                Table_2))
+    MINUS
+        (SELECT
+            *
+        FROM
+            Table_3))
+UNION ALL
+    (SELECT
+        *
+    FROM
+        Table_4);
+        ((SELECT
+            *
+        FROM
+            Table_1)
+    UNION ALL
+            ((SELECT
+                *
+            FROM
+                Table_2)
+        MINUS
+            (SELECT
+                *
+            FROM
+                Table_3)))
+UNION ALL
+    (SELECT
+        *
+    FROM
+        Table_4);
+            (((SELECT
+                *
+            FROM
+                Table_1)
+        MINUS
+            (SELECT
+                *
+            FROM
+                Table_2))
+    MINUS
+        (SELECT
+            *
+        FROM
+            Table_3))
+MINUS
+    (SELECT
+        *
+    FROM
+        Table_4);
+    (SELECT
+        *
+    FROM
+        Table_1)
+MINUS
+            (((SELECT
+                *
+            FROM
+                Table_2)
+        UNION
+            (SELECT
+                *
+            FROM
+                Table_3))
+    UNION ALL
+        (SELECT
+            *
+        FROM
+            Table_4));
+        ((SELECT
+            *
+        FROM
+            Table_1)
+    UNION ALL
+        (SELECT
+            *
+        FROM
+            Table_2))
+MINUS
+        ((SELECT
+            *
+        FROM
+            Table_3)
+    UNION ALL
+        (SELECT
+            *
+        FROM
+            Table_4));
+    (SELECT
+        *
+    FROM
+        Table_1)
+MINUS
+            (((SELECT
+                *
+            FROM
+                Table_2)
+        MINUS
+            (SELECT
+                *
+            FROM
+                Table_3))
+    MINUS
+        (SELECT
+            *
+        FROM
+            Table_4))").
+
+%%------------------------------------------------------------------------------
+%% PARENTHESES 40 - SET.
+%%------------------------------------------------------------------------------
+
+-define(PARENTHESES_40, "
+select * from table_1 minus select * from table_2;").
+
+-define(PARENTHESES_40_RESULT_DEFAULT, "    (SELECT
+        *
+    FROM
+        Table_1)
+MINUS
+    (SELECT
+        *
+    FROM
+        Table_2)").
+
+%%------------------------------------------------------------------------------
+%% PARENTHESES 41 - SET.
+%%------------------------------------------------------------------------------
+
+-define(PARENTHESES_41, "
+select * from table_1 union select * from table_2;").
+
+-define(PARENTHESES_41_RESULT_DEFAULT, "    (SELECT
+        *
+    FROM
+        Table_1)
+UNION
+    (SELECT
+        *
+    FROM
+        Table_2)").
+
+%%------------------------------------------------------------------------------
+%% PARENTHESES 42 - SET.
+%%------------------------------------------------------------------------------
+
+-define(PARENTHESES_42, "
+select * from table_1 minus select * from table_2
+minus
+select * from table_3 minus select * from table_4").
+
+-define(PARENTHESES_42_RESULT_DEFAULT, "            (((SELECT
+                *
+            FROM
+                Table_1)
+        MINUS
+            (SELECT
+                *
+            FROM
+                Table_2))
+    MINUS
+        (SELECT
+            *
+        FROM
+            Table_3))
+MINUS
+    (SELECT
+        *
+    FROM
+        Table_4)").
+
+%%------------------------------------------------------------------------------
+%% PARENTHESES 43 - SET.
+%%------------------------------------------------------------------------------
+
+-define(PARENTHESES_43, "
+select * from table_1 minus
+(select * from table_2 minus select * from table_3)
+minus select * from table_4;").
+
+-define(PARENTHESES_43_RESULT_DEFAULT, "        ((SELECT
+            *
+        FROM
+            Table_1)
+    MINUS
+            ((SELECT
+                *
+            FROM
+                Table_2)
+        MINUS
+            (SELECT
+                *
+            FROM
+                Table_3)))
+MINUS
+    (SELECT
+        *
+    FROM
+        Table_4)").
 
 %%------------------------------------------------------------------------------
 %% PLSQL 01 - ALTER.
@@ -4019,8 +4392,8 @@ end;").
     SELECT
         CASE Column_0
             WHEN Column_1
-            OR (Column_2
-            AND Column_3)
+            OR Column_2
+            AND Column_3
             THEN Column_4
             ELSE Column_5
         END
@@ -4030,8 +4403,8 @@ end;").
         Column_11, " ++ "
         CASE Column_0
             WHEN Column_1
-            OR (Column_2
-            AND Column_3)
+            OR Column_2
+            AND Column_3
             THEN Column_4
             ELSE Column_5
         END Column_12, Column_13
@@ -4240,10 +4613,10 @@ end;").
     FROM
         Dual
     WHERE
-        (Column_11 <> Column_12
-        AND Column_21 != Column_22)
-        OR (Column_31 <> Column_32
-        AND Column_41 != Column_42);
+        Column_11 <> Column_12
+        AND Column_21 != Column_22
+        OR Column_31 <> Column_32
+        AND Column_41 != Column_42;
     SELECT
         *
     FROM
@@ -5380,8 +5753,8 @@ from dual").
 -define(SELECT_25_RESULT_DEFAULT, "SELECT
     CASE Column_0
         WHEN Column_1
-        OR (Column_2
-        AND Column_3)
+        OR Column_2
+        AND Column_3
         THEN Column_4
         ELSE Column_5
     END
@@ -5401,8 +5774,8 @@ from dual").
     Column_11, " ++ "
     CASE Column_0
         WHEN Column_1
-        OR (Column_2
-        AND Column_3)
+        OR Column_2
+        AND Column_3
         THEN Column_4
         ELSE Column_5
     END Column_12, Column_13
@@ -5473,6 +5846,20 @@ HAVING
     'columN_6' = 'columN_7'
 ORDER BY
     'columN_8'").
+
+%%------------------------------------------------------------------------------
+%% SELECT 31 - ANCHOR.
+%%------------------------------------------------------------------------------
+
+-define(SELECT_31, "
+(select * from table_1 group by column_1)|:_a::b::c|").
+
+-define(SELECT_31_RESULT_DEFAULT, "(SELECT
+    *
+FROM
+    Table_1
+GROUP BY
+    Column_1)|:_a::b::c|").
 
 %%------------------------------------------------------------------------------
 %% STRUCTURE 01 - sinple subquery.
@@ -5770,8 +6157,8 @@ select column_1,column_2,column_3,column_4,(column_51+column_62+column_73+colum8
 from dual").
 
 -define(UNBREAKABLE_09_RESULT_DEFAULT, "SELECT
-    Column_1, Column_2, Column_3, Column_4, ((Column_51 + Column_62) + Column_73
-    ) + Colum84(+) Column_5_8
+    Column_1, Column_2, Column_3, Column_4, Column_51 + Column_62 + Column_73 +
+    Colum84(+) Column_5_8
 FROM
     Dual").
 
@@ -6972,10 +7359,10 @@ and column_41 != column_42").
 FROM
     Dual
 WHERE
-    (Column_11 <> Column_12
-    AND Column_21 != Column_22)
-    OR (Column_31 <> Column_32
-    AND Column_41 != Column_42)").
+    Column_11 <> Column_12
+    AND Column_21 != Column_22
+    OR Column_31 <> Column_32
+    AND Column_41 != Column_42").
 
 %%------------------------------------------------------------------------------
 %% WHERE 04 - AND.
@@ -6995,12 +7382,12 @@ and column_61 != column_62").
 FROM
     Dual
 WHERE
-    ((Column_11 <> Column_12
-    AND Column_21 != Column_22)
-    OR (Column_31 <> Column_32
-    AND Column_41 != Column_42))
-    OR (Column_51 <> Column_52
-    AND Column_61 != Column_62)").
+    Column_11 <> Column_12
+    AND Column_21 != Column_22
+    OR Column_31 <> Column_32
+    AND Column_41 != Column_42
+    OR Column_51 <> Column_52
+    AND Column_61 != Column_62").
 
 %%------------------------------------------------------------------------------
 %% WHERE 05 - left subquery.
@@ -7104,9 +7491,9 @@ where column_1 = column_2 and not column_3 = column_4 and column_5 = column_6 an
 FROM
     Dual
 WHERE
-    ((Column_1 = Column_2
-    AND NOT (Column_3 = Column_4))
-    AND Column_5 = Column_6)
+    Column_1 = Column_2
+    AND NOT (Column_3 = Column_4)
+    AND Column_5 = Column_6
     AND NOT (Column_7 = Column_8)").
 
 %%------------------------------------------------------------------------------
@@ -7122,9 +7509,9 @@ where column_1 is null and column_2 is not null and column_3 between column_4 an
 FROM
     Dual
 WHERE
-    ((Column_1 IS NULL
-    AND NOT (Column_2 IS NULL))
-    AND Column_3 BETWEEN Column_4 AND Column_6)
+    Column_1 IS NULL
+    AND NOT (Column_2 IS NULL)
+    AND Column_3 BETWEEN Column_4 AND Column_6
     AND Column_7 LIKE Column_8").
 
 %%------------------------------------------------------------------------------

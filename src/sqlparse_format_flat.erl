@@ -2302,6 +2302,20 @@ fold([], _FunState, Ctx, _PTree, {table, Step, Pos} = _FoldState) ->
     ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% table_coll_expr
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx, {table_coll_expr, _CollExpr, Optional} = _PTree,
+    {table_coll_expr, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+    RT = case {Step, Optional} of
+             {start, _} -> Ctx ++ "table (";
+             {'end', '+'} -> Ctx ++ ") (+)";
+             _ -> Ctx ++ ")"
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % table_constraint_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

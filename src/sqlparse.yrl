@@ -26,7 +26,7 @@ Header "%% Copyright (C) K2 Informatics GmbH"
 "%% @Author Bikram Chatterjee"
 "%% @Email bikram.chatterjee@k2informatics.ch".
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Nonterminals
  all_distinct
@@ -45,6 +45,7 @@ Nonterminals
  case_when_then
  case_when_then_list
  close_statement
+ collection_expression
  column
  column_commalist
  column_def
@@ -172,6 +173,7 @@ Nonterminals
  system_with_grant_option
  table
  table_alias
+ table_coll_expr
  table_constraint_def
  table_dblink
  table_exp
@@ -1084,6 +1086,13 @@ any_all_some -> SOME : some.
 
 existence_test -> EXISTS subquery : {exists, '$2'}.
 
+table_coll_expr -> TABLE '(' collection_expression ')'             : {table_coll_expr, '$3', []}.
+table_coll_expr -> TABLE '(' collection_expression ')' '(' '+' ')' : {table_coll_expr, '$3', '+'}.
+
+collection_expression -> column_ref   : '$1'.
+collection_expression -> function_ref : '$1'.
+collection_expression -> subquery     : '$1'.
+
 subquery -> query_exp : '$1'.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1185,6 +1194,7 @@ table_dblink -> NAME '.' NAME DBLINK NAME : {as, list_to_binary([unwrap('$1'), "
 table_dblink -> parameter     DBLINK      : {    '$1',                                                                {dblink, unwrap_bin('$2')}}.
 table_dblink -> parameter     DBLINK NAME : {as, '$1',                                              unwrap_bin('$3'), {dblink, unwrap_bin('$2')}}.
 table_dblink -> table_alias               : '$1'.
+table_dblink -> table_coll_expr           : '$1'.
 
 column_ref -> NAME                   JSON        : jpparse(list_to_binary([unwrap('$1'),unwrap('$2')])).
 column_ref -> NAME '.' NAME          JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),unwrap('$4')])).

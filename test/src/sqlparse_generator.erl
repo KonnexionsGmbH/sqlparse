@@ -144,7 +144,6 @@ create_code() ->
 %%
 %% NAME ::= [A-Za-z][A-Za-z0-9_\$#@~]*
 %%
-%% ==> collection_expression               == collection_expression = column_ref ...
 %% ==> column                              == column = ... NAME ...
 %% ==> column_ref                          == column_ref = ... NAME ...
 %% ==> from_column                         == from_column = ... table_ref ...
@@ -270,7 +269,6 @@ create_code() ->
 %%              | ( ( ( NAME '.' )? NAME '.' )? NAME '(' '+' ')' )
 %%              | ( ( NAME '.' )? NAME '.' '*' )
 %%
-%% ==> collection_expression               == collection_expression = column_ref ...
 %% ==> fun_arg                             == fun_arg = ... column_ref ...
 %% ==> scalar_exp                          == scalar_exp = ... scalar_sub_exp ...
 %% ==> scalar_sub_exp                      == scalar_sub_exp = ... column_ref ...
@@ -653,8 +651,6 @@ create_code() ->
 %%
 %% subquery ::= query_exp
 %%
-%% ==> collection_expression               == collection_expression = ... subquery
-%%
 %% target ::= NAME
 %%          | parameter_ref
 %%
@@ -712,7 +708,6 @@ create_code_layer(Version) ->
 %%                | ( 'FUNS' ( '(' ( fun_args | '*' | ( 'DISTINCT' column_ref ) | ( 'ALL' scalar_exp ) ) ')' )? )
 %%                | ( function_ref JSON )
 %%
-%% ==> collection_expression               == collection_expression = ... function_ref ...
 %% ==> fun_arg                             == fun_arg = ... function_ref ...
 %% ==> scalar_exp                          == scalar_exp = ... scalar_sub_exp ...
 %% ==> scalar_sub_exp                      == scalar_sub_exp = ... function_ref ...
@@ -964,7 +959,6 @@ create_code_layer(Version) ->
 %%
 %% query_spec ::= 'SELECT' ( HINT )? ( 'ALL' | 'DISTINCT' )? selection ( 'INTO' target_commalist )? table_exp
 %%
-%% ==> collection_expression               == collection_expression = ... subquery
 %% ==> fun_arg                             == fun_arg = ... subquery ...
 %% ==> query_exp                           == query_exp = ... query_term ...
 %% ==> query_term                          == query_term = ... query_spec ...
@@ -999,7 +993,6 @@ create_code_layer(Version) ->
 %% query_term ::= (     query_spec     ( JSON )? )
 %%              | ( '(' query_exp  ')' ( JSON )? )
 %%
-%% ==> collection_expression               == collection_expression = ... subquery
 %% ==> fun_arg                             == fun_arg = ... subquery ...
 %% ==> query_exp                           == query_exp = ... query_term ...
 %% ==> scalar_exp                          == scalar_exp = ... scalar_sub_exp ...
@@ -1035,7 +1028,6 @@ create_code_layer(Version) ->
 %% query_exp ::= query_term
 %%             | ( query_exp ( ( 'UNION' ( 'ALL' )? ) | 'INTERSECT' | 'MINUS' ) query_term )
 %%
-%% ==> collection_expression               == collection_expression = ... subquery
 %% ==> fun_arg                             == fun_arg = ... subquery ...
 %% ==> scalar_exp                          == scalar_exp = ... scalar_sub_exp ...
 %% ==> scalar_sub_exp                      == scalar_sub_exp = ... subquery ...
@@ -1099,7 +1091,7 @@ create_code_layer(Version) ->
 %%                  | ( '(' scalar_sub_exp ')' )
 %%                  | ( '(' scalar_sub_exp ')' JSON? )
 %%
-%% table_coll_expr ::= TABLE '(' collection_expression ')' ( '(' '+' ')' )?
+%% table_coll_expr ::= TABLE '(' ( column_ref | function_ref | subquery ) ')'
 %%
 %% table_ref ::= table_dblink
 %%             | ( query_term ( NAME )? )
@@ -1797,7 +1789,6 @@ create_code(column_ref = Rule) ->
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
     store_code(Rule, Code, ?MAX_BASIC, false),
-    store_code(collection_expression, Code, ?MAX_BASIC, false),
     store_code(fun_arg, Code, ?MAX_BASIC, false),
     store_code(scalar_exp, Code, ?MAX_BASIC, false),
     store_code(scalar_sub_exp, Code, ?MAX_BASIC, false),
@@ -2829,7 +2820,6 @@ create_code(function_ref = Rule) ->
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
     store_code(Rule, Code, ?MAX_BASIC, false),
-    store_code(collection_expression, Code, ?MAX_BASIC, false),
     store_code(fun_arg, Code, ?MAX_BASIC, false),
     store_code(scalar_exp, Code, ?MAX_BASIC, false),
     store_code(scalar_sub_exp, Code, ?MAX_BASIC, false),
@@ -2852,7 +2842,6 @@ create_code(function_ref_json = Rule) ->
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
     store_code(Rule, Code, ?MAX_BASIC, false),
-    store_code(collection_expression, Code, ?MAX_BASIC, false),
     store_code(fun_arg, Code, ?MAX_BASIC, false),
     store_code(function_ref, Code, ?MAX_BASIC, false),
     store_code(scalar_exp, Code, ?MAX_BASIC, false),
@@ -4380,7 +4369,6 @@ create_code(query_exp = Rule) ->
             || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, false),
-    store_code(collection_expression, Code, ?MAX_BASIC, false),
     store_code(fun_arg, Code, ?MAX_BASIC, false),
     store_code(scalar_exp, Code, ?MAX_BASIC, false),
     store_code(scalar_sub_exp, Code, ?MAX_BASIC, false),
@@ -4461,7 +4449,6 @@ create_code(query_term = Rule) ->
             || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, false),
-    store_code(collection_expression, Code, ?MAX_BASIC, false),
     store_code(fun_arg, Code, ?MAX_BASIC, false),
     store_code(query_exp, Code, ?MAX_STATEMENT_SIMPLE, false),
     store_code(scalar_exp, Code, ?MAX_BASIC, false),
@@ -4484,7 +4471,6 @@ create_code(query_term_json = Rule) ->
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
     store_code(Rule, Code, ?MAX_BASIC, false),
-    store_code(collection_expression, Code, ?MAX_BASIC, false),
     store_code(fun_arg, Code, ?MAX_BASIC, false),
     store_code(query_exp, Code, ?MAX_STATEMENT_SIMPLE, false),
     store_code(query_term, Code, ?MAX_STATEMENT_SIMPLE, false),
@@ -5632,26 +5618,30 @@ create_code(table_alias = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% table_coll_expr ::= TABLE '(' collection_expression ')' ( '(' '+' ')' )?
+%% table_coll_expr ::= TABLE '(' ( column_ref | function_ref | subquery ) ')' ( '(' '+' ')' )?
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(table_coll_expr = Rule) ->
     ?CREATE_CODE_START,
-    [{collection_expression, Collection_Expression}] =
-        ets:lookup(?CODE_TEMPLATES, collection_expression),
-    Collection_Expression_Length = length(Collection_Expression),
+    [{column_ref, Column_Ref}] = ets:lookup(?CODE_TEMPLATES, column_ref),
+    Column_Ref_Length = length(Column_Ref),
+    [{function_ref, Function_Ref}] = ets:lookup(?CODE_TEMPLATES, function_ref),
+    Function_Ref_Length = length(Function_Ref),
+    [{subquery, Subquery}] = ets:lookup(?CODE_TEMPLATES, subquery),
+    Subquery_Length = length(Subquery),
 
     Code =
         [
             lists:append([
                 "Table (",
-                lists:nth(rand:uniform(Collection_Expression_Length),
-                    Collection_Expression),
-                ")",
-                case rand:uniform(2) rem 2 of
-                    1 -> " (+)";
-                    _ -> []
-                end
+                case rand:uniform(3) rem 3 of
+                    1 -> lists:nth(rand:uniform(Column_Ref_Length), Column_Ref);
+                    2 -> lists:nth(rand:uniform(Function_Ref_Length),
+                        Function_Ref);
+                    _ -> lists:nth(rand:uniform(Subquery_Length), Subquery)
+
+                end,
+                ")"
             ])
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],

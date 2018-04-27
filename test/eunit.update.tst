@@ -96,37 +96,37 @@
 % table collection expression
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-"update table (column_1|:b|) (+) set column_1 = value_1".
-"update table (table_1.column_1|:b|) (+) set column_1 = value_1".
-"update table (schema_1.table_1.column_1|:b|) (+) set column_1 = value_1".
-"update table (column_1) (+) set column_1 = value_1".
-"update table (table_1.column_1) (+) set column_1 = value_1".
-"update table (schema_1.table_1.column_1) (+) set column_1 = value_1".
-"update table (column_1(+)) (+) set column_1 = value_1".
-"update table (table_1.column_1(+)) (+) set column_1 = value_1".
-"update table (schema_1.table_1.column_1(+)) (+) set column_1 = value_1".
-"update table (table_1.*) (+) set column_1 = value_1".
-"update table (schema_1.table_1.*) (+) set column_1 = value_1".
+"update table (column_1|:b|) set column_1 = value_1".
+"update table (table_1.column_1|:b|) set column_1 = value_1".
+"update table (schema_1.table_1.column_1|:b|) set column_1 = value_1".
+"update table (column_1) set column_1 = value_1".
+"update table (table_1.column_1) set column_1 = value_1".
+"update table (schema_1.table_1.column_1) set column_1 = value_1".
+"update table (column_1(+)) set column_1 = value_1".
+"update table (table_1.column_1(+)) set column_1 = value_1".
+"update table (schema_1.table_1.column_1(+)) set column_1 = value_1".
+"update table (table_1.*) set column_1 = value_1".
+"update table (schema_1.table_1.*) set column_1 = value_1".
 
-"update table (schema_1.package_1.function_1(arg_1, arg_2)) (+) set column_1 = value_1".
-"update table (package_1.function_1(arg_1, arg_2)) (+) set column_1 = value_1".
-"update table (function_1(arg_1, arg_2)) (+) set column_1 = value_1".
-"update table (max) (+) set column_1 = value_1".
-"update table (max(arg_1, arg_2)) (+) set column_1 = value_1".
-"update table (max(*)) (+) set column_1 = value_1".
-"update table (max(distinct column_1)) (+) set column_1 = value_1".
-"update table (max(all column_1)) (+) set column_1 = value_1".
-"update table (schema_1.package_1.function_1(arg_1, arg_2)|:b[f(p:q)]|) (+) set column_1 = value_1".
-"update table (package_1.function_1(arg_1, arg_2)|:b[f(p:q)]|) (+) set column_1 = value_1".
-"update table (function_1(arg_1, arg_2)|:b[f(p:q)]|) (+) set column_1 = value_1".
-"update table (max|:b[f(p:q)]|) (+) set column_1 = value_1".
-"update table (max(arg_1, arg_2)|:b[f(p:q)]|) (+) set column_1 = value_1".
-"update table (max(*)|:b[f(p:q)]|) (+) set column_1 = value_1".
-"update table (max(distinct column_1)|:b[f(p:q)]|) (+) set column_1 = value_1".
-"update table (max(all column_1)|:b[f(p:q)]|) (+) set column_1 = value_1".
+"update table (schema_1.package_1.function_1(arg_1, arg_2)) set column_1 = value_1".
+"update table (package_1.function_1(arg_1, arg_2)) set column_1 = value_1".
+"update table (function_1(arg_1, arg_2)) set column_1 = value_1".
+"update table (max) set column_1 = value_1".
+"update table (max(arg_1, arg_2)) set column_1 = value_1".
+"update table (max(*)) set column_1 = value_1".
+"update table (max(distinct column_1)) set column_1 = value_1".
+"update table (max(all column_1)) set column_1 = value_1".
+"update table (schema_1.package_1.function_1(arg_1, arg_2)|:b[f(p:q)]|) set column_1 = value_1".
+"update table (package_1.function_1(arg_1, arg_2)|:b[f(p:q)]|) set column_1 = value_1".
+"update table (function_1(arg_1, arg_2)|:b[f(p:q)]|) set column_1 = value_1".
+"update table (max|:b[f(p:q)]|) set column_1 = value_1".
+"update table (max(arg_1, arg_2)|:b[f(p:q)]|) set column_1 = value_1".
+"update table (max(*)|:b[f(p:q)]|) set column_1 = value_1".
+"update table (max(distinct column_1)|:b[f(p:q)]|) set column_1 = value_1".
+"update table (max(all column_1)|:b[f(p:q)]|) set column_1 = value_1".
 
-"update table (select * from table_1) (+) set column_1 = value_1".
-"update table (select column_1, column_2 from table_1) (+) set column_1 = value_1".
+"update table (select * from table_1) set column_1 = value_1".
+"update table (select column_1, column_2 from table_1) set column_1 = value_1".
 
 %% -----------------------------------------------------------------------------
 %% TESTS: UPDATE

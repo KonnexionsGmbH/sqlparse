@@ -45,7 +45,6 @@ Nonterminals
  case_when_then
  case_when_then_list
  close_statement
- collection_expression
  column
  column_commalist
  column_def
@@ -1086,12 +1085,9 @@ any_all_some -> SOME : some.
 
 existence_test -> EXISTS subquery : {exists, '$2'}.
 
-table_coll_expr -> TABLE '(' collection_expression ')'             : {table_coll_expr, '$3', []}.
-table_coll_expr -> TABLE '(' collection_expression ')' '(' '+' ')' : {table_coll_expr, '$3', '+'}.
-
-collection_expression -> column_ref   : '$1'.
-collection_expression -> function_ref : '$1'.
-collection_expression -> subquery     : '$1'.
+table_coll_expr -> TABLE '(' column_ref   ')' : {table_coll_expr, '$3'}.
+table_coll_expr -> TABLE '(' function_ref ')' : {table_coll_expr, '$3'}.
+table_coll_expr -> TABLE '(' subquery     ')' : {table_coll_expr, '$3'}.
 
 subquery -> query_exp : '$1'.
 

@@ -2340,14 +2340,13 @@ fold(_LOpts, _FunState, Ctx, _PTree, {table, _Step, _Pos} = _FoldState) ->
 % table_coll_expr
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(LOpts, _FunState, Ctx, {table_coll_expr, _CollExpr, Optional} = _PTree,
+fold(LOpts, _FunState, Ctx, {table_coll_expr, _CollExpr} = _PTree,
     {table_coll_expr = Rule, Step} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
-    RT = case {LOpts, Step, Optional} of
-             {L, S, _} when L == top_down andalso S == start orelse
-                                L == bottom_up andalso S == 'end' ->
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
                  {"table ("};
-             {_, _, '+'} -> {") (+)"};
              _ -> {")"}
          end,
     ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);

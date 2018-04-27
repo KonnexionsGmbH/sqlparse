@@ -78,7 +78,6 @@
 %%    case_when_then,
 %%    case_when_then_list,
 %%    close_statement,
-%%    collection_expression,
 %%    column,
 %%    column_commalist,
 %%    column_def,

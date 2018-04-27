@@ -2305,26 +2305,20 @@ fold([], _FunState, Ctx, _PTree, {table, Step, Pos} = _FoldState) ->
 % table_coll_expr
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold([], _FunState, Ctx, {table_coll_expr, CollExpr, Optional} = _PTree,
+fold([], _FunState, Ctx, {table_coll_expr, CollExpr} = _PTree,
     {table_coll_expr, Step} = _FoldState)
     when is_binary(CollExpr) ->
     ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
-    RT = case {Step, Optional} of
-             {start, _} -> lists:append([
-                 Ctx,
-                 "table (",
-                 binary_to_list(CollExpr)
-             ]);
-             {'end', '+'} -> Ctx ++ ") (+)";
+    RT = case Step of
+             start -> lists:append([Ctx, "table (", binary_to_list(CollExpr)]);
              _ -> Ctx ++ ")"
          end,
     ?CUSTOM_RESULT(RT);
-fold([], _FunState, Ctx, {table_coll_expr, _CollExpr, Optional} = _PTree,
+fold([], _FunState, Ctx, {table_coll_expr, _CollExpr} = _PTree,
     {table_coll_expr, Step} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
-    RT = case {Step, Optional} of
-             {start, _} -> Ctx ++ "table (";
-             {'end', '+'} -> Ctx ++ ") (+)";
+    RT = case Step of
+             start -> Ctx ++ "table (";
              _ -> Ctx ++ ")"
          end,
     ?CUSTOM_RESULT(RT);

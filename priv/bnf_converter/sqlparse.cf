@@ -1394,19 +1394,13 @@ AnyAllSome03.                     AnyAllSome ::= "SOME" ;
 
 ExistenceTest01.                  ExistenceTest ::= "EXISTS" Subquery ;
 
--- table_coll_expr -> TABLE '(' collection_expression ')'             : {table_coll_expr, '$3', []}.
--- table_coll_expr -> TABLE '(' collection_expression ')' '(' '+' ')' : {table_coll_expr, '$3', '+'}.
+-- table_coll_expr -> TABLE '(' column_ref   ')' : {table_coll_expr, '$3'}.
+-- table_coll_expr -> TABLE '(' function_ref ')' : {table_coll_expr, '$3'}.
+-- table_coll_expr -> TABLE '(' subquery     ')' : {table_coll_expr, '$3'}.
 
-TableCollExprey01.                TableCollExpr ::= "TABLE" "(" CollectioonExpression ")"             ;
-TableCollExprey02.                TableCollExpr ::= "TABLE" "(" CollectioonExpression ")" "(" "+" ")" ;
-
--- collection_expression -> column_ref   : '$1'.
--- collection_expression -> function_ref : '$1'.
--- collection_expression -> subquery     : '$1'.
-
-CollectionExpressiony01.          CollectioonExpression ::= ColumnRef   ;
-CollectionExpressiony02.          CollectioonExpression ::= FunctionRef ;
-CollectionExpressiony03.          CollectioonExpression ::= Subquery    ;
+TableCollExprey01.                TableCollExpr ::= "TABLE" "(" ColumnRef   ")" ;
+TableCollExprey02.                TableCollExpr ::= "TABLE" "(" FunctionRef ")" ;
+TableCollExprey03.                TableCollExpr ::= "TABLE" "(" Subquery    ")" ;
 
 -- subquery -> query_exp                                                                           : '$1'.
 

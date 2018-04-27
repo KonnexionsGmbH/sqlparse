@@ -1230,21 +1230,12 @@ existence_test -> EXISTS subquery                                               
 existence_test ::= 'EXISTS' subquery
 
 /* =============================================================================
-table_coll_expr -> TABLE '(' collection_expression ')'             : {table_coll_expr, '$3', []}.
-table_coll_expr -> TABLE '(' collection_expression ')' '(' '+' ')' : {table_coll_expr, '$3', '+'}.
+table_coll_expr -> TABLE '(' column_ref   ')' : {table_coll_expr, '$3'}.
+table_coll_expr -> TABLE '(' function_ref ')' : {table_coll_expr, '$3'}.
+table_coll_expr -> TABLE '(' subquery     ')' : {table_coll_expr, '$3'}.
 ============================================================================= */
 
-table_coll_expr ::= TABLE '(' collection_expression ')' ( '(' '+' ')' )?
-
-/* =============================================================================
-collection_expression -> column_ref   : '$1'.
-collection_expression -> function_ref : '$1'.
-collection_expression -> subquery     : '$1'.
-============================================================================= */
-
-collection_expression ::= column_ref
-                        | function_ref
-                        | subquery
+table_coll_expr ::= TABLE '(' ( column_ref | function_ref | subquery ) ')'
 
 /* =============================================================================
 subquery -> query_exp                                                                           : '$1'.

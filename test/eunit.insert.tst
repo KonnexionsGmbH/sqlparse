@@ -60,37 +60,37 @@
 % table collection expression
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-"insert into table (column_1|:b|) (+)".
-"insert into table (table_1.column_1|:b|) (+)".
-"insert into table (schema_1.table_1.column_1|:b|) (+)".
-"insert into table (column_1) (+)".
-"insert into table (table_1.column_1) (+)".
-"insert into table (schema_1.table_1.column_1) (+)".
-"insert into table (column_1(+)) (+)".
-"insert into table (table_1.column_1(+)) (+)".
-"insert into table (schema_1.table_1.column_1(+)) (+)".
-"insert into table (table_1.*) (+)".
-"insert into table (schema_1.table_1.*) (+)".
+"insert into table (column_1|:b|)".
+"insert into table (table_1.column_1|:b|)".
+"insert into table (schema_1.table_1.column_1|:b|)".
+"insert into table (column_1)".
+"insert into table (table_1.column_1)".
+"insert into table (schema_1.table_1.column_1)".
+"insert into table (column_1(+))".
+"insert into table (table_1.column_1(+))".
+"insert into table (schema_1.table_1.column_1(+))".
+"insert into table (table_1.*)".
+"insert into table (schema_1.table_1.*)".
 
-"insert into table (schema_1.package_1.function_1(arg_1, arg_2)) (+)".
-"insert into table (package_1.function_1(arg_1, arg_2)) (+)".
-"insert into table (function_1(arg_1, arg_2)) (+)".
-"insert into table (max) (+)".
-"insert into table (max(arg_1, arg_2)) (+)".
-"insert into table (max(*)) (+)".
-"insert into table (max(distinct column_1)) (+)".
-"insert into table (max(all column_1)) (+)".
-"insert into table (schema_1.package_1.function_1(arg_1, arg_2)|:b[f(p:q)]|) (+)".
-"insert into table (package_1.function_1(arg_1, arg_2)|:b[f(p:q)]|) (+)".
-"insert into table (function_1(arg_1, arg_2)|:b[f(p:q)]|) (+)".
-"insert into table (max|:b[f(p:q)]|) (+)".
-"insert into table (max(arg_1, arg_2)|:b[f(p:q)]|) (+)".
-"insert into table (max(*)|:b[f(p:q)]|) (+)".
-"insert into table (max(distinct column_1)|:b[f(p:q)]|) (+)".
-"insert into table (max(all column_1)|:b[f(p:q)]|) (+)".
+"insert into table (schema_1.package_1.function_1(arg_1, arg_2))".
+"insert into table (package_1.function_1(arg_1, arg_2))".
+"insert into table (function_1(arg_1, arg_2))".
+"insert into table (max)".
+"insert into table (max(arg_1, arg_2))".
+"insert into table (max(*))".
+"insert into table (max(distinct column_1))".
+"insert into table (max(all column_1))".
+"insert into table (schema_1.package_1.function_1(arg_1, arg_2)|:b[f(p:q)]|)".
+"insert into table (package_1.function_1(arg_1, arg_2)|:b[f(p:q)]|)".
+"insert into table (function_1(arg_1, arg_2)|:b[f(p:q)]|)".
+"insert into table (max|:b[f(p:q)]|)".
+"insert into table (max(arg_1, arg_2)|:b[f(p:q)]|)".
+"insert into table (max(*)|:b[f(p:q)]|)".
+"insert into table (max(distinct column_1)|:b[f(p:q)]|)".
+"insert into table (max(all column_1)|:b[f(p:q)]|)".
 
-"insert into table (select * from table_1) (+)".
-"insert into table (select column_1, column_2 from table_1) (+)".
+"insert into table (select * from table_1)".
+"insert into table (select column_1, column_2 from table_1)".
 
 %% -----------------------------------------------------------------------------
 %% TESTS: INSERT

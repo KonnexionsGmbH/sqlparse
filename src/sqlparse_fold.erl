@@ -1807,10 +1807,9 @@ fold_i(FType, Fun, LOpts, FunState, Ctx, {Op, _, _} = PTree)
 
 fold_i(FType, Fun, LOpts, FunState, Ctx, {Anchor, {Op, _, _} = JSON, Bracket} =
     PTree)
-    when not (is_atom(Anchor) andalso Anchor == table_coll_expr) andalso
-             ((Op =:= '{}' orelse Op =:= '[]' orelse Op =:= ':' orelse
-                 Op =:= '::' orelse Op =:= '#') andalso
-                 (Bracket =:= [] orelse racket =:= '(')) ->
+    when
+    (Op =:= '{}' orelse Op =:= '[]' orelse Op =:= ':' orelse Op =:= '::' orelse
+        Op =:= '#') andalso (Bracket =:= [] orelse Bracket =:= '(') ->
     ?FOLD_INIT(FunState, Ctx, PTree),
     Rule = jpparse,
     NewCtxS =

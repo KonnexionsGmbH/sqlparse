@@ -1085,6 +1085,12 @@ any_all_some -> SOME : some.
 
 existence_test -> EXISTS subquery : {exists, '$2'}.
 
+% Optional plus (+) is not supported in table_collection_expression:
+%
+% The optional plus (+) is relevant if you are joining the TABLE collection expression with
+% the parent table. The + creates an outer join of the two, so that the query returns rows
+% from the outer table even if the collection expression is null.
+
 table_coll_expr -> TABLE '(' column_ref   ')' : {table_coll_expr, '$3'}.
 table_coll_expr -> TABLE '(' function_ref ')' : {table_coll_expr, '$3'}.
 table_coll_expr -> TABLE '(' subquery     ')' : {table_coll_expr, '$3'}.

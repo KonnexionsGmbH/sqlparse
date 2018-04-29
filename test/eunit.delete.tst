@@ -51,6 +51,42 @@
 "DELETE FROM table_name WHERE some_column=some_value".
 "DELETE FROM table_name".
 
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% table collection expression
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+"delete from table (column_1|:b|)".
+"delete from table (table_1.column_1|:b|)".
+"delete from table (schema_1.table_1.column_1|:b|)".
+"delete from table (column_1)".
+"delete from table (table_1.column_1)".
+"delete from table (schema_1.table_1.column_1)".
+"delete from table (column_1(+))".
+"delete from table (table_1.column_1(+))".
+"delete from table (schema_1.table_1.column_1(+))".
+"delete from table (table_1.*)".
+"delete from table (schema_1.table_1.*)".
+
+"delete from table (schema_1.package_1.function_1(arg_1, arg_2))".
+"delete from table (package_1.function_1(arg_1, arg_2))".
+"delete from table (function_1(arg_1, arg_2))".
+"delete from table (max)".
+"delete from table (max(arg_1, arg_2))".
+"delete from table (max(*))".
+"delete from table (max(distinct column_1))".
+"delete from table (max(all column_1))".
+"delete from table (schema_1.package_1.function_1(arg_1, arg_2)|:b[f(p:q)]|)".
+"delete from table (package_1.function_1(arg_1, arg_2)|:b[f(p:q)]|)".
+"delete from table (function_1(arg_1, arg_2)|:b[f(p:q)]|)".
+"delete from table (max|:b[f(p:q)]|)".
+"delete from table (max(arg_1, arg_2)|:b[f(p:q)]|)".
+"delete from table (max(*)|:b[f(p:q)]|)".
+"delete from table (max(distinct column_1)|:b[f(p:q)]|)".
+"delete from table (max(all column_1)|:b[f(p:q)]|)".
+
+"delete from table (select * from table_1)".
+"delete from table (select column_1, column_2 from table_1)".
+
 %% -----------------------------------------------------------------------------
 %% TESTS: DELETE
 %% =============================================================================

@@ -182,6 +182,7 @@
 %%    system_with_grant_option,
 %%    table,
 %%    table_alias,
+%%    table_coll_expr,
 %%    table_constraint_def,
 %%    table_dblink,
 %%    table_exp,

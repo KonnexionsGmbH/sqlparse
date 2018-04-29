@@ -26,7 +26,7 @@ Header "%% Copyright (C) K2 Informatics GmbH"
 "%% @Author Bikram Chatterjee"
 "%% @Email bikram.chatterjee@k2informatics.ch".
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Nonterminals
  all_distinct
@@ -172,6 +172,7 @@ Nonterminals
  system_with_grant_option
  table
  table_alias
+ table_coll_expr
  table_constraint_def
  table_dblink
  table_exp
@@ -1084,6 +1085,16 @@ any_all_some -> SOME : some.
 
 existence_test -> EXISTS subquery : {exists, '$2'}.
 
+% Optional plus (+) is not supported in table_collection_expression:
+%
+% The optional plus (+) is relevant if you are joining the TABLE collection expression with
+% the parent table. The + creates an outer join of the two, so that the query returns rows
+% from the outer table even if the collection expression is null.
+
+table_coll_expr -> TABLE '(' column_ref   ')' : {table_coll_expr, '$3'}.
+table_coll_expr -> TABLE '(' function_ref ')' : {table_coll_expr, '$3'}.
+table_coll_expr -> TABLE '(' subquery     ')' : {table_coll_expr, '$3'}.
+
 subquery -> query_exp : '$1'.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1185,6 +1196,7 @@ table_dblink -> NAME '.' NAME DBLINK NAME : {as, list_to_binary([unwrap('$1'), "
 table_dblink -> parameter     DBLINK      : {    '$1',                                                                {dblink, unwrap_bin('$2')}}.
 table_dblink -> parameter     DBLINK NAME : {as, '$1',                                              unwrap_bin('$3'), {dblink, unwrap_bin('$2')}}.
 table_dblink -> table_alias               : '$1'.
+table_dblink -> table_coll_expr           : '$1'.
 
 column_ref -> NAME                   JSON        : jpparse(list_to_binary([unwrap('$1'),unwrap('$2')])).
 column_ref -> NAME '.' NAME          JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),unwrap('$4')])).

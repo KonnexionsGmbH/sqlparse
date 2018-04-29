@@ -1091,6 +1091,8 @@ create_code_layer(Version) ->
 %%                  | ( '(' scalar_sub_exp ')' )
 %%                  | ( '(' scalar_sub_exp ')' JSON? )
 %%
+%% table_coll_expr ::= TABLE '(' ( column_ref | function_ref | subquery ) ')'
+%%
 %% table_ref ::= table_dblink
 %%             | ( query_term ( NAME )? )
 %%
@@ -1113,6 +1115,7 @@ create_code_layer(Version) ->
         "2" -> create_code(scalar_sub_exp_json);
         _ -> ok
     end,
+    create_code(table_coll_expr),
     create_code(table_ref),
 
     ok.
@@ -5612,6 +5615,38 @@ create_code(table_alias = Rule) ->
     store_code(from_column, Code, ?MAX_BASIC, false),
     store_code(join_ref, Code, ?MAX_BASIC, false),
     store_code(table_ref, Code, ?MAX_BASIC, false),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% table_coll_expr ::= TABLE '(' ( column_ref | function_ref | subquery ) ')' ( '(' '+' ')' )?
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(table_coll_expr = Rule) ->
+    ?CREATE_CODE_START,
+    [{column_ref, Column_Ref}] = ets:lookup(?CODE_TEMPLATES, column_ref),
+    Column_Ref_Length = length(Column_Ref),
+    [{function_ref, Function_Ref}] = ets:lookup(?CODE_TEMPLATES, function_ref),
+    Function_Ref_Length = length(Function_Ref),
+    [{subquery, Subquery}] = ets:lookup(?CODE_TEMPLATES, subquery),
+    Subquery_Length = length(Subquery),
+
+    Code =
+        [
+            lists:append([
+                "Table (",
+                case rand:uniform(3) rem 3 of
+                    1 -> lists:nth(rand:uniform(Column_Ref_Length), Column_Ref);
+                    2 -> lists:nth(rand:uniform(Function_Ref_Length),
+                        Function_Ref);
+                    _ -> lists:nth(rand:uniform(Subquery_Length), Subquery)
+
+                end,
+                ")"
+            ])
+            || _ <- lists:seq(1, ?MAX_BASIC * 2)
+        ],
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    store_code(table_dblink, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

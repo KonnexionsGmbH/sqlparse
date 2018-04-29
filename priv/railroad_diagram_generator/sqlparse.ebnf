@@ -1230,6 +1230,14 @@ existence_test -> EXISTS subquery                                               
 existence_test ::= 'EXISTS' subquery
 
 /* =============================================================================
+table_coll_expr -> TABLE '(' column_ref   ')' : {table_coll_expr, '$3'}.
+table_coll_expr -> TABLE '(' function_ref ')' : {table_coll_expr, '$3'}.
+table_coll_expr -> TABLE '(' subquery     ')' : {table_coll_expr, '$3'}.
+============================================================================= */
+
+table_coll_expr ::= TABLE '(' ( column_ref | function_ref | subquery ) ')'
+
+/* =============================================================================
 subquery -> query_exp                                                                           : '$1'.
 ============================================================================= */
 
@@ -1414,11 +1422,13 @@ table_dblink -> NAME '.' NAME DBLINK NAME : {as, list_to_binary([unwrap('$1'), "
 table_dblink -> parameter     DBLINK      : {    '$1',                                                                {dblink, unwrap_bin('$2')}}.
 table_dblink -> parameter     DBLINK NAME : {as, '$1',                                              unwrap_bin('$3'), {dblink, unwrap_bin('$2')}}.
 table_dblink -> table_alias               : '$1'.
+table_dblink -> table_coll_expr           : '$1'.
 ============================================================================= */
 
 table_dblink ::= ( ( NAME '.' )? NAME DBLINK ( NAME )? )
                | ( parameter          DBLINK ( NAME )? )
                | table_alias
+               | table_coll_expr
 
 /* =============================================================================
 column_ref -> JSON                                                                              : {jp, jpparse('$1')}.

@@ -2734,6 +2734,23 @@ fold_i(FType, Fun, LOpts, FunState, Ctx, {table = Rule, PTree}) ->
     ?FOLD_RESULT(NewCtxE);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% table_coll_expr
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunState, Ctx, {table_coll_expr = Rule, CollExpr} =
+    PTree) ->
+    ?FOLD_INIT(FunState, Ctx, PTree),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtx1 = case is_binary(CollExpr) of
+                  true -> NewCtxS;
+                  _ -> fold_i(FType, Fun, LOpts, FunState, NewCtxS, CollExpr)
+              end,
+    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % table_constraint_def (<- base_table_element)
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

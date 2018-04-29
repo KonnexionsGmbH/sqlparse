@@ -1394,6 +1394,14 @@ AnyAllSome03.                     AnyAllSome ::= "SOME" ;
 
 ExistenceTest01.                  ExistenceTest ::= "EXISTS" Subquery ;
 
+-- table_coll_expr -> TABLE '(' column_ref   ')' : {table_coll_expr, '$3'}.
+-- table_coll_expr -> TABLE '(' function_ref ')' : {table_coll_expr, '$3'}.
+-- table_coll_expr -> TABLE '(' subquery     ')' : {table_coll_expr, '$3'}.
+
+TableCollExprey01.                TableCollExpr ::= "TABLE" "(" ColumnRef   ")" ;
+TableCollExprey02.                TableCollExpr ::= "TABLE" "(" FunctionRef ")" ;
+TableCollExprey03.                TableCollExpr ::= "TABLE" "(" Subquery    ")" ;
+
 -- subquery -> query_exp                                                                           : '$1'.
 
 Subquery01.                       Subquery ::= QueryExp ;
@@ -1581,6 +1589,7 @@ TableAlias05.                     TableAlias ::= Table                          
 -- table_dblink -> parameter     DBLINK      : {    '$1',                                                                {dblink, unwrap_bin('$2')}}.
 -- table_dblink -> parameter     DBLINK NAME : {as, '$1',                                              unwrap_bin('$3'), {dblink, unwrap_bin('$2')}}.
 -- table_dblink -> table_alias               : '$1'.
+-- table_dblink -> table_coll_expr           : '$1'.
 
 TableDblink01.                    TableDblink ::= "NAME"            "DBLINK"        ;
 TableDblink02.                    TableDblink ::= "NAME"            "DBLINK" "NAME" ;
@@ -1589,6 +1598,7 @@ TableDblink04.                    TableDblink ::= "NAME" "." "NAME" "DBLINK" "NA
 TableDblink05.                    TableDblink ::= Parameter         "DBLINK"        ;
 TableDblink06.                    TableDblink ::= Parameter         "DBLINK" "NAME" ;
 TableDblink07.                    TableDblink ::= TableAlias                        ;
+TableDblink08.                    TableDblink ::= TableCollExpr                     ;
 
 -- column_ref -> JSON                                                                              : {jp, jpparse('$1')}.
 -- column_ref -> NAME     JSON                                                                     : {jp, list_to_binary(unwrap('$1')), jpparse('$2')}.

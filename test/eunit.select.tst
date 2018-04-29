@@ -870,6 +870,51 @@ UNION ALL
 	SELECT i FROM j
 "/utf8>>.
 
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% table collection expression
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+"select * from table (column_1|:b|)".
+"select * from table (table_1.column_1|:b|)".
+"select * from table (schema_1.table_1.column_1|:b|)".
+"select * from table (column_1)".
+"select * from table (table_1.column_1)".
+"select * from table (schema_1.table_1.column_1)".
+"select * from table (column_1(+))".
+"select * from table (table_1.column_1(+))".
+"select * from table (schema_1.table_1.column_1(+))".
+"select * from table (table_1.*)".
+"select * from table (schema_1.table_1.*)".
+
+"select * from table (schema_1.package_1.function_1(arg_1, arg_2))".
+"select * from table (package_1.function_1(arg_1, arg_2))".
+"select * from table (function_1(arg_1, arg_2))".
+"select * from table (max)".
+"select * from table (max(arg_1, arg_2))".
+"select * from table (max(*))".
+"select * from table (max(distinct column_1))".
+"select * from table (max(all column_1))".
+"select * from table (schema_1.package_1.function_1(arg_1, arg_2)|:b[f(p:q)]|)".
+"select * from table (package_1.function_1(arg_1, arg_2)|:b[f(p:q)]|)".
+"select * from table (function_1(arg_1, arg_2)|:b[f(p:q)]|)".
+"select * from table (max|:b[f(p:q)]|)".
+"select * from table (max(arg_1, arg_2)|:b[f(p:q)]|)".
+"select * from table (max(*)|:b[f(p:q)]|)".
+"select * from table (max(distinct column_1)|:b[f(p:q)]|)".
+"select * from table (max(all column_1)|:b[f(p:q)]|)".
+
+"select * from table (select * from table_1)".
+"select * from table (select column_1, column_2 from table_1)".
+
+"
+SELECT *
+FROM TABLE(DBSS.IO.FILE_READ_LOG (
+:SQLT_STR_DIRECTORY,
+:SQLT_STR_FILE_NAME
+))
+order by 1
+".
+
 %% -----------------------------------------------------------------------------
 %% TESTS: SELECT
 %% =============================================================================

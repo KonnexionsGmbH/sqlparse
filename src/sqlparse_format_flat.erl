@@ -2302,6 +2302,28 @@ fold([], _FunState, Ctx, _PTree, {table, Step, Pos} = _FoldState) ->
     ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% table_coll_expr
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx, {table_coll_expr, CollExpr} = _PTree,
+    {table_coll_expr, Step} = _FoldState)
+    when is_binary(CollExpr) ->
+    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([Ctx, "table (", binary_to_list(CollExpr)]);
+             _ -> Ctx ++ ")"
+         end,
+    ?CUSTOM_RESULT(RT);
+fold([], _FunState, Ctx, {table_coll_expr, _CollExpr} = _PTree,
+    {table_coll_expr, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+    RT = case Step of
+             start -> Ctx ++ "table (";
+             _ -> Ctx ++ ")"
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % table_constraint_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

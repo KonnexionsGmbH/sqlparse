@@ -3949,6 +3949,7 @@ break_line(Length, Prefix, Line, Acc) ->
             % erlang:display(io:format(user, "wwe 2 break_line BreakPoint=~p~n", [BreakPoint])),
             case BreakPoint of
                 0 -> Acc ++ [Prefix ++ Line];
+                1 -> Acc ++ [Prefix ++ Line];
                 _ -> % erlang:display(io:format(user, "wwe 2 break_line Line=~p~n", [string:trim(string:slice(Line, 0, BreakPoint - 1), both, " ")])),
                     % erlang:display(io:format(user, "wwe 2 break_line Rest=~p~n", [string:trim(string:slice(Line, BreakPoint - 1), both, " ")])),
                     break_line(Length, Prefix,

@@ -614,7 +614,9 @@ default_MISCELLANEOUS_test_() ->
                 {formatter("MISCELLANEOUS_09", ?MISCELLANEOUS_09,
                     ?MISCELLANEOUS_09_RESULT_DEFAULT, LOpts)},
                 {formatter("MISCELLANEOUS_10", ?MISCELLANEOUS_10,
-                    ?MISCELLANEOUS_10_RESULT_DEFAULT, LOpts)}
+                    ?MISCELLANEOUS_10_RESULT_DEFAULT, LOpts)},
+                {formatter("MISCELLANEOUS_11", ?MISCELLANEOUS_11,
+                    ?MISCELLANEOUS_11_RESULT_DEFAULT, LOpts)}
             ]
         end
     }.

@@ -2464,6 +2464,22 @@ WHERE
     :SQLT_STR_CODE").
 
 %%------------------------------------------------------------------------------
+%% MISCELLANEOUS 11.
+%%------------------------------------------------------------------------------
+
+-define(MISCELLANEOUS_11, "
+select ckey, cvalue from tpac where dderlstag.tpac.cvalue = '{\"NAME\":\"MMS-LA Tariff Search\",\"DESC\":\"Find MMS-LA contracts with given tariff(s). Use single tariff ''1..9'' or ''S/V/X'' as parameter (case sensitive) or pipe-separated list of tariffs ''1|2|3|4|5|6|7|8|9|S|V|X''\",\"PATTERN\":\"\\\"mlprc\\\",\\\"[<*>]\\\"\",\"KEYPATTERN\":[\"tpac\",\"_\",\"mlcon\",\"_\",\"mlprc\"],\"DEFAULT\":\"1\"}' and hd(ckey) = to_string('raw_search')").
+
+-define(MISCELLANEOUS_11_RESULT_DEFAULT, "SELECT
+    Ckey, Cvalue
+FROM
+    Tpac
+WHERE
+    Dderlstag.Tpac.Cvalue =
+    '{\"NAME\":\"MMS-LA Tariff Search\",\"DESC\":\"Find MMS-LA contracts with given tariff(s). Use single tariff ''1..9'' or ''S/V/X'' as parameter (case sensitive) or pipe-separated list of tariffs ''1|2|3|4|5|6|7|8|9|S|V|X''\",\"PATTERN\":\"\\\"mlprc\\\",\\\"[<*>]\\\"\",\"KEYPATTERN\":[\"tpac\",\"_\",\"mlcon\",\"_\",\"mlprc\"],\"DEFAULT\":\"1\"}'
+    AND Hd(Ckey) = To_String('raw_search')").
+
+%%------------------------------------------------------------------------------
 %% MULTIPLE 01 - CREATE.
 %%------------------------------------------------------------------------------
 

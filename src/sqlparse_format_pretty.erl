@@ -3232,7 +3232,7 @@ fold(_LOpts, _FunState, Ctx, _PTree, {table, Step, Pos} = _FoldState) ->
 fold(LOpts, _FunState, Ctx, {table_coll_expr, CollExpr} = _PTree,
     {table_coll_expr, Step} = _FoldState)
     when is_binary(CollExpr) ->
-    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
              start -> lists:append([
                  Ctx,
@@ -3244,7 +3244,7 @@ fold(LOpts, _FunState, Ctx, {table_coll_expr, CollExpr} = _PTree,
     ?CUSTOM_RESULT(RT);
 fold(LOpts, _FunState, Ctx, {table_coll_expr, _CollExpr} = _PTree,
     {table_coll_expr, Step} = _FoldState) ->
-    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
              start -> Ctx ++ format_keyword(LOpts, "table (");
              _ -> Ctx ++ ")"
@@ -4100,7 +4100,7 @@ format_data_type(LOpts, ST)
     format_data_type(LOpts, binary_to_list(ST));
 format_data_type(LOpts, ST) ->
     STLower = string:casefold(ST),
-    case lists:member(ST, ?DATA_TYPES) of
+    case lists:member(STLower, ?DATA_TYPES) of
         true -> format_keyword(LOpts, STLower);
         _ -> format_identifier(LOpts, STLower)
     end.

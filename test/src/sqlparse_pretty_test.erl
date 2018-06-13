@@ -232,6 +232,9 @@ default_CREATE_test_() ->
                     LOpts)},
                 {formatter("CREATE_24", ?CREATE_24,
                     ?CREATE_24_RESULT_DEFAULT,
+                    LOpts)},
+                {formatter("CREATE_25", ?CREATE_25,
+                    ?CREATE_25_RESULT_DEFAULT,
                     LOpts)}
             ]
         end

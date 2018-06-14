@@ -754,6 +754,23 @@ FILTER_WITH
     fun imem_index:iff_binterm_list_1/1.").
 
 %%------------------------------------------------------------------------------
+%% CREATE 25 - TABLE.
+%%------------------------------------------------------------------------------
+
+-define(CREATE_25, "
+CREATE LOCAL ORDERED_SET TABLE TABLE_1
+(COLUMN_1 DATE,
+COLUMN_2 VARCHAR2(30),
+COLUMN_3 NUMBER(5,2))").
+
+-define(CREATE_25_RESULT_DEFAULT, "CREATE LOCAL ORDERED_SET TABLE
+    Table_1 (
+        Column_1 DATE,
+        Column_2 VARCHAR2(30),
+        Column_3 NUMBER(5,2)
+    )").
+
+%%------------------------------------------------------------------------------
 %% DELETE 01 - SIMPLE.
 %%------------------------------------------------------------------------------
 

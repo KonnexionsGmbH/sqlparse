@@ -227,6 +227,7 @@ Terminals
  COMMIT
  COMPARISON
  CONNECT
+ CONSTRAINT
  CONSTRAINTS
  CONTINUE
  CREATE
@@ -614,11 +615,16 @@ column_def_opt -> CHECK '(' search_condition ')'            : {check, '$3'}.
 column_def_opt -> REFERENCES table                          : {ref, '$2'}.
 column_def_opt -> REFERENCES table '(' column_commalist ')' : {ref, {'$2', '$4'}}.
 
-table_constraint_def -> UNIQUE      '(' column_commalist ')'                                           : {unique, '$3'}.
-table_constraint_def -> PRIMARY KEY '(' column_commalist ')'                                           : {'primary key', '$4'}.
-table_constraint_def -> FOREIGN KEY '(' column_commalist ')' REFERENCES table                          : {'foreign key', '$4', {'ref', '$7'}}.
-table_constraint_def -> FOREIGN KEY '(' column_commalist ')' REFERENCES table '(' column_commalist ')' : {'foreign key', '$4', {'ref', {'$7', '$9'}}}.
-table_constraint_def -> CHECK '(' search_condition ')'                                                 : {check, '$3'}.
+table_constraint_def ->                 UNIQUE      '(' column_commalist ')'                                           : {unique,        [],               '$3'}.
+table_constraint_def ->                 PRIMARY KEY '(' column_commalist ')'                                           : {'primary key', [],               '$4'}.
+table_constraint_def ->                 FOREIGN KEY '(' column_commalist ')' REFERENCES table                          : {'foreign key', [],               '$4', {'ref', '$7'}}.
+table_constraint_def ->                 FOREIGN KEY '(' column_commalist ')' REFERENCES table '(' column_commalist ')' : {'foreign key', [],               '$4', {'ref', {'$7', '$9'}}}.
+table_constraint_def ->                 CHECK '(' search_condition ')'                                                 : {check,         [],               '$3'}.
+table_constraint_def -> CONSTRAINT NAME UNIQUE      '(' column_commalist ')'                                           : {unique,        unwrap_bin('$2'), '$5'}.
+table_constraint_def -> CONSTRAINT NAME PRIMARY KEY '(' column_commalist ')'                                           : {'primary key', unwrap_bin('$2'), '$6'}.
+table_constraint_def -> CONSTRAINT NAME FOREIGN KEY '(' column_commalist ')' REFERENCES table                          : {'foreign key', unwrap_bin('$2'), '$6', {'ref', '$9'}}.
+table_constraint_def -> CONSTRAINT NAME FOREIGN KEY '(' column_commalist ')' REFERENCES table '(' column_commalist ')' : {'foreign key', unwrap_bin('$2'), '$6', {'ref', {'$9', '$11'}}}.
+table_constraint_def -> CONSTRAINT NAME CHECK '(' search_condition ')'                                                 : {check,         unwrap_bin('$2'), '$5'}.
 
 column_commalist -> column                      : ['$1'].
 column_commalist -> column ',' column_commalist : ['$1' | '$3'].

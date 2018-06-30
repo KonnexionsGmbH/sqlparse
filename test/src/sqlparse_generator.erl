@@ -5650,10 +5650,10 @@ create_code(table_coll_expr = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% table_constraint_def ::= ( 'UNIQUE'        '(' column_commalist ')' )
-%%                        | ( 'PRIMARY' 'KEY' '(' column_commalist ')' )
-%%                        | ( 'FOREIGN' 'KEY' '(' column_commalist ')' 'REFERENCES' table ( '(' column_commalist ')' )? )
-%%                        | ( 'CHECK' '(' search_condition ')' )
+%% table_constraint_def ::= ( 'CONSTRAINT' NAME )? ( 'UNIQUE'        '(' column_commalist ')' )
+%%                                               | ( 'PRIMARY' 'KEY' '(' column_commalist ')' )
+%%                                               | ( 'FOREIGN' 'KEY' '(' column_commalist ')' 'REFERENCES' table ( '(' column_commalist ')' )? )
+%%                                               | ( 'CHECK' '(' search_condition ')' )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(table_constraint_def = Rule) ->
@@ -5661,6 +5661,8 @@ create_code(table_constraint_def = Rule) ->
     [{column_commalist, Column_Commalist}] =
         ets:lookup(?CODE_TEMPLATES, column_commalist),
     Column_Commalist_Length = length(Column_Commalist),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
+    Name_Length = length(Name),
     [{search_condition, Search_Condition}] =
         ets:lookup(?CODE_TEMPLATES, search_condition),
     Search_Condition_Length = length(Search_Condition),
@@ -5669,43 +5671,51 @@ create_code(table_constraint_def = Rule) ->
 
     Code =
         [
-            case rand:uniform(4) rem 4 of
-                1 -> lists:append([
-                    "Unique (",
-                    lists:nth(rand:uniform(Column_Commalist_Length),
-                        Column_Commalist),
-                    ")"
-                ]);
-                2 -> lists:append([
-                    "Primary Key (",
-                    lists:nth(rand:uniform(Column_Commalist_Length),
-                        Column_Commalist),
-                    ")"
-                ]);
-                3 -> lists:append([
-                    "Foreign Key (",
-                    lists:nth(rand:uniform(Column_Commalist_Length),
-                        Column_Commalist),
-                    ")",
-                    " References ",
-                    lists:nth(rand:uniform(Table_Length), Table),
-                    case rand:uniform(2) rem 2 of
-                        1 -> lists:append([
-                            " (",
-                            lists:nth(rand:uniform(Column_Commalist_Length),
-                                Column_Commalist),
-                            ")"
-                        ]);
-                        _ -> []
-                    end
-                ]);
-                _ -> lists:append([
-                    "Check (",
-                    lists:nth(rand:uniform(Search_Condition_Length),
-                        Search_Condition),
-                    ")"
-                ])
-            end
+                case rand:uniform(2) rem 2 of
+                    1 -> lists:append([
+                        "Constraint ",
+                        lists:nth(rand:uniform(Name_Length), Name),
+                        " "
+                    ]);
+                    _ -> []
+                end ++
+                case rand:uniform(4) rem 4 of
+                    1 -> lists:append([
+                        "Unique (",
+                        lists:nth(rand:uniform(Column_Commalist_Length),
+                            Column_Commalist),
+                        ")"
+                    ]);
+                    2 -> lists:append([
+                        "Primary Key (",
+                        lists:nth(rand:uniform(Column_Commalist_Length),
+                            Column_Commalist),
+                        ")"
+                    ]);
+                    3 -> lists:append([
+                        "Foreign Key (",
+                        lists:nth(rand:uniform(Column_Commalist_Length),
+                            Column_Commalist),
+                        ")",
+                        " References ",
+                        lists:nth(rand:uniform(Table_Length), Table),
+                        case rand:uniform(2) rem 2 of
+                            1 -> lists:append([
+                                " (",
+                                lists:nth(rand:uniform(Column_Commalist_Length),
+                                    Column_Commalist),
+                                ")"
+                            ]);
+                            _ -> []
+                        end
+                    ]);
+                    _ -> lists:append([
+                        "Check (",
+                        lists:nth(rand:uniform(Search_Condition_Length),
+                            Search_Condition),
+                        ")"
+                    ])
+                end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
     store_code(Rule, Code, ?MAX_BASIC, false),

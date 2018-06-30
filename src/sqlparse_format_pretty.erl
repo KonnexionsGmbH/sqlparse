@@ -3255,11 +3255,11 @@ fold(LOpts, _FunState, Ctx, {table_coll_expr, _CollExpr} = _PTree,
 % table_constraint_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(LOpts, FunState, Ctx, {check, _Value} = _PTree,
+fold(LOpts, FunState, Ctx, {check, [], _Value} = _PTree,
     {table_constraint_def, Step, Pos} = _FoldState) ->
     ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
     RT = case {Step, Pos} of
-             {start, _} -> Ctx ++ format_keyword(LOpts, "check(");
+             {start, _} -> Ctx ++ format_keyword(LOpts, "check (");
              {'end', other} -> lists:append([
                  Ctx,
                  "),",
@@ -3270,7 +3270,27 @@ fold(LOpts, FunState, Ctx, {check, _Value} = _PTree,
              {'end', _} -> Ctx ++ ")"
          end,
     ?CUSTOM_RESULT(RT);
-fold(LOpts, FunState, Ctx, {'foreign key' = Type, _, _} = _PTree,
+fold(LOpts, FunState, Ctx, {check, ConstraintName, _Value} = _PTree,
+    {table_constraint_def, Step, Pos} = _FoldState) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case {Step, Pos} of
+             {start, _} -> lists:append([
+                 Ctx,
+                 format_keyword(LOpts, "constraint "),
+                 format_identifier(LOpts, ConstraintName),
+                 format_keyword(LOpts, " check (")
+             ]);
+             {'end', other} -> lists:append([
+                 Ctx,
+                 "),",
+                 ?CHAR_NEWLINE,
+                 format_column_pos(LOpts, FunState#fstate{indent_lvl =
+                 FunState#fstate.indent_lvl + 1})
+             ]);
+             {'end', _} -> Ctx ++ ")"
+         end,
+    ?CUSTOM_RESULT(RT);
+fold(LOpts, FunState, Ctx, {'foreign key' = Type, [], _, _} = _PTree,
     {table_constraint_def, Step, Pos} = _FoldState) ->
     ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
     RT = case {Step, Pos} of
@@ -3285,12 +3305,56 @@ fold(LOpts, FunState, Ctx, {'foreign key' = Type, _, _} = _PTree,
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
-fold(LOpts, FunState, Ctx, {Type, _Value} = _PTree,
+fold(LOpts, FunState, Ctx, {'foreign key' = Type, ConstraintName, _, _} =
+    _PTree,
+    {table_constraint_def, Step, Pos} = _FoldState) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case {Step, Pos} of
+             {start, _} -> lists:append([
+                 Ctx,
+                 format_keyword(LOpts, "constraint "),
+                 format_identifier(LOpts, ConstraintName),
+                 " ",
+                 format_keyword(LOpts, Type)
+             ]);
+             {'end', other} -> lists:append([
+                 Ctx,
+                 ",",
+                 ?CHAR_NEWLINE,
+                 format_column_pos(LOpts, FunState#fstate{indent_lvl =
+                 FunState#fstate.indent_lvl + 1})
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+fold(LOpts, FunState, Ctx, {Type, [], _Value} = _PTree,
     {table_constraint_def, Step, Pos} = _FoldState)
     when is_atom(Type) ->
     ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
     RT = case {Step, Pos} of
              {start, _} -> Ctx ++ format_keyword(LOpts, Type);
+             {'end', other} -> lists:append([
+                 Ctx,
+                 ",",
+                 ?CHAR_NEWLINE,
+                 format_column_pos(LOpts, FunState#fstate{indent_lvl =
+                 FunState#fstate.indent_lvl + 1})
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+fold(LOpts, FunState, Ctx, {Type, ConstraintName, _Value} = _PTree,
+    {table_constraint_def, Step, Pos} = _FoldState)
+    when is_atom(Type) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case {Step, Pos} of
+             {start, _} -> lists:append([
+                 Ctx,
+                 format_keyword(LOpts, "constraint "),
+                 format_identifier(LOpts, ConstraintName),
+                 " ",
+                 format_keyword(LOpts, Type)
+             ]);
              {'end', other} -> lists:append([
                  Ctx,
                  ",",

@@ -2355,7 +2355,7 @@ fold(LOpts, _FunState, Ctx, {table_coll_expr, _CollExpr} = _PTree,
 % table_constraint_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(LOpts, _FunState, Ctx, {check, _Value} = _PTree,
+fold(LOpts, _FunState, Ctx, {check, [], _Value} = _PTree,
     {table_constraint_def = Rule, Step, Pos} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case {LOpts, Step, Pos} of
@@ -2365,7 +2365,22 @@ fold(LOpts, _FunState, Ctx, {check, _Value} = _PTree,
              _ -> none
          end,
     ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
-fold(LOpts, _FunState, Ctx, {'foreign key' = Type, _, _} = _PTree,
+fold(LOpts, _FunState, Ctx, {check, ConstraintName, _Value} = _PTree,
+    {table_constraint_def = Rule, Step, Pos} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step, Pos} of
+             {L, S, _} when L == top_down andalso S == start orelse
+                                L == bottom_up andalso S == 'end' ->
+                 {lists:append([
+                     "constraint ",
+                     binary_to_list(ConstraintName),
+                     " ",
+                     "check"
+                 ])};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+fold(LOpts, _FunState, Ctx, {'foreign key' = Type, [], _, _} = _PTree,
     {table_constraint_def = Rule, Step, Pos} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case {LOpts, Step, Pos} of
@@ -2375,7 +2390,23 @@ fold(LOpts, _FunState, Ctx, {'foreign key' = Type, _, _} = _PTree,
              _ -> none
          end,
     ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
-fold(LOpts, _FunState, Ctx, {Type, _Value} = _PTree,
+fold(LOpts, _FunState, Ctx, {'foreign key' = Type, ConstraintName, _, _} =
+    _PTree,
+    {table_constraint_def = Rule, Step, Pos} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step, Pos} of
+             {L, S, _} when L == top_down andalso S == start orelse
+                                L == bottom_up andalso S == 'end' ->
+                 {lists:append([
+                     "constraint ",
+                     binary_to_list(ConstraintName),
+                     " ",
+                     atom_to_list(Type)
+                 ])};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+fold(LOpts, _FunState, Ctx, {Type, [], _Value} = _PTree,
     {table_constraint_def = Rule, Step, Pos} = _FoldState)
     when is_atom(Type) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
@@ -2383,6 +2414,22 @@ fold(LOpts, _FunState, Ctx, {Type, _Value} = _PTree,
              {L, S, _} when L == top_down andalso S == start orelse
                                 L == bottom_up andalso S == 'end' ->
                  {atom_to_list(Type)};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+fold(LOpts, _FunState, Ctx, {Type, ConstraintName, _Value} = _PTree,
+    {table_constraint_def = Rule, Step, Pos} = _FoldState)
+    when is_atom(Type) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step, Pos} of
+             {L, S, _} when L == top_down andalso S == start orelse
+                                L == bottom_up andalso S == 'end' ->
+                 {lists:append([
+                     "constraint ",
+                     binary_to_list(ConstraintName),
+                     " ",
+                     atom_to_list(Type)
+                 ])};
              _ -> none
          end,
     ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);

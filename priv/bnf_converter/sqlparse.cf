@@ -461,18 +461,27 @@ ColumnDefOpt09.                   ColumnDefOpt ::= "CHECK" "(" SearchCondition "
 ColumnDefOpt10.                   ColumnDefOpt ::= "REFERENCES" Table                         ;
 ColumnDefOpt11.                   ColumnDefOpt ::= "REFERENCES" Table "(" ColumnCommalist ")" ;
 
--- table_constraint_def -> UNIQUE '(' column_commalist ')'                                         : {unique, '$3'}.
--- table_constraint_def -> PRIMARY KEY '(' column_commalist ')'                                    : {'primary key', '$4'}.
--- table_constraint_def -> FOREIGN KEY '(' column_commalist ')' REFERENCES table                   : {'foreign key', '$4', {'ref', '$7'}}.
--- table_constraint_def -> FOREIGN KEY '(' column_commalist ')' REFERENCES table '(' column_commalist ')'
---                                                                                                 : {'foreign key', '$4', {'ref', {'$7', '$9'}}}.
--- table_constraint_def -> CHECK '(' search_condition ')'                                          : {check, '$3'}.
+-- table_constraint_def ->                 UNIQUE      '(' column_commalist ')'                                           : {unique,        [],               '$3'}.
+-- table_constraint_def ->                 PRIMARY KEY '(' column_commalist ')'                                           : {'primary key', [],               '$4'}.
+-- table_constraint_def ->                 FOREIGN KEY '(' column_commalist ')' REFERENCES table                          : {'foreign key', [],               '$4', {'ref', '$7'}}.
+-- table_constraint_def ->                 FOREIGN KEY '(' column_commalist ')' REFERENCES table '(' column_commalist ')' : {'foreign key', [],               '$4', {'ref', {'$7', '$9'}}}.
+-- table_constraint_def ->                 CHECK '(' search_condition ')'                                                 : {check,         [],               '$3'}.
+-- table_constraint_def -> CONSTRAINT NAME UNIQUE      '(' column_commalist ')'                                           : {unique,        unwrap_bin('$2'), '$5'}.
+-- table_constraint_def -> CONSTRAINT NAME PRIMARY KEY '(' column_commalist ')'                                           : {'primary key', unwrap_bin('$2'), '$6'}.
+-- table_constraint_def -> CONSTRAINT NAME FOREIGN KEY '(' column_commalist ')' REFERENCES table                          : {'foreign key', unwrap_bin('$2'), '$6', {'ref', '$9'}}.
+-- table_constraint_def -> CONSTRAINT NAME FOREIGN KEY '(' column_commalist ')' REFERENCES table '(' column_commalist ')' : {'foreign key', unwrap_bin('$2'), '$6', {'ref', {'$9', '$11'}}}.
+-- table_constraint_def -> CONSTRAINT NAME CHECK '(' search_condition ')'                                                 : {check,         unwrap_bin('$2'), '$5'}.
 
-TableConstraintDef01.             TableConstraintDef ::= "UNIQUE"        "(" ColumnCommalist ")"                                            ;
-TableConstraintDef02.             TableConstraintDef ::= "PRIMARY" "KEY" "(" ColumnCommalist ")"                                            ;
-TableConstraintDef03.             TableConstraintDef ::= "FOREIGN" "KEY" "(" ColumnCommalist ")" "REFERENCES" Table                         ;
-TableConstraintDef04.             TableConstraintDef ::= "FOREIGN" "KEY" "(" ColumnCommalist ")" "REFERENCES" Table "(" ColumnCommalist ")" ;
-TableConstraintDef05.             TableConstraintDef ::= "CHECK"         "(" SearchCondition ")"                                            ;
+TableConstraintDef01.             TableConstraintDef ::=                     "UNIQUE"        "(" ColumnCommalist ")"                                            ;
+TableConstraintDef02.             TableConstraintDef ::=                     "PRIMARY" "KEY" "(" ColumnCommalist ")"                                            ;
+TableConstraintDef03.             TableConstraintDef ::=                     "FOREIGN" "KEY" "(" ColumnCommalist ")" "REFERENCES" Table                         ;
+TableConstraintDef04.             TableConstraintDef ::=                     "FOREIGN" "KEY" "(" ColumnCommalist ")" "REFERENCES" Table "(" ColumnCommalist ")" ;
+TableConstraintDef05.             TableConstraintDef ::=                     "CHECK"         "(" SearchCondition ")"                                            ;
+TableConstraintDef06.             TableConstraintDef ::= "CONSTRAINT" "NAME" "UNIQUE"        "(" ColumnCommalist ")"                                            ;
+TableConstraintDef07.             TableConstraintDef ::= "CONSTRAINT" "NAME" "PRIMARY" "KEY" "(" ColumnCommalist ")"                                            ;
+TableConstraintDef08.             TableConstraintDef ::= "CONSTRAINT" "NAME" "FOREIGN" "KEY" "(" ColumnCommalist ")" "REFERENCES" Table                         ;
+TableConstraintDef09.             TableConstraintDef ::= "CONSTRAINT" "NAME" "FOREIGN" "KEY" "(" ColumnCommalist ")" "REFERENCES" Table "(" ColumnCommalist ")" ;
+TableConstraintDef10.             TableConstraintDef ::= "CONSTRAINT" "NAME" "CHECK"         "(" SearchCondition ")"                                            ;
 
 -- column_commalist -> column                                                                      : ['$1'].
 -- column_commalist -> column ',' column_commalist                                                 : ['$1' | '$3'].

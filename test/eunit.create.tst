@@ -233,23 +233,39 @@
 "create table key_test(col1 '{atom,integer}',col2 '{string,binstr}')".
 "CREATE TABLE Persons(P_Id int,LastName varchar2,LastName varchar2(255),FirstName varchar2(255),Address varchar2(255),City varchar2(255),testfield varchar(10))".
 "create table schema_1.table_1(column_1 date,column_2 date,foreign key(fkey_1,fkey_2) references schema_1.table_2(column_8,column_9))".
+"create table schema_1.table_1(column_1 date,column_2 date,constraint constraint_1 foreign key(fkey_1,fkey_2) references schema_1.table_2(column_8,column_9))".
 "create table schema_1.table_1(column_1 date,column_2 date,primary key(pkey_1,pkey_2))".
+"create table schema_1.table_1(column_1 date,column_2 date,constraint constraint_1 primary key(pkey_1,pkey_2))".
 "create table schema_1.table_1(column_1 date,column_2 date,unique(ukey_1,ukey_2))".
+"create table schema_1.table_1(column_1 date,column_2 date,constraint constraint_1 unique(ukey_1,ukey_2))".
 "create table schema_1.table_1(column_1 char(1),column_2 date,foreign key(column_1)references schema_2.table_2(column_3))".
 "create table schema_1.table_1(column_1 char(1),column_2 date,foreign key(column_1)references schema_2.table_2(column_3),foreign key(column_1)references schema_2.table_3(column_3))".
 "create table schema_1.table_1(column_1 char(1),column_2 date,foreign key(column_1)references schema_2.table_2)".
 "create table schema_1.table_1(column_1 char(1),column_2 date,foreign key(column_1,column_2)references schema_2.table_2(column_3,column_4))".
 "create table schema_1.table_1(column_1 char(1),column_2 date,foreign key(column_1,column_2)references schema_2.table_2)".
+"create table schema_1.table_1(column_1 char(1),column_2 date,constraint constraint_1 foreign key(column_1)references schema_2.table_2(column_3))".
+"create table schema_1.table_1(column_1 char(1),column_2 date,constraint constraint_1 foreign key(column_1)references schema_2.table_2(column_3),constraint constraint_2 foreign key(column_1)references schema_2.table_3(column_3))".
+"create table schema_1.table_1(column_1 char(1),column_2 date,constraint constraint_1 foreign key(column_1)references schema_2.table_2)".
+"create table schema_1.table_1(column_1 char(1),column_2 date,constraint constraint_1 foreign key(column_1,column_2)references schema_2.table_2(column_3,column_4))".
+"create table schema_1.table_1(column_1 char(1),column_2 date,constraint constraint_1 foreign key(column_1,column_2)references schema_2.table_2)".
 "create table schema_1.table_1(column_1 char(1),column_2 date,primary key(column_1))".
 "create table schema_1.table_1(column_1 char(1),column_2 date,primary key(column_1,column_2))".
+"create table schema_1.table_1(column_1 char(1),column_2 date,constraint constraint_1 primary key(column_1))".
+"create table schema_1.table_1(column_1 char(1),column_2 date,constraint constraint_1 primary key(column_1,column_2))".
 "create table schema_1.table_1(column_1 char(1),column_2 date,unique(column_1))".
 "create table schema_1.table_1(column_1 char(1),column_2 date,unique(column_1,column_2))".
 "create table schema_1.table_1(column_1 char(1),column_2 date,unique(column_1,column_2),foreign key(column_1,column_2)references schema_2.table_2(column_3,column_4))".
+"create table schema_1.table_1(column_1 char(1),column_2 date,unique(column_1,column_2),constraint constraint_1 foreign key(column_1,column_2)references schema_2.table_2(column_3,column_4))".
+"create table schema_1.table_1(column_1 char(1),column_2 date,constraint constraint_1 unique(column_1))".
+"create table schema_1.table_1(column_1 char(1),column_2 date,constraint constraint_1 unique(column_1,column_2))".
+"create table schema_1.table_1(column_1 char(1),column_2 date,constraint constraint_1 unique(column_1,column_2),foreign key(column_1,column_2)references schema_2.table_2(column_3,column_4))".
+"create table schema_1.table_1(column_1 char(1),column_2 date,constraint constraint_1 unique(column_1,column_2),constraint constraint_1 foreign key(column_1,column_2)references schema_2.table_2(column_3,column_4))".
 "create table schema_1.table_1(column_1 char)".
 "Create Table schema_1.table_1(column_1 date)".
 "Create Table schema_1.table_1(column_1 date,column_2 date,FOREIGN KEY(fkey_1)REFERENCES schema_1.table_2(column_9))".
 "Create Table schema_1.table_1(column_1 date,column_2 date,FOREIGN KEY(fkey_1)REFERENCES schema_1.table_2)".
 "create table table_1(column_1 date,column_2 date,foreign key(fkey_1,fkey_2) references table_2)".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 foreign key(fkey_1,fkey_2) references table_2)".
 "create table table_1(check((1 or 4711)and(2 or 4712)))".
 "create table table_1(check((4711)))".
 "create table table_1(check(1 + 4711 * 2 + 4712))".
@@ -297,6 +313,53 @@
 "create table table_1(check(not 1 or 4711))".
 "create table table_1(check(not 4711))".
 "create table table_1(check(not(1 or 4711)))".
+"create table table_1(constraint constraint_1 check((1 or 4711)and(2 or 4712)))".
+"create table table_1(constraint constraint_1 check((4711)))".
+"create table table_1(constraint constraint_1 check(1 + 4711 * 2 + 4712))".
+"create table table_1(constraint constraint_1 check(1 + 4711 or 2 + 4712))".
+"create table table_1(constraint constraint_1 check(1 + 4711))".
+"create table table_1(constraint constraint_1 check(1 and 4711 or 2 and 4712))".
+"create table table_1(constraint constraint_1 check(1 and 4711))".
+"create table table_1(constraint constraint_1 check(1 or 4711 + 2 or 4712))".
+"create table table_1(constraint constraint_1 check(1 or 4711 and 2 or 4712))".
+"create table table_1(constraint constraint_1 check(1 or 4711))".
+"create table table_1(constraint constraint_1 check(4711 as test))".
+"create table table_1(constraint constraint_1 check(4711 test))".
+"create table table_1(constraint constraint_1 check(4711=4712))".
+"create table table_1(constraint constraint_1 check(4711||4712))".
+"create table table_1(constraint constraint_1 check(function_1((case when 1 then 2 end))))".
+"create table table_1(constraint constraint_1 check(function_1(case 4711 as wwe when 1 then 2 else 3 end)))".
+"create table table_1(constraint constraint_1 check(function_1(case 4711 as wwe when 1 then 2 else 4711 as wwe end)))".
+"create table table_1(constraint constraint_1 check(function_1(case 4711 as wwe when 1 then 2 else 4712 end)))".
+"create table table_1(constraint constraint_1 check(function_1(case 4711 as wwe when 1 then 2 else column_1 end)))".
+"create table table_1(constraint constraint_1 check(function_1(case 4711 as wwe when 1 then 2 else column_1=column_2 end)))".
+"create table table_1(constraint constraint_1 check(function_1(case 4711 as wwe when 1 then 2 end)))".
+"create table table_1(constraint constraint_1 check(function_1(case 4711 as wwe when 1 then 2 when 3 then 4 else 5 end)))".
+"create table table_1(constraint constraint_1 check(function_1(case 4711 as wwe when 1 then 2 when 3 then 4 end)))".
+"create table table_1(constraint constraint_1 check(function_1(case 4711 when 1 then 2 else 3 end)))".
+"create table table_1(constraint constraint_1 check(function_1(case 4711 when 1 then 2 else 4711 as wwe end)))".
+"create table table_1(constraint constraint_1 check(function_1(case 4711 when 1 then 2 else column_1=column_2 end)))".
+"create table table_1(constraint constraint_1 check(function_1(case 4711 when 1 then 2 end)))".
+"create table table_1(constraint constraint_1 check(function_1(case 4711 when 1 then 2 when 3 then 4 else 5 end)))".
+"create table table_1(constraint constraint_1 check(function_1(case 4711 when 1 then 2 when 3 then 4 end)))".
+"create table table_1(constraint constraint_1 check(function_1(case column_1=column_2 when 1 then 2 else 3 end)))".
+"create table table_1(constraint constraint_1 check(function_1(case column_1=column_2 when 1 then 2 else 4711 as wwe end)))".
+"create table table_1(constraint constraint_1 check(function_1(case column_1=column_2 when 1 then 2 else 4711 end)))".
+"create table table_1(constraint constraint_1 check(function_1(case column_1=column_2 when 1 then 2 else column_3=column_4 end)))".
+"create table table_1(constraint constraint_1 check(function_1(case column_1=column_2 when 1 then 2 end)))".
+"create table table_1(constraint constraint_1 check(function_1(case column_1=column_2 when 1 then 2 when 3 then 4 else 5 end)))".
+"create table table_1(constraint constraint_1 check(function_1(case column_1=column_2 when 1 then 2 when 3 then 4 end)))".
+"create table table_1(constraint constraint_1 check(function_1(case when 1 then 2 else 3 end)))".
+"create table table_1(constraint constraint_1 check(function_1(case when 1 then 2 else 4711 as wwe end)))".
+"create table table_1(constraint constraint_1 check(function_1(case when 1 then 2 else column_1=column_2 end)))".
+"create table table_1(constraint constraint_1 check(function_1(case when 1 then 2 end)))".
+"create table table_1(constraint constraint_1 check(function_1(case when 1 then 2 when 3 then 4 else 5 end)))".
+"create table table_1(constraint constraint_1 check(function_1(case when 1 then 2 when 3 then 4 end)))".
+"create table table_1(constraint constraint_1 check(function_1(column_1)))".
+"create table table_1(constraint constraint_1 check(function_1(select * from dual)))".
+"create table table_1(constraint constraint_1 check(not 1 or 4711))".
+"create table table_1(constraint constraint_1 check(not 4711))".
+"create table table_1(constraint constraint_1 check(not(1 or 4711)))".
 "create table table_1(column_1 char)".
 "create table table_1(column_1 date references :param_1)".
 "create table table_1(column_1 date references \"__..__\")".
@@ -524,11 +587,69 @@
 "create table table_1(column_1 date,column_2 date,check(table_1.column_1.*))".
 "create table table_1(column_1 date,column_2 date,check(table_1.column_1|:x:y|))".
 "create table table_1(column_1 date,column_2 date,check(user))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(4711))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(:param_1))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(column_1(+)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(column_1))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(column_1.*))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(column_1|:x:y|))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1((+column_2))))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1((max))),constraint constraint_1 check(function_1((sum))))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1((sum))))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1(+column_2)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1(-column_2)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1(column_1 div column_2)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1(column_1!=column_2)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1(column_1)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1(column_1*column_2)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1(column_1+column_2)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1(column_1,column_2)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1(column_1-column_2)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1(column_1/column_2)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1(column_1<=column_2)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1(column_1<>column_2)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1(column_1<column_2)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1(column_1=column_2)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1(column_1>=column_2)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1(column_1>column_2)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1(column_1^=column_2)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1(column_1||column_2)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1(column_1||column_2*column_3)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1(column_1||column_2*column_3/column_4)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1(max as maximum)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1(max as maximum,sum as summe)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1(max)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1(max,sum)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1(null)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1(null,null)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1(wwe)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(function_1(wwe1,wwe2)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(max))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(max),constraint constraint_1 check(sum))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(null))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(package_1.function_1(column_1)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(package_1.function_1(column_1,column_2)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(schema_1.table_1.column_1(+)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(schema_1.table_1.column_1))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(schema_1.table_1.column_1|:x:y|))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(sum(*)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(sum(all 4711)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(sum(column_1,column_2)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(sum(distinct column_1)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(sum|:x:y|summe))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(table_1.column_1(+)))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(table_1.column_1))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(table_1.column_1.*))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(table_1.column_1|:x:y|))".
+"create table table_1(column_1 date,column_2 date,constraint constraint_1 check(user))".
 "Create Table table_1(column_1 date,column_2 date,FOREIGN KEY(fkey_1)REFERENCES table_2(column_9))".
 "Create Table table_1(column_1 date,column_2 date,FOREIGN KEY(fkey_1)REFERENCES table_2)".
 "create table table_1(column_1 date,foreign key(column_1)references :param_1)".
 "create table table_1(column_1 date,foreign key(column_1)references \"__..__\")".
 "create table table_1(column_1 date,foreign key(column_1)references table_2)".
+"create table table_1(column_1 date,constraint constraint_1 foreign key(column_1)references :param_1)".
+"create table table_1(column_1 date,constraint constraint_1 foreign key(column_1)references \"__..__\")".
+"create table table_1(column_1 date,constraint constraint_1 foreign key(column_1)references table_2)".
 "create table table_1(column_1 number(1,2)not null default 0)".
 "create table table_1(column_1 number(1,2)not null default date)".
 "create table table_1(column_1 number(1,2)not null default function_1(column_1,column_2))".

@@ -62,6 +62,7 @@
     {"^(?i)(CLOSE)$",           'CLOSE'},
     {"^(?i)(COMMIT)$",          'COMMIT'},
     {"^(?i)(CONNECT)$",         'CONNECT'},
+    {"^(?i)(CONSTRAINT)$",      'CONSTRAINT'},
     {"^(?i)(CONSTRAINTS)$",     'CONSTRAINTS'},
     {"^(?i)(CONTINUE)$",        'CONTINUE'},
     {"^(?i)(CREATE)$",          'CREATE'},

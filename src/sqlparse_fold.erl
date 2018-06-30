@@ -344,6 +344,19 @@ fold_i(FType, Fun, LOpts, FunState, Ctx, {case_when_then_list = Rule, PTree}) ->
     ?FOLD_RESULT(NewCtxE);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% check
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunState, Ctx, {check = Rule, _, PTree})
+    when is_binary(PTree) ->
+    ?FOLD_INIT(FunState, Ctx, PTree),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % check & ref
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -412,6 +425,14 @@ fold_i(FType, Fun, LOpts, FunState, Ctx, {check = Rule, {as, Value1, Alias} =
         {Rule, get_start_end(FType, 'end')}),
     ?FOLD_RESULT(NewCtxE);
 fold_i(FType, Fun, LOpts, FunState, Ctx, {check = Rule, PTree}) ->
+    ?FOLD_INIT(FunState, Ctx, PTree),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtx1 = fold_i(FType, Fun, LOpts, FunState, NewCtxS, PTree),
+    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+fold_i(FType, Fun, LOpts, FunState, Ctx, {check = Rule, _, PTree}) ->
     ?FOLD_INIT(FunState, Ctx, PTree),
     NewCtxS =
         Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
@@ -2754,8 +2775,8 @@ fold_i(FType, Fun, LOpts, FunState, Ctx, {table_coll_expr = Rule, CollExpr} =
 % table_constraint_def (<- base_table_element)
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold_i(FType, Fun, LOpts, FunState, Ctx, {base_table_element, Pos, {check, _} =
-    PTree}) ->
+fold_i(FType, Fun, LOpts, FunState, Ctx, {base_table_element, Pos,
+    {check, _, _} = PTree}) ->
     ?FOLD_INIT(FunState, Ctx, PTree),
     Rule = table_constraint_def,
     NewCtxS = Fun(LOpts, FunState, Ctx, PTree,
@@ -2765,7 +2786,7 @@ fold_i(FType, Fun, LOpts, FunState, Ctx, {base_table_element, Pos, {check, _} =
         {Rule, get_start_end(FType, 'end'), Pos}),
     ?FOLD_RESULT(NewCtxE);
 fold_i(FType, Fun, LOpts, FunState, Ctx, {base_table_element, Pos,
-    {'foreign key', Columns, References} = PTree}) ->
+    {'foreign key', _, Columns, References} = PTree}) ->
     ?FOLD_INIT(FunState, Ctx, PTree),
     Rule = table_constraint_def,
     NewCtxS = Fun(LOpts, FunState, Ctx, PTree,
@@ -2779,7 +2800,7 @@ fold_i(FType, Fun, LOpts, FunState, Ctx, {base_table_element, Pos,
         {Rule, get_start_end(FType, 'end'), Pos}),
     ?FOLD_RESULT(NewCtxE);
 fold_i(FType, Fun, LOpts, FunState, Ctx, {base_table_element, Pos,
-    {Type, Columns} = PTree})
+    {Type, _, Columns} = PTree})
     when Type == 'primary key';Type == 'unique' ->
     ?FOLD_INIT(FunState, Ctx, PTree),
     Rule = table_constraint_def,

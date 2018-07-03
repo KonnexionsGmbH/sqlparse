@@ -771,6 +771,114 @@ COLUMN_3 NUMBER(5,2))").
     )").
 
 %%------------------------------------------------------------------------------
+%% CREATE 26 - TABLE.
+%%------------------------------------------------------------------------------
+
+-define(CREATE_26, "
+create table schema_1.table_1 (column_1 date, column_2 date, constraint constraint_1 unique (ukey_1,ukey_2))
+").
+
+-define(CREATE_26_RESULT_DEFAULT, "CREATE TABLE
+    Schema_1.Table_1 (
+        Column_1 DATE,
+        Column_2 DATE,
+        CONSTRAINT Constraint_1 UNIQUE (Ukey_1, Ukey_2)
+    )").
+
+%%------------------------------------------------------------------------------
+%% CREATE 27 - TABLE.
+%%------------------------------------------------------------------------------
+
+-define(CREATE_27, "
+create table table_1 (column_1 date, column_2 date, constraint constraint_1 foreign key (fkey_1,fkey_2) references table_2)").
+
+-define(CREATE_27_RESULT_DEFAULT, "CREATE TABLE
+    Table_1 (
+        Column_1 DATE,
+        Column_2 DATE,
+        CONSTRAINT Constraint_1 FOREIGN KEY (Fkey_1, Fkey_2) REFERENCES Table_2
+    )").
+
+%%------------------------------------------------------------------------------
+%% CREATE 28 - TABLE.
+%%------------------------------------------------------------------------------
+
+-define(CREATE_28, "
+create table schema_1.table_1 (column_1 date, column_2 date, constraint constraint_1 foreign key (fkey_1,fkey_2) references schema_1.table_2 (column_8,column_9))").
+
+-define(CREATE_28_RESULT_DEFAULT, "CREATE TABLE
+    Schema_1.Table_1 (
+        Column_1 DATE,
+        Column_2 DATE,
+        CONSTRAINT Constraint_1 FOREIGN KEY (Fkey_1, Fkey_2) REFERENCES
+        Schema_1.Table_2 (Column_8, Column_9)
+    )").
+
+%%------------------------------------------------------------------------------
+%% CREATE 29 - TABLE.
+%%------------------------------------------------------------------------------
+
+-define(CREATE_29, "
+create table schema_1.table_1 (column_1 date, column_2 date, check (column_8 = column_9))").
+
+-define(CREATE_29_RESULT_DEFAULT, "CREATE TABLE
+    Schema_1.Table_1 (
+        Column_1 DATE,
+        Column_2 DATE,
+        CHECK (Column_8 = Column_9)
+    )").
+
+%%------------------------------------------------------------------------------
+%% CREATE 30 - TABLE.
+%%------------------------------------------------------------------------------
+
+-define(CREATE_30, "
+create table schema_1.table_1 (column_1 date, column_2 date, constraint constraint_1 check (column_8 = column_9))").
+
+-define(CREATE_30_RESULT_DEFAULT, "CREATE TABLE
+    Schema_1.Table_1 (
+        Column_1 DATE,
+        Column_2 DATE,
+        CONSTRAINT Constraint_1 CHECK (Column_8 = Column_9)
+    )").
+
+%%------------------------------------------------------------------------------
+%% CREATE 31 - TABLE.
+%%------------------------------------------------------------------------------
+
+-define(CREATE_31, "
+CREATE TABLE
+    TPAC_UMJTT (
+        cko VARCHAR2(4000),
+        chs VARCHAR2(10),
+        jpo VARCHAR2(4000),
+        tsp DATE,
+        ckt VARCHAR2(100),
+        cvt VARCHAR2(10),
+        cvl VARCHAR2(4000),
+        jky VARCHAR2(100),
+        rdi CHAR(1),
+        hnt VARCHAR2(100),
+        CONSTRAINT t_pk PRIMARY KEY (cko, chs, jpo)
+    )
+").
+
+-define(CREATE_31_RESULT_DEFAULT, "CREATE TABLE
+    Tpac_Umjtt (
+        Cko VARCHAR2(4000),
+        Chs VARCHAR2(10),
+        Jpo VARCHAR2(4000),
+        Tsp DATE,
+        Ckt VARCHAR2(100),
+        Cvt VARCHAR2(10),
+        Cvl VARCHAR2(4000),
+        Jky VARCHAR2(100),
+        Rdi CHAR(1),
+        Hnt VARCHAR2(100),
+        CONSTRAINT T_Pk PRIMARY KEY (Cko, Chs, Jpo)
+    )").
+
+%%------------------------------------------------------------------------------
 %% DELETE 01 - SIMPLE.
 %%------------------------------------------------------------------------------
 

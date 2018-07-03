@@ -2327,7 +2327,7 @@ fold([], _FunState, Ctx, {table_coll_expr, _CollExpr} = _PTree,
 % table_constraint_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold([], _FunState, Ctx, {check, _Value} = _PTree,
+fold([], _FunState, Ctx, {check, [], _Value} = _PTree,
     {table_constraint_def, Step, Pos} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case {Step, Pos} of
@@ -2336,7 +2336,22 @@ fold([], _FunState, Ctx, {check, _Value} = _PTree,
              {'end', _} -> Ctx ++ ")"
          end,
     ?CUSTOM_RESULT(RT);
-fold([], _FunState, Ctx, {'foreign key' = Type, _, _} = _PTree,
+fold([], _FunState, Ctx, {check, ConstraintName, _Value} = _PTree,
+    {table_constraint_def, Step, Pos} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {Step, Pos} of
+             {start, _} ->
+                 lists:append([
+                     Ctx,
+                     "constraint ",
+                     binary_to_list(ConstraintName),
+                     " check ("
+                 ]);
+             {'end', other} -> Ctx ++ "),";
+             {'end', _} -> Ctx ++ ")"
+         end,
+    ?CUSTOM_RESULT(RT);
+fold([], _FunState, Ctx, {'foreign key' = Type, [], _, _} = _PTree,
     {table_constraint_def, Step, Pos} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case {Step, Pos} of
@@ -2345,12 +2360,43 @@ fold([], _FunState, Ctx, {'foreign key' = Type, _, _} = _PTree,
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
-fold([], _FunState, Ctx, {Type, _Value} = _PTree,
+fold([], _FunState, Ctx, {'foreign key' = Type, ConstraintName, _, _} = _PTree,
+    {table_constraint_def, Step, Pos} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {Step, Pos} of
+             {start, _} -> lists:append([
+                 Ctx,
+                 "constraint ",
+                 binary_to_list(ConstraintName),
+                 " ",
+                 atom_to_list(Type)
+             ]);
+             {'end', other} -> Ctx ++ ", ";
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+fold([], _FunState, Ctx, {Type, [], _Value} = _PTree,
     {table_constraint_def, Step, Pos} = _FoldState)
     when is_atom(Type) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case {Step, Pos} of
              {start, _} -> Ctx ++ atom_to_list(Type);
+             {'end', other} -> Ctx ++ ", ";
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+fold([], _FunState, Ctx, {Type, ConstraintName, _Value} = _PTree,
+    {table_constraint_def, Step, Pos} = _FoldState)
+    when is_atom(Type) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {Step, Pos} of
+             {start, _} -> lists:append([
+                 Ctx,
+                 "constraint ",
+                 binary_to_list(ConstraintName),
+                 " ",
+                 atom_to_list(Type)
+             ]);
              {'end', other} -> Ctx ++ ", ";
              _ -> Ctx
          end,

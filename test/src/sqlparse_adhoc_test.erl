@@ -32,8 +32,8 @@
 %% Possible values:
 %%  - bottom_up,
 %%  - check,
-%%  - flat (= default value),
-%%  - full,
+%%  - flat,
+%%  - full (= default value),
 %%  - pretty,
 %%  - top_down
 -define(TEST_VERSION, full).

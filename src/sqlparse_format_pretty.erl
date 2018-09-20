@@ -263,6 +263,38 @@ fold(LOpts, _FunState, Ctx, {_Value, Alias} = _PTree, {as, Step} = _FoldState)
     ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% explicit_as
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, {Value, Alias} = _PTree, {explicit_as, Step} =
+    _FoldState)
+    when is_binary(Value), is_binary(Alias) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 format_identifier(LOpts, Value),
+                 " AS ",
+                 format_identifier(LOpts, Alias)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+fold(LOpts, _FunState, Ctx, {_Value, Alias} = _PTree, {explicit_as, Step} =
+    _FoldState)
+    when is_binary(Alias) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             'end' -> lists:append([
+                 Ctx,
+                 " AS ",
+                 format_identifier(LOpts, Alias)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % assignment
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1371,13 +1403,16 @@ fold(LOpts, FunState, Ctx, _PTree, {fetch_statement, Step} = _FoldState) ->
 % fields
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(_LOpts, _FunState, Ctx, [{as, {Type, _, _}, _} | _] = _PTree,
+fold(_LOpts, _FunState, Ctx, [{Rule, {Type, _, _}, _} | _] = _PTree,
     {fields, _Step} = _FoldState)
-    when Type == intersect;Type == minus; Type == union; Type == 'union all' ->
+    when (Rule == as orelse Rule == explicit_as) andalso
+             (Type == intersect orelse Type == minus orelse Type == union orelse
+                 Type == 'union all') ->
     Ctx;
 
-fold(_LOpts, _FunState, Ctx, [{as, {select, _}, _} | _] = _PTree,
-    {fields, _Step} = _FoldState) ->
+fold(_LOpts, _FunState, Ctx, [{Rule, {select, _}, _} | _] = _PTree,
+    {fields, _Step} = _FoldState)
+    when Rule == as;Rule == explicit_as ->
     Ctx;
 fold(_LOpts, _FunState, Ctx, [{select, _} | _] = _PTree, {fields, _Step} =
     _FoldState) ->

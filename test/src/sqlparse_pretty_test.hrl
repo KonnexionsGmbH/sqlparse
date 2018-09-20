@@ -4719,7 +4719,7 @@ end;").
             (SELECT
                 *
             FROM
-                Dual)) Column_2, Column_3
+                Dual)) AS Column_2, Column_3
     FROM
         Dual;
 END").
@@ -6632,7 +6632,7 @@ from dual").
         (SELECT
             *
         FROM
-            Dual)) Column_2
+            Dual)) AS Column_2
 FROM
     Dual").
 
@@ -6654,7 +6654,7 @@ from dual").
         (SELECT
             *
         FROM
-            Dual)) Column_2
+            Dual)) AS Column_2
 FROM
     Dual").
 
@@ -6676,7 +6676,7 @@ from dual").
         (SELECT
             *
         FROM
-            Dual)) Column_2, Column_3
+            Dual)) AS Column_2, Column_3
 FROM
     Dual").
 
@@ -6697,7 +6697,7 @@ from dual").
         (SELECT
             *
         FROM
-            Dual)) Column_2
+            Dual)) AS Column_2
 FROM
     Dual").
 
@@ -6719,7 +6719,7 @@ from dual").
         (SELECT
             *
         FROM
-            Dual)) Column_2
+            Dual)) AS Column_2
 FROM
     Dual").
 
@@ -6741,7 +6741,7 @@ from dual").
         (SELECT
             *
         FROM
-            Dual)) Column_2, Column_3
+            Dual)) AS Column_2, Column_3
 FROM
     Dual").
 
@@ -6762,7 +6762,7 @@ from dual").
         (SELECT
             *
         FROM
-            Dual)) Column_2
+            Dual)) AS Column_2
 FROM
     Dual").
 
@@ -6784,7 +6784,7 @@ from dual").
         (SELECT
             *
         FROM
-            Dual)) Column_2
+            Dual)) AS Column_2
 FROM
     Dual").
 
@@ -6806,7 +6806,7 @@ from dual").
         (SELECT
             *
         FROM
-            Dual)) Column_2, Column_3
+            Dual)) AS Column_2, Column_3
 FROM
     Dual").
 
@@ -6827,7 +6827,7 @@ from dual").
         (SELECT
             *
         FROM
-            Dual)) Column_2
+            Dual)) AS Column_2
 FROM
     Dual").
 
@@ -6849,7 +6849,7 @@ from dual").
         (SELECT
             *
         FROM
-            Dual)) Column_2
+            Dual)) AS Column_2
 FROM
     Dual").
 
@@ -6871,7 +6871,7 @@ from dual").
         (SELECT
             *
         FROM
-            Dual)) Column_2, Column_3
+            Dual)) AS Column_2, Column_3
 FROM
     Dual").
 

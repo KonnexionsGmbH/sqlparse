@@ -180,6 +180,33 @@ fold(LOpts, _FunState, Ctx, {_Value, Alias} = _PTree, {as = Rule, Step} =
     ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% explicit_as
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, {Value, Alias} = _PTree,
+    {explicit_as = Rule, Step} = _FoldState)
+    when is_binary(Value), is_binary(Alias) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {binary_to_list(Value), binary_to_list(Alias)};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+fold(LOpts, _FunState, Ctx, {_Value, Alias} = _PTree,
+    {explicit_as = Rule, Step} = _FoldState)
+    when is_binary(Alias) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == 'end' orelse
+                             L == bottom_up andalso S == start ->
+                 {binary_to_list(Alias)};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % assignment
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

@@ -1110,8 +1110,8 @@ subquery -> query_exp : '$1'.
 scalar_opt_as_exp -> scalar_exp                       : '$1'.
 scalar_opt_as_exp -> scalar_exp '='        scalar_exp : {'=',          '$1', '$3'}.
 scalar_opt_as_exp -> scalar_exp COMPARISON scalar_exp : {unwrap('$2'), '$1', '$3'}.
-scalar_opt_as_exp -> scalar_exp    NAME               : {as, '$1', unwrap_bin('$2')}.
-scalar_opt_as_exp -> scalar_exp AS NAME               : {as, '$1', unwrap_bin('$3')}.
+scalar_opt_as_exp -> scalar_exp    NAME               : {as,           '$1', unwrap_bin('$2')}.
+scalar_opt_as_exp -> scalar_exp AS NAME               : {explicit_as,  '$1', unwrap_bin('$3')}.
 
 scalar_exp -> scalar_sub_exp '||' scalar_exp : {'||','$1','$3'}.
 scalar_exp -> scalar_sub_exp                 : '$1'.

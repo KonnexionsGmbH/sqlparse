@@ -198,8 +198,8 @@ fold_i(FType, Fun, LOpts, FunState, Ctx, {anchor = Rule, Anchor, Bracket} =
 % as
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold_i(FType, Fun, LOpts, FunState, Ctx, {as = Rule, Value, Alias})
-    when is_binary(Alias) ->
+fold_i(FType, Fun, LOpts, FunState, Ctx, {Rule, Value, Alias})
+    when (Rule == as orelse Rule == explicit_as) andalso is_binary(Alias) ->
     ?FOLD_INIT(FunState, Ctx, {Value, Alias}),
     NewCtxS = Fun(LOpts, FunState, Ctx, {Value, Alias},
         {Rule, get_start_end(FType, start)}),

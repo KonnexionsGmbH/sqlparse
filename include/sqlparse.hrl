@@ -33,4 +33,7 @@
                   [?MODULE, ?FUNCTION_NAME, ?LINE | Args])).
 -endif.
 
+-define(E(Format), ?E(Format, [])).
+-define(E(Format, Args), io:format(user, "~p:~p:~p ===> "Format, [?MODULE, ?FUNCTION_NAME, ?LINE | Args])).
+
 -endif.

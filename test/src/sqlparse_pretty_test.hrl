@@ -4719,7 +4719,7 @@ end;").
             (SELECT
                 *
             FROM
-                Dual)) AS Column_2, Column_3
+                Dual)) Column_2, Column_3
     FROM
         Dual;
 END").
@@ -6003,6 +6003,25 @@ GROUP BY
     Column_1)|:_a::b::c|").
 
 %%------------------------------------------------------------------------------
+%% SELECT 32 - ALIAS.
+%%------------------------------------------------------------------------------
+
+-define(SELECT_32, "
+SELECT
+    ID, cast(time_stamp as date), LOGGER_LEVEL, TEXT, SCOPE, MODULE, ACTION,
+    USER_NAME, CLIENT_IDENTIFIER, CALL_STACK, UNIT_NAME, LINE_NO, SCN, SID,
+    CLIENT_INFO
+FROM
+    DBSSX.LOGGER_LOGS").
+
+-define(SELECT_32_RESULT_DEFAULT, "SELECT
+    Id, Cast(Time_Stamp AS Date), Logger_Level, Text, Scope, Module, Action,
+    User_Name, Client_Identifier, Call_Stack, Unit_Name, Line_No, Scn, Sid,
+    Client_Info
+FROM
+    Dbssx.Logger_Logs").
+
+%%------------------------------------------------------------------------------
 %% STRUCTURE 01 - sinple subquery.
 %%------------------------------------------------------------------------------
 
@@ -6632,7 +6651,7 @@ from dual").
         (SELECT
             *
         FROM
-            Dual)) AS Column_2
+            Dual)) Column_2
 FROM
     Dual").
 
@@ -6654,7 +6673,7 @@ from dual").
         (SELECT
             *
         FROM
-            Dual)) AS Column_2
+            Dual)) Column_2
 FROM
     Dual").
 
@@ -6676,7 +6695,7 @@ from dual").
         (SELECT
             *
         FROM
-            Dual)) AS Column_2, Column_3
+            Dual)) Column_2, Column_3
 FROM
     Dual").
 
@@ -6697,7 +6716,7 @@ from dual").
         (SELECT
             *
         FROM
-            Dual)) AS Column_2
+            Dual)) Column_2
 FROM
     Dual").
 
@@ -6719,7 +6738,7 @@ from dual").
         (SELECT
             *
         FROM
-            Dual)) AS Column_2
+            Dual)) Column_2
 FROM
     Dual").
 
@@ -6741,7 +6760,7 @@ from dual").
         (SELECT
             *
         FROM
-            Dual)) AS Column_2, Column_3
+            Dual)) Column_2, Column_3
 FROM
     Dual").
 
@@ -6762,7 +6781,7 @@ from dual").
         (SELECT
             *
         FROM
-            Dual)) AS Column_2
+            Dual)) Column_2
 FROM
     Dual").
 
@@ -6784,7 +6803,7 @@ from dual").
         (SELECT
             *
         FROM
-            Dual)) AS Column_2
+            Dual)) Column_2
 FROM
     Dual").
 
@@ -6806,7 +6825,7 @@ from dual").
         (SELECT
             *
         FROM
-            Dual)) AS Column_2, Column_3
+            Dual)) Column_2, Column_3
 FROM
     Dual").
 
@@ -6827,7 +6846,7 @@ from dual").
         (SELECT
             *
         FROM
-            Dual)) AS Column_2
+            Dual)) Column_2
 FROM
     Dual").
 
@@ -6849,7 +6868,7 @@ from dual").
         (SELECT
             *
         FROM
-            Dual)) AS Column_2
+            Dual)) Column_2
 FROM
     Dual").
 
@@ -6871,7 +6890,7 @@ from dual").
         (SELECT
             *
         FROM
-            Dual)) AS Column_2, Column_3
+            Dual)) Column_2, Column_3
 FROM
     Dual").
 

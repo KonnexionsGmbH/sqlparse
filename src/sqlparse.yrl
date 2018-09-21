@@ -1110,8 +1110,8 @@ subquery -> query_exp : '$1'.
 scalar_opt_as_exp -> scalar_exp                       : '$1'.
 scalar_opt_as_exp -> scalar_exp '='        scalar_exp : {'=',          '$1', '$3'}.
 scalar_opt_as_exp -> scalar_exp COMPARISON scalar_exp : {unwrap('$2'), '$1', '$3'}.
-scalar_opt_as_exp -> scalar_exp    NAME               : {as,           '$1', unwrap_bin('$2')}.
-scalar_opt_as_exp -> scalar_exp AS NAME               : {explicit_as,  '$1', unwrap_bin('$3')}.
+scalar_opt_as_exp -> scalar_exp    NAME               : {as, '$1', unwrap_bin('$2')}.
+scalar_opt_as_exp -> scalar_exp AS NAME               : {as, '$1', unwrap_bin('$3')}.
 
 scalar_exp -> scalar_sub_exp '||' scalar_exp : {'||','$1','$3'}.
 scalar_exp -> scalar_sub_exp                 : '$1'.
@@ -1170,8 +1170,8 @@ fun_arg -> unary_add_or_subtract fun_arg : {'$1', '$2'}.
 fun_arg -> NULLX                         : <<"NULL">>.
 fun_arg -> atom                          : '$1'.
 fun_arg -> subquery                      : '$1'.
-fun_arg -> fun_arg    NAME               : {as, '$1', unwrap_bin('$2')}.
-fun_arg -> fun_arg AS NAME               : {as, '$1', unwrap_bin('$3')}.
+fun_arg -> fun_arg    NAME               : {as,          '$1', unwrap_bin('$2')}.
+fun_arg -> fun_arg AS NAME               : {explicit_as, '$1', unwrap_bin('$3')}.
 fun_arg -> fun_arg '='        fun_arg    : {'=',          '$1', '$3'}.
 fun_arg -> fun_arg COMPARISON fun_arg    : {unwrap('$2'), '$1', '$3'}.
 fun_arg -> case_when_exp                 : '$1'.

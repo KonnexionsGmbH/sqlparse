@@ -266,8 +266,7 @@ fold(LOpts, _FunState, Ctx, {_Value, Alias} = _PTree, {as, Step} = _FoldState)
 % explicit_as
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(LOpts, _FunState, Ctx, {Value, Alias} = _PTree, {explicit_as, Step} =
-    _FoldState)
+fold(LOpts, _FunState, Ctx, {Value, Alias} = _PTree, {explicit_as, Step} = _FoldState)
     when is_binary(Value), is_binary(Alias) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
@@ -280,8 +279,7 @@ fold(LOpts, _FunState, Ctx, {Value, Alias} = _PTree, {explicit_as, Step} =
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
-fold(LOpts, _FunState, Ctx, {_Value, Alias} = _PTree, {explicit_as, Step} =
-    _FoldState)
+fold(LOpts, _FunState, Ctx, {_Value, Alias} = _PTree, {explicit_as, Step} = _FoldState)
     when is_binary(Alias) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
@@ -1403,16 +1401,13 @@ fold(LOpts, FunState, Ctx, _PTree, {fetch_statement, Step} = _FoldState) ->
 % fields
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(_LOpts, _FunState, Ctx, [{Rule, {Type, _, _}, _} | _] = _PTree,
+fold(_LOpts, _FunState, Ctx, [{as, {Type, _, _}, _} | _] = _PTree,
     {fields, _Step} = _FoldState)
-    when (Rule == as orelse Rule == explicit_as) andalso
-             (Type == intersect orelse Type == minus orelse Type == union orelse
-                 Type == 'union all') ->
+    when Type == intersect;Type == minus; Type == union; Type == 'union all' ->
     Ctx;
 
-fold(_LOpts, _FunState, Ctx, [{Rule, {select, _}, _} | _] = _PTree,
-    {fields, _Step} = _FoldState)
-    when Rule == as;Rule == explicit_as ->
+fold(_LOpts, _FunState, Ctx, [{as, {select, _}, _} | _] = _PTree,
+    {fields, _Step} = _FoldState) ->
     Ctx;
 fold(_LOpts, _FunState, Ctx, [{select, _} | _] = _PTree, {fields, _Step} =
     _FoldState) ->

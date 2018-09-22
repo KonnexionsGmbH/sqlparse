@@ -1033,6 +1033,9 @@ default_SELECT_test_() ->
                     LOpts)},
                 {formatter("SELECT_31", ?SELECT_31,
                     ?SELECT_31_RESULT_DEFAULT,
+                    LOpts)},
+                {formatter("SELECT_32", ?SELECT_32,
+                    ?SELECT_32_RESULT_DEFAULT,
                     LOpts)}
             ]
         end

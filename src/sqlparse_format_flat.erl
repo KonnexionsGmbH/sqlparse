@@ -168,6 +168,28 @@ fold([], _FunState, Ctx, {_Value, Alias} = _PTree, {as, Step} = _FoldState)
     ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% explicit_as
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx, {Value, Alias} = _PTree, {explicit_as, Step} = _FoldState)
+    when is_binary(Value), is_binary(Alias) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append(
+                 [Ctx, binary_to_list(Value), " as ", binary_to_list(Alias)]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+fold([], _FunState, Ctx, {_Value, Alias} = _PTree, {explicit_as, Step} = _FoldState)
+    when is_binary(Alias) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             'end' -> lists:append([Ctx, " as ", binary_to_list(Alias)]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % assignment
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -2308,7 +2330,7 @@ fold([], _FunState, Ctx, _PTree, {table, Step, Pos} = _FoldState) ->
 fold([], _FunState, Ctx, {table_coll_expr, CollExpr} = _PTree,
     {table_coll_expr, Step} = _FoldState)
     when is_binary(CollExpr) ->
-    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
              start -> lists:append([Ctx, "table (", binary_to_list(CollExpr)]);
              _ -> Ctx ++ ")"
@@ -2316,7 +2338,7 @@ fold([], _FunState, Ctx, {table_coll_expr, CollExpr} = _PTree,
     ?CUSTOM_RESULT(RT);
 fold([], _FunState, Ctx, {table_coll_expr, _CollExpr} = _PTree,
     {table_coll_expr, Step} = _FoldState) ->
-    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
              start -> Ctx ++ "table (";
              _ -> Ctx ++ ")"

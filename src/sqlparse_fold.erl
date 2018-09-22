@@ -198,8 +198,8 @@ fold_i(FType, Fun, LOpts, FunState, Ctx, {anchor = Rule, Anchor, Bracket} =
 % as
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold_i(FType, Fun, LOpts, FunState, Ctx, {as = Rule, Value, Alias})
-    when is_binary(Alias) ->
+fold_i(FType, Fun, LOpts, FunState, Ctx, {Rule, Value, Alias})
+    when (Rule == as orelse Rule == explicit_as) andalso is_binary(Alias) ->
     ?FOLD_INIT(FunState, Ctx, {Value, Alias}),
     NewCtxS = Fun(LOpts, FunState, Ctx, {Value, Alias},
         {Rule, get_start_end(FType, start)}),
@@ -414,16 +414,6 @@ fold_i(FType, Fun, LOpts, FunState, Ctx, {Type = Rule, {'fun', _, _} = PTree})
 % check
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold_i(FType, Fun, LOpts, FunState, Ctx, {check = Rule, {as, Value1, Alias} =
-    PTree})
-    when is_binary(Value1), is_binary(Alias) ->
-    ?FOLD_INIT(FunState, Ctx, PTree),
-    NewCtxS =
-        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
-    NewCtx1 = fold_i(FType, Fun, LOpts, FunState, NewCtxS, PTree),
-    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
-        {Rule, get_start_end(FType, 'end')}),
-    ?FOLD_RESULT(NewCtxE);
 fold_i(FType, Fun, LOpts, FunState, Ctx, {check = Rule, PTree}) ->
     ?FOLD_INIT(FunState, Ctx, PTree),
     NewCtxS =
@@ -1245,17 +1235,6 @@ fold_i(FType, Fun, LOpts, FunState, Ctx,
         {Rule, get_start_end(FType, 'end'), Pos}),
     ?FOLD_RESULT(NewCtxE);
 
-fold_i(FType, Fun, LOpts, FunState, Ctx,
-    {fun_arg = Rule, Pos, {as, {'fun', _, _} = Value, Alias} = PTree})
-    when is_binary(Alias) ->
-    ?FOLD_INIT(FunState, Ctx, PTree),
-    NewCtxS = Fun(LOpts, FunState, Ctx, PTree,
-        {Rule, get_start_end(FType, start), Pos}),
-    NewCtx1 =
-        fold_i(FType, Fun, LOpts, FunState, NewCtxS, {function_ref, Value}),
-    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
-        {Rule, get_start_end(FType, 'end'), Pos}),
-    ?FOLD_RESULT(NewCtxE);
 fold_i(FType, Fun, LOpts, FunState, Ctx, {fun_arg = Rule, Pos, {'fun', _, _} =
     PTree}) ->
     ?FOLD_INIT(FunState, Ctx, PTree),

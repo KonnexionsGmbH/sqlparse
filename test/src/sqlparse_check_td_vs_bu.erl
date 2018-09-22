@@ -156,9 +156,10 @@ fold(LOpts, _FunState, Ctx, {Anchor, _Bracket} = _PTree,
 % as
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(LOpts, _FunState, Ctx, {Value, Alias} = _PTree, {as = Rule, Step} =
+fold(LOpts, _FunState, Ctx, {Value, Alias} = _PTree, {Rule, Step} =
     _FoldState)
-    when is_binary(Value), is_binary(Alias) ->
+    when (Rule == as orelse Rule == explicit_as) andalso is_binary(Value) andalso
+             is_binary(Alias) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case {LOpts, Step} of
              {L, S} when L == top_down andalso S == start orelse
@@ -167,9 +168,9 @@ fold(LOpts, _FunState, Ctx, {Value, Alias} = _PTree, {as = Rule, Step} =
              _ -> none
          end,
     ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
-fold(LOpts, _FunState, Ctx, {_Value, Alias} = _PTree, {as = Rule, Step} =
+fold(LOpts, _FunState, Ctx, {_Value, Alias} = _PTree, {Rule, Step} =
     _FoldState)
-    when is_binary(Alias) ->
+    when (Rule == as orelse Rule == explicit_as) andalso is_binary(Alias) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case {LOpts, Step} of
              {L, S} when L == top_down andalso S == 'end' orelse

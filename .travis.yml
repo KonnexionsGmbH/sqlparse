@@ -4,7 +4,6 @@ install:
 language: erlang
 otp_release:
   - 20.3
-  - 20.2
 before_script:
  - kerl list installations
 script:

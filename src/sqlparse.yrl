@@ -1144,15 +1144,19 @@ parameter_ref -> parameter                     : '$1'.
 parameter_ref -> parameter           parameter : {'$1', '$2'}.
 parameter_ref -> parameter INDICATOR parameter : {indicator, '$1', '$3'}.
 
-function_ref -> NAME '.' NAME '.' NAME '(' fun_args ')' : {'fun', list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]), make_list('$7')}.
-function_ref -> NAME '.' NAME '(' fun_args ')'          : {'fun', list_to_binary([unwrap('$1'),".",unwrap('$3')]),make_list('$5')}.
-function_ref -> NAME '(' fun_args ')'                   : {'fun', unwrap_bin('$1'), make_list('$3')}.
-function_ref -> FUNS                                    : {'fun', unwrap_bin('$1'), []}.
-function_ref -> FUNS '(' fun_args ')'                   : {'fun', unwrap_bin('$1'), make_list('$3')}.
-function_ref -> FUNS '(' '*' ')'                        : {'fun', unwrap_bin('$1'), [<<"*">>]}.
-function_ref -> FUNS '(' DISTINCT column_ref ')'        : {'fun', unwrap_bin('$1'), [{distinct, '$4'}]}.
-function_ref -> FUNS '(' ALL      scalar_exp ')'        : {'fun', unwrap_bin('$1'), [{all,      '$4'}]}.
 function_ref -> function_ref JSON                       : {'$1', jpparse(list_to_binary([unwrap('$2')])), []}.
+function_ref -> FUNS                                    : {'fun', unwrap_bin('$1'), []}.
+function_ref -> FUNS '('          ')'                   : {'fun', unwrap_bin('$1'), []}.
+function_ref -> FUNS '(' '*' ')'                        : {'fun', unwrap_bin('$1'), [<<"*">>]}.
+function_ref -> FUNS '(' ALL      scalar_exp ')'        : {'fun', unwrap_bin('$1'), [{all,      '$4'}]}.
+function_ref -> FUNS '(' DISTINCT column_ref ')'        : {'fun', unwrap_bin('$1'), [{distinct, '$4'}]}.
+function_ref -> FUNS '(' fun_args ')'                   : {'fun', unwrap_bin('$1'), make_list('$3')}.
+function_ref -> NAME                   '('          ')' : {'fun', unwrap_bin('$1'), []}.
+function_ref -> NAME                   '(' fun_args ')' : {'fun', unwrap_bin('$1'), make_list('$3')}.
+function_ref -> NAME '.' NAME          '('          ')' : {'fun', list_to_binary([unwrap('$1'), ".", unwrap('$3')]), []}.
+function_ref -> NAME '.' NAME          '(' fun_args ')' : {'fun', list_to_binary([unwrap('$1'), ".", unwrap('$3')]), make_list('$5')}.
+function_ref -> NAME '.' NAME '.' NAME '('          ')' : {'fun', list_to_binary([unwrap('$1'), ".", unwrap('$3'), ".", unwrap('$5')]), []}.
+function_ref -> NAME '.' NAME '.' NAME '(' fun_args ')' : {'fun', list_to_binary([unwrap('$1'), ".", unwrap('$3'), ".", unwrap('$5')]), make_list('$7')}.
 
 fun_args -> fun_arg              : ['$1'].
 fun_args -> fun_arg ',' fun_args : ['$1' | '$3'].

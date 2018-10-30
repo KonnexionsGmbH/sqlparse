@@ -1555,7 +1555,7 @@ group by decode,decode(param_1,param_2),decode(*),decode(distinct column_1),deco
 FROM
     Dual
 GROUP BY
-    DECODE, DECODE(Param_1, Param_2), DECODE(*), DECODE(DISTINCT Column_1),
+    DECODE(), DECODE(Param_1, Param_2), DECODE(*), DECODE(DISTINCT Column_1),
     DECODE(ALL 6)").
 
 %%------------------------------------------------------------------------------
@@ -4123,8 +4123,8 @@ end;").
     FROM
         Dual
     GROUP BY
-        DECODE, DECODE(Param_1, Param_2), DECODE(*), DECODE(DISTINCT Column_1),
-        DECODE(ALL 6);
+        DECODE(), DECODE(Param_1, Param_2), DECODE(*), DECODE(DISTINCT Column_1)
+        , DECODE(ALL 6);
     SELECT
         *
     FROM

@@ -1591,6 +1591,24 @@ fold(_LOpts, _FunState, Ctx, _PTree, {fun_arg_commalist, Step} = _FoldState) ->
 % function_ref
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+fold(LOpts, FunState, Ctx, {'fun', Name, []} = _PTree, {function_ref, Step} =
+    _FoldState) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    {Stmnt, _, _} = sqlparse_fold:get_stmnt_clause_curr(FunState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 case Stmnt of
+                     procedure_call ->
+                         ?CHAR_NEWLINE ++ format_column_pos(LOpts, FunState);
+                     _ -> []
+                 end,
+                 format_identifier(LOpts, Name),
+                 "()"
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
 fold(LOpts, FunState, Ctx, {'fun', Name, _} = _PTree, {function_ref, Step} =
     _FoldState) ->
     ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),

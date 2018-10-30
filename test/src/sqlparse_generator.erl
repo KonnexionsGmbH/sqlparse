@@ -704,8 +704,8 @@ create_code_layer(Version) ->
 %% ==> predicate                           == predicate = ... between_predicate ...
 %% ==> search_condition                    == search_condition = ... predicate ...
 %%
-%% function_ref ::= ( ( ( NAME '.' )?  NAME '.' )? NAME '(' fun_args ')' )
-%%                | ( 'FUNS' ( '(' ( fun_args | '*' | ( 'DISTINCT' column_ref ) | ( 'ALL' scalar_exp ) ) ')' )? )
+%% function_ref ::= ( ( ( NAME '.' )?  NAME '.' )? NAME '(' fun_args? ')' )
+%%                | ( 'FUNS' ( '(' ( fun_args | '*' | ( 'DISTINCT' column_ref ) | ( 'ALL' scalar_exp ) )? ')' )? )
 %%                | ( function_ref JSON )
 %%
 %% ==> fun_arg                             == fun_arg = ... function_ref ...
@@ -2747,8 +2747,8 @@ create_code(fun_args = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% function_ref ::= ( ( ( NAME '.' )?  NAME '.' )? NAME '(' fun_args ')' )
-%%                | ( 'FUNS' ( '(' ( fun_args | '*' | ( 'DISTINCT' column_ref ) | ( 'ALL' scalar_exp ) ) ')' )? )
+%% function_ref ::= ( ( ( NAME '.' )?  NAME '.' )? NAME '(' fun_args? ')' )
+%%                | ( 'FUNS' ( '(' ( fun_args | '*' | ( 'DISTINCT' column_ref ) | ( 'ALL' scalar_exp ) )? ')' )? )
 %%                | ( function_ref JSON )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -2768,8 +2768,16 @@ create_code(function_ref = Rule) ->
     Code =
         [
             case rand:uniform(2) rem 2 of
-                1 -> case rand:uniform(3) rem 3 of
+                1 -> case rand:uniform(6) rem 6 of
                          1 -> lists:append([
+                             lists:nth(rand:uniform(Name_Length), Name),
+                             ".",
+                             lists:nth(rand:uniform(Name_Length), Name),
+                             ".",
+                             lists:nth(rand:uniform(Name_Length), Name),
+                             " ()"
+                         ]);
+                         2 -> lists:append([
                              lists:nth(rand:uniform(Name_Length), Name),
                              ".",
                              lists:nth(rand:uniform(Name_Length), Name),
@@ -2779,13 +2787,23 @@ create_code(function_ref = Rule) ->
                              lists:nth(rand:uniform(Fun_Args_Length), Fun_Args),
                              ")"
                          ]);
-                         2 -> lists:append([
+                         3 -> lists:append([
+                             lists:nth(rand:uniform(Name_Length), Name),
+                             ".",
+                             lists:nth(rand:uniform(Name_Length), Name),
+                             " ()"
+                         ]);
+                         4 -> lists:append([
                              lists:nth(rand:uniform(Name_Length), Name),
                              ".",
                              lists:nth(rand:uniform(Name_Length), Name),
                              " (",
                              lists:nth(rand:uniform(Fun_Args_Length), Fun_Args),
                              ")"
+                         ]);
+                         5 -> lists:append([
+                             lists:nth(rand:uniform(Name_Length), Name),
+                             " ()"
                          ]);
                          _ -> lists:append([
                              lists:nth(rand:uniform(Name_Length), Name),
@@ -2799,7 +2817,7 @@ create_code(function_ref = Rule) ->
                        1 -> [];
                        _ -> lists:append([
                            " (",
-                           case rand:uniform(4) rem 4 of
+                           case rand:uniform(5) rem 5 of
                                1 ->
                                    lists:nth(rand:uniform(Fun_Args_Length),
                                        Fun_Args);
@@ -2808,10 +2826,11 @@ create_code(function_ref = Rule) ->
                                    "Distinct " ++
                                    lists:nth(rand:uniform(Column_Ref_Length),
                                        Column_Ref);
-                               _ ->
+                               4 ->
                                    "All " ++ bracket_query_spec(lists:nth(
                                        rand:uniform(Scalar_Exp_Length),
-                                       Scalar_Exp))
+                                       Scalar_Exp));
+                               _ -> []
                            end,
                            ")"
                        ])

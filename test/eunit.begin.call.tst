@@ -122,6 +122,34 @@
 
 "begin update a set d = g where e=f; insert into a values(1,2); end;".
 
+"begin abs();end".
+"begin abs();max();end".
+"begin abs();max;end".
+"begin abs();pack_1.proc_2();end".
+"begin abs();proc_2();end".
+"begin abs();schema_0.pack_1.proc_2();end".
+"begin abs;end".
+"begin abs;max();end".
+"begin abs;max;end".
+"begin pack_1.proc_1();abs();end".
+"begin pack_1.proc_1();end".
+"begin pack_1.proc_1();pack_1.proc_2();end".
+"begin pack_1.proc_1();proc_2();end".
+"begin proc_1();abs();end".
+"begin proc_1();end".
+"begin proc_1();pack_1.proc_2();end".
+"begin proc_1();proc_2();end".
+"begin proc_1();schema_0.pack_1.proc_2();end".
+"begin schema_0.pack_1.proc_1();abs();end".
+"begin schema_0.pack_1.proc_1();end".
+"begin schema_0.pack_1.proc_1();proc_2();end".
+"begin schema_0.pack_1.proc_1();schema_0.pack_1.proc_2();end".
+"call abs".
+"call abs()".
+"call pack_1.proc_1()".
+"call proc_1()".
+"call schema_0.pack_1.proc_1()".
+
 %% -----------------------------------------------------------------------------
 %% TESTS: BEGIN & CALL
 %% =============================================================================

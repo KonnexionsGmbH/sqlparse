@@ -92,6 +92,8 @@
 "insert into table (select * from table_1)".
 "insert into table (select column_1, column_2 from table_1)".
 
+"insert into TESTTABLE (PERSONID, LASTNAME) (select PERSONID, LASTNAME from TESTTABLE);".
+
 %% -----------------------------------------------------------------------------
 %% TESTS: INSERT
 %% =============================================================================

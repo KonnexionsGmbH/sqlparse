@@ -821,11 +821,13 @@ InsertStatement04.                InsertStatement ::= "INSERT" "INTO" TableDblin
 InsertStatement05.                InsertStatement ::= "INSERT" "INTO" TableDblink "(" ColumnCommalist ")" ValuesOrQuerySpec           ;
 InsertStatement06.                InsertStatement ::= "INSERT" "INTO" TableDblink "(" ColumnCommalist ")" ValuesOrQuerySpec Returning ;
 
--- values_or_query_spec -> VALUES '(' insert_atom_commalist ')'                                    : {values, '$3'}.
--- values_or_query_spec -> query_spec                                                              : '$1'.
+-- values_or_query_spec -> VALUES '(' insert_atom_commalist ')' : {values, '$3'}.
+-- values_or_query_spec ->     query_spec                       : '$1'.
+-- values_or_query_spec -> '(' query_spec ')'                   : '$2'.
 
 ValuesOrQuerySpec01.              ValuesOrQuerySpec ::= "VALUES" "(" InsertAtomCommalist ")" ;
-ValuesOrQuerySpec02.              ValuesOrQuerySpec ::= QuerySpec                            ;
+ValuesOrQuerySpec02.              ValuesOrQuerySpec ::=     QuerySpec                        ;
+ValuesOrQuerySpec03.              ValuesOrQuerySpec ::= "(" QuerySpec ")"                    ;
 
 -- insert_atom_commalist ->                           insert_atom                                  :         ['$1'].
 -- insert_atom_commalist -> insert_atom_commalist ',' insert_atom                                  : '$1' ++ ['$3'].

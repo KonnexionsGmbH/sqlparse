@@ -3411,7 +3411,7 @@ create_code(insert_statement = Rule) ->
                         lists:nth(rand:uniform(Column_Commalist_Length),
                             Column_Commalist),
                         ")",
-                        case rand:uniform(2) rem 2 of
+                        case rand:uniform(3) rem 3 of
                             1 -> lists:append([
                                 " Values (",
                                 case rand:uniform(4) rem 4 of
@@ -3460,6 +3460,12 @@ create_code(insert_statement = Rule) ->
                                             Scalar_Opt_As_Exp)
                                 end,
                                 ") "
+                            ]);
+                            2 -> lists:append([
+                                " (",
+                                lists:nth(rand:uniform(Query_Spec_Length),
+                                    Query_Spec),
+                                ")"
                             ]);
                             _ ->
                                 " " ++
@@ -5175,9 +5181,9 @@ create_code(sgn_num = Rule) ->
 create_code(special = Rule) ->
     ?CREATE_CODE_START,
     Code = [
-        %% ---------------------------------------------------------------------
-        %% Boolean and arithmetic binary operators handled with precedence
-        %% ---------------------------------------------------------------------
+%% ---------------------------------------------------------------------
+%% Boolean and arithmetic binary operators handled with precedence
+%% ---------------------------------------------------------------------
         "Select - 10                     * -5                       From dual",
         "Select - 10                     / -5                       From dual",
         "Select - 10                     + -5                       From dual",
@@ -5208,29 +5214,29 @@ create_code(special = Rule) ->
         "Select (Select col_1 From dual) * (Select col_2 From dual) From dual",
         "Select (Select col_1 From dual) / (Select col_2 From dual) From dual",
         "Select (Select col_1 From dual) + (Select col_2 From dual) From dual",
-        %% ---------------------------------------------------------------------
-        %% changed: JSON
-        %% ---------------------------------------------------------------------
-        %% create_index_spec_items -> NAME JSON?
-        %% create_index_spec_items -> NAME JSON? ',' create_index_spec_items
-        %% ---------------------------------------------------------------------
+%% ---------------------------------------------------------------------
+%% changed: JSON
+%% ---------------------------------------------------------------------
+%% create_index_spec_items -> NAME JSON?
+%% create_index_spec_items -> NAME JSON? ',' create_index_spec_items
+%% ---------------------------------------------------------------------
         "Create Index a On b (c|:d{}|)",
         "Create Index a On b (c, d|:d{}|)",
-        %% ---------------------------------------------------------------------
-        %% column_ref -> NAME     JSON
-        %% column_ref -> NAME '.' NAME     JSON
-        %% ---------------------------------------------------------------------
+%% ---------------------------------------------------------------------
+%% column_ref -> NAME     JSON
+%% column_ref -> NAME '.' NAME     JSON
+%% ---------------------------------------------------------------------
         "Select col|:a:b| From x",
         "Select column_name|:a:b| From x",
         "Select table_name.column_name|:a:b| From x",
         "Select column_name From x",
         "Select table_name.column_name From x",
         "Select schema_name.table_name.column_name From x",
-        %% ---------------------------------------------------------------------
-        %% Problem: ALL
-        %% ---------------------------------------------------------------------
-        %% function_ref -> FUNS     '(' ALL scalar_exp ')'
-        %% ---------------------------------------------------------------------
+%% ---------------------------------------------------------------------
+%% Problem: ALL
+%% ---------------------------------------------------------------------
+%% function_ref -> FUNS     '(' ALL scalar_exp ')'
+%% ---------------------------------------------------------------------
         "Call Upper (All Null)",
         "Call Upper (All 5)",
         "Call Upper (All 'text')",
@@ -5240,21 +5246,21 @@ create_code(special = Rule) ->
         "Call Upper (All name)",
         "Call Upper (All name1.name2)",
         "Call Upper (All name1.name2.name3)",
-        %% ---------------------------------------------------------------------
-        %% Problem: data_type with parenteheses
-        %% ---------------------------------------------------------------------
-        %% data_type -> NAME '(' sgn_num ')'
-        %% data_type -> NAME '(' sgn_num ',' sgn_num ')'
-        %% ---------------------------------------------------------------------
+%% ---------------------------------------------------------------------
+%% Problem: data_type with parenteheses
+%% ---------------------------------------------------------------------
+%% data_type -> NAME '(' sgn_num ')'
+%% data_type -> NAME '(' sgn_num ',' sgn_num ')'
+%% ---------------------------------------------------------------------
         "Create Table table_name (column_name name (1))",
         "Create Table table_name (column_name name (-1))",
         "Create Table table_name (column_name name (1, 2))",
         "Create Table table_name (column_name name (-1, -2))",
-        %% ---------------------------------------------------------------------
-        %% Problem: INSERT
-        %% ---------------------------------------------------------------------
-        %% insert_statement -> INSERT INTO table opt_column_commalist values_or_query_spec returning
-        %% ---------------------------------------------------------------------
+%% ---------------------------------------------------------------------
+%% Problem: INSERT
+%% ---------------------------------------------------------------------
+%% insert_statement -> INSERT INTO table opt_column_commalist values_or_query_spec returning
+%% ---------------------------------------------------------------------
         "Insert Into table_name Return column_name_a Into column_name_b",
         "Insert Into table_name Values (1)",
         "Insert Into table_name Select source_column From source_table",
@@ -5262,28 +5268,28 @@ create_code(special = Rule) ->
         "Insert Into table_name ('column_string') Values (1)",
         "Insert Into table_name (column_name) Select source_column From source_table",
         "Insert Into table_name ('column_string') Select source_column From source_table",
-        %% ---------------------------------------------------------------------
-        %% Problem: ORDER BY
-        %% ---------------------------------------------------------------------
-        %% opt_order_by_clause -> ORDER BY ordering_spec_commalist
-        %% ---------------------------------------------------------------------
+%% ---------------------------------------------------------------------
+%% Problem: ORDER BY
+%% ---------------------------------------------------------------------
+%% opt_order_by_clause -> ORDER BY ordering_spec_commalist
+%% ---------------------------------------------------------------------
         "Select * From table_name Order By column_name",
-        %% ---------------------------------------------------------------------
-        %% Problem: Optional Returning phrase
-        %% ---------------------------------------------------------------------
-        %% returning -> RETURNING selection INTO selection
-        %% returning -> RETURN    selection INTO selection
-        %% ---------------------------------------------------------------------
+%% ---------------------------------------------------------------------
+%% Problem: Optional Returning phrase
+%% ---------------------------------------------------------------------
+%% returning -> RETURNING selection INTO selection
+%% returning -> RETURN    selection INTO selection
+%% ---------------------------------------------------------------------
         "Insert Into table_name (column_name) Values (1) Return result_column Into show_column",
-        %% ---------------------------------------------------------------------
-        %% Problem: subquery as select_field
-        %% ---------------------------------------------------------------------
-        %% select_field -> scalar_opt_as_exp
-        %% ---------------------------------------------------------------------
+%% ---------------------------------------------------------------------
+%% Problem: subquery as select_field
+%% ---------------------------------------------------------------------
+%% select_field -> scalar_opt_as_exp
+%% ---------------------------------------------------------------------
         "Select (Select * From dual) From dual",
-        %% ---------------------------------------------------------------------
-        %% Problem: IN & LIKE
-        %% ---------------------------------------------------------------------
+%% ---------------------------------------------------------------------
+%% Problem: IN & LIKE
+%% ---------------------------------------------------------------------
         "select * from dual where column_1 in (1,2,3)",
         "select * from dual where column_1 like 1",
         "select * from dual where column_1 like (1)"

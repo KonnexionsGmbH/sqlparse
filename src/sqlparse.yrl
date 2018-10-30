@@ -796,7 +796,8 @@ insert_statement -> INSERT INTO table_dblink '(' column_commalist ')' values_or_
 insert_statement -> INSERT INTO table_dblink '(' column_commalist ')' values_or_query_spec returning : {insert, '$3', {cols, '$5'}, '$7', '$8'}.
 
 values_or_query_spec -> VALUES '(' insert_atom_commalist ')' : {values, '$3'}.
-values_or_query_spec -> query_spec                           : '$1'.
+values_or_query_spec ->     query_spec                       : '$1'.
+values_or_query_spec -> '(' query_spec ')'                   : '$2'.
 
 insert_atom_commalist ->                           insert_atom :         ['$1'].
 insert_atom_commalist -> insert_atom_commalist ',' insert_atom : '$1' ++ ['$3'].

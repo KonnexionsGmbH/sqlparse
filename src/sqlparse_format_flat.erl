@@ -281,8 +281,7 @@ fold([], _FunState, Ctx, Op = _PTree, {binary, Step} = _FoldState)
 fold([], _FunState, Ctx, Op = _PTree, {binary, Step} = _FoldState)
     when Op == '+'; Op == '-'; Op == '*'; Op == '/'; Op == '||'; Op == '=';
          Op == '!='; Op == '^='; Op == '<>'; Op == '<'; Op == '>'; Op == '<=';
-         Op ==
-             '>=' ->
+         Op == '>='; Op == ':=' ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
              start -> lists:append([
@@ -1871,6 +1870,20 @@ fold([], _FunState, Ctx, _PTree, {partition_by, Step} = _FoldState) ->
     ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% plsql_body
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx,
+    {'plsql_body', _statementPragmaList} = _PTree, {plsql_body, Step} =
+        _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> Ctx ++ "begin";
+             _ -> Ctx ++ "end;"
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % procedure_call
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -2304,6 +2317,30 @@ fold([], _FunState, Ctx, _PTree, {start_with, Step} = _FoldState) ->
     RT = case Step of
              start -> Ctx ++ " start with ";
              _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% statement_pragma
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx, _PTree, {statement_pragma, Step, Pos} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {Step, Pos} of
+             {'end', other} -> Ctx ++ ";";
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% statement_pragma_list
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx, _PTree, {statement_pragma_list, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> Ctx ++ " ";
+             _ -> Ctx ++ ";"
          end,
     ?CUSTOM_RESULT(RT);
 
@@ -2825,6 +2862,7 @@ fold([], _FunState, Ctx, _PTree, {Rule, _Step, _Pos}) when
 
 fold([], _FunState, Ctx, _PTree, {Rule, _Step}) when
     Rule == all_or_any_predicate;
+    Rule == assignment_statement;
     Rule == anchor;
     Rule == between_predicate;
     Rule == binary;

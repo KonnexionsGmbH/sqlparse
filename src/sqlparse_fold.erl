@@ -227,6 +227,27 @@ fold_i(FType, Fun, LOpts, FunState, Ctx, {assignment = Rule, Pos,
     ?FOLD_RESULT(NewCtxE);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% assignment_statement
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunState, Ctx, {':=' = Op, Variable, ScalarOptAsExp} =
+    PTree) ->
+    ?FOLD_INIT(FunState, Ctx, PTree),
+    Rule = assignment_statement,
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtx1 = case is_binary(Variable) of
+                  true -> NewCtxS;
+                  _ -> fold_i(FType, Fun, LOpts, FunState, NewCtxS, Variable)
+              end,
+    NewCtx2 = fold_i(FType, Fun, LOpts, FunState, NewCtx1, {binary, Op}),
+    NewCtx3 = fold_i(FType, Fun, LOpts, FunState, NewCtx2,
+        {scalar_opt_as_exp, ScalarOptAsExp}),
+    NewCtxE = Fun(LOpts, FunState, NewCtx3, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % base_table_element_commalist
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -2063,6 +2084,23 @@ fold_i(FType, Fun, LOpts, FunState, Ctx,
     ?FOLD_RESULT(NewCtxE);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% plsql_body
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'plsql_body', StatementPragmaList} =
+    PTree)
+    when is_list(StatementPragmaList) ->
+    Rule = plsql_body,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtx1 = fold_i(FType, Fun, LOpts, FunState, NewCtxS,
+        {statement_pragma_list, StatementPragmaList}),
+    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % procedure_call
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -2691,6 +2729,35 @@ fold_i(FType, Fun, LOpts, FunState, Ctx, {'start with', SearchCondition} =
                   _ -> fold_i(FType, Fun, LOpts, FunState, NewCtxS,
                       SearchCondition)
               end,
+    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% statement_pragma
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunState, Ctx, {statement_pragma = Rule, Pos, PTree})
+    when is_atom(PTree);is_tuple(PTree) ->
+    ?FOLD_INIT(FunState, Ctx, PTree),
+    NewCtxS = Fun(LOpts, FunState, Ctx, PTree,
+        {Rule, get_start_end(FType, start), Pos}),
+    NewCtx1 = fold_i(FType, Fun, LOpts, FunState, NewCtxS, PTree),
+    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
+        {Rule, get_start_end(FType, 'end'), Pos}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% statement_pragma_list
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunState, Ctx, {statement_pragma_list = Rule, PTree})
+    when is_list(PTree) ->
+    ?FOLD_INIT(FunState, Ctx, PTree),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtx1 = list_elem_ext_rule(FType, Fun, LOpts, FunState, NewCtxS,
+        statement_pragma, PTree),
     NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
         {Rule, get_start_end(FType, 'end')}),
     ?FOLD_RESULT(NewCtxE);

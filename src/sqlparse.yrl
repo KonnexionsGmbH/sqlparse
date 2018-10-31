@@ -36,6 +36,7 @@ Nonterminals
  asc_desc
  assignment
  assignment_commalist
+ assign_statement
  atom
  base_table_element
  base_table_element_commalist
@@ -132,6 +133,8 @@ Nonterminals
  outer_join_type
  parameter
  parameter_ref
+ plsql_block
+ plsql_body
  predicate
  procedure_call
  proxy_auth_req
@@ -165,6 +168,8 @@ Nonterminals
  spec_list
  sql
  sql_list
+ statement_pragma
+ statement_pragma_list
  storage
  subquery
  system_privilege
@@ -364,6 +369,7 @@ Terminals
  ';'
  '='
  'div'
+ ':='
  '||'
 .
 
@@ -398,10 +404,22 @@ extra -> NAME  ';' : {extra, unwrap_bin('$1')}.
 
 sql -> cursor_def                     : '$1'.
 sql -> manipulative_statement         : '$1'.
+sql -> plsql_block                    : '$1'.
 sql -> procedure_call                 : '$1'.
 sql -> schema                         : '$1'.
 sql -> WHENEVER NOT FOUND when_action : {when_not_found, '$4'}.
 sql -> WHENEVER SQLERROR  when_action : {when_sql_err, '$3'}.
+
+plsql_block -> plsql_body : '$1'.
+
+plsql_body -> BEGIN statement_pragma_list END : {'plsql_body', '$2'}.
+
+statement_pragma_list ->                       statement_pragma :         ['$1'].
+statement_pragma_list -> statement_pragma_list statement_pragma : '$1' ++ ['$2'].
+
+statement_pragma -> assign_statement : '$1'.
+
+assign_statement -> parameter ':=' scalar_opt_as_exp ';' : {':=', '$1', '$3'}.
 
 procedure_call -> BEGIN function_ref_list END : {'begin procedure', '$2'}.
 procedure_call -> BEGIN sql_list          END : {'begin procedure', '$2'}.

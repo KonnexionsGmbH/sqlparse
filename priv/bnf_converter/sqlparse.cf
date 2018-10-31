@@ -1684,14 +1684,44 @@ Cursor01.                         Cursor ::= "NAME" ;
 Parameter01.                      Parameter ::= "PARAMETER" ;
 
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+-- pl/sql block
+-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+-- sql -> plsql_block                                                                              : '$1'.
+
+Sql05.                            Sql ::= PlsqlBlock ;
+
+-- plsql_block -> plsql_body : '$1'.
+
+PlsqlBlock01.                     PlsqlBlock ::= PlsqlBody ;
+
+-- plsql_body -> BEGIN statement_pragma_list END : {'plsql_body', '$2'}.
+
+PlsqlBody01.                      PlsqlBody ::= "BEGIN" StatementPragmaList "END" ;
+
+-- statement_pragma_list ->                       statement_pragma :         ['$1'].
+-- statement_pragma_list -> statement_pragma_list statement_pragma : '$1' ++ ['$2'].
+
+StatementPragmaList01.            StatementPragmaList ::= StatementPragma                     ;
+StatementPragmaList02.            StatementPragmaList ::= StatementPragma StatementPragmaList ;
+
+-- statement_pragma -> assign_statement : '$1'.
+
+StatementPragma01.                StatementPragma ::= AssignStatement ;
+
+-- assign_statement -> parameter ':=' scalar_opt_as_exp ';' : {':=', '$1', '$3'}.
+
+AssignStatement01.                AssignStatement ::= Parameter ":=" ScalarOptAsExp ;
+
+-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 -- embedded condition things
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 -- sql -> WHENEVER NOT FOUND when_action                                                           : {when_not_found, '$4'}.
 -- sql -> WHENEVER SQLERROR when_action                                                            : {when_sql_err, '$3'}.
 
-Sql05.                            Sql ::= "WHENEVER" "NOT" "FOUND" WhenAction ;
-Sql06.                            Sql ::= "WHENEVER" "SQLERROR"    WhenAction ;
+Sql06.                            Sql ::= "WHENEVER" "NOT" "FOUND" WhenAction ;
+Sql07.                            Sql ::= "WHENEVER" "SQLERROR"    WhenAction ;
 
 -- when_action -> GOTO NAME                                                                        : {goto, unwrap('$2')}.
 -- when_action -> CONTINUE                                                                         : 'continue'.

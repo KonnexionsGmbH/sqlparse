@@ -158,8 +158,9 @@ fold(LOpts, _FunState, Ctx, {Anchor, _Bracket} = _PTree,
 
 fold(LOpts, _FunState, Ctx, {Value, Alias} = _PTree, {Rule, Step} =
     _FoldState)
-    when (Rule == as orelse Rule == explicit_as) andalso is_binary(Value) andalso
-             is_binary(Alias) ->
+    when
+    (Rule == as orelse Rule == explicit_as) andalso is_binary(Value) andalso
+        is_binary(Alias) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case {LOpts, Step} of
              {L, S} when L == top_down andalso S == start orelse
@@ -269,7 +270,7 @@ fold(LOpts, _FunState, Ctx, {between, ScalarExp1, _ScalarExp2, _ScalarExp3} =
 fold(LOpts, _FunState, Ctx, Op = _PTree, {binary = Rule, Step} = _FoldState)
     when Op == 'and'; Op == 'or'; Op == '+'; Op == '-'; Op == '*'; Op == '/';
          Op == 'div'; Op == '||'; Op == '='; Op == '!='; Op == '^='; Op == '<>';
-         Op == '<'; Op == '>'; Op == '<='; Op == '>=' ->
+         Op == '<'; Op == '>'; Op == '<='; Op == '>='; Op == ':=' ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case {LOpts, Step} of
              {L, S} when L == top_down andalso S == start orelse
@@ -1902,6 +1903,21 @@ fold(LOpts, _FunState, Ctx, _PTree, {partition_by = Rule, Step} = _FoldState) ->
     ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% plsql_body
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, {plsql_body, _StatementPragmaList} = _PTree,
+    {plsql_body = Rule, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {"begin"};
+             _ -> {"end"}
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % procedure_call
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -2314,6 +2330,22 @@ fold(LOpts, _FunState, Ctx, _PTree, {start_with = Rule, Step} = _FoldState) ->
              _ -> none
          end,
     ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% statement_pragma
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(_LOpts, _FunState, Ctx, _PTree, {statement_pragma, _Step, _Pos} =
+    _FoldState) ->
+    Ctx;
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% statement_pragma_list
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(_LOpts, _FunState, Ctx, _PTree, {statement_pragma_list, _Step} =
+    _FoldState) ->
+    Ctx;
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % storage
@@ -2843,6 +2875,7 @@ fold(_LOpts, _FunState, Ctx, _PTree, {Rule, _Step, _Pos}) when
 fold(_LOpts, _FunState, Ctx, _PTree, {Rule, _Step}) when
     Rule == all_or_any_predicate;
     Rule == anchor;
+    Rule == assignment_statement;
     Rule == between_predicate;
     Rule == binary;
     Rule == case_when_then;

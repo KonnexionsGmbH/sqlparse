@@ -266,7 +266,8 @@ fold(LOpts, _FunState, Ctx, {_Value, Alias} = _PTree, {as, Step} = _FoldState)
 % explicit_as
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(LOpts, _FunState, Ctx, {Value, Alias} = _PTree, {explicit_as, Step} = _FoldState)
+fold(LOpts, _FunState, Ctx, {Value, Alias} = _PTree, {explicit_as, Step} =
+    _FoldState)
     when is_binary(Value), is_binary(Alias) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
@@ -279,7 +280,8 @@ fold(LOpts, _FunState, Ctx, {Value, Alias} = _PTree, {explicit_as, Step} = _Fold
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
-fold(LOpts, _FunState, Ctx, {_Value, Alias} = _PTree, {explicit_as, Step} = _FoldState)
+fold(LOpts, _FunState, Ctx, {_Value, Alias} = _PTree, {explicit_as, Step} =
+    _FoldState)
     when is_binary(Alias) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
@@ -416,8 +418,7 @@ fold(LOpts, FunState, Ctx, Op = _PTree, {binary, Step} = _FoldState)
 fold(LOpts, FunState, Ctx, Op = _PTree, {binary, Step} = _FoldState)
     when Op == '+'; Op == '-'; Op == '*'; Op == '/'; Op == '||'; Op == '=';
          Op == '!='; Op == '^='; Op == '<>'; Op == '<'; Op == '>'; Op == '<=';
-         Op ==
-             '>=' ->
+         Op == '>='; Op == ':=' ->
     ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
              start -> Ctx ++ format_operator(LOpts, FunState, Op, false);
@@ -2526,6 +2527,28 @@ fold(LOpts, FunState, Ctx, _PTree, {partition_by, Step} = _FoldState) ->
     ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% plsql_body
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, FunState, Ctx, {plsql_body, _StatementPragmaList} = _PTree,
+    {plsql_body, Step} = _FoldState) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 format_new_statement(LOpts, FunState, "begin"),
+                 ?CHAR_NEWLINE,
+                 format_column_pos(LOpts, FunState)
+             ]);
+             _ -> lists:append([
+                 Ctx,
+                 ?CHAR_NEWLINE,
+                 format_keyword(LOpts, "end;")
+             ])
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % privilege
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -3237,6 +3260,32 @@ fold(LOpts, FunState, Ctx, _PTree, {start_with, Step} = _FoldState) ->
                  format_column_pos(LOpts, FunState)
              ]);
              _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% statement_pragma
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(_LOpts, _FunState, Ctx, _PTree, {statement_pragma, Step, Pos} =
+    _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {Step, Pos} of
+             {'end', other} -> Ctx ++ ";";
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%0%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% statement_pragma_list
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(_LOpts, _FunState, Ctx, _PTree, {statement_pragma_list, Step} =
+    _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> Ctx ++ " ";
+             _ -> Ctx ++ ";"
          end,
     ?CUSTOM_RESULT(RT);
 
@@ -3958,6 +4007,7 @@ fold(_LOpts, _FunState, Ctx, _PTree, {Rule, _Step, _Pos}) when
 
 fold(_LOpts, _FunState, Ctx, _PTree, {Rule, _Step}) when
     Rule == all_or_any_predicate;
+    Rule == assignment_statement;
     Rule == anchor;
     Rule == between_predicate;
     Rule == binary;

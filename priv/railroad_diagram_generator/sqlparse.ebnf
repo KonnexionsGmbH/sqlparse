@@ -42,20 +42,53 @@ DBLINK ::= '"@' [A-Za-z0-9_\$#\.@]+ '"'
 NAME ::= [A-Za-z][A-Za-z0-9_\$#@~]*
 
 /* =============================================================================
-sql -> procedure_call                                                                           : '$1'.
-sql -> schema                                                                                   : '$1'.
-sql -> cursor_def                                                                               : '$1'.
-sql -> manipulative_statement                                                                   : '$1'.
-sql -> WHENEVER NOT FOUND when_action                                                           : {'when_not_found', '$4'}.
-sql -> WHENEVER SQLERROR when_action                                                            : {'when_sql_err', '$3'}.
+sql -> cursor_def                     : '$1'.
+sql -> manipulative_statement         : '$1'.
+sql -> plsql_block                    : '$1'.
+sql -> procedure_call                 : '$1'.
+sql -> schema                         : '$1'.
+sql -> WHENEVER NOT FOUND when_action : {when_not_found, '$4'}.
+sql -> WHENEVER SQLERROR  when_action : {when_sql_err, '$3'}.
 ============================================================================= */
 
-sql ::= procedure_call
-      | schema
-      | cursor_def
+sql ::= cursor_def
       | manipulative_statement
+      | plsql_block
+      | procedure_call
+      | schema
       | 'WHENEVER' 'NOT' 'FOUND' when_action
       | 'WHENEVER' 'SQLERROR' when_action
+
+/* =============================================================================
+plsql_block -> plsql_body : '$1'.
+============================================================================= */
+
+plsql_block ::= plsql_body
+
+/* =============================================================================
+plsql_body -> BEGIN statement_pragma_list END : {'plsql_body', '$2'}.
+============================================================================= */
+
+plsql_body ::= 'BEGIN' statement_pragma_list 'END'
+
+/* =============================================================================
+statement_pragma_list ->                       statement_pragma :         ['$1'].
+statement_pragma_list -> statement_pragma_list statement_pragma : '$1' ++ ['$2'].
+============================================================================= */
+
+statement_pragma_list ::= statement_pragma ( statement_pragma )*
+
+/* =============================================================================
+statement_pragma -> assign_statement : '$1'.
+============================================================================= */
+
+statement_pragma ::= assign_statement
+
+/* =============================================================================
+assign_statement -> parameter ':=' scalar_opt_as_exp ';' : {':=', '$1', '$3'}.
+============================================================================= */
+
+assign_statement ::= parameter ':=' scalar_opt_as_exp ';'
 
 /* =============================================================================
 procedure_call -> BEGIN function_ref_list END : {'begin procedure', '$2'}.

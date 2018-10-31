@@ -755,6 +755,8 @@ create_code_layer(Version) ->
 %%
 %% assignment ::= column '=' scalar_opt_as_exp
 %%
+%% assign_statement ::= parameter ':=' scalar_opt_as_exp ';'
+%%
 %% case_when_then ::= 'WHEN' search_condition 'THEN' scalar_opt_as_exp
 %%
 %% column_ref_commalist ::= ( column_ref | function_ref ) ( ',' ( column_ref | function_ref ) )*
@@ -787,6 +789,7 @@ create_code_layer(Version) ->
         [Version])),
 
     create_code(assignment),
+    create_code(assignment_statement),
     create_code(case_when_then),
     create_code(column_ref_commalist),
     create_code(comparison_predicate),
@@ -821,6 +824,8 @@ create_code_layer(Version) ->
 %%                    | ( '(' search_condition ')' )
 %%                    | predicate
 %%
+%% statement_pragma_list ::= statement_pragma ( statement_pragma )*
+%%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
@@ -833,6 +838,7 @@ create_code_layer(Version) ->
     create_code(procedure_call),
     create_code(query_partition_clause),
     create_code(search_condition),
+    create_code(statement_pragma_list),
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Level 15
@@ -851,6 +857,8 @@ create_code_layer(Version) ->
 %% hierarchical_query_clause ::= ( 'START' 'WITH' search_condition 'CONNECT' 'BY' ( 'NOCYCLE' )? search_condition )
 %%                             | ( 'CONNECT' 'BY' ( 'NOCYCLE' )? search_condition 'START' 'WITH' search_condition )
 %%
+%% plsql_body ::= 'BEGIN' statement_pragma_list 'END'
+%%
 %% returning ::= ( 'RETURNING' | 'RETURN' ) selection 'INTO' selection
 %%
 %% where_clause ::= 'WHERE' search_condition
@@ -864,6 +872,7 @@ create_code_layer(Version) ->
     create_code(case_when_exp),
     create_code(column_def_opt),
     create_code(hierarchical_query_clause),
+    create_code(plsql_body),
     create_code(returning),
     create_code(where_clause),
 
@@ -1360,6 +1369,32 @@ create_code(assignment_commalist = Rule) ->
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
     store_code(Rule, Code, ?MAX_BASIC, false),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% assign_statement -> parameter ':=' scalar_opt_as_exp ';' : {':=', '$1', '$3'}.
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(assignment_statement = Rule) ->
+    ?CREATE_CODE_START,
+    [{parameter, Parameter}] = ets:lookup(?CODE_TEMPLATES, parameter),
+    Parameter_Length = length(Parameter),
+    [{scalar_opt_as_exp, Scalar_Opt_As_Exp}] =
+        ets:lookup(?CODE_TEMPLATES, scalar_opt_as_exp),
+    Scalar_Opt_As_Exp_Length = length(Scalar_Opt_As_Exp),
+
+    Code =
+        [
+            lists:append([
+                lists:nth(rand:uniform(Parameter_Length), Parameter),
+                " := ",
+                lists:nth(rand:uniform(Scalar_Opt_As_Exp_Length),
+                    Scalar_Opt_As_Exp)
+            ])
+            || _ <- lists:seq(1, ?MAX_BASIC * 2)
+        ],
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    store_code(statement_pragma, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4237,6 +4272,30 @@ create_code(parameter_ref = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% plsql_body ::= 'BEGIN' statement_pragma_list 'END'
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(plsql_body = Rule) ->
+    ?CREATE_CODE_START,
+    [{statement_pragma_list, Statement_Pragma_List}] =
+        ets:lookup(?CODE_TEMPLATES, statement_pragma_list),
+    Statement_Pragma_List_Length = length(Statement_Pragma_List),
+
+    Code =
+        [
+            lists:append([
+                "Begin ",
+                lists:nth(rand:uniform(Statement_Pragma_List_Length),
+                    Statement_Pragma_List),
+                " End"
+            ])
+            || _ <- lists:seq(1, ?MAX_STATEMENT_COMPLEX * 2)
+        ],
+    store_code(Rule, Code, ?MAX_STATEMENT_COMPLEX, true),
+    store_code(sql, Code, ?MAX_STATEMENT_COMPLEX, true),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% procedure_call ::= ( 'BEGIN' function_ref_list 'END' )
 %%                  | ( 'BEGIN' sql_list          'END' )
 %%                  | ( 'CALL' function_ref )
@@ -5393,6 +5452,57 @@ create_code(sql_list = Rule) ->
             || _ <- lists:seq(1, ?MAX_SQL * 2)
         ],
     store_code(Rule, Code, ?MAX_SQL, true),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% statement_pragma_list ::= statement_pragma ( statement_pragma )*
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(statement_pragma_list = Rule) ->
+    ?CREATE_CODE_START,
+    [{statement_pragma, Statement_Pragma}] =
+        ets:lookup(?CODE_TEMPLATES, statement_pragma),
+    Statement_Pragma_Length = length(Statement_Pragma),
+
+    Code =
+        [
+            case rand:uniform(4) rem 4 of
+                1 -> lists:append([
+                    lists:nth(rand:uniform(Statement_Pragma_Length),
+                        Statement_Pragma),
+                    ",",
+                    lists:nth(rand:uniform(Statement_Pragma_Length),
+                        Statement_Pragma),
+                    ",",
+                    lists:nth(rand:uniform(Statement_Pragma_Length),
+                        Statement_Pragma),
+                    ",",
+                    lists:nth(rand:uniform(Statement_Pragma_Length),
+                        Statement_Pragma)
+                ]);
+                2 -> lists:append([
+                    lists:nth(rand:uniform(Statement_Pragma_Length),
+                        Statement_Pragma),
+                    ",",
+                    lists:nth(rand:uniform(Statement_Pragma_Length),
+                        Statement_Pragma),
+                    ",",
+                    lists:nth(rand:uniform(Statement_Pragma_Length),
+                        Statement_Pragma)
+                ]);
+                3 -> lists:append([
+                    lists:nth(rand:uniform(Statement_Pragma_Length),
+                        Statement_Pragma),
+                    ",",
+                    lists:nth(rand:uniform(Statement_Pragma_Length),
+                        Statement_Pragma)
+                ]);
+                _ -> lists:nth(rand:uniform(Statement_Pragma_Length),
+                    Statement_Pragma)
+            end
+            || _ <- lists:seq(1, ?MAX_BASIC * 2)
+        ],
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

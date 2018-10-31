@@ -45,7 +45,7 @@ Rules.
 
 % punctuation
 (!=|\^=|<>|<|>|<=|>=)                               : {token, {'COMPARISON', TokenLine, list_to_atom(TokenChars)}}.
-([=\|\-\+\*\/\(\)\,\.\;]|(\|\|)|(div))              : {token, {list_to_atom(TokenChars), TokenLine}}.
+([=\|\-\+\*\/\(\)\,\.\;]|(\|\|)|(:=)|(div))         : {token, {list_to_atom(TokenChars), TokenLine}}.
 
 % JSON
 (\|[:{\[#]([^\|]*)+\|)                              : parse_json(TokenLine, TokenChars).

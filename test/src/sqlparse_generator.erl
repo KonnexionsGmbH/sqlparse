@@ -1198,22 +1198,14 @@ create_code(alter_user_def = Rule) ->
                 lists:nth(rand:uniform(Name_Length), Name),
                 case rand:uniform(3) rem 3 of
                     1 -> lists:append([
-                        case rand:uniform(4) rem 4 of
+                        case rand:uniform(3) rem 3 of
                             1 -> lists:append([
-                                ",",
-                                lists:nth(rand:uniform(Name_Length), Name),
                                 ",",
                                 lists:nth(rand:uniform(Name_Length), Name),
                                 ",",
                                 lists:nth(rand:uniform(Name_Length), Name)
                             ]);
                             2 -> lists:append([
-                                ",",
-                                lists:nth(rand:uniform(Name_Length), Name),
-                                ",",
-                                lists:nth(rand:uniform(Name_Length), Name)
-                            ]);
-                            3 -> lists:append([
                                 ",",
                                 lists:nth(rand:uniform(Name_Length), Name)
                             ]);
@@ -1223,19 +1215,8 @@ create_code(alter_user_def = Rule) ->
                         lists:nth(rand:uniform(Proxy_Clause_Length),
                             Proxy_Clause)
                     ]);
-                    2 -> case rand:uniform(3) rem 3 of
+                    2 -> case rand:uniform(2) rem 2 of
                              1 -> lists:append([
-                                 " ",
-                                 lists:nth(rand:uniform(Spec_Item_Length),
-                                     Spec_Item),
-                                 " ",
-                                 lists:nth(rand:uniform(Spec_Item_Length),
-                                     Spec_Item),
-                                 " ",
-                                 lists:nth(rand:uniform(Spec_Item_Length),
-                                     Spec_Item)
-                             ]);
-                             2 -> lists:append([
                                  " ",
                                  lists:nth(rand:uniform(Spec_Item_Length),
                                      Spec_Item),
@@ -1342,24 +1323,8 @@ create_code(assignment_commalist = Rule) ->
 
     Code =
         [
-            case rand:uniform(4) rem 4 of
+            case rand:uniform(2) rem 2 of
                 1 -> lists:append([
-                    lists:nth(rand:uniform(Assignment_Length), Assignment),
-                    ",",
-                    lists:nth(rand:uniform(Assignment_Length), Assignment),
-                    ",",
-                    lists:nth(rand:uniform(Assignment_Length), Assignment),
-                    ",",
-                    lists:nth(rand:uniform(Assignment_Length), Assignment)
-                ]);
-                2 -> lists:append([
-                    lists:nth(rand:uniform(Assignment_Length), Assignment),
-                    ",",
-                    lists:nth(rand:uniform(Assignment_Length), Assignment),
-                    ",",
-                    lists:nth(rand:uniform(Assignment_Length), Assignment)
-                ]);
-                3 -> lists:append([
                     lists:nth(rand:uniform(Assignment_Length), Assignment),
                     ",",
                     lists:nth(rand:uniform(Assignment_Length), Assignment)
@@ -1389,7 +1354,8 @@ create_code(assignment_statement = Rule) ->
                 lists:nth(rand:uniform(Parameter_Length), Parameter),
                 " := ",
                 lists:nth(rand:uniform(Scalar_Opt_As_Exp_Length),
-                    Scalar_Opt_As_Exp)
+                    Scalar_Opt_As_Exp),
+                ";"
             ])
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
@@ -1535,31 +1501,8 @@ create_code(case_when_then_list = Rule) ->
 
     Code =
         [
-            case rand:uniform(4) rem 4 of
+            case rand:uniform(2) rem 2 of
                 1 -> lists:append([
-                    lists:nth(rand:uniform(Case_When_Then_Length),
-                        Case_When_Then),
-                    " ",
-                    lists:nth(rand:uniform(Case_When_Then_Length),
-                        Case_When_Then),
-                    " ",
-                    lists:nth(rand:uniform(Case_When_Then_Length),
-                        Case_When_Then),
-                    " ",
-                    lists:nth(rand:uniform(Case_When_Then_Length),
-                        Case_When_Then)
-                ]);
-                2 -> lists:append([
-                    lists:nth(rand:uniform(Case_When_Then_Length),
-                        Case_When_Then),
-                    " ",
-                    lists:nth(rand:uniform(Case_When_Then_Length),
-                        Case_When_Then),
-                    " ",
-                    lists:nth(rand:uniform(Case_When_Then_Length),
-                        Case_When_Then)
-                ]);
-                3 -> lists:append([
                     lists:nth(rand:uniform(Case_When_Then_Length),
                         Case_When_Then),
                     " ",
@@ -1603,24 +1546,8 @@ create_code(column_commalist = Rule) ->
 
     Code =
         [
-            case rand:uniform(4) rem 4 of
+            case rand:uniform(2) rem 2 of
                 1 -> lists:append([
-                    lists:nth(rand:uniform(Column_Length), Column),
-                    ",",
-                    lists:nth(rand:uniform(Column_Length), Column),
-                    ",",
-                    lists:nth(rand:uniform(Column_Length), Column),
-                    ",",
-                    lists:nth(rand:uniform(Column_Length), Column)
-                ]);
-                2 -> lists:append([
-                    lists:nth(rand:uniform(Column_Length), Column),
-                    ",",
-                    lists:nth(rand:uniform(Column_Length), Column),
-                    ",",
-                    lists:nth(rand:uniform(Column_Length), Column)
-                ]);
-                3 -> lists:append([
                     lists:nth(rand:uniform(Column_Length), Column),
                     ",",
                     lists:nth(rand:uniform(Column_Length), Column)
@@ -1652,25 +1579,15 @@ create_code(column_def = Rule) ->
                 lists:nth(rand:uniform(Column_Length), Column),
                 " ",
                 lists:nth(rand:uniform(Data_Type_Length), Data_Type),
-                case rand:uniform(4) rem 4 of
+                case rand:uniform(3) rem 3 of
                     1 -> lists:append([
                         lists:nth(rand:uniform(Column_Def_Opt_Length),
                             Column_Def_Opt),
                         " ",
                         lists:nth(rand:uniform(Column_Def_Opt_Length),
-                            Column_Def_Opt),
-                        " ",
-                        lists:nth(rand:uniform(Column_Def_Opt_Length),
                             Column_Def_Opt)
                     ]);
-                    2 -> lists:append([
-                        lists:nth(rand:uniform(Column_Def_Opt_Length),
-                            Column_Def_Opt),
-                        " ",
-                        lists:nth(rand:uniform(Column_Def_Opt_Length),
-                            Column_Def_Opt)
-                    ]);
-                    3 ->
+                    2 ->
                         lists:nth(rand:uniform(Column_Def_Opt_Length),
                             Column_Def_Opt);
                     _ -> []
@@ -1842,73 +1759,8 @@ create_code(column_ref_commalist = Rule) ->
 
     Code =
         [
-            case rand:uniform(4) rem 4 of
+            case rand:uniform(2) rem 2 of
                 1 -> lists:append([
-                    case rand:uniform(2) rem 2 of
-                        1 ->
-                            lists:nth(rand:uniform(Column_Ref_Length),
-                                Column_Ref);
-                        _ ->
-                            lists:nth(rand:uniform(Function_Ref_Length),
-                                Function_Ref)
-                    end,
-                    ",",
-                    case rand:uniform(2) rem 2 of
-                        1 ->
-                            lists:nth(rand:uniform(Column_Ref_Length),
-                                Column_Ref);
-                        _ ->
-                            lists:nth(rand:uniform(Function_Ref_Length),
-                                Function_Ref)
-                    end,
-                    ",",
-                    case rand:uniform(2) rem 2 of
-                        1 ->
-                            lists:nth(rand:uniform(Column_Ref_Length),
-                                Column_Ref);
-                        _ ->
-                            lists:nth(rand:uniform(Function_Ref_Length),
-                                Function_Ref)
-                    end,
-                    ",",
-                    case rand:uniform(2) rem 2 of
-                        1 ->
-                            lists:nth(rand:uniform(Column_Ref_Length),
-                                Column_Ref);
-                        _ ->
-                            lists:nth(rand:uniform(Function_Ref_Length),
-                                Function_Ref)
-                    end
-                ]);
-                2 -> lists:append([
-                    case rand:uniform(2) rem 2 of
-                        1 ->
-                            lists:nth(rand:uniform(Column_Ref_Length),
-                                Column_Ref);
-                        _ ->
-                            lists:nth(rand:uniform(Function_Ref_Length),
-                                Function_Ref)
-                    end,
-                    ",",
-                    case rand:uniform(2) rem 2 of
-                        1 ->
-                            lists:nth(rand:uniform(Column_Ref_Length),
-                                Column_Ref);
-                        _ ->
-                            lists:nth(rand:uniform(Function_Ref_Length),
-                                Function_Ref)
-                    end,
-                    ",",
-                    case rand:uniform(2) rem 2 of
-                        1 ->
-                            lists:nth(rand:uniform(Column_Ref_Length),
-                                Column_Ref);
-                        _ ->
-                            lists:nth(rand:uniform(Function_Ref_Length),
-                                Function_Ref)
-                    end
-                ]);
-                3 -> lists:append([
                     case rand:uniform(2) rem 2 of
                         1 ->
                             lists:nth(rand:uniform(Column_Ref_Length),
@@ -2070,18 +1922,9 @@ create_code(create_index_def = Rule) ->
                 " On",
                 " ",
                 lists:nth(rand:uniform(Table_Alias_Length), Table_Alias),
-                case rand:uniform(4) rem 4 of
+                case rand:uniform(3) rem 3 of
                     1 -> lists:append([
                         "( ",
-                        case rand:uniform(2) rem 2 of
-                            1 -> lists:append([
-                                lists:nth(rand:uniform(Name_Length), Name),
-                                " ",
-                                lists:nth(rand:uniform(Json_Length), Json)
-                            ]);
-                            _ -> lists:nth(rand:uniform(Name_Length), Name)
-                        end,
-                        ", ",
                         case rand:uniform(2) rem 2 of
                             1 -> lists:append([
                                 lists:nth(rand:uniform(Name_Length), Name),
@@ -2102,27 +1945,6 @@ create_code(create_index_def = Rule) ->
                         ") "
                     ]);
                     2 -> lists:append([
-                        "( ",
-                        case rand:uniform(2) rem 2 of
-                            1 -> lists:append([
-                                lists:nth(rand:uniform(Name_Length), Name),
-                                " ",
-                                lists:nth(rand:uniform(Json_Length), Json)
-                            ]);
-                            _ -> lists:nth(rand:uniform(Name_Length), Name)
-                        end,
-                        ", ",
-                        case rand:uniform(2) rem 2 of
-                            1 -> lists:append([
-                                lists:nth(rand:uniform(Name_Length), Name),
-                                " ",
-                                lists:nth(rand:uniform(Json_Length), Json)
-                            ]);
-                            _ -> lists:nth(rand:uniform(Name_Length), Name)
-                        end,
-                        ") "
-                    ]);
-                    3 -> lists:append([
                         "( ",
                         case rand:uniform(2) rem 2 of
                             1 -> lists:append([
@@ -2205,25 +2027,15 @@ create_code(create_table_def = Rule) ->
                     " ",
                 lists:nth(rand:uniform(Table_Length), Table),
                 " (",
-                case rand:uniform(4) rem 4 of
+                case rand:uniform(3) rem 3 of
                     1 -> lists:append([
                         lists:nth(rand:uniform(Base_Table_Element_Length),
                             Base_Table_Element),
                         ",",
                         lists:nth(rand:uniform(Base_Table_Element_Length),
-                            Base_Table_Element),
-                        ",",
-                        lists:nth(rand:uniform(Base_Table_Element_Length),
                             Base_Table_Element)
                     ]);
-                    2 -> lists:append([
-                        lists:nth(rand:uniform(Base_Table_Element_Length),
-                            Base_Table_Element),
-                        ",",
-                        lists:nth(rand:uniform(Base_Table_Element_Length),
-                            Base_Table_Element)
-                    ]);
-                    3 ->
+                    2 ->
                         lists:nth(rand:uniform(Base_Table_Element_Length),
                             Base_Table_Element);
                     _ -> []
@@ -2258,22 +2070,14 @@ create_code(create_user_def = Rule) ->
                 lists:nth(rand:uniform(Name_Length), Name),
                 " ",
                 lists:nth(rand:uniform(Identified_Length), Identified),
-                case rand:uniform(4) rem 4 of
+                case rand:uniform(3) rem 3 of
                     1 -> lists:append([
                         " ",
                         lists:nth(rand:uniform(User_Opt_Length), User_Opt),
                         " ",
-                        lists:nth(rand:uniform(User_Opt_Length), User_Opt),
-                        " ",
                         lists:nth(rand:uniform(User_Opt_Length), User_Opt)
                     ]);
-                    2 -> lists:append([
-                        " ",
-                        lists:nth(rand:uniform(User_Opt_Length), User_Opt),
-                        " ",
-                        lists:nth(rand:uniform(User_Opt_Length), User_Opt)
-                    ]);
-                    3 ->
+                    2 ->
                         " " ++
                         lists:nth(rand:uniform(User_Opt_Length), User_Opt);
                     _ -> []
@@ -2613,8 +2417,8 @@ create_code(extra = Rule) ->
 
     Code =
         [
-                re:replace(N, "IDENT", "_EXTRA_", [{return, list}]) ++
-                ";" || N <- Code_1
+                re:replace(N, "IDENT", "_EXTRA_", [{return, list}]) ++ ";"
+            || N <- Code_1
         ],
     store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
@@ -2741,31 +2545,8 @@ create_code(fun_args = Rule) ->
 
     Code =
         [
-            case rand:uniform(4) rem 4 of
+            case rand:uniform(2) rem 2 of
                 1 -> lists:append([
-                    bracket_query_spec(
-                        lists:nth(rand:uniform(Fun_Arg_Length), Fun_Arg)),
-                    ",",
-                    bracket_query_spec(
-                        lists:nth(rand:uniform(Fun_Arg_Length), Fun_Arg)),
-                    ",",
-                    bracket_query_spec(
-                        lists:nth(rand:uniform(Fun_Arg_Length), Fun_Arg)),
-                    ",",
-                    bracket_query_spec(
-                        lists:nth(rand:uniform(Fun_Arg_Length), Fun_Arg))
-                ]);
-                2 -> lists:append([
-                    bracket_query_spec(
-                        lists:nth(rand:uniform(Fun_Arg_Length), Fun_Arg)),
-                    ",",
-                    bracket_query_spec(
-                        lists:nth(rand:uniform(Fun_Arg_Length), Fun_Arg)),
-                    ",",
-                    bracket_query_spec(
-                        lists:nth(rand:uniform(Fun_Arg_Length), Fun_Arg))
-                ]);
-                3 -> lists:append([
                     bracket_query_spec(
                         lists:nth(rand:uniform(Fun_Arg_Length), Fun_Arg)),
                     ",",
@@ -2914,34 +2695,15 @@ create_code(function_ref_list = Rule) ->
 
     Code =
         [
-            case rand:uniform(4) rem 4 of
+            case rand:uniform(2) rem 2 of
                 1 -> lists:append([
                     lists:nth(rand:uniform(Function_Ref_Length), Function_Ref),
                     ";",
                     lists:nth(rand:uniform(Function_Ref_Length), Function_Ref),
-                    ";",
-                    lists:nth(rand:uniform(Function_Ref_Length), Function_Ref),
-                    ";",
-                    lists:nth(rand:uniform(Function_Ref_Length), Function_Ref),
                     ";"
                 ]);
-                2 -> lists:append([
-                    lists:nth(rand:uniform(Function_Ref_Length), Function_Ref),
-                    ";",
-                    lists:nth(rand:uniform(Function_Ref_Length), Function_Ref),
-                    ";",
-                    lists:nth(rand:uniform(Function_Ref_Length), Function_Ref),
-                    ";"
-                ]);
-                3 -> lists:append([
-                    lists:nth(rand:uniform(Function_Ref_Length), Function_Ref),
-                    ";",
-                    lists:nth(rand:uniform(Function_Ref_Length), Function_Ref),
-                    ";"
-                ]);
-                _ ->
-                    lists:nth(rand:uniform(Function_Ref_Length),
-                        Function_Ref) ++ ";"
+                _ -> lists:nth(rand:uniform(Function_Ref_Length),
+                    Function_Ref) ++ ";"
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
@@ -3159,31 +2921,8 @@ create_code(grantee_revokee_commalist = Rule) ->
 
     Code =
         [
-            case rand:uniform(4) rem 4 of
+            case rand:uniform(2) rem 2 of
                 1 -> lists:append([
-                    lists:nth(rand:uniform(Grantee_Revokee_Length),
-                        Grantee_Revokee),
-                    ",",
-                    lists:nth(rand:uniform(Grantee_Revokee_Length),
-                        Grantee_Revokee),
-                    ",",
-                    lists:nth(rand:uniform(Grantee_Revokee_Length),
-                        Grantee_Revokee),
-                    ",",
-                    lists:nth(rand:uniform(Grantee_Revokee_Length),
-                        Grantee_Revokee)
-                ]);
-                2 -> lists:append([
-                    lists:nth(rand:uniform(Grantee_Revokee_Length),
-                        Grantee_Revokee),
-                    ",",
-                    lists:nth(rand:uniform(Grantee_Revokee_Length),
-                        Grantee_Revokee),
-                    ",",
-                    lists:nth(rand:uniform(Grantee_Revokee_Length),
-                        Grantee_Revokee)
-                ]);
-                3 -> lists:append([
                     lists:nth(rand:uniform(Grantee_Revokee_Length),
                         Grantee_Revokee),
                     ",",
@@ -3449,38 +3188,8 @@ create_code(insert_statement = Rule) ->
                         case rand:uniform(3) rem 3 of
                             1 -> lists:append([
                                 " Values (",
-                                case rand:uniform(4) rem 4 of
+                                case rand:uniform(2) rem 2 of
                                     1 -> lists:append([
-                                        lists:nth(rand:uniform(
-                                            Scalar_Opt_As_Exp_Length),
-                                            Scalar_Opt_As_Exp),
-                                        ",",
-                                        lists:nth(rand:uniform(
-                                            Scalar_Opt_As_Exp_Length),
-                                            Scalar_Opt_As_Exp),
-                                        ",",
-                                        lists:nth(rand:uniform(
-                                            Scalar_Opt_As_Exp_Length),
-                                            Scalar_Opt_As_Exp),
-                                        ",",
-                                        lists:nth(rand:uniform(
-                                            Scalar_Opt_As_Exp_Length),
-                                            Scalar_Opt_As_Exp)
-                                    ]);
-                                    2 -> lists:append([
-                                        lists:nth(rand:uniform(
-                                            Scalar_Opt_As_Exp_Length),
-                                            Scalar_Opt_As_Exp),
-                                        ",",
-                                        lists:nth(rand:uniform(
-                                            Scalar_Opt_As_Exp_Length),
-                                            Scalar_Opt_As_Exp),
-                                        ",",
-                                        lists:nth(rand:uniform(
-                                            Scalar_Opt_As_Exp_Length),
-                                            Scalar_Opt_As_Exp)
-                                    ]);
-                                    3 -> lists:append([
                                         lists:nth(rand:uniform(
                                             Scalar_Opt_As_Exp_Length),
                                             Scalar_Opt_As_Exp),
@@ -3582,15 +3291,8 @@ create_code(join_clause = Rule) ->
             lists:append([
                 lists:nth(rand:uniform(Table_Ref_Length), Table_Ref),
                 " ",
-                case rand:uniform(3) rem 3 of
+                case rand:uniform(2) rem 2 of
                     1 -> lists:append([
-                        lists:nth(rand:uniform(Join_Length), Join),
-                        " ",
-                        lists:nth(rand:uniform(Join_Length), Join),
-                        " ",
-                        lists:nth(rand:uniform(Join_Length), Join)
-                    ]);
-                    2 -> lists:append([
                         lists:nth(rand:uniform(Join_Length), Join),
                         " ",
                         lists:nth(rand:uniform(Join_Length), Join)
@@ -3915,31 +3617,8 @@ create_code(object_privilege_list = Rule) ->
 
     Code =
         [
-            case rand:uniform(4) rem 4 of
+            case rand:uniform(2) rem 2 of
                 1 -> lists:append([
-                    lists:nth(rand:uniform(Object_Privilege_Length),
-                        Object_Privilege),
-                    ",",
-                    lists:nth(rand:uniform(Object_Privilege_Length),
-                        Object_Privilege),
-                    ",",
-                    lists:nth(rand:uniform(Object_Privilege_Length),
-                        Object_Privilege),
-                    ",",
-                    lists:nth(rand:uniform(Object_Privilege_Length),
-                        Object_Privilege)
-                ]);
-                2 -> lists:append([
-                    lists:nth(rand:uniform(Object_Privilege_Length),
-                        Object_Privilege),
-                    ",",
-                    lists:nth(rand:uniform(Object_Privilege_Length),
-                        Object_Privilege),
-                    ",",
-                    lists:nth(rand:uniform(Object_Privilege_Length),
-                        Object_Privilege)
-                ]);
-                3 -> lists:append([
                     lists:nth(rand:uniform(Object_Privilege_Length),
                         Object_Privilege),
                     ",",
@@ -4039,31 +3718,8 @@ create_code(order_by_clause = Rule) ->
     Code =
         [
                 "Order By " ++
-                case rand:uniform(4) rem 4 of
+                case rand:uniform(2) rem 2 of
                     1 -> lists:append([
-                        lists:nth(rand:uniform(Ordering_Spec_Length),
-                            Ordering_Spec),
-                        ",",
-                        lists:nth(rand:uniform(Ordering_Spec_Length),
-                            Ordering_Spec),
-                        ",",
-                        lists:nth(rand:uniform(Ordering_Spec_Length),
-                            Ordering_Spec),
-                        ",",
-                        lists:nth(rand:uniform(Ordering_Spec_Length),
-                            Ordering_Spec)
-                    ]);
-                    2 -> lists:append([
-                        lists:nth(rand:uniform(Ordering_Spec_Length),
-                            Ordering_Spec),
-                        ",",
-                        lists:nth(rand:uniform(Ordering_Spec_Length),
-                            Ordering_Spec),
-                        ",",
-                        lists:nth(rand:uniform(Ordering_Spec_Length),
-                            Ordering_Spec)
-                    ]);
-                    3 -> lists:append([
                         lists:nth(rand:uniform(Ordering_Spec_Length),
                             Ordering_Spec),
                         ",",
@@ -4767,24 +4423,8 @@ create_code(role_list = Rule) ->
 
     Code =
         [
-            case rand:uniform(4) rem 4 of
+            case rand:uniform(2) rem 2 of
                 1 -> lists:append([
-                    lists:nth(rand:uniform(Name_Length), Name),
-                    ",",
-                    lists:nth(rand:uniform(Name_Length), Name),
-                    ",",
-                    lists:nth(rand:uniform(Name_Length), Name),
-                    ",",
-                    lists:nth(rand:uniform(Name_Length), Name)
-                ]);
-                2 -> lists:append([
-                    lists:nth(rand:uniform(Name_Length), Name),
-                    ",",
-                    lists:nth(rand:uniform(Name_Length), Name),
-                    ",",
-                    lists:nth(rand:uniform(Name_Length), Name)
-                ]);
-                3 -> lists:append([
                     lists:nth(rand:uniform(Name_Length), Name),
                     ",",
                     lists:nth(rand:uniform(Name_Length), Name)
@@ -4857,31 +4497,8 @@ create_code(scalar_exp_commalist = Rule) ->
 
     Code =
         [
-            case rand:uniform(4) rem 4 of
+            case rand:uniform(2) rem 2 of
                 1 -> lists:append([
-                    lists:nth(rand:uniform(Scalar_Opt_As_Exp_Length),
-                        Scalar_Opt_As_Exp),
-                    ",",
-                    lists:nth(rand:uniform(Scalar_Opt_As_Exp_Length),
-                        Scalar_Opt_As_Exp),
-                    ",",
-                    lists:nth(rand:uniform(Scalar_Opt_As_Exp_Length),
-                        Scalar_Opt_As_Exp),
-                    ",",
-                    lists:nth(rand:uniform(Scalar_Opt_As_Exp_Length),
-                        Scalar_Opt_As_Exp)
-                ]);
-                2 -> lists:append([
-                    lists:nth(rand:uniform(Scalar_Opt_As_Exp_Length),
-                        Scalar_Opt_As_Exp),
-                    ",",
-                    lists:nth(rand:uniform(Scalar_Opt_As_Exp_Length),
-                        Scalar_Opt_As_Exp),
-                    ",",
-                    lists:nth(rand:uniform(Scalar_Opt_As_Exp_Length),
-                        Scalar_Opt_As_Exp)
-                ]);
-                3 -> lists:append([
                     lists:nth(rand:uniform(Scalar_Opt_As_Exp_Length),
                         Scalar_Opt_As_Exp),
                     ",",
@@ -5052,41 +4669,16 @@ create_code(schema = Rule) ->
             lists:append([
                 "Create Schema Authorization ",
                 lists:nth(rand:uniform(Name_Length), Name),
-                case rand:uniform(5) rem 5 of
+                case rand:uniform(3) rem 3 of
                     1 -> lists:append([
                         " ",
                         lists:nth(rand:uniform(Schema_Element_Length),
                             Schema_Element),
                         " ",
                         lists:nth(rand:uniform(Schema_Element_Length),
-                            Schema_Element),
-                        " ",
-                        lists:nth(rand:uniform(Schema_Element_Length),
-                            Schema_Element),
-                        " ",
-                        lists:nth(rand:uniform(Schema_Element_Length),
                             Schema_Element)
                     ]);
-                    2 -> lists:append([
-                        " ",
-                        lists:nth(rand:uniform(Schema_Element_Length),
-                            Schema_Element),
-                        " ",
-                        lists:nth(rand:uniform(Schema_Element_Length),
-                            Schema_Element),
-                        " ",
-                        lists:nth(rand:uniform(Schema_Element_Length),
-                            Schema_Element)
-                    ]);
-                    3 -> lists:append([
-                        " ",
-                        lists:nth(rand:uniform(Schema_Element_Length),
-                            Schema_Element),
-                        " ",
-                        lists:nth(rand:uniform(Schema_Element_Length),
-                            Schema_Element)
-                    ]);
-                    4 ->
+                    2 ->
                         " " ++ lists:nth(rand:uniform(Schema_Element_Length),
                             Schema_Element);
                     _ -> []
@@ -5186,24 +4778,8 @@ create_code(select_field_commalist = Rule) ->
 
     Code =
         [
-            case rand:uniform(4) rem 4 of
+            case rand:uniform(2) rem 2 of
                 1 -> lists:append([
-                    lists:nth(rand:uniform(Select_Field_Length), Select_Field),
-                    ",",
-                    lists:nth(rand:uniform(Select_Field_Length), Select_Field),
-                    ",",
-                    lists:nth(rand:uniform(Select_Field_Length), Select_Field),
-                    ",",
-                    lists:nth(rand:uniform(Select_Field_Length), Select_Field)
-                ]);
-                2 -> lists:append([
-                    lists:nth(rand:uniform(Select_Field_Length), Select_Field),
-                    ",",
-                    lists:nth(rand:uniform(Select_Field_Length), Select_Field),
-                    ",",
-                    lists:nth(rand:uniform(Select_Field_Length), Select_Field)
-                ]);
-                3 -> lists:append([
                     lists:nth(rand:uniform(Select_Field_Length), Select_Field),
                     ",",
                     lists:nth(rand:uniform(Select_Field_Length), Select_Field)
@@ -5369,61 +4945,8 @@ create_code(sql_list = Rule) ->
 
     Code =
         [
-            case rand:uniform(4) rem 4 of
+            case rand:uniform(2) rem 2 of
                 1 -> lists:append([
-                    lists:nth(rand:uniform(Sql_Length), Sql),
-                    ";",
-                    case rand:uniform(2) rem 2 of
-                        1 ->
-                            lists:nth(rand:uniform(Extra_Length), Extra);
-                        _ -> []
-                    end,
-                    lists:nth(rand:uniform(Sql_Length), Sql),
-                    ";",
-                    case rand:uniform(2) rem 2 of
-                        1 ->
-                            lists:nth(rand:uniform(Extra_Length), Extra);
-                        _ -> []
-                    end,
-                    lists:nth(rand:uniform(Sql_Length), Sql),
-                    ";",
-                    case rand:uniform(2) rem 2 of
-                        1 ->
-                            lists:nth(rand:uniform(Extra_Length), Extra);
-                        _ -> []
-                    end,
-                    lists:nth(rand:uniform(Sql_Length), Sql),
-                    ";",
-                    case rand:uniform(2) rem 2 of
-                        1 ->
-                            lists:nth(rand:uniform(Extra_Length), Extra);
-                        _ -> []
-                    end
-                ]);
-                2 -> lists:append([
-                    lists:nth(rand:uniform(Sql_Length), Sql),
-                    ";",
-                    case rand:uniform(2) rem 2 of
-                        1 ->
-                            lists:nth(rand:uniform(Extra_Length), Extra);
-                        _ -> []
-                    end,
-                    lists:nth(rand:uniform(Sql_Length), Sql),
-                    ";",
-                    case rand:uniform(2) rem 2 of
-                        1 ->
-                            lists:nth(rand:uniform(Extra_Length), Extra);
-                        _ -> []
-                    end,
-                    lists:nth(rand:uniform(Sql_Length), Sql),
-                    ";",
-                    case rand:uniform(2) rem 2 of
-                        1 ->
-                            lists:nth(rand:uniform(Extra_Length), Extra);
-                        _ -> []
-                    end
-                ]);
-                3 -> lists:append([
                     lists:nth(rand:uniform(Sql_Length), Sql),
                     ";",
                     case rand:uniform(2) rem 2 of
@@ -5466,31 +4989,8 @@ create_code(statement_pragma_list = Rule) ->
 
     Code =
         [
-            case rand:uniform(4) rem 4 of
+            case rand:uniform(2) rem 2 of
                 1 -> lists:append([
-                    lists:nth(rand:uniform(Statement_Pragma_Length),
-                        Statement_Pragma),
-                    ",",
-                    lists:nth(rand:uniform(Statement_Pragma_Length),
-                        Statement_Pragma),
-                    ",",
-                    lists:nth(rand:uniform(Statement_Pragma_Length),
-                        Statement_Pragma),
-                    ",",
-                    lists:nth(rand:uniform(Statement_Pragma_Length),
-                        Statement_Pragma)
-                ]);
-                2 -> lists:append([
-                    lists:nth(rand:uniform(Statement_Pragma_Length),
-                        Statement_Pragma),
-                    ",",
-                    lists:nth(rand:uniform(Statement_Pragma_Length),
-                        Statement_Pragma),
-                    ",",
-                    lists:nth(rand:uniform(Statement_Pragma_Length),
-                        Statement_Pragma)
-                ]);
-                3 -> lists:append([
                     lists:nth(rand:uniform(Statement_Pragma_Length),
                         Statement_Pragma),
                     ",",
@@ -5642,31 +5142,8 @@ create_code(system_privilege_list = Rule) ->
 
     Code =
         [
-            case rand:uniform(4) rem 4 of
+            case rand:uniform(2) rem 2 of
                 1 -> lists:append([
-                    lists:nth(rand:uniform(System_Privilege_Length),
-                        System_Privilege),
-                    ",",
-                    lists:nth(rand:uniform(System_Privilege_Length),
-                        System_Privilege),
-                    ",",
-                    lists:nth(rand:uniform(System_Privilege_Length),
-                        System_Privilege),
-                    ",",
-                    lists:nth(rand:uniform(System_Privilege_Length),
-                        System_Privilege)
-                ]);
-                2 -> lists:append([
-                    lists:nth(rand:uniform(System_Privilege_Length),
-                        System_Privilege),
-                    ",",
-                    lists:nth(rand:uniform(System_Privilege_Length),
-                        System_Privilege),
-                    ",",
-                    lists:nth(rand:uniform(System_Privilege_Length),
-                        System_Privilege)
-                ]);
-                3 -> lists:append([
                     lists:nth(rand:uniform(System_Privilege_Length),
                         System_Privilege),
                     ",",
@@ -5937,29 +5414,8 @@ create_code(table_exp = Rule) ->
         [
             lists:append([
                 "From ",
-                case rand:uniform(4) rem 4 of
+                case rand:uniform(2) rem 2 of
                     1 -> lists:append([
-                        lists:nth(rand:uniform(From_Column_Length),
-                            From_Column),
-                        ",",
-                        lists:nth(rand:uniform(From_Column_Length),
-                            From_Column),
-                        ",",
-                        lists:nth(rand:uniform(From_Column_Length),
-                            From_Column),
-                        ",",
-                        lists:nth(rand:uniform(From_Column_Length), From_Column)
-                    ]);
-                    2 -> lists:append([
-                        lists:nth(rand:uniform(From_Column_Length),
-                            From_Column),
-                        ",",
-                        lists:nth(rand:uniform(From_Column_Length),
-                            From_Column),
-                        ",",
-                        lists:nth(rand:uniform(From_Column_Length), From_Column)
-                    ]);
-                    3 -> lists:append([
                         lists:nth(rand:uniform(From_Column_Length),
                             From_Column),
                         ",",
@@ -6047,24 +5503,8 @@ create_code(target_commalist = Rule) ->
 
     Code =
         [
-            case rand:uniform(4) rem 4 of
+            case rand:uniform(2) rem 2 of
                 1 -> lists:append([
-                    lists:nth(rand:uniform(Target_Length), Target),
-                    ",",
-                    lists:nth(rand:uniform(Target_Length), Target),
-                    ",",
-                    lists:nth(rand:uniform(Target_Length), Target),
-                    ",",
-                    lists:nth(rand:uniform(Target_Length), Target)
-                ]);
-                2 -> lists:append([
-                    lists:nth(rand:uniform(Target_Length), Target),
-                    ",",
-                    lists:nth(rand:uniform(Target_Length), Target),
-                    ",",
-                    lists:nth(rand:uniform(Target_Length), Target)
-                ]);
-                3 -> lists:append([
                     lists:nth(rand:uniform(Target_Length), Target),
                     ",",
                     lists:nth(rand:uniform(Target_Length), Target)
@@ -6247,15 +5687,8 @@ create_code(user_opt = Rule) ->
                     " Tablespace ",
                     lists:nth(rand:uniform(Name_Length), Name)
                 ]);
-                2 -> case rand:uniform(3) rem 3 of
+                2 -> case rand:uniform(2) rem 2 of
                          1 -> lists:append([
-                             lists:nth(rand:uniform(Quota_Length), Quota),
-                             " ",
-                             lists:nth(rand:uniform(Quota_Length), Quota),
-                             " ",
-                             lists:nth(rand:uniform(Quota_Length), Quota)
-                         ]);
-                         2 -> lists:append([
                              lists:nth(rand:uniform(Quota_Length), Quota),
                              " ",
                              lists:nth(rand:uniform(Quota_Length), Quota)

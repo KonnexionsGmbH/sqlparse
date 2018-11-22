@@ -1338,6 +1338,31 @@ fold_i(FType, Fun, LOpts, FunState, Ctx,
     NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
         {Rule, get_start_end(FType, 'end')}),
     ?FOLD_RESULT(NewCtxE);
+fold_i(FType, Fun, LOpts, FunState, Ctx, {function_ref = Rule, Pos, PTree}) ->
+    ?FOLD_INIT(FunState, Ctx, PTree),
+    NewCtxS = Fun(LOpts, FunState, Ctx, PTree,
+        {Rule, get_start_end(FType, start), Pos}),
+    NewCtx1 = fold_i(FType, Fun, LOpts, FunState, NewCtxS, PTree),
+    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
+        {Rule, get_start_end(FType, 'end'), Pos}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% function_ref_list list
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunState, Ctx, [{'fun', _, _} | _] = PTree)
+    when is_list(PTree) ->
+    ?FOLD_INIT(FunState, Ctx, PTree),
+    Rule = function_ref_list_list,
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtx1 =
+        list_elem_ext_rule(FType, Fun, LOpts, FunState, NewCtxS, function_ref,
+            PTree),
+    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % goto
@@ -2123,9 +2148,9 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
     FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
     NewCtxS =
         Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
-    NewCtx1 = list_elem_ext_rule(FType, Fun, LOpts,
-        set_state_clause(FunState, begin_procedure), NewCtxS, procedure_call,
-        FunctionRefList),
+    NewCtx1 =
+        fold_i(FType, Fun, LOpts, set_state_clause(FunState, begin_procedure),
+            NewCtxS, FunctionRefList),
     NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
         {Rule, get_start_end(FType, 'end')}),
     ?FOLD_RESULT(NewCtxE);
@@ -3391,21 +3416,21 @@ get_stmnt_clause_pred(FunState, Pos) ->
 binary_needs_paren(LOrR, Op) when is_tuple(LOrR), is_atom(Op) ->
     binary_needs_paren(element(1, LOrR), Op);
 
-binary_needs_paren('fun', _)    -> false;
+binary_needs_paren('fun', _) -> false;
 binary_needs_paren('or', 'and') -> true;
-binary_needs_paren('+', '*')    -> true;
-binary_needs_paren('+', '/')    -> true;
-binary_needs_paren('+', 'div')  -> true;
-binary_needs_paren('-', '*')    -> true;
-binary_needs_paren('-', '/')    -> true;
-binary_needs_paren('-', 'div')  -> true;
-binary_needs_paren('-', '+')    -> true;
-binary_needs_paren('/', '*')    -> true;
-binary_needs_paren('div', '*')  -> true;
-binary_needs_paren(_, '/')      -> true;
-binary_needs_paren(_, 'div')    -> true;
-binary_needs_paren(_, '-')      -> true;
-binary_needs_paren(_, _)        -> false.
+binary_needs_paren('+', '*') -> true;
+binary_needs_paren('+', '/') -> true;
+binary_needs_paren('+', 'div') -> true;
+binary_needs_paren('-', '*') -> true;
+binary_needs_paren('-', '/') -> true;
+binary_needs_paren('-', 'div') -> true;
+binary_needs_paren('-', '+') -> true;
+binary_needs_paren('/', '*') -> true;
+binary_needs_paren('div', '*') -> true;
+binary_needs_paren(_, '/') -> true;
+binary_needs_paren(_, 'div') -> true;
+binary_needs_paren(_, '-') -> true;
+binary_needs_paren(_, _) -> false.
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Find the innermost value.

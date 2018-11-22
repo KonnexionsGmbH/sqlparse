@@ -1759,73 +1759,73 @@ parameter_ok_test() ->
     ?D("Start ~n"),
     ?assertEqual({ok, list_to_binary("SELECT" ++ ?CHAR_NEWLINE ++
         "    Column_1" ++
-        ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "    Dual")},
-        sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL",
+        ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "    Dual;")},
+        sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL;",
             [{case_identifier, init_cap}])),
     ?assertEqual({ok, list_to_binary("SELECT" ++ ?CHAR_NEWLINE ++
         "    columN_1" ++
-        ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "    duaL")},
-        sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL",
+        ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "    duaL;")},
+        sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL;",
             [{case_identifier, keep_unchanged}])),
     ?assertEqual({ok, list_to_binary("SELECT" ++ ?CHAR_NEWLINE ++
         "    column_1" ++
-        ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "    dual")},
-        sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL",
+        ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "    dual;")},
+        sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL;",
             [{case_identifier, lower}])),
     ?assertEqual({ok, list_to_binary("SELECT" ++ ?CHAR_NEWLINE ++
         "    COLUMN_1" ++
-        ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "    DUAL")},
-        sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL",
+        ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "    DUAL;")},
+        sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL;",
             [{case_identifier, upper}])),
 
     ?assertEqual({ok, list_to_binary("Select" ++ ?CHAR_NEWLINE ++
         "    columN_1" ++
-        ?CHAR_NEWLINE ++ "From" ++ ?CHAR_NEWLINE ++ "    duaL")},
-        sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL",
+        ?CHAR_NEWLINE ++ "From" ++ ?CHAR_NEWLINE ++ "    duaL;")},
+        sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL;",
             [{case_keyword, init_cap}])),
     ?assertEqual({ok, list_to_binary("select" ++ ?CHAR_NEWLINE ++
         "    columN_1" ++
-        ?CHAR_NEWLINE ++ "from" ++ ?CHAR_NEWLINE ++ "    duaL")},
-        sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL",
+        ?CHAR_NEWLINE ++ "from" ++ ?CHAR_NEWLINE ++ "    duaL;")},
+        sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL;",
             [{case_keyword, lower}])),
     ?assertEqual({ok, list_to_binary("SELECT" ++ ?CHAR_NEWLINE ++
         "    columN_1" ++
-        ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "    duaL")},
-        sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL",
+        ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "    duaL;")},
+        sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL;",
             [{case_keyword, upper}])),
 
     ?assertEqual({ok, list_to_binary("SELECT" ++ ?CHAR_NEWLINE ++
         "  columN_1" ++
-        ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "  duaL")},
-        sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL",
+        ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "  duaL;")},
+        sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL;",
             [{indent_space, 2}])),
 
     ?assertEqual({ok, list_to_binary("SELECT" ++ ?CHAR_NEWLINE ++
         "    columN_1" ++
-        ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "    duaL")},
-        sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL",
+        ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "    duaL;")},
+        sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL;",
             [{indent_with, space}])),
     ?assertEqual({ok, list_to_binary("SELECT" ++ ?CHAR_NEWLINE ++
         "\tcolumN_1" ++
-        ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "\tduaL")},
-        sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL",
+        ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "\tduaL;")},
+        sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL;",
             [{indent_with, tab}])),
 
     ?assertEqual({ok, list_to_binary("SELECT" ++ ?CHAR_NEWLINE ++
         "    columN_1" ++
-        ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "    duaL")},
-        sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL",
+        ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "    duaL;")},
+        sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL;",
             [{line_break_after, 80}])),
 
     ?assertEqual({ok, list_to_binary("SELECT" ++ ?CHAR_NEWLINE ++
         "    columN_1" ++
-        ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "    duaL")},
-        sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL",
+        ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "    duaL;")},
+        sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL;",
             [{ws_operator, false}])),
     ?assertEqual({ok, list_to_binary("SELECT" ++ ?CHAR_NEWLINE ++
         "    columN_1" ++
-        ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "    duaL")},
-        sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL",
+        ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "    duaL;")},
+        sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL;",
             [{ws_operator, true}])).
 
 %%------------------------------------------------------------------------------

@@ -1176,8 +1176,6 @@ fold(LOpts, _FunState, Ctx, PTree, {fun_arg = Rule, Step, _Pos} = _FoldState)
              _ -> none
          end,
     ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
-fold(_LOpts, _FunState, Ctx, _PTree, {fun_arg, _Step, _Pos} = _FoldState) ->
-    Ctx;
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % function_ref
@@ -2868,6 +2866,8 @@ fold(LOpts, _FunState, Ctx, _PTree, {where_current_of = Rule, Step} =
 
 fold(_LOpts, _FunState, Ctx, _PTree, {Rule, _Step, _Pos}) when
     Rule == case_when_then;
+    Rule == fun_arg;
+    Rule == function_ref;
     Rule == join;
     Rule == user_opt ->
     Ctx;
@@ -2889,6 +2889,7 @@ fold(_LOpts, _FunState, Ctx, _PTree, {Rule, _Step}) when
     Rule == fields;
     Rule == 'fun';
     Rule == function_ref;
+    Rule == function_ref_list_list;
     Rule == hierarchical_query;
     Rule == in_predicate;
     Rule == jpparse;

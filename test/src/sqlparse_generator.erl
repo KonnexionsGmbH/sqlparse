@@ -357,6 +357,7 @@ create_code() ->
     create_code(drop_role_def),
     create_code(drop_user_def),
     create_code(extra),
+    create_code(fun_arg_named),
     create_code(grantee_identified_by),
     create_code(grantee_revokee_commalist),
     create_code(identified),
@@ -427,6 +428,7 @@ create_code() ->
 
     create_code(close_statement),
     create_code(data_type),
+    create_code(fun_args_named),
     create_code(open_statement),
     create_code(parameter_ref),
     create_code(truncate_table),
@@ -704,8 +706,8 @@ create_code_layer(Version) ->
 %% ==> predicate                           == predicate = ... between_predicate ...
 %% ==> search_condition                    == search_condition = ... predicate ...
 %%
-%% function_ref ::= ( ( ( NAME '.' )?  NAME '.' )? NAME '(' fun_args? ')' )
-%%                | ( 'FUNS' ( '(' ( fun_args | '*' | ( 'DISTINCT' column_ref ) | ( 'ALL' scalar_exp ) )? ')' )? )
+%% function_ref ::= ( ( ( NAME '.' )?  NAME '.' )? NAME '(' ( fun_args | fun_args_named )? ')' )
+%%                | ( 'FUNS' ( '(' ( fun_args | fun_args_named | '*' | ( 'DISTINCT' column_ref ) | ( 'ALL' scalar_exp ) )? ')' )? )
 %%                | ( function_ref JSON )
 %%
 %% ==> fun_arg                             == fun_arg = ... function_ref ...
@@ -766,7 +768,9 @@ create_code_layer(Version) ->
 %%                        | ( 'PRIOR' scalar_exp ( '=' | COMPARISON )         scalar_exp )
 %%
 %% ==> predicate                           == predicate = ... comparison_predicate ...
-%% ==> search_condition                    == search_condition = ... predicate ...
+%% ==> search_condition                    == search_condition = ... predicate .
+%%
+%% fun_arg_named ::= NAME '=>' scalar_opt_as_exp
 %%
 %% function_ref_list ::= ( function_ref ';' )
 %%                     | ( function_ref ';' function_ref_list )
@@ -793,6 +797,7 @@ create_code_layer(Version) ->
     create_code(case_when_then),
     create_code(column_ref_commalist),
     create_code(comparison_predicate),
+    create_code(fun_arg_named),
     create_code(function_ref_list),
     create_code(order_by_clause),
     create_code(scalar_exp_commalist),
@@ -810,6 +815,8 @@ create_code_layer(Version) ->
 %%
 %% ==> manipulative_statement              == manipulative_statement = ... create_table_def ...
 %% ==> schema_element                      == schema_element = ... create_table_def ...
+%%
+%% fun_args_named ::= fun_arg_named ( ',' fun_arg_named )*
 %%
 %% procedure_call ::= ( 'BEGIN' function_ref_list 'END' )
 %%                  | ( 'BEGIN' sql_list          'END' )
@@ -835,6 +842,7 @@ create_code_layer(Version) ->
     create_code(assignment_commalist),
     create_code(case_when_then_list),
     create_code(create_table_def),
+    create_code(fun_args_named),
     create_code(procedure_call),
     create_code(query_partition_clause),
     create_code(search_condition),
@@ -2535,6 +2543,38 @@ create_code(fun_arg = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% fun_arg_named ::= NAME '=>' scalar_opt_as_exp
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(fun_arg_named = Rule) ->
+    ?CREATE_CODE_START,
+    [{literal, Literal}] = ets:lookup(?CODE_TEMPLATES, literal),
+    Literal_Length = length(Literal),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
+    Name_Length = length(Name),
+    [{parameter, Parameter}] = ets:lookup(?CODE_TEMPLATES, parameter),
+    Parameter_Length = length(Parameter),
+
+    Code =
+        lists:append([
+            [
+                lists:append([
+                    lists:nth(rand:uniform(Name_Length), Name),
+                    " => ",
+                    case rand:uniform(3) rem 3 of
+                        1 -> lists:nth(rand:uniform(Literal_Length), Literal);
+                        2 -> lists:nth(rand:uniform(Name_Length), Name);
+                        _ ->
+                            lists:nth(rand:uniform(Parameter_Length), Parameter)
+                    end
+                ])
+                || _ <- lists:seq(1, ?MAX_BASIC * 2)
+            ]
+        ]),
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% fun_args ::= fun_arg ( ',' fun_arg )*
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -2563,8 +2603,40 @@ create_code(fun_args = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% function_ref ::= ( ( ( NAME '.' )?  NAME '.' )? NAME '(' fun_args? ')' )
-%%                | ( 'FUNS' ( '(' ( fun_args | '*' | ( 'DISTINCT' column_ref ) | ( 'ALL' scalar_exp ) )? ')' )? )
+%% fun_args_named ::= fun_arg_named ( ',' fun_arg_named )*
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(fun_args_named = Rule) ->
+    ?CREATE_CODE_START,
+    [{fun_arg_named, Fun_Arg_Named}] =
+        ets:lookup(?CODE_TEMPLATES, fun_arg_named),
+    Fun_Arg_Named_Length = length(Fun_Arg_Named),
+
+    Code =
+        [
+            case rand:uniform(2) rem 2 of
+                1 -> lists:append([
+                    bracket_query_spec(
+                        lists:nth(rand:uniform(Fun_Arg_Named_Length),
+                            Fun_Arg_Named)),
+                    ",",
+                    bracket_query_spec(
+                        lists:nth(rand:uniform(Fun_Arg_Named_Length),
+                            Fun_Arg_Named))
+                ]);
+                _ ->
+                    bracket_query_spec(
+                        lists:nth(rand:uniform(Fun_Arg_Named_Length),
+                            Fun_Arg_Named))
+            end
+            || _ <- lists:seq(1, ?MAX_BASIC * 2)
+        ],
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% function_ref ::= ( ( ( NAME '.' )?  NAME '.' )? NAME '(' ( fun_args | fun_args_named)? ')' )
+%%                | ( 'FUNS' ( '(' ( fun_args | fun_args_named | '*' | ( 'DISTINCT' column_ref ) | ( 'ALL' scalar_exp ) )? ')' )? )
 %%                | ( function_ref JSON )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -2576,6 +2648,9 @@ create_code(function_ref = Rule) ->
     Funs_Length = length(Funs),
     [{fun_args, Fun_Args}] = ets:lookup(?CODE_TEMPLATES, fun_args),
     Fun_Args_Length = length(Fun_Args),
+    [{fun_args_named, Fun_Args_Named}] =
+        ets:lookup(?CODE_TEMPLATES, fun_args_named),
+    Fun_Args_Named_Length = length(Fun_Args_Named),
     [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
     [{scalar_exp, Scalar_Exp}] = ets:lookup(?CODE_TEMPLATES, scalar_exp),
@@ -2600,7 +2675,13 @@ create_code(function_ref = Rule) ->
                              ".",
                              lists:nth(rand:uniform(Name_Length), Name),
                              " (",
-                             lists:nth(rand:uniform(Fun_Args_Length), Fun_Args),
+                             case rand:uniform(2) rem 2 of
+                                 1 -> lists:nth(rand:uniform(Fun_Args_Length),
+                                     Fun_Args);
+                                 _ -> lists:nth(
+                                     rand:uniform(Fun_Args_Named_Length),
+                                     Fun_Args_Named)
+                             end,
                              ")"
                          ]);
                          3 -> lists:append([
@@ -2614,7 +2695,13 @@ create_code(function_ref = Rule) ->
                              ".",
                              lists:nth(rand:uniform(Name_Length), Name),
                              " (",
-                             lists:nth(rand:uniform(Fun_Args_Length), Fun_Args),
+                             case rand:uniform(2) rem 2 of
+                                 1 -> lists:nth(rand:uniform(Fun_Args_Length),
+                                     Fun_Args);
+                                 _ -> lists:nth(
+                                     rand:uniform(Fun_Args_Named_Length),
+                                     Fun_Args_Named)
+                             end,
                              ")"
                          ]);
                          5 -> lists:append([
@@ -2624,7 +2711,13 @@ create_code(function_ref = Rule) ->
                          _ -> lists:append([
                              lists:nth(rand:uniform(Name_Length), Name),
                              " (",
-                             lists:nth(rand:uniform(Fun_Args_Length), Fun_Args),
+                             case rand:uniform(2) rem 2 of
+                                 1 -> lists:nth(rand:uniform(Fun_Args_Length),
+                                     Fun_Args);
+                                 _ -> lists:nth(
+                                     rand:uniform(Fun_Args_Named_Length),
+                                     Fun_Args_Named)
+                             end,
                              ")"
                          ])
                      end;
@@ -2633,16 +2726,20 @@ create_code(function_ref = Rule) ->
                        1 -> [];
                        _ -> lists:append([
                            " (",
-                           case rand:uniform(5) rem 5 of
+                           case rand:uniform(6) rem 6 of
                                1 ->
                                    lists:nth(rand:uniform(Fun_Args_Length),
                                        Fun_Args);
-                               2 -> "*";
-                               3 ->
+                               2 ->
+                                   lists:nth(
+                                       rand:uniform(Fun_Args_Named_Length),
+                                       Fun_Args_Named);
+                               3 -> "*";
+                               4 ->
                                    "Distinct " ++
                                    lists:nth(rand:uniform(Column_Ref_Length),
                                        Column_Ref);
-                               4 ->
+                               5 ->
                                    "All " ++ bracket_query_spec(lists:nth(
                                        rand:uniform(Scalar_Exp_Length),
                                        Scalar_Exp));
@@ -4993,7 +5090,6 @@ create_code(statement_pragma_list = Rule) ->
                 1 -> lists:append([
                     lists:nth(rand:uniform(Statement_Pragma_Length),
                         Statement_Pragma),
-                    ",",
                     lists:nth(rand:uniform(Statement_Pragma_Length),
                         Statement_Pragma)
                 ]);

@@ -36,7 +36,7 @@ Nonterminals
  asc_desc
  assignment
  assignment_commalist
- assign_statement
+ assignment_statement
  atom
  base_table_element
  base_table_element_commalist
@@ -86,7 +86,9 @@ Nonterminals
  from_column
  from_column_commalist
  fun_arg
+ fun_arg_named
  fun_args
+ fun_args_named
  function_ref
  function_ref_list
  grant_def
@@ -369,6 +371,7 @@ Terminals
  ':='
  ';'
  '='
+ '=>'
  'div'
  '||'
 .
@@ -417,9 +420,9 @@ plsql_body -> BEGIN statement_pragma_list END : {'plsql_body', '$2'}.
 statement_pragma_list ->                       statement_pragma :         ['$1'].
 statement_pragma_list -> statement_pragma_list statement_pragma : '$1' ++ ['$2'].
 
-statement_pragma -> assign_statement : '$1'.
+statement_pragma -> assignment_statement : '$1'.
 
-assign_statement -> parameter ':=' scalar_opt_as_exp ';' : {':=', '$1', '$3'}.
+assignment_statement -> parameter ':=' scalar_opt_as_exp ';' : {':=', '$1', '$3'}.
 
 procedure_call -> BEGIN function_ref_list END : {'begin procedure', '$2'}.
 procedure_call -> BEGIN sql_list          END : {'begin procedure', '$2'}.
@@ -1170,12 +1173,16 @@ function_ref -> FUNS '(' '*'                 ')'              : {'fun', unwrap_b
 function_ref -> FUNS '(' ALL      scalar_exp ')'              : {'fun', unwrap_bin('$1'), [{all,      '$4'}]}.
 function_ref -> FUNS '(' DISTINCT column_ref ')'              : {'fun', unwrap_bin('$1'), [{distinct, '$4'}]}.
 function_ref -> FUNS '(' fun_args            ')'              : {'fun', unwrap_bin('$1'), make_list('$3')}.
+function_ref -> FUNS '(' fun_args_named      ')'              : {'fun', unwrap_bin('$1'), make_list('$3')}.
 function_ref -> NAME                   '('                ')' : {'fun', unwrap_bin('$1'), []}.
 function_ref -> NAME                   '(' fun_args       ')' : {'fun', unwrap_bin('$1'), make_list('$3')}.
+function_ref -> NAME                   '(' fun_args_named ')' : {'fun', unwrap_bin('$1'), make_list('$3')}.
 function_ref -> NAME '.' NAME          '('                ')' : {'fun', list_to_binary([unwrap('$1'), ".", unwrap('$3')]), []}.
 function_ref -> NAME '.' NAME          '(' fun_args       ')' : {'fun', list_to_binary([unwrap('$1'), ".", unwrap('$3')]), make_list('$5')}.
+function_ref -> NAME '.' NAME          '(' fun_args_named ')' : {'fun', list_to_binary([unwrap('$1'), ".", unwrap('$3')]), make_list('$5')}.
 function_ref -> NAME '.' NAME '.' NAME '('                ')' : {'fun', list_to_binary([unwrap('$1'), ".", unwrap('$3'), ".", unwrap('$5')]), []}.
 function_ref -> NAME '.' NAME '.' NAME '(' fun_args       ')' : {'fun', list_to_binary([unwrap('$1'), ".", unwrap('$3'), ".", unwrap('$5')]), make_list('$7')}.
+function_ref -> NAME '.' NAME '.' NAME '(' fun_args_named ')' : {'fun', list_to_binary([unwrap('$1'), ".", unwrap('$3'), ".", unwrap('$5')]), make_list('$7')}.
 
 fun_args -> fun_arg              : ['$1'].
 fun_args -> fun_arg ',' fun_args : ['$1' | '$3'].
@@ -1198,6 +1205,13 @@ fun_arg -> function_ref                  : '$1'.
 fun_arg -> NULLX                         : <<"NULL">>.
 fun_arg -> subquery                      : '$1'.
 fun_arg -> unary_add_or_subtract fun_arg : {'$1', '$2'}.
+
+fun_args_named -> fun_arg_named                    : ['$1'].
+fun_args_named -> fun_arg_named ',' fun_args_named : ['$1' | '$3'].
+
+fun_arg_named -> NAME '=>' literal   : {'=>', unwrap_bin('$1'), '$3'}.
+fun_arg_named -> NAME '=>' NAME      : {'=>', unwrap_bin('$1'), unwrap_bin('$3')}.
+fun_arg_named -> NAME '=>' parameter : {'=>', unwrap_bin('$1'), '$3'}.
 
 literal -> STRING    : unwrap_bin('$1').
 literal -> INTNUM    : unwrap_bin('$1').

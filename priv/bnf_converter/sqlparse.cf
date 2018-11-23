@@ -1495,33 +1495,41 @@ ParameterRef01.                   ParameterRef ::= Parameter                    
 ParameterRef02.                   ParameterRef ::= Parameter             Parameter ;
 ParameterRef03.                   ParameterRef ::= Parameter "INDICATOR" Parameter ;
 
--- function_ref -> function_ref JSON                       : {'$1', jpparse(list_to_binary([unwrap('$2')])), []}.
--- function_ref -> FUNS                                    : {'fun', unwrap_bin('$1'), []}.
--- function_ref -> FUNS '('          ')'                   : {'fun', unwrap_bin('$1'), []}.
--- function_ref -> FUNS '(' '*' ')'                        : {'fun', unwrap_bin('$1'), [<<"*">>]}.
--- function_ref -> FUNS '(' ALL      scalar_exp ')'        : {'fun', unwrap_bin('$1'), [{all,      '$4'}]}.
--- function_ref -> FUNS '(' DISTINCT column_ref ')'        : {'fun', unwrap_bin('$1'), [{distinct, '$4'}]}.
--- function_ref -> FUNS '(' fun_args ')'                   : {'fun', unwrap_bin('$1'), make_list('$3')}.
--- function_ref -> NAME                   '('          ')' : {'fun', unwrap_bin('$1'), []}.
--- function_ref -> NAME                   '(' fun_args ')' : {'fun', unwrap_bin('$1'), make_list('$3')}.
--- function_ref -> NAME '.' NAME          '('          ')' : {'fun', list_to_binary([unwrap('$1'), ".", unwrap('$3')]), []}.
--- function_ref -> NAME '.' NAME          '(' fun_args ')' : {'fun', list_to_binary([unwrap('$1'), ".", unwrap('$3')]), make_list('$5')}.
--- function_ref -> NAME '.' NAME '.' NAME '('          ')' : {'fun', list_to_binary([unwrap('$1'), ".", unwrap('$3'), ".", unwrap('$5')]), []}.
--- function_ref -> NAME '.' NAME '.' NAME '(' fun_args ')' : {'fun', list_to_binary([unwrap('$1'), ".", unwrap('$3'), ".", unwrap('$5')]), make_list('$7')}.
+-- function_ref -> function_ref JSON                             : {'$1', jpparse(list_to_binary([unwrap('$2')])), []}.
+-- function_ref -> FUNS                                          : {'fun', unwrap_bin('$1'), []}.
+-- function_ref -> FUNS '('                     ')'              : {'fun', unwrap_bin('$1'), []}.
+-- function_ref -> FUNS '(' '*'                 ')'              : {'fun', unwrap_bin('$1'), [<<"*">>]}.
+-- function_ref -> FUNS '(' ALL      scalar_exp ')'              : {'fun', unwrap_bin('$1'), [{all,      '$4'}]}.
+-- function_ref -> FUNS '(' DISTINCT column_ref ')'              : {'fun', unwrap_bin('$1'), [{distinct, '$4'}]}.
+-- function_ref -> FUNS '(' fun_args            ')'              : {'fun', unwrap_bin('$1'), make_list('$3')}.
+-- function_ref -> FUNS '(' fun_args_named      ')'              : {'fun', unwrap_bin('$1'), make_list('$3')}.
+-- function_ref -> NAME                   '('                ')' : {'fun', unwrap_bin('$1'), []}.
+-- function_ref -> NAME                   '(' fun_args       ')' : {'fun', unwrap_bin('$1'), make_list('$3')}.
+-- function_ref -> NAME                   '(' fun_args_named ')' : {'fun', unwrap_bin('$1'), make_list('$3')}.
+-- function_ref -> NAME '.' NAME          '('                ')' : {'fun', list_to_binary([unwrap('$1'), ".", unwrap('$3')]), []}.
+-- function_ref -> NAME '.' NAME          '(' fun_args       ')' : {'fun', list_to_binary([unwrap('$1'), ".", unwrap('$3')]), make_list('$5')}.
+-- function_ref -> NAME '.' NAME          '(' fun_args_named ')' : {'fun', list_to_binary([unwrap('$1'), ".", unwrap('$3')]), make_list('$5')}.
+-- function_ref -> NAME '.' NAME '.' NAME '('                ')' : {'fun', list_to_binary([unwrap('$1'), ".", unwrap('$3'), ".", unwrap('$5')]), []}.
+-- function_ref -> NAME '.' NAME '.' NAME '(' fun_args       ')' : {'fun', list_to_binary([unwrap('$1'), ".", unwrap('$3'), ".", unwrap('$5')]), make_list('$7')}.
+-- function_ref -> NAME '.' NAME '.' NAME '(' fun_args_named ')' : {'fun', list_to_binary([unwrap('$1'), ".", unwrap('$3'), ".", unwrap('$5')]), make_list('$7')}.
 
-FunctionRef01.                    FunctionRef ::= FunctionRef "JSON"                           ;
-FunctionRef02.                    FunctionRef ::= "FUNS"                                       ;
-FunctionRef03.                    FunctionRef ::= "FUNS"  "("                      ")"         ;
-FunctionRef04.                    FunctionRef ::= "FUNS"  "(" "*"                  ")"         ;
-FunctionRef05.                    FunctionRef ::= "FUNS"  "(" "ALL" ScalarExp      ")"         ;
-FunctionRef06.                    FunctionRef ::= "FUNS"  "(" "DISTINCT" ColumnRef ")"         ;
-FunctionRef07.                    FunctionRef ::= "FUNS"  "(" FunArgs              ")"         ;
-FunctionRef08.                    FunctionRef ::= "NAME"                       "("         ")" ;
-FunctionRef09.                    FunctionRef ::= "NAME"                       "(" FunArgs ")" ;
-FunctionRef10.                    FunctionRef ::= "NAME" "." "NAME"            "("         ")" ;
-FunctionRef11.                    FunctionRef ::= "NAME" "." "NAME"            "(" FunArgs ")" ;
-FunctionRef12.                    FunctionRef ::= "NAME" "." "NAME" "." "NAME" "("         ")" ;
-FunctionRef13.                    FunctionRef ::= "NAME" "." "NAME" "." "NAME" "(" FunArgs ")" ;
+FunctionRef01.                    FunctionRef ::= FunctionRef "JSON"                                ;
+FunctionRef02.                    FunctionRef ::= "FUNS"                                            ;
+FunctionRef03.                    FunctionRef ::= "FUNS"  "("                      ")"              ;
+FunctionRef04.                    FunctionRef ::= "FUNS"  "(" "*"                  ")"              ;
+FunctionRef05.                    FunctionRef ::= "FUNS"  "(" "ALL"      ScalarExp ")"              ;
+FunctionRef06.                    FunctionRef ::= "FUNS"  "(" "DISTINCT" ColumnRef ")"              ;
+FunctionRef07.                    FunctionRef ::= "FUNS"  "(" FunArgs              ")"              ;
+FunctionRef08.                    FunctionRef ::= "FUNS"  "(" FunArgsNamed         ")"              ;
+FunctionRef09.                    FunctionRef ::= "NAME"                       "("              ")" ;
+FunctionRef10.                    FunctionRef ::= "NAME"                       "(" FunArgs      ")" ;
+FunctionRef11.                    FunctionRef ::= "NAME"                       "(" FunArgsNamed ")" ;
+FunctionRef12.                    FunctionRef ::= "NAME" "." "NAME"            "("              ")" ;
+FunctionRef13.                    FunctionRef ::= "NAME" "." "NAME"            "(" FunArgs      ")" ;
+FunctionRef14.                    FunctionRef ::= "NAME" "." "NAME"            "(" FunArgsNamed ")" ;
+FunctionRef15.                    FunctionRef ::= "NAME" "." "NAME" "." "NAME" "("              ")" ;
+FunctionRef16.                    FunctionRef ::= "NAME" "." "NAME" "." "NAME" "(" FunArgs      ")" ;
+FunctionRef17.                    FunctionRef ::= "NAME" "." "NAME" "." "NAME" "(" FunArgsNamed ")" ;
 
 -- fun_args -> fun_arg                                                                             : ['$1'].
 -- fun_args -> fun_arg ',' fun_args                                                                : ['$1' | '$3'].
@@ -1530,42 +1538,57 @@ FunArgs01.                        FunArgs ::= FunArg             ;
 FunArgs02.                        FunArgs ::= FunArg "," FunArgs ;
 
 -- fun_arg -> '(' fun_arg ')'               : '$2'.
--- fun_arg -> function_ref                  : '$1'.
--- fun_arg -> column_ref                    : '$1'.
--- fun_arg -> fun_arg '+' fun_arg           : {'+',  '$1','$3'}.
--- fun_arg -> fun_arg '-' fun_arg           : {'-',  '$1','$3'}.
--- fun_arg -> fun_arg '*' fun_arg           : {'*',  '$1','$3'}.
--- fun_arg -> fun_arg '/' fun_arg           : {'/',  '$1','$3'}.
--- fun_arg -> fun_arg 'div' fun_arg         : {'div','$1','$3'}.
--- fun_arg -> fun_arg '||' fun_arg          : {'||', '$1','$3'}.
--- fun_arg -> unary_add_or_subtract fun_arg : {'$1', '$2'}.
--- fun_arg -> NULLX                         : <<"NULL">>.
 -- fun_arg -> atom                          : '$1'.
--- fun_arg -> subquery                      : '$1'.
--- fun_arg -> fun_arg    NAME               : {as, '$1', unwrap_bin('$2')}.
--- fun_arg -> fun_arg AS NAME               : {as, '$1', unwrap_bin('$3')}.
--- fun_arg -> fun_arg '='        fun_arg    : {'=',          '$1', '$3'}.
--- fun_arg -> fun_arg COMPARISON fun_arg    : {unwrap('$2'), '$1', '$3'}.
 -- fun_arg -> case_when_exp                 : '$1'.
+-- fun_arg -> column_ref                    : '$1'.
+-- fun_arg -> fun_arg       NAME            : {as,   '$1', unwrap_bin('$2')}.
+-- fun_arg -> fun_arg '*'   fun_arg         : {'*',  '$1','$3'}.
+-- fun_arg -> fun_arg '+'   fun_arg         : {'+',  '$1','$3'}.
+-- fun_arg -> fun_arg '-'   fun_arg         : {'-',  '$1','$3'}.
+-- fun_arg -> fun_arg '/'   fun_arg         : {'/',  '$1','$3'}.
+-- fun_arg -> fun_arg '='   fun_arg         : {'=',  '$1', '$3'}.
+-- fun_arg -> fun_arg 'div' fun_arg         : {'div','$1','$3'}.
+-- fun_arg -> fun_arg '||'  fun_arg         : {'||', '$1','$3'}.
+-- fun_arg -> fun_arg AS NAME               : {explicit_as, '$1', unwrap_bin('$3')}.
+-- fun_arg -> fun_arg COMPARISON fun_arg    : {unwrap('$2'), '$1', '$3'}.
+-- fun_arg -> function_ref                  : '$1'.
+-- fun_arg -> NULLX                         : <<"NULL">>.
+-- fun_arg -> subquery                      : '$1'.
+-- fun_arg -> unary_add_or_subtract fun_arg : {'$1', '$2'}.
 
 FunArg01.                         FunArg ::= "(" FunArg ")"             ;
-FunArg02.                         FunArg ::= FunctionRef                ;
-FunArg03.                         FunArg ::= ColumnRef                  ;
-FunArg04.                         FunArg ::= FunArg "+"   FunArg        ;
-FunArg05.                         FunArg ::= FunArg "-"   FunArg        ;
+FunArg02.                         FunArg ::= Atom                       ;
+FunArg03.                         FunArg ::= CaseWhenExp                ;
+FunArg04.                         FunArg ::= ColumnRef                  ;
+FunArg05.                         FunArg ::= FunArg       "NAME"        ;
 FunArg06.                         FunArg ::= FunArg "*"   FunArg        ;
-FunArg07.                         FunArg ::= FunArg "/"   FunArg        ;
-FunArg08.                         FunArg ::= FunArg "div" FunArg        ;
-FunArg09.                         FunArg ::= FunArg "||"  FunArg        ;
-FunArg10.                         FunArg ::= "+" FunArg                 ;
-FunArg11.                         FunArg ::= "-" FunArg                 ;
-FunArg14.                         FunArg ::= "NULL"                     ;
-FunArg15.                         FunArg ::= Atom                       ;
-FunArg16.                         FunArg ::= Subquery                   ;
-FunArg17.                         FunArg ::= FunArg "AS" "NAME"         ;
-FunArg18.                         FunArg ::= FunArg "="          FunArg ;
-FunArg19.                         FunArg ::= FunArg "COMPARISON" FunArg ;
-FunArg20.                         FunArg ::= CaseWhenExp                ;
+FunArg07.                         FunArg ::= FunArg "+"   FunArg        ;
+FunArg08.                         FunArg ::= FunArg "-"   FunArg        ;
+FunArg09.                         FunArg ::= FunArg "/"   FunArg        ;
+FunArg10.                         FunArg ::= FunArg "="   FunArg        ;
+FunArg11.                         FunArg ::= FunArg "div" FunArg        ;
+FunArg12.                         FunArg ::= FunArg "||"  FunArg        ;
+FunArg13.                         FunArg ::= FunArg "AS"  "NAME"        ;
+FunArg14.                         FunArg ::= FunArg "COMPARISON" FunArg ;
+FunArg15.                         FunArg ::= FunctionRef                ;
+FunArg16.                         FunArg ::= "NULL"                     ;
+FunArg17.                         FunArg ::= Subquery                   ;
+FunArg18.                         FunArg ::= "+" FunArg                 ;
+FunArg19.                         FunArg ::= "-" FunArg                 ;
+
+-- fun_args_named -> fun_arg_named                    : ['$1'].
+-- fun_args_named -> fun_arg_named ',' fun_args_named : ['$1' | '$3'].
+
+FunArgsNamed01.                   FunArgsNamed ::= FunArgNamed                  ;
+FunArgsNamed02.                   FunArgsNamed ::= FunArgNamed "," FunArgsNamed ;
+
+-- fun_arg_named -> NAME '=>' literal   : {'=>', unwrap_bin('$1'), '$3'}.
+-- fun_arg_named -> NAME '=>' NAME      : {'=>', unwrap_bin('$1'), unwrap_bin('$3')}.
+-- fun_arg_named -> NAME '=>' parameter : {'=>', unwrap_bin('$1'), '$3'}.
+
+FunArgNamed01.                    FunArgNamed ::= "NAME" "=>" Literal   ;
+FunArgNamed02.                    FunArgNamed ::= "NAME" "=>" "NAME"    ;
+FunArgNamed03.                    FunArgNamed ::= "NAME" "=>" Parameter ;
 
 -- literal -> STRING                                                                               : unwrap_bin('$1').
 -- literal -> INTNUM                                                                               : unwrap_bin('$1').

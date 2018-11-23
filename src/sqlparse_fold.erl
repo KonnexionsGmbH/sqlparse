@@ -3416,21 +3416,21 @@ get_stmnt_clause_pred(FunState, Pos) ->
 binary_needs_paren(LOrR, Op) when is_tuple(LOrR), is_atom(Op) ->
     binary_needs_paren(element(1, LOrR), Op);
 
-binary_needs_paren('fun', _) -> false;
+binary_needs_paren('fun', _)    -> false;
 binary_needs_paren('or', 'and') -> true;
-binary_needs_paren('+', '*') -> true;
-binary_needs_paren('+', '/') -> true;
-binary_needs_paren('+', 'div') -> true;
-binary_needs_paren('-', '*') -> true;
-binary_needs_paren('-', '/') -> true;
-binary_needs_paren('-', 'div') -> true;
-binary_needs_paren('-', '+') -> true;
-binary_needs_paren('/', '*') -> true;
-binary_needs_paren('div', '*') -> true;
-binary_needs_paren(_, '/') -> true;
-binary_needs_paren(_, 'div') -> true;
-binary_needs_paren(_, '-') -> true;
-binary_needs_paren(_, _) -> false.
+binary_needs_paren('+', '*')    -> true;
+binary_needs_paren('+', '/')    -> true;
+binary_needs_paren('+', 'div')  -> true;
+binary_needs_paren('-', '*')    -> true;
+binary_needs_paren('-', '/')    -> true;
+binary_needs_paren('-', 'div')  -> true;
+binary_needs_paren('-', '+')    -> true;
+binary_needs_paren('/', '*')    -> true;
+binary_needs_paren('div', '*')  -> true;
+binary_needs_paren(_, '/')      -> true;
+binary_needs_paren(_, 'div')    -> true;
+binary_needs_paren(_, '-')      -> true;
+binary_needs_paren(_, _)        -> false.
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Find the innermost value.

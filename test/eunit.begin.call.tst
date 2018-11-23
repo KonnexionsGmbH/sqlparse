@@ -150,6 +150,17 @@
 "call proc_1()".
 "call schema_0.pack_1.proc_1()".
 
+"begin sum(par_1=>'test',par_2=>3.14); end;".
+"begin sum(par_1=>'test',par_2=>5); end;".
+"begin sum(par_1=>:val_1,par_2=>:val_2); end;".
+"begin sum(par_1=>val_1); end;".
+"begin sum(par_1=>val_1,par_2=>val_2); end;".
+"call sum(par_1=>'test',par_2=>3.14)".
+"call sum(par_1=>'test',par_2=>5)".
+"call sum(par_1=>:val_1,par_2=>:val_2)".
+"call sum(par_1=>val_1)".
+"call sum(par_1=>val_1,par_2=>val_2)".
+
 %% -----------------------------------------------------------------------------
 %% TESTS: BEGIN & CALL
 %% =============================================================================

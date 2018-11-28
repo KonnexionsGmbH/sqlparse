@@ -24,6 +24,16 @@
 -- Grammar rules.
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+-- plsql_block_sql_list -> plsql_block : '$1'.
+-- plsql_block_sql_list -> sql_list    : '$1'.
+
+PlSqlBlockSqlList01.              PlSqlBlockSqlList ::= PlSqlBlock ;
+PlSqlBlockSqlList02.              PlSqlBlockSqlList ::= SqlList    ;
+
+-- plsql_block -> plsql_body : '$1'.
+
+PlSqlBlock01.                     PlSqlBlock ::= PlSqlBody ;
+
 -- sql_list ->          sql ';'                                                                    :         [{'$1',{extra, <<>>}}].
 -- sql_list ->          sql ';' extra                                                              :         [{'$1','$3'}].
 -- sql_list -> sql_list sql ';'                                                                    : '$1' ++ [{'$2',{extra, <<>>}}].
@@ -38,31 +48,69 @@ SqlList04.                        SqlList ::= SqlList Sql ";" Extra ;
 
 Extra01.                          Extra ::= "NAME"   ";" ;
 
--- sql -> procedure_call                                                                           : '$1'.
+-- sql -> manipulative_statement : '$1'.
+-- sql -> schema                 : '$1'.
 
-Sql01.                            Sql ::= ProcedureCall ;
+Sql01.                            Sql ::= ManipulativeStatement ;
+Sql02.                            Sql ::= Schema ;
 
--- procedure_call -> BEGIN function_ref_list END : {'begin procedure', '$2'}.
--- procedure_call -> BEGIN sql_list          END : {'begin procedure', '$2'}.
+-- plsql_body -> BEGIN statement_pragma_list END ';' : {'plsql_body', '$2'}.
+
+PlSqlBody01.                      PlSqlBody ::= "BEGIN" StatementPragmaList "END" ";" ;
+
+-- statement_pragma_list ->                       statement_pragma ';' :         [{'$1', ';'}].
+-- statement_pragma_list -> statement_pragma_list statement_pragma ';' : '$1' ++ [{'$2', ';'}].
+
+StatementPragmaList01.            StatementPragmaList ::=                     StatementPragma ;
+StatementPragmaList02.            StatementPragmaList ::= StatementPragmaList StatementPragma ;
+
+-- statement_pragma -> assignment_statement           : '$1'.
+-- statement_pragma -> close_statement                : '$1'.
+-- statement_pragma -> commit_statement               : '$1'.
+-- statement_pragma -> cursor_def                     : '$1'.
+-- statement_pragma -> delete_statement_positioned    : '$1'.
+-- statement_pragma -> delete_statement_searched      : '$1'.
+-- statement_pragma -> fetch_statement                : '$1'.
+-- statement_pragma -> function_ref                   : '$1'.
+-- statement_pragma -> insert_statement               : '$1'.
+-- statement_pragma -> open_statement                 : '$1'.
+-- statement_pragma -> procedure_call                 : '$1'.
+-- statement_pragma -> rollback_statement             : '$1'.
+-- statement_pragma -> select_statement               : '$1'.
+-- statement_pragma -> update_statement_positioned    : '$1'.
+-- statement_pragma -> update_statement_searched      : '$1'.
+-- statement_pragma -> WHENEVER NOT FOUND when_action : {when_not_found, '$4'}.
+-- statement_pragma -> WHENEVER SQLERROR  when_action : {when_sql_err, '$3'}.
+
+StatementPragma01.                StatementPragma ::= AssignStatement ;
+StatementPragma02.                StatementPragma ::= CloseStatement ;
+StatementPragma03.                StatementPragma ::= CommitStatement ;
+StatementPragma04.                StatementPragma ::= Cursordef ;
+StatementPragma05.                StatementPragma ::= DeleteStatementPositioned ;
+StatementPragma06.                StatementPragma ::= DeleteStatementSearched ;
+StatementPragma07.                StatementPragma ::= FetchStatement ;
+StatementPragma08.                StatementPragma ::= FunctionRef ;
+StatementPragma09.                StatementPragma ::= InsertStatement ;
+StatementPragma10.                StatementPragma ::= OpenStatement ;
+StatementPragma11.                StatementPragma ::= ProcedureCall ;
+StatementPragma12.                StatementPragma ::= RollbackStatement ;
+StatementPragma13.                StatementPragma ::= SelectStatement ;
+StatementPragma14.                StatementPragma ::= UpdateStatementPositioned ;
+StatementPragma15.                StatementPragma ::= UpdateStatementSearched ;
+StatementPragma16.                StatementPragma ::= "WHENEVER" "NOT" "FOUND" WhenAction ;
+StatementPragma17.                StatementPragma ::= "WHENEVER" "SQLERROR"    WhenAction ;
+
+-- assignment_statement -> parameter ':=' scalar_opt_as_exp : {':=', '$1', '$3'}.
+
+AssignStatement01.                AssignStatement ::= Parameter ":=" ScalarOptAsExp ;
+
 -- procedure_call -> CALL  function_ref          : {'call procedure', '$2'}.
 
-ProcedureCall01.                  ProcedureCall ::= "BEGIN" FunctionRefList "END" ;
-ProcedureCall02.                  ProcedureCall ::= "BEGIN" SqlList         "END" ;
-ProcedureCall03.                  ProcedureCall ::= "CALL"  FunctionRef           ;
-
--- function_ref_list -> function_ref ';'                                                           : ['$1'].
--- function_ref_list -> function_ref ';' function_ref_list                                         : ['$1' | '$3'].
-
-FunctionRefList01.                FunctionRefList ::= FunctionRef ";"                 ;
-FunctionRefList02.                FunctionRefList ::= FunctionRef ";" FunctionRefList ;
+ProcedureCall01.                  ProcedureCall ::= "CALL"  FunctionRef ;
 
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 -- schema definition language
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
--- sql -> schema                                                                                   : '$1'.
-
-Sql02.                            Sql ::= Schema ;
 
 -- schema -> CREATE SCHEMA AUTHORIZATION NAME                     : {'create schema authorization', unwrap('$4'), []}.
 -- schema -> CREATE SCHEMA AUTHORIZATION NAME schema_element_list : {'create schema authorization', unwrap('$4'), '$5'}.
@@ -667,10 +715,6 @@ SystemWithGrantOption02.          SystemWithGrantOption ::= "WITH" "DELEGATE" "O
 -- Cursor definition
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--- sql -> cursor_def                                                                               : '$1'.
-
-Sql03.                            Sql ::= Cursordef ;
-
 -- cursor_def -> CURSOR cursor IS query_exp : {cursor_def, '$2', '$4'}.
 
 Cursordef01.                      Cursordef ::= "CURSOR" Cursor "IS" QueryExp ;
@@ -701,59 +745,45 @@ AscDesc02.                     AscDesc ::= "DESC"     ;
 -- manipulative statements
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--- sql -> manipulative_statement                                                                   : '$1'.
-
-Sql04.                            Sql ::= ManipulativeStatement ;
-
--- manipulative_statement -> close_statement                                                       : '$1'.
--- manipulative_statement -> commit_statement                                                      : '$1'.
+-- manipulative_statement -> alter_user_def                                                        : '$1'.
+-- manipulative_statement -> create_index_def                                                      : '$1'.
+-- manipulative_statement -> create_role_def                                                       : '$1'.
+-- manipulative_statement -> create_table_def                                                      : '$1'.
+-- manipulative_statement -> create_user_def                                                       : '$1'.
 -- manipulative_statement -> delete_statement_positioned                                           : '$1'.
 -- manipulative_statement -> delete_statement_searched                                             : '$1'.
--- manipulative_statement -> fetch_statement                                                       : '$1'.
--- manipulative_statement -> insert_statement                                                      : '$1'.
--- manipulative_statement -> open_statement                                                        : '$1'.
--- manipulative_statement -> rollback_statement                                                    : '$1'.
--- manipulative_statement -> select_statement                                                      : '$1'.
--- manipulative_statement -> update_statement_positioned                                           : '$1'.
--- manipulative_statement -> update_statement_searched                                             : '$1'.
--- manipulative_statement -> create_table_def                                                      : '$1'.
--- manipulative_statement -> create_role_def                                                       : '$1'.
--- manipulative_statement -> create_index_def                                                      : '$1'.
--- manipulative_statement -> create_user_def                                                       : '$1'.
+-- manipulative_statement -> drop_index_def                                                        : '$1'.
 -- manipulative_statement -> drop_role_def                                                         : '$1'.
 -- manipulative_statement -> drop_table_def                                                        : '$1'.
--- manipulative_statement -> drop_index_def                                                        : '$1'.
--- manipulative_statement -> alter_user_def                                                        : '$1'.
 -- manipulative_statement -> drop_user_def                                                         : '$1'.
--- manipulative_statement -> view_def                                                              : '$1'.
--- manipulative_statement -> truncate_table                                                        : '$1'.
 -- manipulative_statement -> grant_def                                                             : '$1'.
+-- manipulative_statement -> insert_statement                                                      : '$1'.
 -- manipulative_statement -> revoke_def                                                            : '$1'.
+-- manipulative_statement -> select_statement                                                      : '$1'.
+-- manipulative_statement -> truncate_table                                                        : '$1'.
+-- manipulative_statement -> update_statement_positioned                                           : '$1'.
+-- manipulative_statement -> update_statement_searched                                             : '$1'.
+-- manipulative_statement -> view_def                                                              : '$1'.
 
-ManipulativeStatement01.          ManipulativeStatement ::= CloseStatement            ;
-ManipulativeStatement02.          ManipulativeStatement ::= CommitStatement           ;
-ManipulativeStatement03.          ManipulativeStatement ::= DeleteStatementPositioned ;
-ManipulativeStatement04.          ManipulativeStatement ::= DeleteStatementSearched   ;
-ManipulativeStatement05.          ManipulativeStatement ::= FetchStatement            ;
-ManipulativeStatement06.          ManipulativeStatement ::= InsertStatement           ;
-ManipulativeStatement07.          ManipulativeStatement ::= OpenStatement             ;
-ManipulativeStatement08.          ManipulativeStatement ::= RollbackStatement         ;
-ManipulativeStatement09.          ManipulativeStatement ::= SelectStatement           ;
-ManipulativeStatement10.          ManipulativeStatement ::= UpdateStatementPositioned ;
-ManipulativeStatement11.          ManipulativeStatement ::= UpdateStatementSearched   ;
-ManipulativeStatement12.          ManipulativeStatement ::= CreateTableDef            ;
-ManipulativeStatement13.          ManipulativeStatement ::= CreateRoleDef             ;
-ManipulativeStatement14.          ManipulativeStatement ::= CreateIndexDef            ;
-ManipulativeStatement15.          ManipulativeStatement ::= CreateUserDef             ;
-ManipulativeStatement16.          ManipulativeStatement ::= DropRoleDef               ;
-ManipulativeStatement17.          ManipulativeStatement ::= DropTableDef              ;
-ManipulativeStatement18.          ManipulativeStatement ::= DropIndexDef              ;
-ManipulativeStatement19.          ManipulativeStatement ::= AlterUserDef              ;
-ManipulativeStatement20.          ManipulativeStatement ::= DropUserDef               ;
-ManipulativeStatement21.          ManipulativeStatement ::= ViewDef                   ;
-ManipulativeStatement22.          ManipulativeStatement ::= TruncateTable             ;
-ManipulativeStatement23.          ManipulativeStatement ::= GrantDef                  ;
-ManipulativeStatement24.          ManipulativeStatement ::= RevokeDef                 ;
+ManipulativeStatement01.          ManipulativeStatement ::= AlterUserDef              ;
+ManipulativeStatement02.          ManipulativeStatement ::= CreateIndexDef            ;
+ManipulativeStatement03.          ManipulativeStatement ::= CreateRoleDef             ;
+ManipulativeStatement04.          ManipulativeStatement ::= CreateTableDef            ;
+ManipulativeStatement05.          ManipulativeStatement ::= CreateUserDef             ;
+ManipulativeStatement06.          ManipulativeStatement ::= DeleteStatementPositioned ;
+ManipulativeStatement07.          ManipulativeStatement ::= DeleteStatementSearched   ;
+ManipulativeStatement08.          ManipulativeStatement ::= DropIndexDef              ;
+ManipulativeStatement09.          ManipulativeStatement ::= DropRoleDef               ;
+ManipulativeStatement10.          ManipulativeStatement ::= DropTableDef              ;
+ManipulativeStatement11.          ManipulativeStatement ::= DropUserDef               ;
+ManipulativeStatement12.          ManipulativeStatement ::= GrantDef                  ;
+ManipulativeStatement13.          ManipulativeStatement ::= InsertStatement           ;
+ManipulativeStatement14.          ManipulativeStatement ::= RevokeDef                 ;
+ManipulativeStatement15.          ManipulativeStatement ::= SelectStatement           ;
+ManipulativeStatement16.          ManipulativeStatement ::= TruncateTable             ;
+ManipulativeStatement17.          ManipulativeStatement ::= UpdateStatementPositioned ;
+ManipulativeStatement18.          ManipulativeStatement ::= UpdateStatementSearched   ;
+ManipulativeStatement19.          ManipulativeStatement ::= ViewDef                   ;
 
 -- truncate_table -> TRUNCATE TABLE table                      : {'truncate table', '$3', {},   {}}.
 -- truncate_table -> TRUNCATE TABLE table              storage : {'truncate table', '$3', {},   '$4'}.
@@ -1707,44 +1737,8 @@ Cursor01.                         Cursor ::= "NAME" ;
 Parameter01.                      Parameter ::= "PARAMETER" ;
 
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
--- pl/sql block
--- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
--- sql -> plsql_block                                                                              : '$1'.
-
-Sql05.                            Sql ::= PlsqlBlock ;
-
--- plsql_block -> plsql_body : '$1'.
-
-PlsqlBlock01.                     PlsqlBlock ::= PlsqlBody ;
-
--- plsql_body -> BEGIN statement_pragma_list END : {'plsql_body', '$2'}.
-
-PlsqlBody01.                      PlsqlBody ::= "BEGIN" StatementPragmaList "END" ;
-
--- statement_pragma_list ->                       statement_pragma :         ['$1'].
--- statement_pragma_list -> statement_pragma_list statement_pragma : '$1' ++ ['$2'].
-
-StatementPragmaList01.            StatementPragmaList ::= StatementPragma                     ;
-StatementPragmaList02.            StatementPragmaList ::= StatementPragma StatementPragmaList ;
-
--- statement_pragma -> assign_statement : '$1'.
-
-StatementPragma01.                StatementPragma ::= AssignStatement ;
-
--- assign_statement -> parameter ':=' scalar_opt_as_exp ';' : {':=', '$1', '$3'}.
-
-AssignStatement01.                AssignStatement ::= Parameter ":=" ScalarOptAsExp ;
-
--- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 -- embedded condition things
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
--- sql -> WHENEVER NOT FOUND when_action                                                           : {when_not_found, '$4'}.
--- sql -> WHENEVER SQLERROR when_action                                                            : {when_sql_err, '$3'}.
-
-Sql06.                            Sql ::= "WHENEVER" "NOT" "FOUND" WhenAction ;
-Sql07.                            Sql ::= "WHENEVER" "SQLERROR"    WhenAction ;
 
 -- when_action -> GOTO NAME                                                                        : {goto, unwrap('$2')}.
 -- when_action -> CONTINUE                                                                         : 'continue'.

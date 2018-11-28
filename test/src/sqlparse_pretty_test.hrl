@@ -3773,143 +3773,6 @@ MINUS
         Table_4);").
 
 %%------------------------------------------------------------------------------
-%% PLSQL 01 - ALTER.
-%%------------------------------------------------------------------------------
-
--define(PLSQL_01, "
-begin
-alter user user_1 revoke connect through with role role_1, role_2,role_3,role_4;
-alter user test_user_123 password expire;
-alter user test_user_123 account lock;
-alter user user_1 default role role_1,role_2;
-alter user user_1 profile profile_1;
-alter user user_1 revoke connect through with role role_1, role_2 authentication required;
-alter user user_1 quota unlimited on tablespace_1;
-alter user user_1 default tablespace tablespace_1;
-alter user test_user_123 identified by new_password;
-alter user user_1 revoke connect through with role role_1, role_2 authentication required;
-alter user user_1 revoke connect through with role role_1, role_2;
-alter user user_1 grant connect through enterprise users;
-end;").
-
--define(PLSQL_01_RESULT_DEFAULT, "BEGIN
-    ALTER USER
-        User_1
-    REVOKE CONNECT THROUGH WITH ROLE
-        Role_1, Role_2, Role_3, Role_4;
-    ALTER USER
-        Test_User_123
-    PASSWORD EXPIRE;
-    ALTER USER
-        Test_User_123
-    ACCOUNT LOCK;
-    ALTER USER
-        User_1
-    DEFAULT ROLE
-        Role_1, Role_2;
-    ALTER USER
-        User_1
-    PROFILE
-        Profile_1;
-    ALTER USER
-        User_1
-    REVOKE CONNECT THROUGH WITH ROLE
-        Role_1, Role_2
-    AUTHENTICATION REQUIRED;
-    ALTER USER
-        User_1
-    QUOTA
-        UNLIMITED ON Tablespace_1;
-    ALTER USER
-        User_1
-    DEFAULT TABLESPACE
-        Tablespace_1;
-    ALTER USER
-        Test_User_123
-    IDENTIFIED BY
-        new_password;
-    ALTER USER
-        User_1
-    REVOKE CONNECT THROUGH WITH ROLE
-        Role_1, Role_2
-    AUTHENTICATION REQUIRED;
-    ALTER USER
-        User_1
-    REVOKE CONNECT THROUGH WITH ROLE
-        Role_1, Role_2;
-    ALTER USER
-        User_1
-    GRANT CONNECT THROUGH ENTERPRISE USERS;
-END;").
-
-%%------------------------------------------------------------------------------
-%% PLSQL 02 - CREATE.
-%%------------------------------------------------------------------------------
-
--define(PLSQL_02, "
-begin
-create index index_1 on table_1 alias_1;
-create bitmap index index_1 on table_1 (column_1,column_2,column_3,column_4) norm_with 'n' filter_with 'f';
-create unique index index_1 on table_1 (column_1,column_2,column_3) norm_with 'n' filter_with 'f';
-create table table_1 (column_1 date, column_2 date, foreign key (fkey_1,fkey_2) references table_2);
-create table schema_1.table_1 (column_1 date, column_2 date, foreign key (fkey_1,fkey_2) references schema_1.table_2 (column_8,column_9));
-create index a on b (a|:d{}|) norm_with fun() -> norm end. filter_with fun mod:modfun/5.;
-create index name_sort on skvhaccount (cvalue|:name|) norm_with fun imem_index:vnf_lcase_ascii/1. filter_with fun imem_index:iff_binterm_list_1/1.;
-end;").
-
--define(PLSQL_02_RESULT_DEFAULT, "BEGIN
-    CREATE INDEX
-        Index_1
-    ON
-        Table_1 Alias_1;
-    CREATE BITMAP INDEX
-        Index_1
-    ON
-        Table_1 (Column_1, Column_2, Column_3, Column_4)
-    NORM_WITH
-        'n'
-    FILTER_WITH
-        'f';
-    CREATE UNIQUE INDEX
-        Index_1
-    ON
-        Table_1 (Column_1, Column_2, Column_3)
-    NORM_WITH
-        'n'
-    FILTER_WITH
-        'f';
-    CREATE TABLE
-        Table_1 (
-            Column_1 DATE,
-            Column_2 DATE,
-            FOREIGN KEY (Fkey_1, Fkey_2) REFERENCES Table_2
-        );
-    CREATE TABLE
-        Schema_1.Table_1 (
-            Column_1 DATE,
-            Column_2 DATE,
-            FOREIGN KEY (Fkey_1, Fkey_2) REFERENCES Schema_1.Table_2 (Column_8,
-            Column_9)
-        );
-    CREATE INDEX
-        A
-    ON
-        B (A|:d{}|)
-    NORM_WITH
-        fun() -> norm end.
-    FILTER_WITH
-        fun mod:modfun/5.;
-    CREATE INDEX
-        Name_Sort
-    ON
-        Skvhaccount (Cvalue|:name|)
-    NORM_WITH
-        fun imem_index:vnf_lcase_ascii/1.
-    FILTER_WITH
-        fun imem_index:iff_binterm_list_1/1.;
-END;").
-
-%%------------------------------------------------------------------------------
 %% PLSQL 03 - DELETE.
 %%------------------------------------------------------------------------------
 
@@ -3951,40 +3814,6 @@ end;").
         Column_3, Column_4, Column_5, Column_6
     INTO
         Column_7, Column_8, Column_9, Column_10;
-END;").
-
-%%------------------------------------------------------------------------------
-%% PLSQL 04 - DROP.
-%%------------------------------------------------------------------------------
-
--define(PLSQL_04, "
-begin
-drop index schema_1.index_1 from table_1;
-drop role role_1;
-drop table table_1, table_2 cascade;
-drop table if exists table_1, table_2,table_3,table_4 restrict;
-drop imem_dal_skvh table skvhtest;
-drop user user_1 cascade;
-end;").
-
--define(PLSQL_04_RESULT_DEFAULT, "BEGIN
-    DROP INDEX
-        Schema_1.Index_1
-    FROM
-        Table_1;
-    DROP ROLE
-        Role_1;
-    DROP TABLE
-        Table_1, Table_2
-    CASCADE;
-    DROP TABLE IF EXISTS
-        Table_1, Table_2, Table_3, Table_4
-    RESTRICT;
-    DROP Imem_Dal_Skvh TABLE
-        Skvhtest;
-    DROP USER
-        User_1
-    CASCADE;
 END;").
 
 %%------------------------------------------------------------------------------
@@ -4039,54 +3868,6 @@ end;").
         JOIN
         :param_2 Alias_2
         ON Column_1 = Column_2;
-END;").
-
-%%------------------------------------------------------------------------------
-%% PLSQL 06 - GRANT.
-%%------------------------------------------------------------------------------
-
--define(PLSQL_06, "
-begin
-grant drop any table to user_1, user_2;
-grant super_role to user_1 with delegate option;
-grant select on table_1 to user_1 with grant option;
-grant delete, insert, select, update on table_1 to user_1;
-grant privilege_1, privilege_2, privilege_3, privilege_4, privilege_5 to user_1;
-grant manage_system to test_user_1 with admin option;
-end;").
-
--define(PLSQL_06_RESULT_DEFAULT, "BEGIN
-    GRANT
-        DROP ANY TABLE
-    TO
-        User_1, User_2;
-    GRANT
-        Super_Role
-    TO
-        User_1
-    WITH DELEGATE OPTION;
-    GRANT
-        SELECT
-    ON
-        Table_1
-    TO
-        User_1
-    WITH GRANT OPTION;
-    GRANT
-        DELETE, INSERT, SELECT, UPDATE
-    ON
-        Table_1
-    TO
-        User_1;
-    GRANT
-        Privilege_1, Privilege_2, Privilege_3, Privilege_4, Privilege_5
-    TO
-        User_1;
-    GRANT
-        Manage_System
-    TO
-        Test_User_1
-    WITH ADMIN OPTION;
 END;").
 
 %%------------------------------------------------------------------------------
@@ -4307,39 +4088,17 @@ END;").
 
 -define(PLSQL_11, "
 begin
-create table hr_regions(region_id integer not null primary key,region_name varchar2(25));
-create table hr_jobs(
-    job_id     varchar2(10)      not null primary key,
-    job_title  varchar2(35)      not null,
-    min_salary number(6,0),
-    max_salary number(6,0)
-);
 insert into hr_regions (region_id,region_name) values (1,'europe');
 insert into hr_regions (region_id,region_name) values (2,'americas');
 insert into hr_regions (region_id,region_name) values (3,'asia');
 insert into hr_regions (region_id,region_name) values (4,'middle east and africa');
 insert into hr_regions (region_id,region_name) values (1,'europe');
-name_label_1;
 insert into hr_regions (region_id,region_name) values (2,'americas');
 insert into hr_regions (region_id,region_name) values (3,'asia');
-name_label_2;
 insert into hr_regions (region_id,region_name) values (4,'middle east and africa');
-name_label_3;
 end;").
 
 -define(PLSQL_11_RESULT_DEFAULT, "BEGIN
-    CREATE TABLE
-        Hr_Regions (
-            Region_Id INTEGER NOT NULL PRIMARY KEY,
-            Region_Name VARCHAR2(25)
-        );
-    CREATE TABLE
-        Hr_Jobs (
-            Job_Id VARCHAR2(10) NOT NULL PRIMARY KEY,
-            Job_Title VARCHAR2(35) NOT NULL,
-            Min_Salary NUMBER(6,0),
-            Max_Salary NUMBER(6,0)
-        );
     INSERT INTO
         Hr_Regions (
             Region_Id, Region_Name)
@@ -4365,7 +4124,6 @@ end;").
             Region_Id, Region_Name)
     VALUES
         (1, 'europe');
-    name_label_1;
     INSERT INTO
         Hr_Regions (
             Region_Id, Region_Name)
@@ -4376,13 +4134,11 @@ end;").
             Region_Id, Region_Name)
     VALUES
         (3, 'asia');
-    name_label_2;
     INSERT INTO
         Hr_Regions (
             Region_Id, Region_Name)
     VALUES
         (4, 'middle east and africa');
-    name_label_3;
 END;").
 
 %%------------------------------------------------------------------------------
@@ -4408,57 +4164,6 @@ end;").
         Dual
     ORDER BY
         Column_1, Column_2, Column_3, Column_4;
-END;").
-
-%%------------------------------------------------------------------------------
-%% PLSQL 13 - REVOKE.
-%%------------------------------------------------------------------------------
-
--define(PLSQL_13, "
-begin
-revoke drop any table from user_1, user_2;
-revoke all on table_1 from user_1 cascade constraints;
-revoke delete, insert, select, update on table_1 from user_1;
-revoke role_1 from user_1;
-revoke privilege_1, privilege_2 from user_1;
-revoke privilege_1, privilege_2, privilege_3, privilege_4, privilege_5 from user_1;
-revoke create table from user_1,user_2,user_3,user_4;
-end;").
-
--define(PLSQL_13_RESULT_DEFAULT, "BEGIN
-    REVOKE
-        DROP ANY TABLE
-    FROM
-        User_1, User_2;
-    REVOKE
-        ALL
-    ON
-        Table_1
-    FROM
-        User_1
-    CASCADE CONSTRAINTS;
-    REVOKE
-        DELETE, INSERT, SELECT, UPDATE
-    ON
-        Table_1
-    FROM
-        User_1;
-    REVOKE
-        Role_1
-    FROM
-        User_1;
-    REVOKE
-        Privilege_1, Privilege_2
-    FROM
-        User_1;
-    REVOKE
-        Privilege_1, Privilege_2, Privilege_3, Privilege_4, Privilege_5
-    FROM
-        User_1;
-    REVOKE
-        CREATE TABLE
-    FROM
-        User_1, User_2, User_3, User_4;
 END;").
 
 %%------------------------------------------------------------------------------
@@ -4812,10 +4517,12 @@ END;").
 %%------------------------------------------------------------------------------
 
 -define(PLSQL_19, "
-call proc(:p_first,:p_second,:p_result);").
+begin call proc(:p_first,:p_second,:p_result); end;").
 
--define(PLSQL_19_RESULT_DEFAULT, "CALL
-    Proc(:p_first, :p_second, :p_result);").
+-define(PLSQL_19_RESULT_DEFAULT, "BEGIN
+    CALL
+        Proc(:p_first, :p_second, :p_result);
+END;").
 
 %%------------------------------------------------------------------------------
 %% PLSQL 20 - simple.
@@ -4827,23 +4534,6 @@ begin schm.proc(:p_first,:p_second,:p_result); dbms_output.put_line('Goodbye cru
 -define(PLSQL_20_RESULT_DEFAULT, "BEGIN
     Schm.Proc(:p_first, :p_second, :p_result);
     Dbms_Output.Put_Line('Goodbye cruel World!');
-END;").
-
-%%------------------------------------------------------------------------------
-%% PLSQL 21 - ROLE.
-%%------------------------------------------------------------------------------
-
--define(PLSQL_21, "
-begin
-create role role_1;
-drop role role_1;
-end;").
-
--define(PLSQL_21_RESULT_DEFAULT, "BEGIN
-    CREATE ROLE
-        Role_1;
-    DROP ROLE
-        Role_1;
 END;").
 
 %%------------------------------------------------------------------------------
@@ -4863,75 +4553,6 @@ end;").
     COMMIT WORK;
     ROLLBACK;
     ROLLBACK WORK;
-END;").
-
-%%------------------------------------------------------------------------------
-%% PLSQL 23 - TRUNCATE.
-%%------------------------------------------------------------------------------
-
--define(PLSQL_23, "
-begin
-truncate table tbl;
-truncate table name_schema.name_table;
-truncate table tbl preserve materialized view log;
-truncate table tbl purge materialized view log;
-truncate table tbl drop storage;
-truncate table tbl reuse storage;
-truncate table tbl preserve materialized view log drop storage;
-truncate table tbl preserve materialized view log reuse storage;
-truncate table tbl purge materialized view log drop storage;
-truncate table tbl purge materialized view log reuse storage;
-truncate table table_1 drop storage;
-truncate table schema_1.table_1 drop storage;
-truncate table :param_1 drop storage;
-truncate table \"^&()\" drop storage;
-end;").
-
--define(PLSQL_23_RESULT_DEFAULT, "BEGIN
-    TRUNCATE TABLE
-        Tbl;
-    TRUNCATE TABLE
-        Name_Schema.Name_Table;
-    TRUNCATE TABLE
-        Tbl
-    PRESERVE MATERIALIZED VIEW LOG;
-    TRUNCATE TABLE
-        Tbl
-    PURGE MATERIALIZED VIEW LOG;
-    TRUNCATE TABLE
-        Tbl
-    DROP STORAGE;
-    TRUNCATE TABLE
-        Tbl
-    REUSE STORAGE;
-    TRUNCATE TABLE
-        Tbl
-    PRESERVE MATERIALIZED VIEW LOG
-    DROP STORAGE;
-    TRUNCATE TABLE
-        Tbl
-    PRESERVE MATERIALIZED VIEW LOG
-    REUSE STORAGE;
-    TRUNCATE TABLE
-        Tbl
-    PURGE MATERIALIZED VIEW LOG
-    DROP STORAGE;
-    TRUNCATE TABLE
-        Tbl
-    PURGE MATERIALIZED VIEW LOG
-    REUSE STORAGE;
-    TRUNCATE TABLE
-        Table_1
-    DROP STORAGE;
-    TRUNCATE TABLE
-        Schema_1.Table_1
-    DROP STORAGE;
-    TRUNCATE TABLE
-        :param_1
-    DROP STORAGE;
-    TRUNCATE TABLE
-        \"^&()\"
-    DROP STORAGE;
 END;").
 
 %%------------------------------------------------------------------------------
@@ -4996,128 +4617,72 @@ end;").
 END;").
 
 %%------------------------------------------------------------------------------
-%% PLSQL 25 - VIEW.
-%%------------------------------------------------------------------------------
-
--define(PLSQL_25, "
-begin
-create view table_1 as select * from dual;
-create view table_1 as select * from dual with check option;
-create view table_1 (column_1, column_2) as select * from dual;
-create view table_1 (column_1, column_2) as select * from dual with check option;
-create view table_1 (column_1, column_2, column_3, column_4) as select * from dual;
-create view table_1 (column_1, column_2, column_3, column_4) as select * from dual with check option;
-end;").
-
--define(PLSQL_25_RESULT_DEFAULT, "BEGIN
-    CREATE VIEW
-        Table_1
-    AS
-        SELECT
-            *
-        FROM
-            Dual;
-    CREATE VIEW
-        Table_1
-    AS
-        SELECT
-            *
-        FROM
-            Dual
-    WITH CHECK OPTION;
-    CREATE VIEW
-        Table_1 (Column_1, Column_2)
-    AS
-        SELECT
-            *
-        FROM
-            Dual;
-    CREATE VIEW
-        Table_1 (Column_1, Column_2)
-    AS
-        SELECT
-            *
-        FROM
-            Dual
-    WITH CHECK OPTION;
-    CREATE VIEW
-        Table_1 (Column_1, Column_2, Column_3, Column_4)
-    AS
-        SELECT
-            *
-        FROM
-            Dual;
-    CREATE VIEW
-        Table_1 (Column_1, Column_2, Column_3, Column_4)
-    AS
-        SELECT
-            *
-        FROM
-            Dual
-    WITH CHECK OPTION;
-END;").
-
-%%------------------------------------------------------------------------------
 %% PLSQL 26 - CALL.
 %%------------------------------------------------------------------------------
 
 -define(PLSQL_26, "
-Call function_1
-(select column_1 from table_1 union select column_2 from table_2);").
+begin Call function_1
+(select column_1 from table_1 union select column_2 from table_2); end;").
 
--define(PLSQL_26_RESULT_DEFAULT, "CALL
-    Function_1(
-            ((SELECT
-                Column_1
-            FROM
-                Table_1)
-        UNION
-            (SELECT
-                Column_2
-            FROM
-                Table_2)));").
+-define(PLSQL_26_RESULT_DEFAULT, "BEGIN
+    CALL
+        Function_1(
+                ((SELECT
+                    Column_1
+                FROM
+                    Table_1)
+            UNION
+                (SELECT
+                    Column_2
+                FROM
+                    Table_2)));
+END;").
 
 %%------------------------------------------------------------------------------
 %% PLSQL 27 - CALL.
 %%------------------------------------------------------------------------------
 
 -define(PLSQL_27, "
-Call function_1
-(parameter_1,(select column_1 from table_1 union select column_2 from table_2),parameter_3);").
+begin Call function_1
+(parameter_1,(select column_1 from table_1 union select column_2 from table_2),parameter_3); end;").
 
--define(PLSQL_27_RESULT_DEFAULT, "CALL
-    Function_1(Parameter_1, " ++ "
-            ((SELECT
-                Column_1
-            FROM
-                Table_1)
-        UNION
-            (SELECT
-                Column_2
-            FROM
-                Table_2)), Parameter_3);").
+-define(PLSQL_27_RESULT_DEFAULT, "BEGIN
+    CALL
+        Function_1(Parameter_1, " ++ "
+                ((SELECT
+                    Column_1
+                FROM
+                    Table_1)
+            UNION
+                (SELECT
+                    Column_2
+                FROM
+                    Table_2)), Parameter_3);
+END;").
 
 %%------------------------------------------------------------------------------
 %% PLSQL 28 - CALL.
 %%------------------------------------------------------------------------------
 
 -define(PLSQL_28, "
-call i1ident_8 ((select * from table_1),(select * from table_2),(select * from table_3));").
+begin call i1ident_8 ((select * from table_1),(select * from table_2),(select * from table_3));end;").
 
--define(PLSQL_28_RESULT_DEFAULT, "CALL
-    I1ident_8(
-        (SELECT
-            *
-        FROM
-            Table_1), " ++ "
-        (SELECT
-            *
-        FROM
-            Table_2), " ++ "
-        (SELECT
-            *
-        FROM
-            Table_3));").
+-define(PLSQL_28_RESULT_DEFAULT, "BEGIN
+    CALL
+        I1ident_8(
+            (SELECT
+                *
+            FROM
+                Table_1), " ++ "
+            (SELECT
+                *
+            FROM
+                Table_2), " ++ "
+            (SELECT
+                *
+            FROM
+                Table_3));
+END;").
 
 %%------------------------------------------------------------------------------
 %% PLSQL 29 - CALL.
@@ -6083,36 +5648,44 @@ FROM
 %%------------------------------------------------------------------------------
 
 -define(TRANSACTION_01, "
-commit;").
+begin commit; end;").
 
--define(TRANSACTION_01_RESULT_DEFAULT, "COMMIT;").
+-define(TRANSACTION_01_RESULT_DEFAULT, "BEGIN
+    COMMIT;
+END;").
 
 %%------------------------------------------------------------------------------
 %% TRANSACTION 02 - COMMIT.
 %%------------------------------------------------------------------------------
 
 -define(TRANSACTION_02, "
-commit work;").
+begin commit work; end;").
 
--define(TRANSACTION_02_RESULT_DEFAULT, "COMMIT WORK;").
+-define(TRANSACTION_02_RESULT_DEFAULT, "BEGIN
+    COMMIT WORK;
+END;").
 
 %%------------------------------------------------------------------------------
 %% TRANSACTION 03 - ROLLBACK.
 %%------------------------------------------------------------------------------
 
 -define(TRANSACTION_03, "
-rollback;").
+begin rollback; end;").
 
--define(TRANSACTION_03_RESULT_DEFAULT, "ROLLBACK;").
+-define(TRANSACTION_03_RESULT_DEFAULT, "BEGIN
+    ROLLBACK;
+END;").
 
 %%------------------------------------------------------------------------------
 %% TRANSACTION 04 - ROLLBACK.
 %%------------------------------------------------------------------------------
 
 -define(TRANSACTION_04, "
-rollback work;").
+begin rollback work; end;").
 
--define(TRANSACTION_04_RESULT_DEFAULT, "ROLLBACK WORK;").
+-define(TRANSACTION_04_RESULT_DEFAULT, "BEGIN
+    ROLLBACK WORK;
+END;").
 
 %%------------------------------------------------------------------------------
 %% TRUNCATE 01 - simple.

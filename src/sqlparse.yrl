@@ -90,7 +90,6 @@ Nonterminals
  fun_args
  fun_args_named
  function_ref
- function_ref_list
  grant_def
  grantee_identified_by
  grantee_revokee
@@ -136,6 +135,7 @@ Nonterminals
  parameter
  parameter_ref
  plsql_block
+ plsql_block_sql_list
  plsql_body
  predicate
  procedure_call
@@ -376,7 +376,7 @@ Terminals
  '||'
 .
 
-Rootsymbol sql_list.
+Rootsymbol plsql_block_sql_list.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% precedence
@@ -392,6 +392,11 @@ Left        700 unary_add_or_subtract.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+plsql_block_sql_list -> plsql_block : '$1'.
+plsql_block_sql_list -> sql_list    : '$1'.
+
+plsql_block -> plsql_body : '$1'.
+
 sql_list ->          sql ';'       :         [{'$1',{extra, <<>>}}].
 sql_list ->          sql ';' extra :         [{'$1','$3'}].
 sql_list -> sql_list sql ';'       : '$1' ++ [{'$2',{extra, <<>>}}].
@@ -405,31 +410,35 @@ extra -> NAME  ';' : {extra, unwrap_bin('$1')}.
 % sql -> table_ref                      : '$1'.
 %% =============================================================================
 
-sql -> cursor_def                     : '$1'.
-sql -> manipulative_statement         : '$1'.
-sql -> plsql_block                    : '$1'.
-sql -> procedure_call                 : '$1'.
-sql -> schema                         : '$1'.
-sql -> WHENEVER NOT FOUND when_action : {when_not_found, '$4'}.
-sql -> WHENEVER SQLERROR  when_action : {when_sql_err, '$3'}.
+sql -> manipulative_statement : '$1'.
+sql -> schema                 : '$1'.
 
-plsql_block -> plsql_body : '$1'.
+plsql_body -> BEGIN statement_pragma_list END ';' : {'plsql_body', '$2'}.
 
-plsql_body -> BEGIN statement_pragma_list END : {'plsql_body', '$2'}.
+statement_pragma_list ->                       statement_pragma ';' :         [{'$1', ';'}].
+statement_pragma_list -> statement_pragma_list statement_pragma ';' : '$1' ++ [{'$2', ';'}].
 
-statement_pragma_list ->                       statement_pragma :         ['$1'].
-statement_pragma_list -> statement_pragma_list statement_pragma : '$1' ++ ['$2'].
+statement_pragma -> assignment_statement           : '$1'.
+statement_pragma -> close_statement                : '$1'.
+statement_pragma -> commit_statement               : '$1'.
+statement_pragma -> cursor_def                     : '$1'.
+statement_pragma -> delete_statement_positioned    : '$1'.
+statement_pragma -> delete_statement_searched      : '$1'.
+statement_pragma -> fetch_statement                : '$1'.
+statement_pragma -> function_ref                   : '$1'.
+statement_pragma -> insert_statement               : '$1'.
+statement_pragma -> open_statement                 : '$1'.
+statement_pragma -> procedure_call                 : '$1'.
+statement_pragma -> rollback_statement             : '$1'.
+statement_pragma -> select_statement               : '$1'.
+statement_pragma -> update_statement_positioned    : '$1'.
+statement_pragma -> update_statement_searched      : '$1'.
+statement_pragma -> WHENEVER NOT FOUND when_action : {when_not_found, '$4'}.
+statement_pragma -> WHENEVER SQLERROR  when_action : {when_sql_err, '$3'}.
 
-statement_pragma -> assignment_statement : '$1'.
+assignment_statement -> parameter ':=' scalar_opt_as_exp : {':=', '$1', '$3'}.
 
-assignment_statement -> parameter ':=' scalar_opt_as_exp ';' : {':=', '$1', '$3'}.
-
-procedure_call -> BEGIN function_ref_list END : {'begin procedure', '$2'}.
-procedure_call -> BEGIN sql_list          END : {'begin procedure', '$2'}.
-procedure_call -> CALL  function_ref          : {'call procedure',  '$2'}.
-
-function_ref_list -> function_ref ';'                   : ['$1'].
-function_ref_list -> function_ref ';' function_ref_list : ['$1' | '$3'].
+procedure_call -> CALL function_ref : {'call procedure',  '$2'}.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% schema definition language
@@ -758,30 +767,25 @@ asc_desc -> DESC : <<"desc">>.
 %% manipulative statements
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-manipulative_statement -> close_statement             : '$1'.
-manipulative_statement -> commit_statement            : '$1'.
+manipulative_statement -> alter_user_def              : '$1'.
+manipulative_statement -> create_index_def            : '$1'.
+manipulative_statement -> create_role_def             : '$1'.
+manipulative_statement -> create_table_def            : '$1'.
+manipulative_statement -> create_user_def             : '$1'.
 manipulative_statement -> delete_statement_positioned : '$1'.
 manipulative_statement -> delete_statement_searched   : '$1'.
-manipulative_statement -> fetch_statement             : '$1'.
-manipulative_statement -> insert_statement            : '$1'.
-manipulative_statement -> open_statement              : '$1'.
-manipulative_statement -> rollback_statement          : '$1'.
-manipulative_statement -> select_statement            : '$1'.
-manipulative_statement -> update_statement_positioned : '$1'.
-manipulative_statement -> update_statement_searched   : '$1'.
-manipulative_statement -> create_table_def            : '$1'.
-manipulative_statement -> create_role_def             : '$1'.
-manipulative_statement -> create_index_def            : '$1'.
-manipulative_statement -> create_user_def             : '$1'.
+manipulative_statement -> drop_index_def              : '$1'.
 manipulative_statement -> drop_role_def               : '$1'.
 manipulative_statement -> drop_table_def              : '$1'.
-manipulative_statement -> drop_index_def              : '$1'.
-manipulative_statement -> alter_user_def              : '$1'.
 manipulative_statement -> drop_user_def               : '$1'.
-manipulative_statement -> view_def                    : '$1'.
-manipulative_statement -> truncate_table              : '$1'.
 manipulative_statement -> grant_def                   : '$1'.
+manipulative_statement -> insert_statement            : '$1'.
 manipulative_statement -> revoke_def                  : '$1'.
+manipulative_statement -> select_statement            : '$1'.
+manipulative_statement -> truncate_table              : '$1'.
+manipulative_statement -> update_statement_positioned : '$1'.
+manipulative_statement -> update_statement_searched   : '$1'.
+manipulative_statement -> view_def                    : '$1'.
 
 truncate_table -> TRUNCATE TABLE table                      : {'truncate table', '$3', {},   {}}.
 truncate_table -> TRUNCATE TABLE table              storage : {'truncate table', '$3', {},   '$4'}.

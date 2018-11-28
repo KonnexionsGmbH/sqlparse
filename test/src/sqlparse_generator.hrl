@@ -28,42 +28,70 @@
 -define(ALIVE_COUNTER, 500).
 
 -define(ALL_CLAUSE_PERFORMANCE, [
+    plsql_block,
     referenceExamples,
     special,
     sql_list
 ]).
 -define(ALL_CLAUSE_RELIABILITY, [
+    plsql_block,
     referenceExamples,
     special,
     sql_list
 ]).
--define(ALL_CLAUSE_RELIABILITY_SQL, [
-    alter_user_def,
+-define(ALL_CLAUSE_RELIABILITY_PLSQL, [
+    assignment_statement,
     close_statement,
     commit_statement,
+    cursor_def,
+    delete_statement,
+    fetch_statement,
+    function_ref,
+    insert_statement,
+    open_statement,
+    procedure_call,
+    rollback_statement,
+    select_statement,
+    update_statement,
+    whenever
+]).
+-define(ALL_CLAUSE_RELIABILITY_SQL, [
+    alter_user_def,
     create_index_def,
     create_role_def,
     create_table_def,
     create_user_def,
-    cursor_def,
     delete_statement,
     drop_index_def,
     drop_role_def,
     drop_table_def,
     drop_user_def,
-    fetch_statement,
     grant_def,
     insert_statement,
-    open_statement,
-    procedure_call,
     revoke_def,
-    rollback_statement,
     schema,
     select_statement,
     truncate_table,
     update_statement,
-    view_def,
-    whenever
+    view_def
+]).
+-define(ALL_CLAUSE_RELIABILITY_PLSQL_DETAILED, [
+%%    assignment_statement,
+%%    close_statement,
+%%    commit_statement,
+%%    cursor_def,
+%%    delete_statement,
+%%    fetch_statement,
+%%    function_ref,
+%%    insert_statement,
+%%    open_statement,
+%%    procedure_call,
+%%    rollback_statement,
+%%    select_statement,
+%%    update_statement,
+%%    whenever,
+%% .............................................................................
+    special
 ]).
 -define(ALL_CLAUSE_RELIABILITY_SQL_DETAILED, [
 %%    all_or_any_predicate,
@@ -77,14 +105,12 @@
 %%    case_when_exp,
 %%    case_when_then,
 %%    case_when_then_list,
-%%    close_statement,
 %%    column,
 %%    column_commalist,
 %%    column_def,
 %%    column_def_opt,
 %%    column_ref,
 %%    column_ref_commalist,
-%%    commit_statement,
 %%    comparison,
 %%    comparison_predicate,
 %%    create_index_def,
@@ -92,7 +118,6 @@
 %%    create_table_def,
 %%    create_user_def,
 %%    cursor,
-%%    cursor_def,
 %%    data_type,
 %%    db_user_proxy,
 %%    dblink,
@@ -103,13 +128,10 @@
 %%    drop_user_def,
 %%    existence_test,
 %%    extra,
-%%    fetch_statement,
 %%    from_column,
 %%    fun_arg,
 %%    fun_args,
-%%    function_ref,
 %%    function_ref_json,
-%%    function_ref_list,
 %%    funs,
 %%    grant_def,
 %%    grantee_identified_by,
@@ -137,15 +159,15 @@
 %%    object_with_grant_option,
 %%    object_with_revoke_option,
 %%    on_obj_clause,
-%%    open_statement,
 %%    order_by_clause,
 %%    ordering_spec,
 %%    outer_join,
 %%    outer_join_type,
 %%    parameter,
 %%    parameter_ref,
+%%    plsql_block,
+%%    plsql_body,
 %%    predicate,
-%%    procedure_call,
 %%    proxy_clause,
 %%    proxy_with,
 %%    query_exp,
@@ -158,7 +180,6 @@
 %%    returning,
 %%    revoke_def,
 %%    role_list,
-%%    rollback_statement,
 %%    scalar_exp,
 %%    scalar_exp_commalist,
 %%    scalar_opt_as_exp,
@@ -198,7 +219,6 @@
 %%    user_role,
 %%    view_def,
 %%    when_action,
-%%    whenever,
 %%    where_clause,
 %% .............................................................................
     special

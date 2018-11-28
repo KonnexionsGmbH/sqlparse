@@ -168,31 +168,6 @@ fold([], _FunState, Ctx, {_Value, Alias} = _PTree, {as, Step} = _FoldState)
     ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% assignment_statement
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-fold([], _FunState, Ctx, _PTree, {assignment_statement, Step} = _FoldState) ->
-    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
-    RT = case Step of
-             'end' -> Ctx ++ ";";
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 'begin procedure'
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-fold([], _FunState, Ctx, {'begin procedure', _} = _PTree,
-    {procedure_call, Step} = _FoldState) ->
-    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
-    RT = case Step of
-             start -> Ctx ++ "begin ";
-             'end' -> Ctx ++ " end"
-         end,
-    ?CUSTOM_RESULT(RT);
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 'call procedure'
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1228,13 +1203,6 @@ fold([], _FunState, Ctx, {as, {{'fun', _, _}, JSON, []}, Alias} = _PTree,
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
-fold([], _FunState, Ctx, _PTree, {function_ref, Step, _Pos} = _FoldState) ->
-    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
-    RT = case Step of
-             'end' -> Ctx ++ ";";
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % goto
@@ -1923,20 +1891,8 @@ fold([], _FunState, Ctx,
         _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
-             start -> Ctx ++ "begin";
-             _ -> Ctx ++ " end"
-         end,
-    ?CUSTOM_RESULT(RT);
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% procedure_call
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-fold([], _FunState, Ctx, _PTree, {procedure_call, Step, _Pos} = _FoldState) ->
-    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
-    RT = case Step of
-             'end' -> Ctx ++ ";";
-             _ -> Ctx
+             start -> Ctx ++ "begin ";
+             _ -> Ctx ++ " end;"
          end,
     ?CUSTOM_RESULT(RT);
 
@@ -2289,10 +2245,11 @@ fold([], _FunState, Ctx, _PTree, {spec_item, Step, Pos} = _FoldState) ->
     ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% sql
+% sql & statement_pragma
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold([], _FunState, Ctx, _PTree, {sql, Step, Pos} = _FoldState) ->
+fold([], _FunState, Ctx, _PTree, {Type, Step, Pos} = _FoldState)
+    when Type == sql;Type == statement_pragma ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case {Step, Pos} of
              {'end', other} -> Ctx ++ " ";
@@ -2340,6 +2297,19 @@ fold([], _FunState, Ctx, _PTree, {start_with, Step} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
              start -> Ctx ++ " start with ";
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% statement_pragma_list
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx, {_SQL, Pos, ';'} = _PTree,
+    {statement_pragma_list, Step, Pos} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             'end' -> Ctx ++ ";";
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
@@ -2857,13 +2827,13 @@ fold([], _FunState, Ctx, _PTree, {where_current_of, Step} = _FoldState) ->
 fold([], _FunState, Ctx, _PTree, {Rule, _Step, _Pos}) when
     Rule == case_when_then;
     Rule == join;
-    Rule == statement_pragma;
     Rule == user_opt ->
     Ctx;
 
 fold([], _FunState, Ctx, _PTree, {Rule, _Step}) when
     Rule == all_or_any_predicate;
     Rule == anchor;
+    Rule == assignment_statement;
     Rule == between_predicate;
     Rule == binary;
     Rule == case_when_then;
@@ -2891,9 +2861,8 @@ fold([], _FunState, Ctx, _PTree, {Rule, _Step}) when
     Rule == quotas;
     Rule == scalar_exp_commalist;
     Rule == scalar_opt_as_exp;
-    Rule == sql_list;
     Rule == sql_list_list;
-    Rule == statement_pragma_list;
+    Rule == statement_pragma_list_list;
     Rule == table;
     Rule == table_dblink;
     Rule == tables;

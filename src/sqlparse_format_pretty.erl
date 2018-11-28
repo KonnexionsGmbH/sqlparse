@@ -263,19 +263,6 @@ fold(LOpts, _FunState, Ctx, {_Value, Alias} = _PTree, {as, Step} = _FoldState)
     ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% assignment_statement
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-fold(_LOpts, _FunState, Ctx, _PTree, {assignment_statement, Step} =
-    _FoldState) ->
-    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
-    RT = case Step of
-             'end' -> Ctx ++ ";";
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % explicit_as
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -695,9 +682,8 @@ fold(_LOpts, _FunState, Ctx, {ref, _Value} = _PTree,
 % commit_statement & rollback_statement
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(LOpts, FunState, Ctx, PTree, {Type, Step} = _FoldState) when Type ==
-                                                                      commit_statement;
-    Type == rollback_statement ->
+fold(LOpts, FunState, Ctx, PTree, {Type, Step} = _FoldState)
+    when Type == commit_statement;Type == rollback_statement ->
     ?CUSTOM_INIT(FunState, Ctx, PTree, _FoldState),
     RT = case Step of
              start -> Ctx ++
@@ -1613,6 +1599,7 @@ fold(LOpts, FunState, Ctx, {'fun', Name, []} = _PTree, {function_ref, Step} =
              start -> lists:append([
                  Ctx,
                  case Stmnt of
+                     plsql_body -> format_column_pos(LOpts, FunState);
                      procedure_call ->
                          ?CHAR_NEWLINE ++ format_column_pos(LOpts, FunState);
                      _ -> []
@@ -1631,6 +1618,7 @@ fold(LOpts, FunState, Ctx, {'fun', Name, _} = _PTree, {function_ref, Step} =
              start -> lists:append([
                  Ctx,
                  case Stmnt of
+                     plsql_body -> format_column_pos(LOpts, FunState);
                      procedure_call ->
                          ?CHAR_NEWLINE ++ format_column_pos(LOpts, FunState);
                      _ -> []
@@ -1650,13 +1638,6 @@ fold(LOpts, _FunState, Ctx, {as, {{'fun', _, _}, JSON, []}, Alias} = _PTree,
                  " ",
                  format_identifier(LOpts, Alias)]
              );
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
-fold(_LOpts, _FunState, Ctx, _PTree, {function_ref, Step, _Pos} = _FoldState) ->
-    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
-    RT = case Step of
-             'end' -> Ctx ++ ";";
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
@@ -2557,13 +2538,12 @@ fold(LOpts, FunState, Ctx, {plsql_body, _} = _PTree, {plsql_body, Step} =
              start -> lists:append([
                  Ctx,
                  format_new_statement(LOpts, FunState, "begin"),
-                 ?CHAR_NEWLINE,
-                 format_column_pos(LOpts, FunState)
+                 ?CHAR_NEWLINE
              ]);
              _ -> lists:append([
                  Ctx,
                  ?CHAR_NEWLINE,
-                 format_keyword(LOpts, "end")
+                 format_keyword(LOpts, "end;")
              ])
          end,
     ?CUSTOM_RESULT(RT);
@@ -2593,56 +2573,6 @@ fold(LOpts, _FunState, Ctx, PTree, {privilege, Step, Pos} = _FoldState)
 % procedure_call
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(LOpts, FunState, Ctx,
-    {'begin procedure', [{{'fun', _, _}, _JSON, []} | _]} = _PTree,
-    {procedure_call, Step} = _FoldState) ->
-    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
-    RT = case Step of
-             start -> lists:append([
-                 Ctx, format_new_statement(LOpts, FunState, "begin")
-             ]);
-             'end' -> lists:append([
-                 Ctx,
-                 ?CHAR_NEWLINE,
-                 format_column_pos(LOpts, FunState#fstate{indent_lvl =
-                 FunState#fstate.indent_lvl - 1}),
-                 format_keyword(LOpts, "end")
-             ])
-         end,
-    ?CUSTOM_RESULT(RT);
-fold(LOpts, FunState, Ctx, {'begin procedure', [{'fun', _, _} | _]} = _PTree,
-    {procedure_call, Step} = _FoldState) ->
-    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
-    RT = case Step of
-             start -> lists:append([
-                 Ctx, format_new_statement(LOpts, FunState, "begin")
-             ]);
-             'end' -> lists:append([
-                 Ctx,
-                 ?CHAR_NEWLINE,
-                 format_column_pos(LOpts, FunState#fstate{indent_lvl =
-                 FunState#fstate.indent_lvl - 1}),
-                 format_keyword(LOpts, "end")
-             ])
-         end,
-    ?CUSTOM_RESULT(RT);
-fold(LOpts, FunState, Ctx, {'begin procedure', _SQLList} = _PTree,
-    {procedure_call, Step} = _FoldState) ->
-    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
-    RT = case Step of
-             start -> lists:append([
-                 Ctx, format_new_statement(LOpts, FunState, "begin"),
-                 ?CHAR_NEWLINE
-             ]);
-             'end' -> lists:append([
-                 Ctx,
-                 ?CHAR_NEWLINE,
-                 format_column_pos(LOpts, FunState#fstate{indent_lvl =
-                 FunState#fstate.indent_lvl - 1}),
-                 format_keyword(LOpts, "end")
-             ])
-         end,
-    ?CUSTOM_RESULT(RT);
 fold(LOpts, FunState, Ctx, {'call procedure', _} = _PTree,
     {procedure_call, Step} = _FoldState) ->
     ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
@@ -2651,22 +2581,6 @@ fold(LOpts, FunState, Ctx, {'call procedure', _} = _PTree,
                  Ctx,
                  format_new_statement(LOpts, FunState, "call")
              ]);
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
-
-fold(LOpts, FunState, Ctx, _PTree, {procedure_call, Step, _Pos} =
-    _FoldState) ->
-    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
-    RT = case Step of
-             start -> Ctx ++ format_new_statement(LOpts, FunState, []);
-             'end' -> Ctx ++ ";"
-         end,
-    ?CUSTOM_RESULT(RT);
-fold(LOpts, FunState, Ctx, _PTree, {procedure_call, Step} = _FoldState) ->
-    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
-    RT = case Step of
-             start -> Ctx ++ format_new_statement(LOpts, FunState, []);
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
@@ -2743,6 +2657,7 @@ fold(LOpts, FunState, Ctx, {select, Clauses} = _PTree, {query_spec, Step} =
                          RulePred_1 == function_ref orelse
                          StmntPred_1 == insert_statement andalso
                              ClausePred_1 == query_spec orelse
+                         StmntPred_1 == plsql_body orelse
                          StmntPred_1 == query_exp orelse
                          StmntPred_1 == query_spec andalso
                              ClausePred_1 == fields orelse
@@ -2759,6 +2674,8 @@ fold(LOpts, FunState, Ctx, {select, Clauses} = _PTree, {query_spec, Step} =
                          StmntPred_1 == insert_statement andalso
                              ClausePred_1 == query_spec orelse
                          StmntPred_1 == none orelse
+                         StmntPred_1 == plsql_body andalso
+                             RulePred_1 =/= function_ref orelse
                          StmntPred_1 == view_def of
                      true -> [];
                      _ -> "("
@@ -2772,6 +2689,8 @@ fold(LOpts, FunState, Ctx, {select, Clauses} = _PTree, {query_spec, Step} =
                               StmntPred_1 == insert_statement andalso
                                   ClausePred_1 == query_spec orelse
                               StmntPred_1 == none orelse
+                              StmntPred_1 == plsql_body andalso
+                                  RulePred_1 =/= function_ref orelse
                               StmntPred_1 == view_def of
                           true -> Ctx;
                           _ -> Ctx ++ ")"
@@ -3188,10 +3107,11 @@ fold(_LOpts, _FunState, Ctx, _PTree, {spec_item, _Step, _Pos} = _FoldState) ->
     Ctx;
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% sql
+% sql & statement_pragma
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(_LOpts, _FunState, Ctx, _PTree, {sql, Step, Pos} = _FoldState) ->
+fold(_LOpts, _FunState, Ctx, _PTree, {Type, Step, Pos} = _FoldState)
+    when Type == sql; Type == statement_pragma ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case {Step, Pos} of
              {'end', other} -> Ctx ++ " ";
@@ -3276,6 +3196,26 @@ fold(LOpts, FunState, Ctx, _PTree, {start_with, Step} = _FoldState) ->
                  ?CHAR_NEWLINE,
                  format_column_pos(LOpts, FunState)
              ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% statement_pragma_list
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, FunState, Ctx, _PTree, {statement_pragma_list, Step, Pos} =
+    _FoldState) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case {Step, Pos} of
+             {'end', other} -> lists:append([
+                 Ctx,
+                 ";",
+                 ?CHAR_NEWLINE,
+                 format_column_pos(LOpts, FunState#fstate{indent_lvl =
+                 FunState#fstate.indent_lvl - 1})
+             ]);
+             {'end', _} -> Ctx ++ ";";
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
@@ -3993,13 +3933,13 @@ fold(LOpts, FunState, Ctx, PTree, {Rule, Step} = _FoldState)
 fold(_LOpts, _FunState, Ctx, _PTree, {Rule, _Step, _Pos}) when
     Rule == case_when_then;
     Rule == join;
-    Rule == statement_pragma;
     Rule == user_opt ->
     Ctx;
 
 fold(_LOpts, _FunState, Ctx, _PTree, {Rule, _Step}) when
     Rule == all_or_any_predicate;
     Rule == anchor;
+    Rule == assignment_statement;
     Rule == between_predicate;
     Rule == binary;
     Rule == case_when_then;
@@ -4020,6 +3960,7 @@ fold(_LOpts, _FunState, Ctx, _PTree, {Rule, _Step}) when
     Rule == like_predicate;
     Rule == param;
     Rule == prior;
+    Rule == procedure_call;
     Rule == query_exp;
     Rule == query_spec;
     Rule == query_spec_jpparse;
@@ -4029,6 +3970,7 @@ fold(_LOpts, _FunState, Ctx, _PTree, {Rule, _Step}) when
     Rule == sql_list;
     Rule == sql_list_list;
     Rule == statement_pragma_list;
+    Rule == statement_pragma_list_list;
     Rule == table;
     Rule == table_dblink;
     Rule == tables;

@@ -57,11 +57,15 @@ generate() ->
                         true ->
                             ok = file_create_ct_all("reliability", "complete_",
                                 "compacted", ?ALL_CLAUSE_RELIABILITY),
+                            ok = file_create_ct_all("reliability", "beginend_",
+                                "compacted", ?ALL_CLAUSE_RELIABILITY_PLSQL),
                             ok = file_create_ct_all("reliability", "semicolon",
                                 "compacted", ?ALL_CLAUSE_RELIABILITY_SQL);
                         _ ->
                             ok = file_create_ct_all("reliability", "complete_",
                                 "detailed_", ?ALL_CLAUSE_RELIABILITY),
+                            ok = file_create_ct_all("reliability", "beginend_",
+                                "detailed_", ?ALL_CLAUSE_RELIABILITY_PLSQL),
                             ok = file_create_ct_all("reliability", "semicolon",
                                 "detailed_", ?ALL_CLAUSE_RELIABILITY_SQL)
                     end;
@@ -78,13 +82,27 @@ generate() ->
                 true ->
                     ok = file_create_eunit_all("reliability", "complete_",
                         ?ALL_CLAUSE_RELIABILITY),
+                    ok = file_create_eunit_all("reliability", "beginend_",
+                        ?ALL_CLAUSE_RELIABILITY_PLSQL),
                     ok = file_create_eunit_all("reliability", "semicolon",
                         ?ALL_CLAUSE_RELIABILITY_SQL),
+                    ok = file_create_eunit_all("reliability", "beginend_",
+                        ?ALL_CLAUSE_RELIABILITY_PLSQL_DETAILED),
                     ok = file_create_eunit_all("reliability", "complete_",
                         ?ALL_CLAUSE_RELIABILITY_SQL_DETAILED);
                 _ -> ok
             end;
         _ -> ok
+    end.
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Adding parentheses to a query_spec.
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+bracket_query_spec(Expression) ->
+    case string:substr(Expression, 1, 7) == "Select " of
+        true -> lists:append(["(", Expression, ")"]);
+        _ -> Expression
     end.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -99,24 +117,11 @@ create_code() ->
 %%
 %% APPROXNUM ::= ( ( '.' [0-9]+ ) | ( [0-9]+ '.'? [0-9]* ) ) ( [eE] [+-]? [0-9]+ )? [fFdD]?
 %%
-%% ==> atom                                == atom = ... literal ...
-%% ==> fun_arg                             == fun_arg = ... atom ...
-%% ==> literal                             == literal = ... APPROXNUM ...
-%% ==> scalar_exp                          == scalar_exp = ... scalar_sub_exp ...
-%% ==> scalar_sub_exp                      == scalar_sub_exp = ... atom ...
-%%
 %% == atom ::= parameter_ref
 %% ==        | literal
 %%        | 'USER'
 %%
-%% ==> fun_arg                             == fun_arg = ... atom ...
-%% ==> scalar_exp                          == scalar_exp = ... scalar_sub_exp ...
-%% ==> scalar_sub_exp                      == scalar_sub_exp = ... atom ...
-%%
 %% commit_statement ::= 'COMMIT' ( 'WORK' )?
-%%
-%% ==> manipulative_statement              == manipulative_statement = ... commit_statement ...
-%% ==> sql                                 == sql = ... manipulative_statement ...
 %%
 %% COMPARISON ::= '!=' | '^=' | '<>' | '<' | '>' | '<=' | '>='
 %%
@@ -134,30 +139,9 @@ create_code() ->
 %%
 %% INTNUM ::= ([0-9]+)
 %%
-%% ==> atom                                == atom = ... literal ...
-%% ==> fun_arg                             == fun_arg = ... atom ...
-%% ==> literal                             == literal = ... INTNUM ...
-%% ==> scalar_exp                          == scalar_exp = ... scalar_sub_exp ...
-%% ==> scalar_sub_exp                      == scalar_sub_exp = ... atom ...
-%%
 %% JSON ::= ([|] [:{\[#] [^|]+ [|])
 %%
 %% NAME ::= [A-Za-z][A-Za-z0-9_\$#@~]*
-%%
-%% ==> column                              == column = ... NAME ...
-%% ==> column_ref                          == column_ref = ... NAME ...
-%% ==> from_column                         == from_column = ... table_ref ...
-%% ==> grantee_revokee                     == grantee_revokee = NAME ...
-%% ==> join_ref                            == join_ref = ... table ...
-%% ==> scalar_exp                          == scalar_exp = ... scalar_sub_exp ...
-%% ==> scalar_sub_exp                      == scalar_sub_exp = ... column_ref ...
-%% ==> system_privilege                    == system_privilege = ... NAME
-%% ==> table                               == table = ... NAME ...
-%% ==> table_alias                         == table = ... table
-%% ==> table_dblink                        == table = ... table_alias
-%% ==> table_ref                           == table_ref = ... table ...
-%% ==> target                              == target = ... NAME ...
-%% ==> tbl_type                            == tbl_type = ... NAME ...
 %%
 %% object_privilege ::= 'ALL'
 %%                    | 'ALTER'
@@ -172,43 +156,18 @@ create_code() ->
 %% object_with_grant_option ::= 'WITH' ( 'GRANT' | 'HIERARCHY' ) 'OPTION'
 %%
 %% object_with_grant_option ::= ( 'CASCADE' 'CONSTRAINTS' ) | 'FORCE'
-
+%%
 %% outer_join_type ::= ( 'FULL' ( 'OUTER' )? )
 %%                   | ( 'LEFT' ( 'OUTER' )? )
 %%                   | ( 'RIGHT' ( 'OUTER' )? )
 %%
 %% PARAMETER ::= ':' [A-Za-z0-9_\.]+
 %%
-%% ==> from_column                         == from_column = ... table_ref ...
-%% ==> join_ref                            == join_ref = ... table ...
-%% ==> parameter                           == parameter = PARAMETER
-%% ==> table                               == table = parameter
-%% ==> table_alias                         == table = ... table
-%% ==> table_dblink                        == table = ... table_alias
-%% ==> table_ref                           == table_ref = ... table ...
-%%
 %% rollback_statement ::= 'ROLLBACK' ( 'WORK' )?
-%%
-%% ==> manipulative_statement              == manipulative_statement = ... rollback_statement ...
-%% ==> sql                                 == sql = ... manipulative_statement ...
 %%
 %% STRING ::= ( 'fun' [A-Za-z0-9,_]* [.]* '->' [.]* 'end.' )
 %%          | ( 'fun\s' ['A-Za-z0-9_]+ ':' ['A-Za-z0-9_]+ '/' [0-9]+ '.' )
 %%          | ( "'" [^\']* "''**" )
-%%
-%% ==> atom                                == atom = ... literal ...
-%% ==> column                              == column = ... STRING ...
-%% ==> data_type                           == data_type = ... STRING ...
-%% ==> from_column                         == from_column = ... table_ref ...
-%% ==> fun_arg                             == fun_arg = ... atom ...
-%% ==> join_ref                            == join_ref = ... table ...
-%% ==> literal                             == literal = ... STRING ...
-%% ==> scalar_exp                          == scalar_exp = ... scalar_sub_exp ...
-%% ==> scalar_sub_exp                      == scalar_sub_exp = ... atom ...
-%% ==> table                               == table = ... STRING ...
-%% ==> table_alias                         == table = ... table
-%% ==> table_dblink                        == table = ... table_alias
-%% ==> table_ref                           == table_ref = ... table ...
 %%
 %% system_privilege ::=  'ADMIN'
 %%                    |  'ALL' 'PRIVILEGES'
@@ -269,26 +228,13 @@ create_code() ->
 %%              | ( ( ( NAME '.' )? NAME '.' )? NAME '(' '+' ')' )
 %%              | ( ( NAME '.' )? NAME '.' '*' )
 %%
-%% ==> fun_arg                             == fun_arg = ... column_ref ...
-%% ==> scalar_exp                          == scalar_exp = ... scalar_sub_exp ...
-%% ==> scalar_sub_exp                      == scalar_sub_exp = ... column_ref ...
-%%
 %% create_role_def ::= 'CREATE' 'ROLE' NAME
-%%
-%% ==> manipulative_statement              == manipulative_statement = ... create_role_def ...
-%% ==> sql                                 == sql = ... manipulative_statement ...
 %%
 %% cursor ::= NAME
 %%
 %% drop_role_def ::= 'DROP' 'ROLE' NAME
 %%
-%% ==> manipulative_statement              == manipulative_statement = ... drop_role_def ...
-%% ==> sql                                 == sql = ... manipulative_statement ...
-%%
 %% drop_user_def ::= 'DROP' 'USER' NAME ( 'CASCADE' )?
-%%
-%% ==> manipulative_statement              == manipulative_statement = ... drop_user_def ...
-%% ==> sql                                 == sql = ... manipulative_statement ...
 %%
 %% extra ::= NAME  ';'
 %%
@@ -297,8 +243,6 @@ create_code() ->
 %% grantee_revokee_commalist ::= grantee_revokee ( ',' grantee_revokee )*
 %%
 %% identified ::= IDENTIFIED ( ( 'BY' NAME ) | ( EXTERNALLY ( 'AS' NAME ) ) | ( 'GLOBALLY' ( 'AS' NAME )? ) )
-%%
-%% ==> spec_item                           == spec_item = ... identified ...
 %%
 %% index_name ::= ( NAME '.' )? NAME
 %%
@@ -309,9 +253,6 @@ create_code() ->
 %%
 %% role_list ::= NAME ( ',' NAME )*
 %%
-%% ==> proxy_with                          == proxy_with = ... 'WITH' 'ROLE' role_list ...
-%% ==> proxy_with                          == proxy_with = ... 'WITH' 'ROLE' 'ALL' 'EXCEPT' role_list ...
-%%
 %% sgn_num ::= ( '-' )? INTNUM
 %%
 %% system_privilege_list ::= system_privilege ( ',' system_privilege )*
@@ -320,26 +261,14 @@ create_code() ->
 %%         | parameter
 %%         | STRING
 %%
-%% ==> from_column                         == from_column = ... table_ref ...
-%% ==> join_ref                            == join_ref = ... table ...
-%% ==> table_ref                           == table_ref = ... table ...
-%%
 %% table_alias ::= ( ( NAME '.' )? NAME NAME )
 %%               | ( parameter          NAME )
 %%               | ( STRING             NAME )
 %%               | table
 %%
-%% ==> from_column                         == from_column = ... table_ref ...
-%% ==> join_ref                            == join_ref = ... table ...
-%% ==> table_ref                           == table_ref = ... table ...
-%%
 %% table_dblink ::= ( ( NAME '.' )? NAME DBLINK NAME? )
 %%                | ( parameter          DBLINK NAME? )
 %%                | table_alias
-%%
-%% ==> from_column                         == from_column = ... table_ref ...
-%% ==> join_ref                            == join_ref = ... table ...
-%% ==> table_ref                           == table_ref = ... table ...
 %%
 %% when_action ::= ( 'GOTO' NAME )
 %%               | 'CONTINUE'
@@ -378,40 +307,21 @@ create_code() ->
 %%
 %% close_statement ::= 'CLOSE' cursor
 %%
-%% ==> manipulative_statement              == manipulative_statement = ... close_statement ...
-%% ==> sql                                 == sql = ... manipulative_statement ...
-%%
 %% data_type ::= STRING
 %%              | ( NAME ( '(' sgn_num ')' )? )
 %%              | ( NAME '(' sgn_num ',' sgn_num ')' )
 %%
 %% open_statement ::= 'OPEN' cursor
 %%
-%% ==> manipulative_statement              == manipulative_statement = ... open_statement ...
-%% ==> sql                                 == sql = ... manipulative_statement ...
-%%
 %% parameter_ref ::= parameter ( ( 'INDICATOR' )? parameter )?
 %%
-%% ==> atom                                == atom = ... parameter_ref ...
-%% ==> fun_arg                             == fun_arg = ... atom ...
-%% ==> scalar_exp                          == scalar_exp = ... scalar_sub_exp ...
-%% ==> scalar_sub_exp                      == scalar_sub_exp = ... atom ...
-%% ==> target                              == target = ... parameter_ref ...
-%%
 %% truncate_table ::= 'TRUNCATE' 'TABLE' table ( ( 'PRESERVE' | 'PURGE' ) 'MATERIALIZED' 'VIEW' 'LOG' )? ( ( 'DROP' | 'REUSE' ) 'STORAGE' )?
-%%
-%% ==> manipulative_statement              == manipulative_statement = ... truncate_table ...
-%% ==> sql                                 == sql = ... manipulative_statement ...
 %%
 %% user_opt ::= ( ( 'DEFAULT' | 'TEMPORARY' ) 'TABLESPACE' NAME )
 %%            | ( quota  ( quota )* )
 %%            | ( 'PROFILE' NAME )
 %%
-%% ==> spec_item                           == spec_item = ... user_opt ...
-%%
 %% user_role ::= 'DEFAULT' 'ROLE' ( ( 'ALL' ( 'EXCEPT' role_list )? ) | NONE | role_list )
-%%
-%% ==> spec_item                           == spec_item = ... user_role ...
 %%
 %% == sql ::= procedure_call
 %% ==       | schema
@@ -444,23 +354,11 @@ create_code() ->
 %%                      'ON' table_alias ( '(' ( NAME  JSON? ) ( ',' NAME JSON? )* ')' )?
 %%                      ( 'NORM_WITH' STRING )?  ( 'FILTER_WITH' STRING )?
 %%
-%% ==> manipulative_statement              == manipulative_statement = ... create_index_def ...
-%% ==> sql                                 == sql = ... manipulative_statement ...
-%%
 %% create_user_def ::= 'CREATE' 'USER' NAME identified ( user_opt )*
-%%
-%% ==> manipulative_statement              == manipulative_statement = ... create_user_def ...
-%% ==> sql                                 == sql = ... manipulative_statement ...
 %%
 %% drop_index_def ::= 'DROP' 'INDEX' ( index_name )? 'FROM' table
 %%
-%% ==> manipulative_statement              == manipulative_statement = ... drop_index_def ...
-%% ==> sql                                 == sql = ... manipulative_statement ...
-%%
 %% drop_table_def ::= 'DROP' ( NAME )? 'TABLE' ( 'IF' 'EXISTS' )? ( table ( ',' table )* ) ( 'RESTRICT' | 'CASCADE' )?
-%%
-%% ==> manipulative_statement              == manipulative_statement = ... drop_table_def ...
-%% ==> sql                                 == sql = ... manipulative_statement ...
 %%
 %% on_obj_clause ::= ( 'ON' table )
 %%                 | ( 'ON' 'DIRECTORY' NAME )
@@ -468,8 +366,6 @@ create_code() ->
 %% proxy_with ::= ( 'WITH' 'NO' 'ROLES' )
 %%              | ( 'WITH' 'ROLE' role_list )
 %%              | ( 'WITH' 'ROLE' 'ALL' 'EXCEPT' role_list )
-%%
-%% ==> db_user_proxy                       == db_user_proxy = ... proxy_with ...
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -496,17 +392,10 @@ create_code() ->
 %%                       | ( ( ( 'ALL' 'PRIVILEGES' ) | ( system_privilege (',' system_privilege )* ) )               'TO' ( grantee_identified_by | ( grantee_revokee ( ',' grantee_revokee )* ) ) ( 'WITH' ( 'ADMIN' | 'DELEGATE'  ) 'OPTION' )? )
 %%                       )
 %%
-%% ==> manipulative_statement              == manipulative_statement = ... grant_def ...
-%% ==> schema_element                      == schema_element = ... grant_def
-%% ==> sql                                 == sql = ... manipulative_statement ...
-%%
 %% revoke_def ::= 'REVOKE' (
 %%                           ( ( ( 'ALL' 'PRIVILEGES' ) | ( object_privilege (',' object_privilege )* ) ) on_obj_clause 'FROM' grantee_revokee ( ',' grantee_revokee )* ( ( 'CASCADE' 'CONSTRAINTS' ) | 'FORCE' )? )
 %%                         | ( ( ( 'ALL' 'PRIVILEGES' ) | ( system_privilege (',' system_privilege )* ) )               'FROM' grantee_revokee ( ',' grantee_revokee )* )
 %%                         )
-%%
-%% ==> manipulative_statement              == manipulative_statement = ... revoke_def ...
-%% ==> sql                                 == sql = ... manipulative_statement ...
 %%
 %% target_commalist ::= target ( ',' target )*
 %%
@@ -527,9 +416,6 @@ create_code() ->
 %%
 %% fetch_statement ::= 'FETCH' cursor 'INTO' target_commalist
 %%
-%% ==> manipulative_statement              == manipulative_statement = ... fetch_statement ...
-%% ==> sql                                 == sql = ... manipulative_statement ...
-%%
 %% proxy_clause ::= ( 'GRANT' | 'REVOKE' ) 'CONNECT' 'THROUGH' ( ( 'ENTERPRISE' 'USERS' ) | db_user_proxy )
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -548,9 +434,6 @@ create_code() ->
 %% alter_user_def ::= ( 'ALTER' 'USER' NAME ( ',' NAME )* proxy_clause )
 %%                  | ( 'ALTER' 'USER' NAME spec_item ( spec_item )* )
 %%                  | ( 'ALTER' 'USER' NAME NAME NAME )
-%%
-%% ==> manipulative_statement              == manipulative_statement = ... alter_user_def ...
-%% ==> sql                                 == sql = ... manipulative_statement ...
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -582,80 +465,6 @@ create_code() ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Level 99
-%% -----------------------------------------------------------------------------
-%%
-%% base_table_element ::= column_def
-%%                      | table_constraint_def
-%%
-%% column ::= NAME
-%%          | STRING
-%%
-%% from_column ::= table_ref
-%%                  | ( '(' join_clause ')' )
-%%                  | join_clause
-%%
-%% join ::= inner_cross_join
-%%        | outer_join
-%%
-%% literal ::= STRING
-%%           | INTNUM
-%%           | APPROXNUM
-%%
-%% manipulative_statement ::= close_statement
-%%                          | commit_statement
-%%                          | delete_statement_positioned
-%%                          | delete_statement_searched
-%%                          | fetch_statement
-%%                          | insert_statement
-%%                          | open_statement
-%%                          | rollback_statement
-%%                          | select_statement
-%%                          | update_statement_positioned
-%%                          | update_statement_searched
-%%                          | create_table_def
-%%                          | create_role_def
-%%                          | create_index_def
-%%                          | create_user_def
-%%                          | drop_role_def
-%%                          | drop_table_def
-%%                          | drop_index_def
-%%                          | alter_user_def
-%%                          | drop_user_def
-%%                          | view_def
-%%                          | truncate_table
-%%                          | grant_def
-%%                          | revoke_def
-%%
-%% on_obj_clause ::= ( 'ON' table )
-%%                 | ( 'ON' 'DIRECTORY' NAME )
-%%
-%% parameter ::= PARAMETER
-%%
-%% predicate ::= comparison_predicate
-%%             | between_predicate
-%%             | like_predicate
-%%             | test_for_null
-%%             | in_predicate
-%%             | all_or_any_predicate
-%%             | existence_test
-%%
-%% schema_element ::= create_table_def
-%%                  | view_def
-%%                  | grant_def
-%%
-%% select_statement ::= query_exp
-%%
-%% selection ::= select_field_commalist
-%%
-%% spec_item ::= identified
-%%             | user_opt
-%%             | user_role
-%%
-%% subquery ::= query_exp
-%%
-%% target ::= NAME
-%%          | parameter_ref
-%%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
@@ -682,8 +491,6 @@ create_code_layer(Version) ->
 %%
 %% schema ::= 'CREATE' 'SCHEMA' 'AUTHORIZATION' NAME ( schema_element ( schema_element )* )?
 %%
-%% ==> sql                                 == sql = ... schema ...
-%%
 %% sql_list ::= sql ';' ( extra )? ( sql ';' ( extra )? )*
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -703,36 +510,18 @@ create_code_layer(Version) ->
 %%
 %% between_predicate ::= scalar_exp ( 'NOT' )? 'BETWEEN' scalar_exp 'AND' scalar_exp
 %%
-%% ==> predicate                           == predicate = ... between_predicate ...
-%% ==> search_condition                    == search_condition = ... predicate ...
-%%
 %% function_ref ::= ( ( ( NAME '.' )?  NAME '.' )? NAME '(' ( fun_args | fun_args_named )? ')' )
 %%                | ( 'FUNS' ( '(' ( fun_args | fun_args_named | '*' | ( 'DISTINCT' column_ref ) | ( 'ALL' scalar_exp ) )? ')' )? )
 %%                | ( function_ref JSON )
 %%
-%% ==> fun_arg                             == fun_arg = ... function_ref ...
-%% ==> scalar_exp                          == scalar_exp = ... scalar_sub_exp ...
-%% ==> scalar_sub_exp                      == scalar_sub_exp = ... function_ref ...
-%%
 %% like_predicate ::= scalar_exp ( 'NOT' )? 'LIKE' scalar_exp ( 'ESCAPE' atom )?
-%%
-%% ==> predicate                           == predicate = ... like_predicate ...
-%% ==> search_condition                    == search_condition = ... predicate ...
 %%
 %% ordering_spec ::= scalar_exp ( 'ASC' | 'DESC' )?
 %%
 %% scalar_opt_as_exp ::= ( scalar_exp ( ( '=' | COMPARISON ) scalar_exp )? )
 %%                     | ( scalar_exp ( AS )? NAME )
 %%
-%% ==> comparison_predicate                == comparison_predicate = scalar_opt_as_exp ...
-%% ==> predicate                           == predicate = comparison_predicate ...
-%% ==> select_field                        == select_field = ... comparison_predicate ...
-%% ==> selection                           == selection = select_field_commalist
-%%
 %% test_for_null ::= scalar_exp 'IS' ( 'NOT' )? 'NULL'
-%%
-%% ==> predicate                           == predicate = ... test_for_null ...
-%% ==> search_condition                    == search_condition = ... predicate ...
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -757,7 +546,7 @@ create_code_layer(Version) ->
 %%
 %% assignment ::= column '=' scalar_opt_as_exp
 %%
-%% assign_statement ::= parameter ':=' scalar_opt_as_exp ';'
+%% assignment_statement ::= parameter ':=' scalar_opt_as_exp ';'
 %%
 %% case_when_then ::= 'WHEN' search_condition 'THEN' scalar_opt_as_exp
 %%
@@ -767,13 +556,7 @@ create_code_layer(Version) ->
 %%                        | (         scalar_exp ( '=' | COMPARISON ) 'PRIOR' scalar_exp )
 %%                        | ( 'PRIOR' scalar_exp ( '=' | COMPARISON )         scalar_exp )
 %%
-%% ==> predicate                           == predicate = ... comparison_predicate ...
-%% ==> search_condition                    == search_condition = ... predicate .
-%%
 %% fun_arg_named ::= NAME '=>' scalar_opt_as_exp
-%%
-%% function_ref_list ::= ( function_ref ';' )
-%%                     | ( function_ref ';' function_ref_list )
 %%
 %% order_by_clause ::= 'ORDER' 'BY' ordering_spec ( ',' ordering_spec )*
 %%
@@ -783,8 +566,6 @@ create_code_layer(Version) ->
 %%                        | ( 'PRIMARY' 'KEY' '(' column_commalist ')' )
 %%                        | ( 'FOREIGN' 'KEY' '(' column_commalist ')' 'REFERENCES' table ( '(' column_commalist ')' )? )
 %%                        | ( 'CHECK' '(' search_condition ')' )
-%%
-%% ==> base_table_element                  == base_table_element = ... table_constraint_def ...
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -798,7 +579,6 @@ create_code_layer(Version) ->
     create_code(column_ref_commalist),
     create_code(comparison_predicate),
     create_code(fun_arg_named),
-    create_code(function_ref_list),
     create_code(order_by_clause),
     create_code(scalar_exp_commalist),
     create_code(table_constraint_def),
@@ -813,16 +593,9 @@ create_code_layer(Version) ->
 %%
 %% create_table_def ::= 'CREATE' ( tbl_scope )? ( tbl_type )? 'TABLE' table '(' ( base_table_element ( ',' base_table_element )* )? ')'
 %%
-%% ==> manipulative_statement              == manipulative_statement = ... create_table_def ...
-%% ==> schema_element                      == schema_element = ... create_table_def ...
-%%
 %% fun_args_named ::= fun_arg_named ( ',' fun_arg_named )*
 %%
-%% procedure_call ::= ( 'BEGIN' function_ref_list 'END' )
-%%                  | ( 'BEGIN' sql_list          'END' )
-%%                  | ( 'CALL' function_ref )
-%%
-%% ==> sql                                 == sql = ... procedure_call ...
+%% procedure_call ::= 'CALL' function_ref
 %%
 %% query_partition_clause ::= 'PARTITION' 'BY' ( ( '(' scalar_exp_commalist ')' ) | scalar_exp_commalist )
 %%
@@ -855,8 +628,6 @@ create_code_layer(Version) ->
 %% case_when_exp ::= ( '(' case_when_exp ')' )
 %%                 | ( 'CASE' ( scalar_opt_as_exp )? case_when_then_list ( 'ELSE' scalar_opt_as_exp )? 'END' )
 %%
-%% ==> fun_arg                             == fun_arg = ... case_when_exp
-%%
 %% column_def_opt ::= ( 'NOT' 'NULL' ( 'UNIQUE' | 'PRIMARY' 'KEY' )? )
 %%                  | ( 'DEFAULT' ( function_ref | literal | NAME | 'NULL' | 'USER' ) )
 %%                  | ( 'CHECK' '(' search_condition ')' )
@@ -865,7 +636,7 @@ create_code_layer(Version) ->
 %% hierarchical_query_clause ::= ( 'START' 'WITH' search_condition 'CONNECT' 'BY' ( 'NOCYCLE' )? search_condition )
 %%                             | ( 'CONNECT' 'BY' ( 'NOCYCLE' )? search_condition 'START' 'WITH' search_condition )
 %%
-%% plsql_body ::= 'BEGIN' statement_pragma_list 'END'
+%% plsql_body ::= 'BEGIN' statement_pragma_list 'END' ';'
 %%
 %% returning ::= ( 'RETURNING' | 'RETURN' ) selection 'INTO' selection
 %%
@@ -890,30 +661,17 @@ create_code_layer(Version) ->
 %%
 %% column_def ::= column data_type ( column_def_opt )*
 %%
-%% ==> base_table_element                  == base_table_element = ... column_def ...
-%%
 %% delete_statement_positioned ::= 'DELETE' 'FROM' table_dblink 'WHERE' 'CURRENT' 'OF' cursor ( returning )?
 %%
-%% ==> manipulative_statement              == manipulative_statement = ... delete_statement ...
-%%
 %% delete_statement_searched ::= 'DELETE' 'FROM' table_dblink ( where_clause )? ( returning )?
-%%
-%% ==> manipulative_statement              == manipulative_statement = ... delete_statement ...
 %%
 %% select_field ::= ( case_when_exp ( ( 'AS' )? NAME )? )
 %%                | scalar_opt_as_exp
 %%                | '*'
 %%
-%% ==> select_field_commalist              == select_field_commalist = select_field ...
-%% ==> selection                           == selection = select_field_commalist
-%%
 %% update_statement_positioned ::= 'UPDATE' table_dblink 'SET' assignment_commalist 'WHERE' 'CURRENT' 'OF' cursor ( returning )?
 %%
-%% ==> manipulative_statement              == manipulative_statement = ... update_statement ...
-%%
 %% update_statement_searched ::= 'UPDATE' table_dblink 'SET' assignment_commalist ( where_clause )? ( returning )?
-%%
-%% ==> manipulative_statement              == manipulative_statement = ... update_statement ...
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -931,9 +689,6 @@ create_code_layer(Version) ->
 %% -----------------------------------------------------------------------------
 %%
 %% select_field_commalist ::= select_field ( ',' select_field )*
-%%
-%% ==> select                              == select = ... select_field_commalist ...
-%% ==> selection                           == selection = select_field_commalist
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -968,21 +723,9 @@ create_code_layer(Version) ->
 %% inner_cross_join ::= ( 'INNER' )? 'JOIN' join_ref join_on_or_using_clause
 %%                    | ( 'CROSS' | ( 'NATURAL' ( 'INNER' )? ) ) 'JOIN' join_ref
 %%
-%% ==> join                                == join = ... inner_cross_join ...
-%%
 %% outer_join ::= ( NATURAL | query_partition_clause | (query_partition_clause NATURAL) )? outer_join_type JOIN join_ref ( query_partition_clause )? ( join_on_or_using_clause )?
 %%
-%% ==> join                                == join = ... outer_join ...
-%%
 %% query_spec ::= 'SELECT' ( HINT )? ( 'ALL' | 'DISTINCT' )? selection ( 'INTO' target_commalist )? table_exp
-%%
-%% ==> fun_arg                             == fun_arg = ... subquery ...
-%% ==> query_exp                           == query_exp = ... query_term ...
-%% ==> query_term                          == query_term = ... query_spec ...
-%% ==> scalar_exp                          == scalar_exp = ... scalar_sub_exp ...
-%% ==> scalar_sub_exp                      == scalar_sub_exp = ... subquery ...
-%% ==> select_statement                    == select_statement = ... query_term ...
-%% ==> subquery                            == subquery = ... query_term ...
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1000,28 +743,13 @@ create_code_layer(Version) ->
 %%
 %% insert_statement ::= 'INSERT' 'INTO' table_dblink ( ( '(' column_commalist ')' )? ( ( 'VALUES' '(' scalar_opt_as_exp ( ',' scalar_opt_as_exp )* ')' ) | query_spec ) ( returning )? )?
 %%
-%% ==> manipulative_statement              == manipulative_statement = ... insert_statement ...
-%%
 %% join_clause ::= table_ref join ( join )*
-%%
-%% ==> from_column                         == from_column = ... join_clause ...
-%% ==> from_column                         == from_column = ... '(' join_clause ')' ...
 %%
 %% query_term ::= (     query_spec     ( JSON )? )
 %%              | ( '(' query_exp  ')' ( JSON )? )
 %%
-%% ==> fun_arg                             == fun_arg = ... subquery ...
-%% ==> query_exp                           == query_exp = ... query_term ...
-%% ==> scalar_exp                          == scalar_exp = ... scalar_sub_exp ...
-%% ==> scalar_sub_exp                      == scalar_sub_exp = ... subquery ...
-%% ==> select_statement                    == select_statement = ... query_term ...
-%% ==> subquery                            == subquery = ... query_term ...
-%%
 %% view_def ::= ( 'CREATE' 'VIEW' table ( '(' column_commalist ')' )? )
 %%            | ( 'AS' query_spec ( 'WITH' 'CHECK' 'OPTION' )? )
-%%
-%% ==> manipulative_statement              == manipulative_statement = ... view_def ...
-%% ==> schema_element                      == schema_element = ... view_def ...
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1045,12 +773,6 @@ create_code_layer(Version) ->
 %% query_exp ::= query_term
 %%             | ( query_exp ( ( 'UNION' ( 'ALL' )? ) | 'INTERSECT' | 'MINUS' ) query_term )
 %%
-%% ==> fun_arg                             == fun_arg = ... subquery ...
-%% ==> scalar_exp                          == scalar_exp = ... scalar_sub_exp ...
-%% ==> scalar_sub_exp                      == scalar_sub_exp = ... subquery ...
-%% ==> select_statement                    == select_statement = ... query_exp ...
-%% ==> subquery                            == subquery = ... query_exp ...
-%%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
@@ -1065,17 +787,9 @@ create_code_layer(Version) ->
 %%
 %% all_or_any_predicate ::= scalar_exp ( '=' | COMPARISON ) ( 'ANY' | 'ALL' | 'SOME' ) subquery
 %%
-%% ==> predicate                           == predicate = ... all_or_any_predicate ...
-%% ==> search_condition                    == search_condition = ... predicate ...
-%%
 %% cursor_def ::= 'CURSOR' cursor 'IS' query_exp
 %%
-%% ==> sql                                 == sql = ... cursor_def ...
-%%
 %% existence_test ::= 'EXISTS' subquery
-%%
-%% ==> predicate                           == predicate = ... existence_test ...
-%% ==> search_condition                    == search_condition = ... predicate ...
 %%
 %% fun_arg ::= ( '(' fun_arg ')' )
 %%           | function_ref
@@ -1091,9 +805,6 @@ create_code_layer(Version) ->
 %% in_predicate ::= ( scalar_exp ( 'NOT' )? 'IN' '(' subquery ')' )
 %%                | ( scalar_exp ( 'NOT' )? 'IN' '(' scalar_exp_commalist ')' )
 %%                | ( scalar_exp ( 'NOT' )? 'IN' scalar_exp )
-%%
-%% ==> predicate                           == predicate = ... in_predicate ...
-%% ==> search_condition                    == search_condition = ... predicate ...
 %%
 %% join_ref ::= table_dblink
 %%            | ( query_term ( NAME )? )
@@ -1112,8 +823,6 @@ create_code_layer(Version) ->
 %%
 %% table_ref ::= table_dblink
 %%             | ( query_term ( NAME )? )
-%%
-%% ==> from_column                         == from_column = ... table_ref ...
 %%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1136,16 +845,6 @@ create_code_layer(Version) ->
     create_code(table_ref),
 
     ok.
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Adding parentheses to a query_spec.
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-bracket_query_spec(Expression) ->
-    case string:substr(Expression, 1, 7) == "Select " of
-        true -> lists:append(["(", Expression, ")"]);
-        _ -> Expression
-    end.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% all_or_any_predicate ::= scalar_exp COMPARISON ( 'ANY' | 'ALL' | 'SOME' ) subquery
@@ -1345,7 +1044,7 @@ create_code(assignment_commalist = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% assign_statement -> parameter ':=' scalar_opt_as_exp ';' : {':=', '$1', '$3'}.
+%% assignment_statement ::= parameter ':=' scalar_opt_as_exp
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(assignment_statement = Rule) ->
@@ -1362,13 +1061,12 @@ create_code(assignment_statement = Rule) ->
                 lists:nth(rand:uniform(Parameter_Length), Parameter),
                 " := ",
                 lists:nth(rand:uniform(Scalar_Opt_As_Exp_Length),
-                    Scalar_Opt_As_Exp),
-                ";"
+                    Scalar_Opt_As_Exp)
             ])
-            || _ <- lists:seq(1, ?MAX_BASIC * 2)
+            || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, false),
-    store_code(statement_pragma, Code, ?MAX_BASIC, false),
+    store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, false),
+    store_code(statement_pragma, Code, ?MAX_STATEMENT_SIMPLE, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1539,8 +1237,7 @@ create_code(close_statement = Rule) ->
                 "Close " ++ C || C <- Cursor
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
-    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
-    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(statement_pragma, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1814,8 +1511,7 @@ create_code(commit_statement = Rule) ->
             "Commit Work"
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
-    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
-    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(statement_pragma, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1977,7 +1673,7 @@ create_code(create_index_def = Rule) ->
                     _ -> []
                 end
             ])
-            || _ <- lists:seq(1, ?MAX_BASIC * 2)
+            || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
     store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
@@ -1997,6 +1693,7 @@ create_code(create_role_def = Rule) ->
                 "Create Role " ++ N || N <- Name
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2141,7 +1838,7 @@ create_code(cursor_def = Rule) ->
             || _ <- lists:seq(1, ?MAX_STATEMENT_COMPLEX * 2)
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_COMPLEX, true),
-    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(statement_pragma, Code, ?MAX_STATEMENT_COMPLEX, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2268,6 +1965,7 @@ create_code(delete_statement = Rule) ->
     store_code(Rule, Code, ?MAX_STATEMENT_COMPLEX, true),
     store_code(manipulative_statement, Code, ?MAX_STATEMENT_COMPLEX, true),
     store_code(sql, Code, ?MAX_STATEMENT_COMPLEX, true),
+    store_code(statement_pragma, Code, ?MAX_STATEMENT_COMPLEX, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2455,8 +2153,7 @@ create_code(fetch_statement = Rule) ->
             || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
-    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
-    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(statement_pragma, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2749,12 +2446,13 @@ create_code(function_ref = Rule) ->
                        ])
                    end
             end
-            || _ <- lists:seq(1, ?MAX_BASIC * 2)
+            || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
         ],
     store_code(Rule, Code, ?MAX_BASIC, false),
     store_code(fun_arg, Code, ?MAX_BASIC, false),
     store_code(scalar_exp, Code, ?MAX_BASIC, false),
     store_code(scalar_sub_exp, Code, ?MAX_BASIC, false),
+    store_code(statement_pragma, Code, ?MAX_STATEMENT_SIMPLE, false),
     ?CREATE_CODE_END;
 
 create_code(function_ref_json = Rule) ->
@@ -2778,33 +2476,6 @@ create_code(function_ref_json = Rule) ->
     store_code(function_ref, Code, ?MAX_BASIC, false),
     store_code(scalar_exp, Code, ?MAX_BASIC, false),
     store_code(scalar_sub_exp, Code, ?MAX_BASIC, false),
-    ?CREATE_CODE_END;
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% function_ref_list ::= ( function_ref ';' )
-%%                     | ( function_ref ';' function_ref_list )
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-create_code(function_ref_list = Rule) ->
-    ?CREATE_CODE_START,
-    [{function_ref, Function_Ref}] = ets:lookup(?CODE_TEMPLATES, function_ref),
-    Function_Ref_Length = length(Function_Ref),
-
-    Code =
-        [
-            case rand:uniform(2) rem 2 of
-                1 -> lists:append([
-                    lists:nth(rand:uniform(Function_Ref_Length), Function_Ref),
-                    ";",
-                    lists:nth(rand:uniform(Function_Ref_Length), Function_Ref),
-                    ";"
-                ]);
-                _ -> lists:nth(rand:uniform(Function_Ref_Length),
-                    Function_Ref) ++ ";"
-            end
-            || _ <- lists:seq(1, ?MAX_BASIC * 2)
-        ],
-    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3327,6 +2998,7 @@ create_code(insert_statement = Rule) ->
     store_code(Rule, Code, ?MAX_STATEMENT_COMPLEX, true),
     store_code(manipulative_statement, Code, ?MAX_STATEMENT_COMPLEX, true),
     store_code(sql, Code, ?MAX_STATEMENT_COMPLEX, true),
+    store_code(statement_pragma, Code, ?MAX_STATEMENT_COMPLEX, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3798,8 +3470,7 @@ create_code(open_statement = Rule) ->
                 "Open " ++ C || C <- Cursor
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
-    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
-    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(statement_pragma, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4040,52 +3711,31 @@ create_code(plsql_body = Rule) ->
                 "Begin ",
                 lists:nth(rand:uniform(Statement_Pragma_List_Length),
                     Statement_Pragma_List),
-                " End"
+                " End;"
             ])
             || _ <- lists:seq(1, ?MAX_STATEMENT_COMPLEX * 2)
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_COMPLEX, true),
-    store_code(sql, Code, ?MAX_STATEMENT_COMPLEX, true),
+    store_code(plsql_block, Code, ?MAX_STATEMENT_COMPLEX, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% procedure_call ::= ( 'BEGIN' function_ref_list 'END' )
-%%                  | ( 'BEGIN' sql_list          'END' )
-%%                  | ( 'CALL' function_ref )
+%% procedure_call ::= 'CALL' function_ref
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(procedure_call = Rule) ->
     ?CREATE_CODE_START,
     [{function_ref, Function_Ref}] = ets:lookup(?CODE_TEMPLATES, function_ref),
     Function_Ref_Length = length(Function_Ref),
-    [{function_ref_list, Function_Ref_List}] =
-        ets:lookup(?CODE_TEMPLATES, function_ref_list),
-    Function_Ref_List_Length = length(Function_Ref_List),
-    [{sql_list, Sql_List}] = ets:lookup(?CODE_TEMPLATES, sql_list),
-    Sql_List_Length = length(Sql_List),
 
     Code =
         [
-            case rand:uniform(3) rem 3 of
-                1 -> lists:append([
-                    "Begin ",
-                    lists:nth(rand:uniform(Function_Ref_List_Length),
-                        Function_Ref_List),
-                    " End"
-                ]);
-                2 -> lists:append([
-                    "Begin ",
-                    lists:nth(rand:uniform(Sql_List_Length), Sql_List),
-                    " End"
-                ]);
-                _ ->
-                    "Call " ++
-                    lists:nth(rand:uniform(Function_Ref_Length), Function_Ref)
-            end
-            || _ <- lists:seq(1, ?MAX_STATEMENT_COMPLEX * 2)
+                "Call " ++
+                lists:nth(rand:uniform(Function_Ref_Length), Function_Ref)
+            || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
         ],
-    store_code(Rule, Code, ?MAX_STATEMENT_COMPLEX, true),
-    store_code(sql, Code, ?MAX_STATEMENT_COMPLEX, true),
+    store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(statement_pragma, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4203,9 +3853,9 @@ create_code(query_exp = Rule) ->
                 bracket_query_spec(
                     lists:nth(rand:uniform(Query_Term_Length), Query_Term))
             ])
-            || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
+            || _ <- lists:seq(1, ?MAX_STATEMENT_COMPLEX * 2)
         ],
-    store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, false),
+    store_code(Rule, Code, ?MAX_STATEMENT_COMPLEX, false),
     store_code(fun_arg, Code, ?MAX_BASIC, false),
     store_code(scalar_exp, Code, ?MAX_BASIC, false),
     store_code(scalar_sub_exp, Code, ?MAX_BASIC, false),
@@ -4257,12 +3907,14 @@ create_code(query_spec = Rule) ->
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, false),
     store_code(fun_arg, Code, ?MAX_BASIC, false),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_COMPLEX, false),
     store_code(query_exp, Code, ?MAX_STATEMENT_SIMPLE, false),
     store_code(query_term, [lists:append(["(", C, ")"]) || C <- Code],
         ?MAX_STATEMENT_SIMPLE, false),
     store_code(scalar_exp, Code, ?MAX_BASIC, false),
     store_code(scalar_sub_exp, Code, ?MAX_BASIC, false),
     store_code(select_statement, Code, ?MAX_STATEMENT_COMPLEX, false),
+    store_code(statement_pragma, Code, ?MAX_STATEMENT_SIMPLE, false),
     store_code(subquery, Code, ?MAX_STATEMENT_COMPLEX, false),
     ?CREATE_CODE_END;
 
@@ -4505,7 +4157,7 @@ create_code(revoke_def = Rule) ->
             || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
-    store_code(manipulative_statement, Code, ?MAX_STATEMENT_COMPLEX, true),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
     store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
@@ -4549,6 +4201,7 @@ create_code(rollback_statement = Rule) ->
             "Rollback Work"
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(statement_pragma, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4969,15 +4622,15 @@ create_code(special = Rule) ->
 %% ---------------------------------------------------------------------
 %% function_ref -> FUNS     '(' ALL scalar_exp ')'
 %% ---------------------------------------------------------------------
-        "Call Upper (All Null)",
-        "Call Upper (All 5)",
-        "Call Upper (All 'text')",
-        "Call Upper (All name|:_a1:f()|)",
-        "Call Upper (All name|:_a1:f()|)",
-        "Call Upper (All name1.name2|:_a1:f()|)",
-        "Call Upper (All name)",
-        "Call Upper (All name1.name2)",
-        "Call Upper (All name1.name2.name3)",
+        "Begin Call Upper (All Null); End;",
+        "Begin Call Upper (All 5); End;",
+        "Begin Call Upper (All 'text'); End;",
+        "Begin Call Upper (All name|:_a1:f()|); End;",
+        "Begin Call Upper (All name|:_a1:f()|); End;",
+        "Begin Call Upper (All name1.name2|:_a1:f()|); End;",
+        "Begin Call Upper (All name); End;",
+        "Begin Call Upper (All name1.name2); End;",
+        "Begin Call Upper (All name1.name2.name3); End;",
 %% ---------------------------------------------------------------------
 %% Problem: data_type with parenteheses
 %% ---------------------------------------------------------------------
@@ -5090,15 +4743,17 @@ create_code(statement_pragma_list = Rule) ->
                 1 -> lists:append([
                     lists:nth(rand:uniform(Statement_Pragma_Length),
                         Statement_Pragma),
+                    ";",
                     lists:nth(rand:uniform(Statement_Pragma_Length),
-                        Statement_Pragma)
+                        Statement_Pragma),
+                    ";"
                 ]);
                 _ -> lists:nth(rand:uniform(Statement_Pragma_Length),
-                    Statement_Pragma)
+                    Statement_Pragma) ++ ";"
             end
-            || _ <- lists:seq(1, ?MAX_BASIC * 2)
+            || _ <- lists:seq(1, ?MAX_SQL * 2)
         ],
-    store_code(Rule, Code, ?MAX_BASIC, false),
+    store_code(Rule, Code, ?MAX_SQL, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -5757,6 +5412,7 @@ create_code(update_statement = Rule) ->
     store_code(Rule, Code, ?MAX_STATEMENT_COMPLEX, true),
     store_code(manipulative_statement, Code, ?MAX_STATEMENT_COMPLEX, true),
     store_code(sql, Code, ?MAX_STATEMENT_COMPLEX, true),
+    store_code(statement_pragma, Code, ?MAX_STATEMENT_COMPLEX, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -5917,7 +5573,7 @@ create_code(whenever = Rule) ->
             || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
-    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(statement_pragma, Code, ?MAX_STATEMENT_SIMPLE, true),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -6093,6 +5749,7 @@ file_write_ct(Current, Type, CompleteSemicolon, CompactedDetailed, File, [H | T]
                 end,
                 "(\"",
                 case CompleteSemicolon of
+                    "beginend_" -> lists:append(["Begin ", H, "; End;"]);
                     "semicolon" -> H ++ ";";
                     _ -> H
                 end,
@@ -6109,6 +5766,7 @@ file_write_ct(Current, Type, CompleteSemicolon, CompactedDetailed, File, [H | T]
                 end,
                 "(\"",
                 case CompleteSemicolon of
+                    "beginend_" -> lists:append(["Begin ", H, "; End;"]);
                     "semicolon" -> H ++ ";";
                     _ -> H
                 end,
@@ -6181,10 +5839,9 @@ file_write_eunit(CompleteSemicolon, File, [H | T]) ->
     io:format(File, "~s~n", [lists:append([
         "\"",
         case CompleteSemicolon of
-            "semicolon" ->
-                H ++ ";";
-            _ ->
-                H
+            "beginend_" -> lists:append(["Begin ", H, "; End;"]);
+            "semicolon" -> H ++ ";";
+            _ -> H
         end,
         "\"."
     ])]),

@@ -12,48 +12,38 @@
 % close_statement
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-"close cursor_1".
-"close cursor_1;extra_1".
-"CLOSE name_cursor_1".
+"begin close cursor_1;end;".
+"begin CLOSE name_cursor_1;end;".
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % commit_statement
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-"commit work".
-"commit work;extra_1".
-"commit".
-"commit;extra_1".
+"begin commit work;end;".
+"begin commit;end;".
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % open_statement
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-"open cursor_1".
-"open cursor_1;extra_1".
-"OPEN name_cursor_1".
+"begin open cursor_1;end;".
+"begin OPEN name_cursor_1;end;".
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % rollback_statement
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-"rollback work".
-"rollback work;extra_1".
-"rollback".
-"rollback;extra_1".
+"begin rollback work;end;".
+"begin rollback;end;".
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % when_not_found
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-"whenever not found continue".
-"whenever not found continue;extra_1".
-"whenever not found goto target_1".
-"whenever not found goto target_1;extra_1".
-"whenever sqlerror continue".
-"whenever sqlerror continue;extra_1".
-"whenever sqlerror goto target_1".
-"whenever sqlerror goto target_1;extra_1".
+"begin whenever not found continue;end;".
+"begin whenever not found goto target_1;end;".
+"begin whenever sqlerror continue;end;".
+"begin whenever sqlerror goto target_1;end;".
 
 %% -----------------------------------------------------------------------------
 %% TESTS: CLOSE & COMMIT & OPEN & ROLLBACK & WHENEVER

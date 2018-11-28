@@ -2280,13 +2280,6 @@ fold(_LOpts, _FunState, Ctx, _PTree, {spec_item, _Step, _Pos} = _FoldState) ->
     Ctx;
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% sql
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-fold(_LOpts, _FunState, Ctx, _PTree, {sql, _Step, _Pos} = _FoldState) ->
-    Ctx;
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % sql_list
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -2869,6 +2862,9 @@ fold(_LOpts, _FunState, Ctx, _PTree, {Rule, _Step, _Pos}) when
     Rule == fun_arg;
     Rule == function_ref;
     Rule == join;
+    Rule == sql;
+    Rule == statement_pragma;
+    Rule == statement_pragma_list;
     Rule == user_opt ->
     Ctx;
 
@@ -2905,6 +2901,8 @@ fold(_LOpts, _FunState, Ctx, _PTree, {Rule, _Step}) when
     Rule == scalar_opt_as_exp;
     Rule == sql_list;
     Rule == sql_list_list;
+    Rule == statement_pragma_list;
+    Rule == statement_pragma_list_list;
     Rule == table;
     Rule == table_dblink;
     Rule == tables;

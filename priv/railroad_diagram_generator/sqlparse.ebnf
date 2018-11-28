@@ -23,6 +23,20 @@
 */
 
 /* =============================================================================
+plsql_block_sql_list -> plsql_block : '$1'.
+plsql_block_sql_list -> sql_list    : '$1'.
+============================================================================= */
+
+plsql_block_sql_list ::= plsql_block
+                       | sql_list
+
+/* =============================================================================
+plsql_block -> plsql_body : '$1'.
+============================================================================= */
+
+plsql_block ::= plsql_body
+
+/* =============================================================================
 sql_list ->          sql ';'                                                                    :         [{'$1',{extra, <<>>}}].
 sql_list ->          sql ';' extra                                                              :         [{'$1','$3'}].
 sql_list -> sql_list sql ';'                                                                    : '$1' ++ [{'$2',{extra, <<>>}}].
@@ -42,34 +56,18 @@ DBLINK ::= '"@' [A-Za-z0-9_\$#\.@]+ '"'
 NAME ::= [A-Za-z][A-Za-z0-9_\$#@~]*
 
 /* =============================================================================
-sql -> cursor_def                     : '$1'.
-sql -> manipulative_statement         : '$1'.
-sql -> plsql_block                    : '$1'.
-sql -> procedure_call                 : '$1'.
-sql -> schema                         : '$1'.
-sql -> WHENEVER NOT FOUND when_action : {when_not_found, '$4'}.
-sql -> WHENEVER SQLERROR  when_action : {when_sql_err, '$3'}.
+sql -> manipulative_statement : '$1'.
+sql -> schema                 : '$1'.
 ============================================================================= */
 
-sql ::= cursor_def
-      | manipulative_statement
-      | plsql_block
-      | procedure_call
+sql ::= manipulative_statement
       | schema
-      | 'WHENEVER' 'NOT' 'FOUND' when_action
-      | 'WHENEVER' 'SQLERROR' when_action
 
 /* =============================================================================
-plsql_block -> plsql_body : '$1'.
+plsql_body -> BEGIN statement_pragma_list END ';' : {'plsql_body', '$2'}.
 ============================================================================= */
 
-plsql_block ::= plsql_body
-
-/* =============================================================================
-plsql_body -> BEGIN statement_pragma_list END : {'plsql_body', '$2'}.
-============================================================================= */
-
-plsql_body ::= 'BEGIN' statement_pragma_list 'END'
+plsql_body ::= 'BEGIN' statement_pragma_list 'END' ';'
 
 /* =============================================================================
 statement_pragma_list ->                       statement_pragma :         ['$1'].
@@ -79,41 +77,59 @@ statement_pragma_list -> statement_pragma_list statement_pragma : '$1' ++ ['$2']
 statement_pragma_list ::= statement_pragma ( statement_pragma )*
 
 /* =============================================================================
-statement_pragma -> assign_statement : '$1'.
+statement_pragma -> assignment_statement           : '$1'.
+statement_pragma -> close_statement                : '$1'.
+statement_pragma -> commit_statement               : '$1'.
+statement_pragma -> cursor_def                     : '$1'.
+statement_pragma -> delete_statement_positioned    : '$1'.
+statement_pragma -> delete_statement_searched      : '$1'.
+statement_pragma -> fetch_statement                : '$1'.
+statement_pragma -> function_ref                   : '$1'.
+statement_pragma -> insert_statement               : '$1'.
+statement_pragma -> open_statement                 : '$1'.
+statement_pragma -> procedure_call                 : '$1'.
+statement_pragma -> rollback_statement             : '$1'.
+statement_pragma -> select_statement               : '$1'.
+statement_pragma -> update_statement_positioned    : '$1'.
+statement_pragma -> update_statement_searched      : '$1'.
+statement_pragma -> WHENEVER NOT FOUND when_action : {when_not_found, '$4'}.
+statement_pragma -> WHENEVER SQLERROR  when_action : {when_sql_err, '$3'}.
 ============================================================================= */
 
 statement_pragma ::= assign_statement
+                   | close_statement
+                   | commit_statement
+                   | cursor_def
+                   | delete_statement_positioned
+                   | delete_statement_searched
+                   | fetch_statement
+                   | function_ref
+                   | insert_statement
+                   | open_statement
+                   | procedure_call
+                   | rollback_statement
+                   | select_statement
+                   | update_statement_positioned
+                   | update_statement_searched
+                   | 'WHENEVER' 'NOT' 'FOUND' when_action
+                   | 'WHENEVER' 'SQLERROR' when_action
 
 /* =============================================================================
-assign_statement -> parameter ':=' scalar_opt_as_exp ';' : {':=', '$1', '$3'}.
+assignment_statement -> parameter ':=' scalar_opt_as_exp : {':=', '$1', '$3'}.
 ============================================================================= */
 
-assign_statement ::= parameter ':=' scalar_opt_as_exp ';'
+assignment_statement ::= parameter ':=' scalar_opt_as_exp
 
 /* =============================================================================
-procedure_call -> BEGIN function_ref_list END : {'begin procedure', '$2'}.
-procedure_call -> BEGIN sql_list          END : {'begin procedure', '$2'}.
-procedure_call -> CALL  function_ref          : {'call procedure', '$2'}.
+procedure_call -> CALL function_ref : {'call procedure',  '$2'}.
 ============================================================================= */
 
-procedure_call ::= ( 'BEGIN' function_ref_list 'END' )
-                 | ( 'BEGIN' sql_list          'END' )
-                 | ( 'CALL' function_ref )
-
-/* =============================================================================
-function_ref_list -> function_ref ';'                                                           : ['$1'].
-function_ref_list -> function_ref ';' function_ref_list                                         : ['$1' | '$3'].
-============================================================================= */
-
-function_ref_list ::= ( function_ref ';' )
-                    | ( function_ref ';' function_ref_list )
+procedure_call ::= 'CALL' function_ref
 
 /* =============================================================================
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% schema definition language
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-sql -> schema                                                                                   : '$1'.
 
 schema -> CREATE SCHEMA AUTHORIZATION NAME                     : {'create schema authorization', unwrap('$4'), []}.
 schema -> CREATE SCHEMA AUTHORIZATION NAME schema_element_list : {'create schema authorization', unwrap('$4'), '$5'}.
@@ -602,8 +618,6 @@ grantee_identified_by ::= NAME 'IDENTIFIED' 'BY' STRING
 %% cursor definition
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-sql -> cursor_def                                                                               : '$1'.
-
 cursor_def -> CURSOR cursor IS query_exp : {cursor_def, '$2', '$4'}.
 ============================================================================= */
 
@@ -633,58 +647,46 @@ ordering_spec ::= scalar_exp ( 'ASC' | 'DESC' )?
 %% manipulative statements
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-sql -> manipulative_statement                                                                   : '$1'.
-
-manipulative_statement -> close_statement                                                       : '$1'.
-manipulative_statement -> commit_statement                                                      : '$1'.
-manipulative_statement -> delete_statement_positioned                                           : '$1'.
-manipulative_statement -> delete_statement_searched                                             : '$1'.
-manipulative_statement -> fetch_statement                                                       : '$1'.
-manipulative_statement -> insert_statement                                                      : '$1'.
-manipulative_statement -> open_statement                                                        : '$1'.
-manipulative_statement -> rollback_statement                                                    : '$1'.
-manipulative_statement -> select_statement                                                      : '$1'.
-manipulative_statement -> update_statement_positioned                                           : '$1'.
-manipulative_statement -> update_statement_searched                                             : '$1'.
-manipulative_statement -> create_table_def                                                      : '$1'.
-manipulative_statement -> create_role_def                                                       : '$1'.
-manipulative_statement -> create_index_def                                                      : '$1'.
-manipulative_statement -> create_user_def                                                       : '$1'.
-manipulative_statement -> drop_role_def                                                         : '$1'.
-manipulative_statement -> drop_table_def                                                        : '$1'.
-manipulative_statement -> drop_index_def                                                        : '$1'.
-manipulative_statement -> alter_user_def                                                        : '$1'.
-manipulative_statement -> drop_user_def                                                         : '$1'.
-manipulative_statement -> view_def                                                              : '$1'.
-manipulative_statement -> truncate_table                                                        : '$1'.
-manipulative_statement -> grant_def                                                             : '$1'.
-manipulative_statement -> revoke_def                                                            : '$1'.
+manipulative_statement -> alter_user_def              : '$1'.
+manipulative_statement -> create_index_def            : '$1'.
+manipulative_statement -> create_role_def             : '$1'.
+manipulative_statement -> create_table_def            : '$1'.
+manipulative_statement -> create_user_def             : '$1'.
+manipulative_statement -> delete_statement_positioned : '$1'.
+manipulative_statement -> delete_statement_searched   : '$1'.
+manipulative_statement -> drop_index_def              : '$1'.
+manipulative_statement -> drop_role_def               : '$1'.
+manipulative_statement -> drop_table_def              : '$1'.
+manipulative_statement -> drop_user_def               : '$1'.
+manipulative_statement -> grant_def                   : '$1'.
+manipulative_statement -> insert_statement            : '$1'.
+manipulative_statement -> revoke_def                  : '$1'.
+manipulative_statement -> select_statement            : '$1'.
+manipulative_statement -> truncate_table              : '$1'.
+manipulative_statement -> update_statement_positioned : '$1'.
+manipulative_statement -> update_statement_searched   : '$1'.
+manipulative_statement -> view_def                    : '$1'.
 ============================================================================= */
 
-manipulative_statement ::= close_statement
-                         | commit_statement
+manipulative_statement ::= alter_user_def
+                         | create_index_def
+                         | create_role_def
+                         | create_table_def
+                         | create_user_def
                          | delete_statement_positioned
                          | delete_statement_searched
-                         | fetch_statement
-                         | insert_statement
-                         | open_statement
-                         | rollback_statement
-                         | select_statement
-                         | update_statement_positioned
-                         | update_statement_searched
-                         | create_table_def
-                         | create_role_def
-                         | create_index_def
-                         | create_user_def
+                         | drop_index_def
                          | drop_role_def
                          | drop_table_def
-                         | drop_index_def
-                         | alter_user_def
                          | drop_user_def
-                         | view_def
-                         | truncate_table
                          | grant_def
+                         | insert_statement
                          | revoke_def
+                         | select_statement
+                         | truncate_table
+                         | update_statement_positioned
+                         | update_statement_searched
+                         | view_def
 
 /* =============================================================================
 truncate_table -> TRUNCATE TABLE table                      : {'truncate table', '$3', {},   {}}.

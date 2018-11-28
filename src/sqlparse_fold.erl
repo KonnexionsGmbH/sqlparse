@@ -407,8 +407,8 @@ fold_i(FType, Fun, LOpts, FunState, Ctx,
     NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
         {Rule, get_start_end(FType, 'end')}),
     ?FOLD_RESULT(NewCtxE);
-fold_i(FType, Fun, LOpts, FunState, Ctx,
-    {Type = Rule, {{'fun', _, _}, JSON, []} = PTree})
+fold_i(FType, Fun, LOpts, FunState, Ctx, {Type = Rule,
+    {{'fun', _, _}, JSON, []} = PTree})
     when
     (Type == check orelse Type == default orelse Type == procedure_call) andalso
         is_tuple(JSON) ->
@@ -1338,31 +1338,6 @@ fold_i(FType, Fun, LOpts, FunState, Ctx,
     NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
         {Rule, get_start_end(FType, 'end')}),
     ?FOLD_RESULT(NewCtxE);
-fold_i(FType, Fun, LOpts, FunState, Ctx, {function_ref = Rule, Pos, PTree}) ->
-    ?FOLD_INIT(FunState, Ctx, PTree),
-    NewCtxS = Fun(LOpts, FunState, Ctx, PTree,
-        {Rule, get_start_end(FType, start), Pos}),
-    NewCtx1 = fold_i(FType, Fun, LOpts, FunState, NewCtxS, PTree),
-    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
-        {Rule, get_start_end(FType, 'end'), Pos}),
-    ?FOLD_RESULT(NewCtxE);
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% function_ref_list list
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-fold_i(FType, Fun, LOpts, FunState, Ctx, [{'fun', _, _} | _] = PTree)
-    when is_list(PTree) ->
-    ?FOLD_INIT(FunState, Ctx, PTree),
-    Rule = function_ref_list_list,
-    NewCtxS =
-        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
-    NewCtx1 =
-        list_elem_ext_rule(FType, Fun, LOpts, FunState, NewCtxS, function_ref,
-            PTree),
-    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
-        {Rule, get_start_end(FType, 'end')}),
-    ?FOLD_RESULT(NewCtxE);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % goto
@@ -2119,8 +2094,7 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'plsql_body', StatementPragmaList} =
     FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
     NewCtxS =
         Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
-    NewCtx1 = fold_i(FType, Fun, LOpts, FunState, NewCtxS,
-        {statement_pragma_list, StatementPragmaList}),
+    NewCtx1 = fold_i(FType, Fun, LOpts, FunState, NewCtxS, StatementPragmaList),
     NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
         {Rule, get_start_end(FType, 'end')}),
     ?FOLD_RESULT(NewCtxE);
@@ -2128,44 +2102,6 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'plsql_body', StatementPragmaList} =
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % procedure_call
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
-    {'begin procedure', [{{'fun', _, _}, _JSON, []} | _] = FunctionRefList} =
-        PTree) ->
-    Rule = procedure_call,
-    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
-    NewCtxS =
-        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
-    NewCtx1 = list_elem_ext_rule(FType, Fun, LOpts,
-        set_state_clause(FunState, begin_procedure), NewCtxS, procedure_call,
-        FunctionRefList),
-    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
-        {Rule, get_start_end(FType, 'end')}),
-    ?FOLD_RESULT(NewCtxE);
-fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
-    {'begin procedure', [{'fun', _, _} | _] = FunctionRefList} = PTree) ->
-    Rule = procedure_call,
-    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
-    NewCtxS =
-        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
-    NewCtx1 =
-        fold_i(FType, Fun, LOpts, set_state_clause(FunState, begin_procedure),
-            NewCtxS, FunctionRefList),
-    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
-        {Rule, get_start_end(FType, 'end')}),
-    ?FOLD_RESULT(NewCtxE);
-fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'begin procedure', SQLList} =
-    PTree) ->
-    Rule = procedure_call,
-    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
-    NewCtxS =
-        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
-    NewCtx1 =
-        fold_i(FType, Fun, LOpts, set_state_clause(FunState, begin_procedure),
-            NewCtxS, SQLList),
-    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
-        {Rule, get_start_end(FType, 'end')}),
-    ?FOLD_RESULT(NewCtxE);
 
 fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'call procedure', FunctionRef} =
     PTree) ->
@@ -2178,26 +2114,6 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'call procedure', FunctionRef} =
             NewCtxS, {procedure_call, FunctionRef}),
     NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
         {Rule, get_start_end(FType, 'end')}),
-    ?FOLD_RESULT(NewCtxE);
-
-fold_i(FType, Fun, LOpts, FunState, Ctx,
-    {procedure_call = Rule, Pos, {{'fun', _, _}, JSON, []} = Value} = PTree)
-    when is_tuple(JSON) ->
-    ?FOLD_INIT(FunState, Ctx, PTree),
-    NewCtxS = Fun(LOpts, FunState, Ctx, PTree,
-        {Rule, get_start_end(FType, start), Pos}),
-    NewCtx1 = fold_i(FType, Fun, LOpts, FunState, NewCtxS, {Rule, Value}),
-    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
-        {Rule, get_start_end(FType, 'end'), Pos}),
-    ?FOLD_RESULT(NewCtxE);
-fold_i(FType, Fun, LOpts, FunState, Ctx,
-    {procedure_call = Rule, Pos, {'fun', _, _} = Value} = PTree) ->
-    ?FOLD_INIT(FunState, Ctx, PTree),
-    NewCtxS = Fun(LOpts, FunState, Ctx, PTree,
-        {Rule, get_start_end(FType, start), Pos}),
-    NewCtx1 = fold_i(FType, Fun, LOpts, FunState, NewCtxS, {Rule, Value}),
-    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
-        {Rule, get_start_end(FType, 'end'), Pos}),
     ?FOLD_RESULT(NewCtxE);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2696,11 +2612,12 @@ fold_i(FType, Fun, LOpts, FunState, Ctx, {spec_item = Rule, Pos, PTree})
     ?FOLD_RESULT(NewCtxE);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% sql
+% sql  statement_pragma
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold_i(FType, Fun, LOpts, FunState, Ctx, {sql = Rule, Pos, PTree})
-    when is_atom(PTree);is_tuple(PTree) ->
+fold_i(FType, Fun, LOpts, FunState, Ctx, {Type = Rule, Pos, PTree})
+    when (is_atom(PTree) orelse is_tuple(PTree)) andalso
+             (Type == sql orelse Type == statement_pragma) ->
     ?FOLD_INIT(FunState, Ctx, PTree),
     NewCtxS = Fun(LOpts, FunState, Ctx, PTree,
         {Rule, get_start_end(FType, start), Pos}),
@@ -2725,7 +2642,7 @@ fold_i(FType, Fun, LOpts, FunState, Ctx, {SQL, Pos, {extra, _}} = PTree)
     ?FOLD_RESULT(NewCtxE);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% sql_list list
+% sql_list_list
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fold_i(FType, Fun, LOpts, FunState, Ctx, [{_, {extra, _}} | _] = PTree)
@@ -2759,30 +2676,31 @@ fold_i(FType, Fun, LOpts, FunState, Ctx, {'start with', SearchCondition} =
     ?FOLD_RESULT(NewCtxE);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% statement_pragma
+% statement_pragma_list
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold_i(FType, Fun, LOpts, FunState, Ctx, {statement_pragma = Rule, Pos, PTree})
-    when is_atom(PTree);is_tuple(PTree) ->
+fold_i(FType, Fun, LOpts, FunState, Ctx, {SQL, Pos, ';'} = PTree)
+    when is_atom(SQL);is_tuple(SQL) ->
     ?FOLD_INIT(FunState, Ctx, PTree),
+    Rule = statement_pragma_list,
     NewCtxS = Fun(LOpts, FunState, Ctx, PTree,
         {Rule, get_start_end(FType, start), Pos}),
-    NewCtx1 = fold_i(FType, Fun, LOpts, FunState, NewCtxS, PTree),
+    NewCtx1 = fold_i(FType, Fun, LOpts, FunState, NewCtxS, SQL),
     NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
         {Rule, get_start_end(FType, 'end'), Pos}),
     ?FOLD_RESULT(NewCtxE);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% statement_pragma_list
+% statement_pragma_list_list
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold_i(FType, Fun, LOpts, FunState, Ctx, {statement_pragma_list = Rule, PTree})
+fold_i(FType, Fun, LOpts, FunState, Ctx, [{_, ';'} | _] = PTree)
     when is_list(PTree) ->
     ?FOLD_INIT(FunState, Ctx, PTree),
+    Rule = statement_pragma_list_list,
     NewCtxS =
         Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
-    NewCtx1 = list_elem_ext_rule(FType, Fun, LOpts, FunState, NewCtxS,
-        statement_pragma, PTree),
+    NewCtx1 = list_elem_sql(FType, Fun, LOpts, FunState, NewCtxS, PTree),
     NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
         {Rule, get_start_end(FType, 'end')}),
     ?FOLD_RESULT(NewCtxE);

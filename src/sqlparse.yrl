@@ -46,6 +46,7 @@ Nonterminals
  case_when_then
  case_when_then_list
  close_statement
+ cluster_name
  column
  column_commalist
  column_def
@@ -72,10 +73,31 @@ Nonterminals
  db_user_proxy
  delete_statement_positioned
  delete_statement_searched
+ drop_cluster_def
+ drop_cluster_extensions
+ drop_context_def
+ drop_database_def
+ drop_database_link_def
+ drop_directory_def
+ drop_function_def
  drop_index_def
+ drop_index_extensions
+ drop_materialized_view_def
+ drop_package_def
+ drop_procedure_def
+ drop_profile_def
  drop_role_def
+ drop_sequence_def
+ drop_synonym_def
  drop_table_def
+ drop_table_extensions
+ drop_tablespace_def
+ drop_tablespace_extensions
+ drop_trigger_def
+ drop_type_def
+ drop_type_body_def
  drop_user_def
+ drop_view_def
  else
  escape
  existence_test
@@ -89,6 +111,7 @@ Nonterminals
  fun_arg_named
  fun_args
  fun_args_named
+ function_name
  function_ref
  grant_def
  grantee_identified_by
@@ -117,6 +140,7 @@ Nonterminals
  literal
  manipulative_statement
  materialized
+ materialized_view_name
  nocycle
  not_between
  not_in
@@ -132,6 +156,7 @@ Nonterminals
  ordering_spec_commalist
  outer_join
  outer_join_type
+ package_name
  parameter
  parameter_ref
  plsql_block
@@ -139,6 +164,7 @@ Nonterminals
  plsql_body
  predicate
  procedure_call
+ procedure_name
  proxy_auth_req
  proxy_clause
  proxy_with
@@ -148,7 +174,6 @@ Nonterminals
  query_term
  quota
  quota_list
- restrict_cascade
  returning
  revoke_def
  role_list
@@ -165,6 +190,7 @@ Nonterminals
  select_field_commalist
  select_statement
  selection
+ sequence_name
  sgn_num
  spec_item
  spec_list
@@ -174,6 +200,7 @@ Nonterminals
  statement_pragma_list
  storage
  subquery
+ synonym_name
  system_privilege
  system_privilege_list
  system_with_grant_option
@@ -190,7 +217,10 @@ Nonterminals
  tbl_scope
  tbl_type
  test_for_null
+ trigger_name
+ truncate_cluster
  truncate_table
+ type_name
  unary_add_or_subtract
  update_statement_positioned
  update_statement_searched
@@ -224,6 +254,7 @@ Terminals
  BEGIN
  BETWEEN
  BITMAP
+ BODY
  BY
  CALL
  CASCADE
@@ -236,13 +267,18 @@ Terminals
  CONNECT
  CONSTRAINT
  CONSTRAINTS
+ CONTENTS
+ CONTEXT
  CONTINUE
  CREATE
  CROSS
  CURRENT
  CURSOR
+ DATABASE
+ DATAFILES
  DBLINK
  DEFAULT
+ DEFERRED
  DELEGATE
  DELETE
  DESC
@@ -264,6 +300,7 @@ Terminals
  FOUND
  FROM
  FULL
+ FUNCTION
  FUNS
  GLOBALLY
  GOTO
@@ -275,7 +312,9 @@ Terminals
  HINT
  IDENTIFIED
  IF
+ IMMEDIATE
  IN
+ INCLUDING
  INDEX
  INDICATOR
  INNER
@@ -283,13 +322,16 @@ Terminals
  INTERSECT
  INTNUM
  INTO
+ INVALIDATION
  IS
  JOIN
  JSON
+ KEEP
  KEY
  KEYLIST
  LEFT
  LIKE
+ LINK
  LOCAL
  LOG
  MATERIALIZED
@@ -304,25 +346,27 @@ Terminals
  NULLX
  OF
  ON
+ ONLINE
  OPEN
  OPTION
  OR
  ORDER
  ORDERED_SET
  OUTER
+ PACKAGE
  PARAMETER
  PARTITION
  PRESERVE
  PRIMARY
  PRIOR
  PRIVILEGES
+ PROCEDURE
  PROFILE
  PUBLIC
  PURGE
  QUOTA
  REFERENCES
  REQUIRED
- RESTRICT
  RETURN
  RETURNING
  REUSE
@@ -333,19 +377,24 @@ Terminals
  ROLLBACK
  SCHEMA
  SELECT
+ SEQUENCE
  SET
  SOME
  SQLERROR
  START
  STORAGE
  STRING
+ SYNONYM
  TABLE
+ TABLES
  TABLESPACE
  TEMPORARY
  THEN
  THROUGH
  TO
+ TRIGGER
  TRUNCATE
+ TYPE
  UNION
  UNIQUE
  UNLIMITED
@@ -353,6 +402,7 @@ Terminals
  USER
  USERS
  USING
+ VALIDATE
  VALUES
  VIEW
  WHEN
@@ -464,21 +514,6 @@ create_table_def -> CREATE create_opts TABLE table '(' base_table_element_commal
 create_user_def -> CREATE USER NAME identified                : {'create user', unwrap_bin('$3'), '$4', []}.
 create_user_def -> CREATE USER NAME identified user_opts_list : {'create user', unwrap_bin('$3'), '$4', '$5'}.
 
-drop_table_def -> DROP      TABLE        table_list                  : {'drop table', {'tables', '$3'}, {},   {},   []}.
-drop_table_def -> DROP      TABLE        table_list restrict_cascade : {'drop table', {'tables', '$3'}, {},   '$4', []}.
-drop_table_def -> DROP      TABLE exists table_list                  : {'drop table', {'tables', '$4'}, '$3', {},   []}.
-drop_table_def -> DROP      TABLE exists table_list restrict_cascade : {'drop table', {'tables', '$4'}, '$3', '$5', []}.
-drop_table_def -> DROP NAME TABLE        table_list                  : {'drop table', {'tables', '$4'}, {},   {},   unwrap('$2')}.
-drop_table_def -> DROP NAME TABLE        table_list restrict_cascade : {'drop table', {'tables', '$4'}, {},   '$5', unwrap('$2')}.
-drop_table_def -> DROP NAME TABLE exists table_list                  : {'drop table', {'tables', '$5'}, '$4', {},   unwrap('$2')}.
-drop_table_def -> DROP NAME TABLE exists table_list restrict_cascade : {'drop table', {'tables', '$5'}, '$4', '$6', unwrap('$2')}.
-
-drop_role_def -> DROP ROLE NAME : {'drop role', unwrap_bin('$3')}.
-
-drop_index_def -> DROP INDEX            FROM table : {'drop index', {},   '$4'}.
-drop_index_def -> DROP INDEX index_name            : {'drop index', '$3', []}.
-drop_index_def -> DROP INDEX index_name FROM table : {'drop index', '$3', '$5'}.
-
 create_index_def -> CREATE                   INDEX            ON table_alias                                                         : {'create index', {},   {},   '$4', [],   {},   {}}.
 create_index_def -> CREATE                   INDEX            ON table_alias                                     create_index_filter : {'create index', {},   {},   '$4', [],   {},   '$5'}.
 create_index_def -> CREATE                   INDEX            ON table_alias                   create_index_norm                     : {'create index', {},   {},   '$4', [],   '$5', {}}.
@@ -556,9 +591,6 @@ alter_user_def -> ALTER USER NAME NAME NAME         : {'alter user', unwrap_bin(
                                                                                        }
                                                       }.
 
-drop_user_def -> DROP USER NAME         : {'drop user', unwrap_bin('$3'), []}.
-drop_user_def -> DROP USER NAME CASCADE : {'drop user', unwrap_bin('$3'), ['cascade']}.
-
 user_list -> NAME               : [unwrap_bin('$1')].
 user_list -> NAME ',' user_list : [unwrap_bin('$1') | '$3'].
 
@@ -617,9 +649,6 @@ table_list ->                table :         ['$1'].
 table_list -> table_list ',' table : '$1' ++ ['$3'].
 
 exists -> IF EXISTS : 'exists'.
-
-restrict_cascade -> RESTRICT : 'restrict'.
-restrict_cascade -> CASCADE  : 'cascade'.
 
 base_table_element_commalist ->                                  base_table_element :         ['$1'].
 base_table_element_commalist -> base_table_element_commalist ',' base_table_element : '$1' ++ ['$3'].
@@ -774,29 +803,36 @@ manipulative_statement -> create_table_def            : '$1'.
 manipulative_statement -> create_user_def             : '$1'.
 manipulative_statement -> delete_statement_positioned : '$1'.
 manipulative_statement -> delete_statement_searched   : '$1'.
+manipulative_statement -> drop_cluster_def            : '$1'.
+manipulative_statement -> drop_context_def            : '$1'.
+manipulative_statement -> drop_database_def           : '$1'.
+manipulative_statement -> drop_database_link_def      : '$1'.
+manipulative_statement -> drop_directory_def          : '$1'.
+manipulative_statement -> drop_function_def           : '$1'.
 manipulative_statement -> drop_index_def              : '$1'.
+manipulative_statement -> drop_materialized_view_def  : '$1'.
+manipulative_statement -> drop_package_def            : '$1'.
+manipulative_statement -> drop_procedure_def          : '$1'.
+manipulative_statement -> drop_profile_def            : '$1'.
 manipulative_statement -> drop_role_def               : '$1'.
+manipulative_statement -> drop_sequence_def           : '$1'.
+manipulative_statement -> drop_synonym_def            : '$1'.
 manipulative_statement -> drop_table_def              : '$1'.
+manipulative_statement -> drop_tablespace_def         : '$1'.
+manipulative_statement -> drop_trigger_def            : '$1'.
+manipulative_statement -> drop_type_def               : '$1'.
+manipulative_statement -> drop_type_body_def          : '$1'.
 manipulative_statement -> drop_user_def               : '$1'.
+manipulative_statement -> drop_view_def               : '$1'.
 manipulative_statement -> grant_def                   : '$1'.
 manipulative_statement -> insert_statement            : '$1'.
 manipulative_statement -> revoke_def                  : '$1'.
 manipulative_statement -> select_statement            : '$1'.
+manipulative_statement -> truncate_cluster            : '$1'.
 manipulative_statement -> truncate_table              : '$1'.
 manipulative_statement -> update_statement_positioned : '$1'.
 manipulative_statement -> update_statement_searched   : '$1'.
 manipulative_statement -> view_def                    : '$1'.
-
-truncate_table -> TRUNCATE TABLE table                      : {'truncate table', '$3', {},   {}}.
-truncate_table -> TRUNCATE TABLE table              storage : {'truncate table', '$3', {},   '$4'}.
-truncate_table -> TRUNCATE TABLE table materialized         : {'truncate table', '$3', '$4', {}}.
-truncate_table -> TRUNCATE TABLE table materialized storage : {'truncate table', '$3', '$4', '$5'}.
-
-materialized -> PRESERVE MATERIALIZED VIEW LOG : {'materialized view log', preserve}.
-materialized -> PURGE    MATERIALIZED VIEW LOG : {'materialized view log', purge}.
-
-storage ->  DROP  STORAGE : {storage, drop}.
-storage ->  REUSE STORAGE : {storage, reuse}.
 
 close_statement -> CLOSE cursor : {close, '$2'}.
 
@@ -810,6 +846,134 @@ delete_statement_searched -> DELETE FROM table_dblink                        : {
 delete_statement_searched -> DELETE FROM table_dblink              returning : {delete, '$3', [],   '$4'}.
 delete_statement_searched -> DELETE FROM table_dblink where_clause           : {delete, '$3', '$4', {returning, {}}}.
 delete_statement_searched -> DELETE FROM table_dblink where_clause returning : {delete, '$3', '$4', '$5'}.
+
+drop_cluster_def -> DROP CLUSTER cluster_name                         : {'drop cluster', '$3', {}}.
+drop_cluster_def -> DROP CLUSTER cluster_name drop_cluster_extensions : {'drop cluster', '$3', '$4'}.
+
+drop_cluster_extensions -> INCLUDING TABLES                     : {'including tables'}.
+drop_cluster_extensions -> INCLUDING TABLES CASCADE CONSTRAINTS : {'including tables cascade constraints'}.
+
+cluster_name -> NAME          : unwrap_bin('$1').
+cluster_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+
+drop_context_def -> DROP CONTEXT NAME : {'drop context', unwrap_bin('$3')}.
+
+drop_database_def -> DROP DATABASE : {'drop database'}.
+
+drop_database_link_def -> DROP        DATABASE LINK NAME : {'drop database link', unwrap_bin('$4'), {}}.
+drop_database_link_def -> DROP PUBLIC DATABASE LINK NAME : {'drop database link', unwrap_bin('$5'), public}.
+
+drop_directory_def -> DROP DIRECTORY NAME : {'drop directory', unwrap_bin('$3')}.
+
+drop_function_def -> DROP FUNCTION function_name : {'drop function', '$3'}.
+
+function_name -> NAME          : unwrap_bin('$1').
+function_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+
+drop_index_def -> DROP INDEX            FROM table                       : {'drop index', {},   '$4', {}}.
+drop_index_def -> DROP INDEX            FROM table drop_index_extensions : {'drop index', {},   '$4', '$5'}.
+drop_index_def -> DROP INDEX index_name                                  : {'drop index', '$3', [],   {}}.
+drop_index_def -> DROP INDEX index_name            drop_index_extensions : {'drop index', '$3', [],   '$4'}.
+drop_index_def -> DROP INDEX index_name FROM table                       : {'drop index', '$3', '$5', {}}.
+drop_index_def -> DROP INDEX index_name FROM table drop_index_extensions : {'drop index', '$3', '$5', '$6'}.
+
+drop_index_extensions ->              DEFERRED  INVALIDATION : {'deferred invalidation'}.
+drop_index_extensions ->              IMMEDIATE INVALIDATION : {'immediate invalidation'}.
+drop_index_extensions ->        FORCE                        : {'force'}.
+drop_index_extensions ->        FORCE DEFERRED  INVALIDATION : {'force deferred invalidation'}.
+drop_index_extensions ->        FORCE IMMEDIATE INVALIDATION : {'force immediate invalidation'}.
+drop_index_extensions -> ONLINE                              : {'online'}.
+drop_index_extensions -> ONLINE       DEFERRED  INVALIDATION : {'online deferred invalidation'}.
+drop_index_extensions -> ONLINE       IMMEDIATE INVALIDATION : {'online immediate invalidation'}.
+drop_index_extensions -> ONLINE FORCE                        : {'online force'}.
+drop_index_extensions -> ONLINE FORCE DEFERRED  INVALIDATION : {'online force deferred invalidation'}.
+drop_index_extensions -> ONLINE FORCE IMMEDIATE INVALIDATION : {'online force immediate invalidation'}.
+
+drop_materialized_view_def -> DROP MATERIALIZED VIEW materialized_view_name                : {'drop materialized view', '$4', {}}.
+drop_materialized_view_def -> DROP MATERIALIZED VIEW materialized_view_name PRESERVE TABLE : {'drop materialized view', '$4', 'preserve table'}.
+
+materialized_view_name -> NAME          : unwrap_bin('$1').
+materialized_view_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+
+drop_package_def -> DROP PACKAGE      package_name : {'drop package', '$3', {}}.
+drop_package_def -> DROP PACKAGE BODY package_name : {'drop package', '$4', body}.
+
+package_name -> NAME          : unwrap_bin('$1').
+package_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+
+drop_procedure_def -> DROP PROCEDURE procedure_name : {'drop procedure', '$3'}.
+
+procedure_name -> NAME          : unwrap_bin('$1').
+procedure_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+
+drop_profile_def -> DROP PROFILE NAME         : {'drop profile', unwrap_bin('$3'), {}}.
+drop_profile_def -> DROP PROFILE NAME CASCADE : {'drop profile', unwrap_bin('$3'), cascade}.
+
+drop_role_def -> DROP ROLE NAME : {'drop role', unwrap_bin('$3')}.
+
+drop_sequence_def -> DROP SEQUENCE sequence_name : {'drop sequence', '$3'}.
+
+sequence_name -> NAME          : unwrap_bin('$1').
+sequence_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+
+drop_synonym_def -> DROP        SYNONYM synonym_name       : {'drop synonym', '$3', {},     {}}.
+drop_synonym_def -> DROP        SYNONYM synonym_name FORCE : {'drop synonym', '$3', {},     force}.
+drop_synonym_def -> DROP PUBLIC SYNONYM synonym_name       : {'drop synonym', '$4', public, {}}.
+drop_synonym_def -> DROP PUBLIC SYNONYM synonym_name FORCE : {'drop synonym', '$4', public, force}.
+
+synonym_name -> NAME          : unwrap_bin('$1').
+synonym_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+
+drop_table_def -> DROP      TABLE        table_list                       : {'drop table', {'tables', '$3'}, {},   {},   []}.
+drop_table_def -> DROP      TABLE        table_list drop_table_extensions : {'drop table', {'tables', '$3'}, {},   '$4', []}.
+drop_table_def -> DROP      TABLE exists table_list                       : {'drop table', {'tables', '$4'}, '$3', {},   []}.
+drop_table_def -> DROP      TABLE exists table_list drop_table_extensions : {'drop table', {'tables', '$4'}, '$3', '$5', []}.
+drop_table_def -> DROP NAME TABLE        table_list                       : {'drop table', {'tables', '$4'}, {},   {},   unwrap('$2')}.
+drop_table_def -> DROP NAME TABLE        table_list drop_table_extensions : {'drop table', {'tables', '$4'}, {},   '$5', unwrap('$2')}.
+drop_table_def -> DROP NAME TABLE exists table_list                       : {'drop table', {'tables', '$5'}, '$4', {},   unwrap('$2')}.
+drop_table_def -> DROP NAME TABLE exists table_list drop_table_extensions : {'drop table', {'tables', '$5'}, '$4', '$6', unwrap('$2')}.
+
+drop_table_extensions ->                     PURGE : {'purge'}.
+drop_table_extensions -> CASCADE CONSTRAINTS       : {'cascade constraints'}.
+drop_table_extensions -> CASCADE CONSTRAINTS PURGE : {'cascade constraints purge'}.
+
+drop_tablespace_def -> DROP TABLESPACE NAME                            : {'drop tablespace', unwrap_bin('$3'), {}}.
+drop_tablespace_def -> DROP TABLESPACE NAME drop_tablespace_extensions : {'drop tablespace', unwrap_bin('$3'), '$4'}.
+
+drop_tablespace_extensions ->            INCLUDING CONTENTS                                    : {'including contents'}.
+drop_tablespace_extensions ->            INCLUDING CONTENTS                CASCADE CONSTRAINTS : {'including contents cascade constraints'}.
+drop_tablespace_extensions ->            INCLUDING CONTENTS AND  DATAFILES CASCADE CONSTRAINTS : {'including contents and datafiles cascade constraints'}.
+drop_tablespace_extensions ->            INCLUDING CONTENTS KEEP DATAFILES CASCADE CONSTRAINTS : {'including contents keep datafiles cascade constraints'}.
+drop_tablespace_extensions -> DROP QUOTA                                                       : {'drop quota'}.
+drop_tablespace_extensions -> DROP QUOTA INCLUDING CONTENTS                                    : {'drop quota including contents'}.
+drop_tablespace_extensions -> DROP QUOTA INCLUDING CONTENTS                CASCADE CONSTRAINTS : {'drop quota including contents cascade constraints'}.
+drop_tablespace_extensions -> DROP QUOTA INCLUDING CONTENTS AND  DATAFILES CASCADE CONSTRAINTS : {'drop quota including contents and datafiles cascade constraints'}.
+drop_tablespace_extensions -> DROP QUOTA INCLUDING CONTENTS KEEP DATAFILES CASCADE CONSTRAINTS : {'drop quota including contents keep datafiles cascade constraints'}.
+drop_tablespace_extensions -> KEEP QUOTA                                                       : {'keep quota'}.
+drop_tablespace_extensions -> KEEP QUOTA INCLUDING CONTENTS                                    : {'keep quota including contents'}.
+drop_tablespace_extensions -> KEEP QUOTA INCLUDING CONTENTS                CASCADE CONSTRAINTS : {'keep quota including contents cascade constraints'}.
+drop_tablespace_extensions -> KEEP QUOTA INCLUDING CONTENTS AND  DATAFILES CASCADE CONSTRAINTS : {'keep quota including contents and datafiles cascade constraints'}.
+drop_tablespace_extensions -> KEEP QUOTA INCLUDING CONTENTS KEEP DATAFILES CASCADE CONSTRAINTS : {'keep quota including contents keep datafiles cascade constraints'}.
+
+drop_trigger_def -> DROP TRIGGER trigger_name : {'drop trigger', '$3'}.
+
+trigger_name -> NAME          : unwrap_bin('$1').
+trigger_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+
+drop_type_def -> DROP TYPE type_name          : {'drop type', '$3', {}}.
+drop_type_def -> DROP TYPE type_name FORCE    : {'drop type', '$3', force}.
+drop_type_def -> DROP TYPE type_name VALIDATE : {'drop type', '$3', validate}.
+
+type_name -> NAME          : unwrap_bin('$1').
+type_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+
+drop_type_body_def -> DROP TYPE BODY type_name : {'drop type body', '$4'}.
+
+drop_user_def -> DROP USER NAME         : {'drop user', unwrap_bin('$3'), []}.
+drop_user_def -> DROP USER NAME CASCADE : {'drop user', unwrap_bin('$3'), ['cascade']}.
+
+drop_view_def -> DROP VIEW table                     : {'drop view', '$3', {}}.
+drop_view_def -> DROP VIEW table CASCADE CONSTRAINTS : {'drop view', '$3', 'cascade constraint'}.
 
 fetch_statement -> FETCH cursor INTO target_commalist : {fetch, '$2', {into, '$4'}}.
 
@@ -840,6 +1004,25 @@ hint -> HINT : {hints, unwrap_bin('$1')}.
 
 all_distinct -> ALL      : {opt, <<"all">>}.
 all_distinct -> DISTINCT : {opt, <<"distinct">>}.
+
+truncate_cluster -> TRUNCATE CLUSTER cluster_name         : {'truncate cluster', '$3', {}}.
+truncate_cluster -> TRUNCATE CLUSTER cluster_name storage : {'truncate cluster', '$3', '$4'}.
+
+truncate_table -> TRUNCATE TABLE table                              : {'truncate table', '$3', {},   {},   {}}.
+truncate_table -> TRUNCATE TABLE table                      CASCADE : {'truncate table', '$3', {},   {},   cascade}.
+truncate_table -> TRUNCATE TABLE table              storage         : {'truncate table', '$3', {},   '$4', {}}.
+truncate_table -> TRUNCATE TABLE table              storage CASCADE : {'truncate table', '$3', {},   '$4', cascade}.
+truncate_table -> TRUNCATE TABLE table materialized                 : {'truncate table', '$3', '$4', {},   {}}.
+truncate_table -> TRUNCATE TABLE table materialized         CASCADE : {'truncate table', '$3', '$4', {},   cascade}.
+truncate_table -> TRUNCATE TABLE table materialized storage         : {'truncate table', '$3', '$4', '$5', {}}.
+truncate_table -> TRUNCATE TABLE table materialized storage CASCADE : {'truncate table', '$3', '$4', '$5', cascade}.
+
+materialized -> PRESERVE MATERIALIZED VIEW LOG : {'materialized view log', preserve}.
+materialized -> PURGE    MATERIALIZED VIEW LOG : {'materialized view log', purge}.
+
+storage ->  DROP      STORAGE : {storage, drop}.
+storage ->  DROP  ALL STORAGE : {storage, 'drop all'}.
+storage ->  REUSE     STORAGE : {storage, reuse}.
 
 update_statement_positioned -> UPDATE table_dblink SET assignment_commalist WHERE CURRENT OF cursor           : {update, '$2', {set, '$4'}, {where_current_of, '$8'}, {returning, {}}}.
 update_statement_positioned -> UPDATE table_dblink SET assignment_commalist WHERE CURRENT OF cursor returning : {update, '$2', {set, '$4'}, {where_current_of, '$8'}, '$9'}.

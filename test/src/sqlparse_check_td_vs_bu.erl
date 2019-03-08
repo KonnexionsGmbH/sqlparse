@@ -930,10 +930,131 @@ fold(LOpts, _FunState, Ctx, _PTree, {delete_statement = Rule, Step} =
     ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_cluster_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, {'drop cluster', Name, _Table} = _PTree,
+    {drop_cluster_def = Rule, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {"drop cluster", binary_to_list(Name)};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_cluster_extensions
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, PTree, {drop_cluster_extensions = Rule, Step} =
+    _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {atom_to_list(PTree)};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_context_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, {'drop context', Name} = _PTree,
+    {drop_context_def = Rule, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {"drop context", binary_to_list(Name)};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_database_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, {'drop database'} = _PTree,
+    {drop_database_def = Rule, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {"drop database"};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_database_link_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, {'drop database link', Name, {}} = _PTree,
+    {drop_database_link_def = Rule, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {"drop database link", binary_to_list(Name)};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_database_link_public_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, {'drop database link', Name, public} = _PTree,
+    {drop_database_link_public_def = Rule, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {"drop public database link", binary_to_list(Name)};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_directory_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, {'drop directory', Name} = _PTree,
+    {drop_directory_def = Rule, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {"drop directory", binary_to_list(Name)};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_function_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, {'drop function', Name} = _PTree,
+    {drop_function_def = Rule, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {"drop function", binary_to_list(Name)};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % drop_index_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(LOpts, _FunState, Ctx, {'drop index', IndexName, _Table} = _PTree,
+fold(LOpts, _FunState, Ctx,
+    {'drop index', IndexName, _Table, _DropIndexExtensions} = _PTree,
     {drop_index_def = Rule, Step} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case {LOpts, Step} of
@@ -943,6 +1064,21 @@ fold(LOpts, _FunState, Ctx, {'drop index', IndexName, _Table} = _PTree,
                      {} -> {"drop index"};
                      _ -> {"drop index", binary_to_list(IndexName)}
                  end;
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_index_extensions
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, PTree, {drop_index_extensions = Rule, Step} =
+    _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {atom_to_list(PTree)};
              _ -> none
          end,
     ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
@@ -966,6 +1102,112 @@ fold(LOpts, _FunState, Ctx, PTree, {drop_index_from = Rule, Step} =
     ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_materialized_view_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, {'drop materialized view', Name, _Table} = _PTree,
+    {drop_materialized_view_def = Rule, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {"drop materialized view", binary_to_list(Name)};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_materialized_view_extensions
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, PTree,
+    {drop_materialized_view_extensions = Rule, Step} =
+        _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {atom_to_list(PTree)};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_package_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, {'drop package', Name, {}} = _PTree,
+    {drop_package_def = Rule, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {"drop package", binary_to_list(Name)};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_package_body_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, {'drop package', Name, body} = _PTree,
+    {drop_package_body_def = Rule, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {"drop package body", binary_to_list(Name)};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_procedure_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, {'drop procedure', Name} = _PTree,
+    {drop_procedure_def = Rule, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {"drop procedure", binary_to_list(Name)};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_profile_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, {'drop profile', Name, _Table} = _PTree,
+    {drop_profile_def = Rule, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {"drop profile", binary_to_list(Name)};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_profile_extensions
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, PTree, {drop_profile_extensions = Rule, Step} =
+    _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {atom_to_list(PTree)};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % drop_role_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -976,6 +1218,67 @@ fold(LOpts, _FunState, Ctx, {'drop role', Role} = _PTree,
              {L, S} when L == top_down andalso S == start orelse
                              L == bottom_up andalso S == 'end' ->
                  {"drop role", binary_to_list(Role)};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_sequence_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, {'drop sequence', Name} = _PTree,
+    {drop_sequence_def = Rule, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {"drop sequence", binary_to_list(Name)};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_synonym_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, {'drop synonym', Name, {}, _DropSynonymExtensions} =
+    _PTree, {drop_synonym_def = Rule, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {"drop synonym", binary_to_list(Name)};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_synonym_extensions
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, PTree, {drop_synonym_extensions = Rule, Step} =
+    _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {atom_to_list(PTree)};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_synonym_public_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx,
+    {'drop synonym', Name, public, _DropSynonymExtensions} = _PTree,
+    {drop_synonym_public_def = Rule, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {"drop public synonym", binary_to_list(Name)};
              _ -> none
          end,
     ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
@@ -995,6 +1298,51 @@ fold(LOpts, _FunState, Ctx,
                      [] -> {"drop"};
                      _ -> {"drop", DropOpt}
                  end;
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_table_extensions
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, PTree, {drop_table_extensions = Rule, Step} =
+    _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {atom_to_list(PTree)};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_trigger_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, {'drop trigger', Name} = _PTree,
+    {drop_trigger_def = Rule, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {"drop trigger", binary_to_list(Name)};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_type_body_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, {'drop type body', Name} = _PTree,
+    {drop_type_body_def = Rule, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {"drop type body", binary_to_list(Name)};
              _ -> none
          end,
     ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);

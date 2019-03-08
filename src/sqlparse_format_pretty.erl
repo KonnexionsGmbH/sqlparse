@@ -1204,10 +1204,142 @@ fold(LOpts, FunState, Ctx, _PTree, {delete_statement, Step} = _FoldState) ->
     ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_cluster_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, FunState, Ctx, {'drop cluster', Name, _Table} = _PTree,
+    {drop_cluster_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 format_new_statement(LOpts, FunState, "drop cluster "),
+                 format_identifier(LOpts, Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_cluster_extensions
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, PTree, {drop_cluster_extensions = _Rule, Step} =
+    _FoldState)
+    when is_atom(PTree) ->
+    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([Ctx, " ", format_keyword(LOpts, PTree)]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_context_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, FunState, Ctx, {'drop context', Name} = _PTree,
+    {drop_context_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 format_new_statement(LOpts, FunState, "drop context "),
+                 format_identifier(LOpts, Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_database_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, FunState, Ctx, {'drop database'} = _PTree,
+    {drop_database_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start ->
+                 Ctx ++ format_new_statement(LOpts, FunState, "drop database");
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_database_link_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, FunState, Ctx, {'drop database link', Name, {}} = _PTree,
+    {drop_database_link_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 format_new_statement(LOpts, FunState, "drop database link "),
+                 format_identifier(LOpts, Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_database_link_public_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, FunState, Ctx, {'drop database link', Name, public} = _PTree,
+    {drop_database_link_public_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 format_new_statement(LOpts, FunState,
+                     "drop public database link "),
+                 format_identifier(LOpts, Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_directory_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, FunState, Ctx, {'drop directory', Name} = _PTree,
+    {drop_directory_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 format_new_statement(LOpts, FunState, "drop directory "),
+                 format_identifier(LOpts, Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_function_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, FunState, Ctx, {'drop function', Name} = _PTree,
+    {drop_function_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 format_new_statement(LOpts, FunState, "drop function "),
+                 format_identifier(LOpts, Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % drop_index_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(LOpts, FunState, Ctx, {'drop index', IndexName, _Table} = _PTree,
+fold(LOpts, FunState, Ctx,
+    {'drop index', IndexName, _Table, _DropIndexExtensions} = _PTree,
     {drop_index_def, Step} = _FoldState) ->
     ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
@@ -1223,6 +1355,20 @@ fold(LOpts, FunState, Ctx, {'drop index', IndexName, _Table} = _PTree,
                      ])
                  end
              ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_index_extensions
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, PTree, {drop_index_extensions = _Rule, Step} =
+    _FoldState)
+    when is_atom(PTree) ->
+    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([Ctx, " ", format_keyword(LOpts, PTree)]);
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
@@ -1254,6 +1400,121 @@ fold(LOpts, FunState, Ctx, PTree, {drop_index_from, Step} = _FoldState) ->
     ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_materialized_view_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, FunState, Ctx, {'drop materialized view', Name, _Table} = _PTree,
+    {drop_materialized_view_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 format_new_statement(LOpts, FunState,
+                     "drop materialized view "),
+                 format_identifier(LOpts, Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_materialized_view_extensions
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, PTree,
+    {drop_materialized_view_extensions = _Rule, Step} =
+        _FoldState)
+    when is_atom(PTree) ->
+    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([Ctx, " ", format_keyword(LOpts, PTree)]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_package_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, FunState, Ctx, {'drop package', Name, {}} = _PTree,
+    {drop_package_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 format_new_statement(LOpts, FunState, "drop package "),
+                 format_identifier(LOpts, Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_package_body_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, FunState, Ctx, {'drop package', Name, body} = _PTree,
+    {drop_package_body_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 format_new_statement(LOpts, FunState, "drop package body "),
+                 format_identifier(LOpts, Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_procedure_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, FunState, Ctx, {'drop procedure', Name} = _PTree,
+    {drop_procedure_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 format_new_statement(LOpts, FunState, "drop procedure "),
+                 format_identifier(LOpts, Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_profile_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, FunState, Ctx, {'drop profile', Name, _Table} = _PTree,
+    {drop_profile_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 format_new_statement(LOpts, FunState, "drop profile "),
+                 format_identifier(LOpts, Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_profile_extensions
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, PTree, {drop_profile_extensions = _Rule, Step} =
+    _FoldState)
+    when is_atom(PTree) ->
+    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([Ctx, " ", format_keyword(LOpts, PTree)]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % drop_role_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1267,6 +1528,73 @@ fold(LOpts, FunState, Ctx, {'drop role', Role} = _PTree,
                  ?CHAR_NEWLINE,
                  format_column_pos(LOpts, FunState),
                  format_identifier(LOpts, Role)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_sequence_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, FunState, Ctx, {'drop sequence', Name} = _PTree,
+    {drop_sequence_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 format_new_statement(LOpts, FunState, "drop sequence "),
+                 format_identifier(LOpts, Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_synonym_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, FunState, Ctx, {'drop synonym', Name, {}, _DropSynonymExtensions} =
+    _PTree, {drop_synonym_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 format_new_statement(LOpts, FunState, "drop synonym "),
+                 format_identifier(LOpts, Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_synonym_extensions
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, PTree, {drop_synonym_extensions = _Rule, Step} =
+    _FoldState)
+    when is_atom(PTree) ->
+    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([Ctx, " ", format_keyword(LOpts, PTree)]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_synonym_public_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, FunState, Ctx,
+    {'drop synonym', Name, public, _DropSynonymExtensions} = _PTree,
+    {drop_synonym_public_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 format_new_statement(LOpts, FunState,
+                     "drop public synonym "),
+                 format_identifier(LOpts, Name)
              ]);
              _ -> Ctx
          end,
@@ -1288,6 +1616,54 @@ fold(LOpts, FunState, Ctx,
                      [] -> [];
                      _ -> format_identifier(LOpts, DropOpt) ++ " "
                  end
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_table_extensions
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, PTree, {drop_table_extensions = _Rule, Step} =
+    _FoldState)
+    when is_atom(PTree) ->
+    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([Ctx, " ", format_keyword(LOpts, PTree)]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_trigger_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, FunState, Ctx, {'drop trigger', Name} = _PTree,
+    {drop_trigger_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 format_new_statement(LOpts, FunState, "drop trigger "),
+                 format_identifier(LOpts, Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_type_body_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, FunState, Ctx, {'drop type body', Name} = _PTree,
+    {drop_type_body_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 format_new_statement(LOpts, FunState, "drop type body "),
+                 format_identifier(LOpts, Name)
              ]);
              _ -> Ctx
          end,

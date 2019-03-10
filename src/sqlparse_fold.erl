@@ -1026,7 +1026,7 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
 fold_i(FType, Fun, LOpts, FunStateIn, Ctx, Type = PTree)
     when Type == 'including tables';
          Type == 'including tables cascade constraints' ->
-    Rule = drop_cluster_extensions,
+    Rule = drop_extensions,
     FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
     NewCtxS =
         Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
@@ -1184,7 +1184,7 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx, Type = PTree)
          Type == 'online force';
          Type == 'online immediate invalidation';
          Type == 'online' ->
-    Rule = drop_index_extensions,
+    Rule = drop_extensions,
     FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
     NewCtxS =
         Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
@@ -1242,7 +1242,7 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
 
 fold_i(FType, Fun, LOpts, FunStateIn, Ctx, Type = PTree)
     when Type == 'preserve table' ->
-    Rule = drop_materialized_view_extensions,
+    Rule = drop_extensions,
     FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
     NewCtxS =
         Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
@@ -1318,7 +1318,7 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
 
 fold_i(FType, Fun, LOpts, FunStateIn, Ctx, Type = PTree)
     when Type == cascade ->
-    Rule = drop_profile_extensions,
+    Rule = drop_extensions,
     FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
     NewCtxS =
         Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
@@ -1438,8 +1438,58 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
 fold_i(FType, Fun, LOpts, FunStateIn, Ctx, Type = PTree)
     when Type == 'cascade constraints';
          Type == 'cascade constraints purge';
-         Type == 'purge' ->
-    Rule = drop_table_extensions,
+         Type == purge ->
+    Rule = drop_extensions,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_tablespace_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop tablespace', Name, {}} =
+    PTree)
+    when is_binary(Name) ->
+    Rule = drop_tablespace_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
+    {'drop tablespace', _Name, {DropTablespaceExtensions}} = PTree) ->
+    Rule = drop_tablespace_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtx1 =
+        fold_i(FType, Fun, LOpts, FunState, NewCtxS, DropTablespaceExtensions),
+    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_tablespace_extensions
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, Type = PTree)
+    when Type ==
+             'drop quota including contents and datafiles cascade constraints';
+    Type == 'drop quota including contents cascade constraints';
+    Type == 'drop quota including contents keep datafiles cascade constraints';
+    Type == 'drop quota including contents';
+    Type == 'drop quota';
+    Type == 'keep quota including contents and datafiles cascade constraints';
+    Type == 'keep quota including contents cascade constraints';
+    Type == 'keep quota including contents keep datafiles cascade constraints';
+    Type == 'keep quota including contents';
+    Type == 'keep quota' ->
+    Rule = drop_extensions,
     FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
     NewCtxS =
         Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
@@ -1454,6 +1504,46 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx, Type = PTree)
 fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop trigger', Name} = PTree)
     when is_binary(Name) ->
     Rule = drop_trigger_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_type_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop type', Name, {}} = PTree)
+    when is_binary(Name) ->
+    Rule = drop_type_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
+    {'drop type', _Name, DropTypeExtensions} = PTree) ->
+    Rule = drop_type_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtx1 =
+        fold_i(FType, Fun, LOpts, FunState, NewCtxS, DropTypeExtensions),
+    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_type_extensions
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, Type = PTree)
+    when Type == force;
+         Type == validate ->
+    Rule = drop_extensions,
     FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
     NewCtxS =
         Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
@@ -1479,15 +1569,78 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop type body', Name} = PTree)
 % drop_user_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop user', User, _Cascade} =
-    PTree)
-    when is_binary(User) ->
+fold_i(FUser, Fun, LOpts, FunStateIn, Ctx, {'drop user', Name, {}} = PTree)
+    when is_binary(Name) ->
     Rule = drop_user_def,
     FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
     NewCtxS =
-        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FUser, start)}),
     NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
-        {Rule, get_start_end(FType, 'end')}),
+        {Rule, get_start_end(FUser, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+fold_i(FUser, Fun, LOpts, FunStateIn, Ctx,
+    {'drop user', _Name, DropUserExtensions} = PTree) ->
+    Rule = drop_user_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FUser, start)}),
+    NewCtx1 =
+        fold_i(FUser, Fun, LOpts, FunState, NewCtxS, DropUserExtensions),
+    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
+        {Rule, get_start_end(FUser, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_user_extensions
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FUser, Fun, LOpts, FunStateIn, Ctx, Type = PTree)
+    when Type == cascade ->
+    Rule = drop_extensions,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FUser, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FUser, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_view_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FView, Fun, LOpts, FunStateIn, Ctx, {'drop view', Name, {}} = PTree)
+    when is_binary(Name) ->
+    Rule = drop_view_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FView, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FView, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+fold_i(FView, Fun, LOpts, FunStateIn, Ctx,
+    {'drop view', _Name, DropViewExtensions} = PTree) ->
+    Rule = drop_view_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FView, start)}),
+    NewCtx1 =
+        fold_i(FView, Fun, LOpts, FunState, NewCtxS, DropViewExtensions),
+    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
+        {Rule, get_start_end(FView, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_view_extensions
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FView, Fun, LOpts, FunStateIn, Ctx, Type = PTree)
+    when Type == 'cascade constraints' ->
+    Rule = drop_extensions,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FView, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FView, 'end')}),
     ?FOLD_RESULT(NewCtxE);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3328,11 +3481,33 @@ fold_i(FType, Fun, LOpts, FunState, Ctx, {then = Rule, PTree}) ->
     ?FOLD_RESULT(NewCtxE);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% truncate_cluster
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
+    {'truncate cluster', Name, Cascade} = PTree) ->
+    Rule = truncate_cluster,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtx1 = case is_binary(Name) of
+                  true -> NewCtxS;
+                  _ -> fold_i(FType, Fun, LOpts, FunState, NewCtxS, Name)
+              end,
+    NewCtx2 = case Cascade of
+                  {} -> NewCtx1;
+                  _ -> fold_i(FType, Fun, LOpts, FunState, NewCtx1, Cascade)
+              end,
+    NewCtxE = Fun(LOpts, FunState, NewCtx2, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % truncate_table
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
-    {'truncate table', Table, Materialized, Storage} = PTree) ->
+    {'truncate table', Table, Materialized, Storage, Cascade} = PTree) ->
     Rule = truncate_table,
     FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
     NewCtxS =
@@ -3350,7 +3525,12 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
                   {} -> NewCtx2;
                   _ -> fold_i(FType, Fun, LOpts, FunState, NewCtx2, Storage)
               end,
-    NewCtxE = Fun(LOpts, FunState, NewCtx3, PTree,
+    NewCtx4 = case Cascade of
+                  {} -> NewCtx3;
+                  _ -> fold_i(FType, Fun, LOpts, FunState, NewCtx3,
+                      {keyword, atom_to_list(Cascade)})
+              end,
+    NewCtxE = Fun(LOpts, FunState, NewCtx4, PTree,
         {Rule, get_start_end(FType, 'end')}),
     ?FOLD_RESULT(NewCtxE);
 

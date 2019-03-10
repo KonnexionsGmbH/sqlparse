@@ -1207,7 +1207,7 @@ fold(LOpts, FunState, Ctx, _PTree, {delete_statement, Step} = _FoldState) ->
 % drop_cluster_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(LOpts, FunState, Ctx, {'drop cluster', Name, _Table} = _PTree,
+fold(LOpts, FunState, Ctx, {'drop cluster', Name, _DropExtensions} = _PTree,
     {drop_cluster_def, Step} = _FoldState) ->
     ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
@@ -1216,20 +1216,6 @@ fold(LOpts, FunState, Ctx, {'drop cluster', Name, _Table} = _PTree,
                  format_new_statement(LOpts, FunState, "drop cluster "),
                  format_identifier(LOpts, Name)
              ]);
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% drop_cluster_extensions
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-fold(LOpts, _FunState, Ctx, PTree, {drop_cluster_extensions = _Rule, Step} =
-    _FoldState)
-    when is_atom(PTree) ->
-    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
-    RT = case Step of
-             start -> lists:append([Ctx, " ", format_keyword(LOpts, PTree)]);
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
@@ -1318,6 +1304,19 @@ fold(LOpts, FunState, Ctx, {'drop directory', Name} = _PTree,
     ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_extensions
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, _FunState, Ctx, PTree, {drop_extensions = _Rule, Step} = _FoldState)
+    when is_atom(PTree) ->
+    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([Ctx, " ", format_keyword(LOpts, PTree)]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % drop_function_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1339,7 +1338,7 @@ fold(LOpts, FunState, Ctx, {'drop function', Name} = _PTree,
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fold(LOpts, FunState, Ctx,
-    {'drop index', IndexName, _Table, _DropIndexExtensions} = _PTree,
+    {'drop index', IndexName, _Table, _DropExtensions} = _PTree,
     {drop_index_def, Step} = _FoldState) ->
     ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
@@ -1355,20 +1354,6 @@ fold(LOpts, FunState, Ctx,
                      ])
                  end
              ]);
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% drop_index_extensions
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-fold(LOpts, _FunState, Ctx, PTree, {drop_index_extensions = _Rule, Step} =
-    _FoldState)
-    when is_atom(PTree) ->
-    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
-    RT = case Step of
-             start -> lists:append([Ctx, " ", format_keyword(LOpts, PTree)]);
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
@@ -1403,7 +1388,8 @@ fold(LOpts, FunState, Ctx, PTree, {drop_index_from, Step} = _FoldState) ->
 % drop_materialized_view_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(LOpts, FunState, Ctx, {'drop materialized view', Name, _Table} = _PTree,
+fold(LOpts, FunState, Ctx,
+    {'drop materialized view', Name, _DropExtensions} = _PTree,
     {drop_materialized_view_def, Step} = _FoldState) ->
     ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
@@ -1413,21 +1399,6 @@ fold(LOpts, FunState, Ctx, {'drop materialized view', Name, _Table} = _PTree,
                      "drop materialized view "),
                  format_identifier(LOpts, Name)
              ]);
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% drop_materialized_view_extensions
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-fold(LOpts, _FunState, Ctx, PTree,
-    {drop_materialized_view_extensions = _Rule, Step} =
-        _FoldState)
-    when is_atom(PTree) ->
-    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
-    RT = case Step of
-             start -> lists:append([Ctx, " ", format_keyword(LOpts, PTree)]);
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
@@ -1487,7 +1458,7 @@ fold(LOpts, FunState, Ctx, {'drop procedure', Name} = _PTree,
 % drop_profile_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(LOpts, FunState, Ctx, {'drop profile', Name, _Table} = _PTree,
+fold(LOpts, FunState, Ctx, {'drop profile', Name, _DropExtensions} = _PTree,
     {drop_profile_def, Step} = _FoldState) ->
     ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
@@ -1496,20 +1467,6 @@ fold(LOpts, FunState, Ctx, {'drop profile', Name, _Table} = _PTree,
                  format_new_statement(LOpts, FunState, "drop profile "),
                  format_identifier(LOpts, Name)
              ]);
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% drop_profile_extensions
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-fold(LOpts, _FunState, Ctx, PTree, {drop_profile_extensions = _Rule, Step} =
-    _FoldState)
-    when is_atom(PTree) ->
-    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
-    RT = case Step of
-             start -> lists:append([Ctx, " ", format_keyword(LOpts, PTree)]);
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
@@ -1554,8 +1511,8 @@ fold(LOpts, FunState, Ctx, {'drop sequence', Name} = _PTree,
 % drop_synonym_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(LOpts, FunState, Ctx, {'drop synonym', Name, {}, _DropSynonymExtensions} =
-    _PTree, {drop_synonym_def, Step} = _FoldState) ->
+fold(LOpts, FunState, Ctx, {'drop synonym', Name, {}, _DropExtensions} = _PTree,
+    {drop_synonym_def, Step} = _FoldState) ->
     ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
              start -> lists:append([
@@ -1568,25 +1525,11 @@ fold(LOpts, FunState, Ctx, {'drop synonym', Name, {}, _DropSynonymExtensions} =
     ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% drop_synonym_extensions
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-fold(LOpts, _FunState, Ctx, PTree, {drop_synonym_extensions = _Rule, Step} =
-    _FoldState)
-    when is_atom(PTree) ->
-    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
-    RT = case Step of
-             start -> lists:append([Ctx, " ", format_keyword(LOpts, PTree)]);
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % drop_synonym_public_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fold(LOpts, FunState, Ctx,
-    {'drop synonym', Name, public, _DropSynonymExtensions} = _PTree,
+    {'drop synonym', Name, public, _DropExtensions} = _PTree,
     {drop_synonym_public_def, Step} = _FoldState) ->
     ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
@@ -1636,6 +1579,24 @@ fold(LOpts, _FunState, Ctx, PTree, {drop_table_extensions = _Rule, Step} =
     ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_tablespace_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, FunState, Ctx,
+    {'drop tablespace', Name, _DropExtensions} = _PTree,
+    {drop_tablespace_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 format_new_statement(LOpts, FunState, "drop tablespace "),
+                 format_identifier(LOpts, Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % drop_trigger_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1646,6 +1607,23 @@ fold(LOpts, FunState, Ctx, {'drop trigger', Name} = _PTree,
              start -> lists:append([
                  Ctx,
                  format_new_statement(LOpts, FunState, "drop trigger "),
+                 format_identifier(LOpts, Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_type_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, FunState, Ctx, {'drop type', Name, _DropExtensions} = _PTree,
+    {drop_type_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 format_new_statement(LOpts, FunState, "drop type "),
                  format_identifier(LOpts, Name)
              ]);
              _ -> Ctx
@@ -1673,34 +1651,31 @@ fold(LOpts, FunState, Ctx, {'drop type body', Name} = _PTree,
 % drop_user_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(LOpts, FunState, Ctx, {'drop user', User, []} = _PTree,
+fold(LOpts, FunState, Ctx, {'drop user', Name, _DropExtensions} = _PTree,
     {drop_user_def, Step} = _FoldState) ->
     ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
              start -> lists:append([
                  Ctx,
-                 format_new_statement(LOpts, FunState, "drop user"),
-                 ?CHAR_NEWLINE,
-                 format_column_pos(LOpts, FunState),
-                 format_identifier(LOpts, User)
+                 format_new_statement(LOpts, FunState, "drop user "),
+                 format_identifier(LOpts, Name)
              ]);
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
-fold(LOpts, FunState, Ctx, {'drop user', User, [Cascade]} = _PTree,
-    {drop_user_def, Step} = _FoldState) ->
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_view_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, FunState, Ctx, {'drop view', Name, _DropExtensions} = _PTree,
+    {drop_view_def, Step} = _FoldState) ->
     ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
              start -> lists:append([
                  Ctx,
-                 format_new_statement(LOpts, FunState, "drop user"),
-                 ?CHAR_NEWLINE,
-                 format_column_pos(LOpts, FunState),
-                 format_identifier(LOpts, User),
-                 ?CHAR_NEWLINE,
-                 format_column_pos(LOpts, FunState#fstate{indent_lvl =
-                 FunState#fstate.indent_lvl - 1}),
-                 format_keyword(LOpts, Cascade)
+                 format_new_statement(LOpts, FunState, "drop view "),
+                 format_identifier(LOpts, Name)
              ]);
              _ -> Ctx
          end,
@@ -2511,9 +2486,13 @@ fold(LOpts, _FunState, Ctx, PTree, {jpparse, Step} = _FoldState)
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fold(LOpts, FunState, Ctx, PTree, {keyword, Step} = _FoldState)
-    when PTree == "full join";PTree == "left join";PTree == "natural full join";
-    PTree == "natural join";PTree == "natural left join";PTree ==
-             "natural right join";PTree == "right join" ->
+    when PTree == "full join";
+         PTree == "left join";
+         PTree == "natural full join";
+         PTree == "natural join";
+         PTree == "natural left join";
+         PTree == "natural right join";
+         PTree == "right join" ->
     ?CUSTOM_INIT(FunState, Ctx, PTree, _FoldState),
     RT = case Step of
              start -> lists:append([
@@ -2528,9 +2507,12 @@ fold(LOpts, FunState, Ctx, PTree, {keyword, Step} = _FoldState)
          end,
     ?CUSTOM_RESULT(RT);
 fold(LOpts, FunState, Ctx, PTree, {keyword, Step} = _FoldState)
-    when PTree == "full_outer join";PTree == "left_outer join";PTree ==
-    "natural full_outer join";PTree == "natural left_outer join";PTree ==
-             "natural right_outer join";PTree == "right_outer join" ->
+    when PTree == "full_outer join";
+         PTree == "left_outer join";
+         PTree == "natural full_outer join";
+         PTree == "natural left_outer join";
+         PTree == "natural right_outer join";
+         PTree == "right_outer join" ->
     ?CUSTOM_INIT(FunState, Ctx, PTree, _FoldState),
     RT = case Step of
              start -> lists:append([
@@ -2546,8 +2528,10 @@ fold(LOpts, FunState, Ctx, PTree, {keyword, Step} = _FoldState)
     ?CUSTOM_RESULT(RT);
 
 fold(LOpts, FunState, Ctx, PTree, {keyword, Step} = _FoldState)
-    when PTree == intersect;PTree == minus;PTree == union; PTree ==
-    'union all' ->
+    when PTree == intersect;
+         PTree == minus;
+         PTree == union;
+         PTree == 'union all' ->
     ?CUSTOM_INIT(FunState, Ctx, PTree, _FoldState),
     RT = case Step of
              start -> lists:append([
@@ -2563,7 +2547,8 @@ fold(LOpts, FunState, Ctx, PTree, {keyword, Step} = _FoldState)
     ?CUSTOM_RESULT(RT);
 
 fold(LOpts, FunState, Ctx, PTree, {keyword, Step} = _FoldState)
-    when PTree == cascade; PTree == restrict;PTree == "with check option" ->
+    when PTree == "cascade";
+         PTree == "with check option" ->
     ?CUSTOM_INIT(FunState, Ctx, PTree, _FoldState),
     RT = case Step of
              start -> lists:append([
@@ -2662,7 +2647,7 @@ fold(LOpts, FunState, Ctx, {'materialized view log' = Value1, Value2} = _PTree,
                  Ctx,
                  ?CHAR_NEWLINE,
                  format_column_pos(LOpts, FunState#fstate{indent_lvl =
-                 FunState#fstate.indent_lvl - 1}),
+                 FunState#fstate.indent_lvl + 1}),
                  format_keyword(LOpts, Value2),
                  " ",
                  format_keyword(LOpts, Value1)
@@ -3608,7 +3593,7 @@ fold(LOpts, FunState, Ctx, PTree, {storage = Rule, Step} = _FoldState)
                  Ctx,
                  ?CHAR_NEWLINE,
                  format_column_pos(LOpts, FunState#fstate{indent_lvl =
-                 FunState#fstate.indent_lvl - 1}),
+                 FunState#fstate.indent_lvl + 1}),
                  format_keyword(LOpts, PTree),
                  " ",
                  format_keyword(LOpts, Rule)
@@ -3902,11 +3887,46 @@ fold(LOpts, FunState, Ctx, _PTree, {then, Step} = _FoldState) ->
     ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% truncate_cluster
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold(LOpts, FunState, Ctx,
+    {'truncate cluster', Name, _Cascade} = _PTree,
+    {truncate_cluster, Step} = _FoldState)
+    when is_binary(Name) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 format_new_statement(LOpts, FunState, "truncate cluster"),
+                 ?CHAR_NEWLINE,
+                 format_column_pos(LOpts, FunState),
+                 format_identifier(LOpts, Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+fold(LOpts, FunState, Ctx,
+    {'truncate cluster', _Name, _Cascade} = _PTree,
+    {truncate_cluster, Step} = _FoldState) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 format_new_statement(LOpts, FunState, "truncate cluster"),
+                 ?CHAR_NEWLINE,
+                 format_column_pos(LOpts, FunState)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % truncate_table
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fold(LOpts, FunState, Ctx,
-    {'truncate table', Table, _Materialized, _Storage} = _PTree,
+    {'truncate table', Table, _Materialized, _Storage, _Cascade} = _PTree,
     {truncate_table, Step} = _FoldState)
     when is_binary(Table) ->
     ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
@@ -3922,7 +3942,7 @@ fold(LOpts, FunState, Ctx,
          end,
     ?CUSTOM_RESULT(RT);
 fold(LOpts, FunState, Ctx,
-    {'truncate table', _Table, _Materialized, _Storage} = _PTree,
+    {'truncate table', _Table, _Materialized, _Storage, _Cascade} = _PTree,
     {truncate_table, Step} = _FoldState) ->
     ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
     RT = case Step of

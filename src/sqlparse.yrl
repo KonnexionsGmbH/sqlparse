@@ -969,11 +969,11 @@ type_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
 
 drop_type_body_def -> DROP TYPE BODY type_name : {'drop type body', '$4'}.
 
-drop_user_def -> DROP USER NAME         : {'drop user', unwrap_bin('$3'), []}.
-drop_user_def -> DROP USER NAME CASCADE : {'drop user', unwrap_bin('$3'), ['cascade']}.
+drop_user_def -> DROP USER NAME         : {'drop user', unwrap_bin('$3'), {}}.
+drop_user_def -> DROP USER NAME CASCADE : {'drop user', unwrap_bin('$3'), 'cascade'}.
 
 drop_view_def -> DROP VIEW table                     : {'drop view', '$3', {}}.
-drop_view_def -> DROP VIEW table CASCADE CONSTRAINTS : {'drop view', '$3', 'cascade constraint'}.
+drop_view_def -> DROP VIEW table CASCADE CONSTRAINTS : {'drop view', '$3', 'cascade constraints'}.
 
 fetch_statement -> FETCH cursor INTO target_commalist : {fetch, '$2', {into, '$4'}}.
 

@@ -1549,8 +1549,10 @@ parsetree_with_tokens(Sql0) ->
     Sql = re:replace(Sql0, "(^[ \r\n]+)|([ \r\n]+$)", "",
         [global, {return, list}]),
     ?D("Start~n Sql: ~p~n", [Sql]),
-    [C | _] = lists:reverse(Sql),
-    NSql = if C =:= $; -> Sql; true -> string:trim(Sql) ++ ";" end,
+    SqlClean =
+        unicode:characters_to_list(string:replace(Sql, "\n/", "", all)),
+    [C | _] = lists:reverse(SqlClean),
+    NSql = if C =:= $; -> SqlClean; true -> string:trim(SqlClean) ++ ";" end,
     case sql_lex:string(NSql) of
         {ok, Toks, _} ->
             case parse(Toks) of

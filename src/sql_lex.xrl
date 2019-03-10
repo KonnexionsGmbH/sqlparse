@@ -65,7 +65,6 @@ Rules.
 ([\s\t\r\n]+)                                       : skip_token.    %% white space
 
 % comments
-%((\-\-).*[\n])                                     : {token, {'COMMENT', TokenLine, TokenChars}}.
 ((\-\-).*[\n])                                      : skip_token.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -666,7 +666,22 @@
 "create table table_1(column_1 number(1,2)not null primary key)".
 "create table table_1(column_1 number(1,2)not null unique)".
 "create table table_1(column_1 number(1,2)not null)".
-"create table table_1(owner userid,private term,field_e date default fun()-> calendar:localtime()end.,field_t decimal default fun mod:fun/1.,field_t1 bool,field_t1 boolean,field_e date1 default fun(C,D)-> C+D end.,field_t1 number,field_t1 number(1),field_t1 number(1,2),field_a atom default 'undefined',field_b list,'field_c' string default 'NULL','field_d' tuple default erl(\"{1,2}\"))".
+"
+create table table_1 (
+                      owner userid,
+                      private term,field_e date default fun()-> calendar:localtime()end.,
+                      field_t decimal default fun mod:fun/1.,
+                      field_t1 bool,field_t1 boolean,
+                      field_e date1 default fun(C,D)-> C+D end.,
+                      field_t1 number,
+                      field_t1 number(1),
+                      field_t1 number(1,2),
+                      field_a atom default 'undefined',
+                      field_b list,
+                      \"field_c\" string default 'NULL',
+                      \"field_d\" tuple default erl(\"{1,2}\")
+                     )
+".
 "CREATE TABLE test(fld CHAR)".
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

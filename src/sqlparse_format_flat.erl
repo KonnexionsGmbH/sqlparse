@@ -63,9 +63,13 @@ finalize(_Params, Ctx)
 -spec fold(list(), FunState :: tuple(), Ctx :: string()|tuple(),
     PTree :: list()|tuple(), FoldState :: tuple()) -> Ctx :: tuple()|none().
 fold([], _FunState, Ctx, _PTree, {Rule, Step} = _FoldState)
-    when Rule == "(";Rule == base_table_element_commalist;Rule == cols;Rule ==
-    column_commalist;Rule == create_index_spec;Rule == fun_arg_commalist;Rule ==
-             ref_commalist ->
+    when Rule == "(";
+         Rule == base_table_element_commalist;
+         Rule == cols;
+         Rule == column_commalist;
+         Rule == create_index_spec;
+         Rule == fun_arg_commalist;
+         Rule == ref_commalist ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
              start -> Ctx ++ "(";
@@ -936,18 +940,154 @@ fold([], _FunState, Ctx, _PTree, {delete_statement, Step} = _FoldState) ->
     ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_cluster_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx, {'drop cluster', Name, _DropExtensions} = _PTree,
+    {drop_cluster_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 "drop cluster ",
+                 binary_to_list(Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_context_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx, {'drop context', Name} = _PTree,
+    {drop_context_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 "drop context ",
+                 binary_to_list(Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_database_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx, {'drop database'} = _PTree,
+    {drop_database_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> Ctx ++ "drop database";
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_database_link_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx, {'drop database link', Name, {}} = _PTree,
+    {drop_database_link_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 "drop database link ",
+                 binary_to_list(Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_database_link_public_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx, {'drop database link', Name, public} = _PTree,
+    {drop_database_link_public_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 "drop public database link ",
+                 binary_to_list(Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_directory_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx, {'drop directory', Name} = _PTree,
+    {drop_directory_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 "drop directory ",
+                 binary_to_list(Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_extensions
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx, PTree, {Type, Step} = _FoldState)
+    when Type == drop_extensions ->
+    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 " ",
+                 atom_to_list(PTree)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_function_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx, {'drop function', Name} = _PTree,
+    {drop_function_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 "drop function ",
+                 binary_to_list(Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % drop_index_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold([], _FunState, Ctx, {'drop index', IndexName, _Table} = _PTree,
+fold([], _FunState, Ctx,
+    {'drop index', IndexName, _Table, _DropExtensions} = _PTree,
     {drop_index_def, Step} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
-             start -> lists:append([Ctx, "drop index",
+             start -> lists:append([
+                 Ctx,
+                 "drop index",
                  case IndexName of
                      {} -> [];
                      _ -> " " ++ binary_to_list(IndexName)
-                 end]);
+                 end
+             ]);
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
@@ -969,6 +1109,92 @@ fold([], _FunState, Ctx, PTree, {drop_index_from, Step} = _FoldState) ->
     ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_materialized_view_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx,
+    {'drop materialized view', Name, _MaterializedViewExtensions} = _PTree,
+    {drop_materialized_view_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 "drop materialized view ",
+                 binary_to_list(Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_package_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx, {'drop package', Name, {}} = _PTree,
+    {drop_package_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 "drop package ",
+                 binary_to_list(Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_package_body_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx, {'drop package', Name, body} = _PTree,
+    {drop_package_body_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 "drop package body ",
+                 binary_to_list(Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_procedure_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx, {'drop procedure', Name} = _PTree,
+    {drop_procedure_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 "drop procedure ",
+                 binary_to_list(Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_profile_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx, {'drop profile', Name, _DropExtensions} = _PTree,
+    {drop_profile_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 "drop profile ",
+                 binary_to_list(Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % drop_role_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -976,7 +1202,63 @@ fold([], _FunState, Ctx, {'drop role', Role} = _PTree,
     {drop_role_def, Step} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
-             start -> lists:append([Ctx, "drop role ", binary_to_list(Role)]);
+             start -> lists:append([
+                 Ctx,
+                 "drop role ",
+                 binary_to_list(Role)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_sequence_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx, {'drop sequence', Name} = _PTree,
+    {drop_sequence_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 "drop sequence ",
+                 binary_to_list(Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_synonym_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx, {'drop synonym', Name, {}, _DropExtensions} = _PTree,
+    {drop_synonym_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 "drop synonym ",
+                 binary_to_list(Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_synonym_public_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx,
+    {'drop synonym', Name, public, _DropExtensions} = _PTree,
+    {drop_synonym_public_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 "drop public synonym ",
+                 binary_to_list(Name)
+             ]);
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
@@ -986,7 +1268,7 @@ fold([], _FunState, Ctx, {'drop role', Role} = _PTree,
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fold([], _FunState, Ctx,
-    {'drop table', _Tables, _Exists, _RestrictCascade, DropOpt} = _PTree,
+    {'drop table', _Tables, _Exists, _DropExtensions, DropOpt} = _PTree,
     {drop_table_def, Step} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
@@ -1000,24 +1282,112 @@ fold([], _FunState, Ctx,
     ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% drop_user_def
+% drop_tablespace_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold([], _FunState, Ctx, {'drop user', User, []} = _PTree,
-    {drop_user_def, Step} = _FoldState) ->
+fold([], _FunState, Ctx, {'drop tablespace', Name, _DropExtensions} = _PTree,
+    {drop_tablespace_def, Step} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
-             start -> lists:append([Ctx, "drop user ", binary_to_list(User)]);
+             start -> lists:append([
+                 Ctx,
+                 "drop tablespace ",
+                 binary_to_list(Name)
+             ]);
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
-fold([], _FunState, Ctx, {'drop user', User, [Cascade]} = _PTree,
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_trigger_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx, {'drop trigger', Name} = _PTree,
+    {drop_trigger_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 "drop trigger ",
+                 binary_to_list(Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_type_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx, {'drop type', Name, _DropExtensions} = _PTree,
+    {drop_type_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 "drop type ",
+                 binary_to_list(Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_type_body_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx, {'drop type body', Name} = _PTree,
+    {drop_type_body_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 "drop type body ",
+                 binary_to_list(Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_user_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx, {'drop user', Name, _DropExtensions} = _PTree,
     {drop_user_def, Step} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
-             start -> lists:append(
-                 [Ctx, "drop user ", binary_to_list(User), " ", atom_to_list(
-                     Cascade)]);
+             start -> lists:append([
+                 Ctx,
+                 "drop user ",
+                 binary_to_list(Name)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_view_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx, {'drop view', Table, _DropExtensions} = _PTree,
+    {drop_view_def, Step} = _FoldState)
+    when is_binary(Table) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 "drop view ",
+                 binary_to_list(Table)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+fold([], _FunState, Ctx, {'drop view', _Table, _DropExtensions} = _PTree,
+    {drop_view_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> Ctx ++ "drop view ";
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
@@ -1552,9 +1922,13 @@ fold([], _FunState, Ctx, PTree, {jpparse, Step} = _FoldState)
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fold([], _FunState, Ctx, PTree, {keyword, Step} = _FoldState)
-    when PTree == "full join";PTree == "left join";PTree == "natural full join";
-    PTree == "natural join";PTree == "natural left join";PTree ==
-             "natural right join";PTree == "right join" ->
+    when PTree == "full join";
+         PTree == "left join";
+         PTree == "natural full join";
+         PTree == "natural join";
+         PTree == "natural left join";
+         PTree == "natural right join";
+         PTree == "right join" ->
     ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
     RT = case Step of
              start -> lists:append([Ctx, " ", PTree, " "]);
@@ -1562,9 +1936,12 @@ fold([], _FunState, Ctx, PTree, {keyword, Step} = _FoldState)
          end,
     ?CUSTOM_RESULT(RT);
 fold([], _FunState, Ctx, PTree, {keyword, Step} = _FoldState)
-    when PTree == "full_outer join";PTree == "left_outer join";PTree ==
-    "natural full_outer join";PTree == "natural left_outer join";PTree ==
-             "natural right_outer join";PTree == "right_outer join" ->
+    when PTree == "full_outer join";
+         PTree == "left_outer join";
+         PTree == "natural full_outer join";
+         PTree == "natural left_outer join";
+         PTree == "natural right_outer join";
+         PTree == "right_outer join" ->
     ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
     RT = case Step of
              start ->
@@ -1574,8 +1951,10 @@ fold([], _FunState, Ctx, PTree, {keyword, Step} = _FoldState)
     ?CUSTOM_RESULT(RT);
 
 fold([], _FunState, Ctx, PTree, {keyword, Step} = _FoldState)
-    when PTree == intersect;PTree == minus;PTree == union;PTree ==
-    'union all' ->
+    when PTree == intersect;
+         PTree == minus;
+         PTree == union;
+         PTree == 'union all' ->
     ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
     RT = case Step of
              start -> lists:append([Ctx, " ", atom_to_list(PTree), " "]);
@@ -2545,11 +2924,27 @@ fold([], _FunState, Ctx, _PTree, {then, Step} = _FoldState) ->
     ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% truncate_cluster
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold([], _FunState, Ctx,
+    {'truncate cluster', Name, _Cascade} = _PTree,
+    {truncate_cluster, Step} = _FoldState)
+    when is_binary(Name) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start ->
+                 lists:append([Ctx, "truncate cluster ", binary_to_list(Name)]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % truncate_table
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fold([], _FunState, Ctx,
-    {'truncate table', Table, _Materialized, _Storage} = _PTree,
+    {'truncate table', Table, _Materialized, _Storage, _Cascade} = _PTree,
     {truncate_table, Step} = _FoldState)
     when is_binary(Table) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
@@ -2560,7 +2955,7 @@ fold([], _FunState, Ctx,
          end,
     ?CUSTOM_RESULT(RT);
 fold([], _FunState, Ctx,
-    {'truncate table', _Table, _Materialized, _Storage} = _PTree,
+    {'truncate table', _Table, _Materialized, _Storage, _Cascade} = _PTree,
     {truncate_table, Step} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case Step of

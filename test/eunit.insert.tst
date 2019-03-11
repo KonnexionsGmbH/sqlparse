@@ -12,8 +12,8 @@
 % insert_statement
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-"insert into 'exotic name' alias_1".
-"insert into 'exotic name'".
+"insert into \"exotic name\" alias_1".
+"insert into \"exotic name\"".
 "insert into :param_1 alias_1".
 "insert into :param_1".
 "insert into :param_1\"@link_1\"".

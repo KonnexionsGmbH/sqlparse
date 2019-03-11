@@ -34,6 +34,7 @@
 %%------------------------------------------------------------------------------
 
 common_test_source(Source) ->
+    ?D("Start~n Source: ~p~n", [Source]),
     % ct:pal(info, ?MAX_IMPORTANCE,
     %     ?MODULE_STRING ++ ":common_test_source ===>~n Source = ~p~n", [Source]),
     %% -------------------------------------------------------------------------
@@ -280,22 +281,29 @@ common_test_source(Source) ->
 %%------------------------------------------------------------------------------
 
 eunit_test_() ->
+    ?D("Start~n", []),
     WCard = case os:getenv(?ENV_VAR_FILE_WILDCARD) of
                 SourceFiles when is_list(SourceFiles) ->
                     SourceFiles;
                 _ ->
                     "*"
             end ++ ?ENV_VAR_FILE_TYPE,
+    ?D("WCard: ~p~n", [WCard]),
     {ok, Cwd} = file:get_cwd(),
+    ?D("Cwd: ~p~n", [Cwd]),
     RootPath = lists:reverse(filename:split(Cwd)),
+    ?D("RootPath: ~p~n", [RootPath]),
     TestDir1 = filename:join(lists:reverse(["test" | RootPath])),
+    ?D("TestDir1: ~p~n", [TestDir1]),
     TestDir2 = filename:join(
         lists:reverse(["eunit", "generated", "test"] ++ RootPath)),
+    ?D("TestDir2: ~p~n", [TestDir2]),
     TestFiles = lists:sort(
         [filename:join(TestDir1, T) || T <- filelib:wildcard(WCard,
             TestDir1)] ++
         [filename:join(TestDir2, T) || T <- filelib:wildcard(WCard, TestDir2)]
     ),
+    ?D("TestFiles: ~p~n", [TestFiles]),
     group_gen(TestFiles).
 
 %%------------------------------------------------------------------------------
@@ -320,6 +328,7 @@ eunit_test_source(TestGroup, Source) ->
 %%------------------------------------------------------------------------------
 
 group_gen(TestFiles) ->
+    ?D("Start~n TestFiles: ~p~n", [TestFiles]),
     {generator,
         fun() ->
             case TestFiles of
@@ -385,6 +394,8 @@ group_gen(TestFiles) ->
 %%------------------------------------------------------------------------------
 
 tests_gen(TestGroup, Tests, Opts) ->
+    ?D("Start~n TestGroup: ~p~n Tests: ~p~n Opts: ~p~n",
+        [TestGroup, Tests, Opts]),
     SelTests = case proplists:get_value(tests, Opts) of
                    St when St =:= undefined; St =:= [] ->
                        {Indices, _} = lists:unzip(Tests),

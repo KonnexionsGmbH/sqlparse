@@ -995,10 +995,130 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
     ?FOLD_RESULT(NewCtxE);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_cluster_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop cluster', Name, {}} = PTree)
+    when is_binary(Name) ->
+    Rule = drop_cluster_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
+    {'drop cluster', _Name, {DropClusterExtensions}} = PTree) ->
+    Rule = drop_cluster_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtx1 =
+        fold_i(FType, Fun, LOpts, FunState, NewCtxS, DropClusterExtensions),
+    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_cluster_extensions
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, Type = PTree)
+    when Type == 'including tables';
+         Type == 'including tables cascade constraints' ->
+    Rule = drop_extensions,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_context_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop context', Name} = PTree)
+    when is_binary(Name) ->
+    Rule = drop_context_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_database_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop database'} = PTree) ->
+    Rule = drop_database_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_database_link_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop database link', Name, {}} =
+    PTree)
+    when is_binary(Name) ->
+    Rule = drop_database_link_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
+    {'drop database link', Name, public} = PTree)
+    when is_binary(Name) ->
+    Rule = drop_database_link_public_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_directory_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop directory', Name} = PTree)
+    when is_binary(Name) ->
+    Rule = drop_directory_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_function_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop function', Name} = PTree)
+    when is_binary(Name) ->
+    Rule = drop_function_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % drop_index_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop index', IndexName, []} =
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop index', IndexName, [], {}} =
     PTree)
     when is_binary(IndexName) ->
     Rule = drop_index_def,
@@ -1008,8 +1128,22 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop index', IndexName, []} =
     NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
         {Rule, get_start_end(FType, 'end')}),
     ?FOLD_RESULT(NewCtxE);
-fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop index', _IndexName, Table} =
-    PTree) ->
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
+    {'drop index', IndexName, [], {DropIndexExtensions}} =
+        PTree)
+    when is_binary(IndexName) ->
+    Rule = drop_index_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtx1 =
+        fold_i(FType, Fun, LOpts, FunState, NewCtxS, DropIndexExtensions),
+    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
+    {'drop index', _IndexName, Table, {}} =
+        PTree) ->
     Rule = drop_index_def,
     FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
     NewCtxS =
@@ -1017,6 +1151,44 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop index', _IndexName, Table} =
     NewCtx1 =
         fold_i(FType, Fun, LOpts, FunState, NewCtxS, {drop_index_from, Table}),
     NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
+    {'drop index', _IndexName, Table, {DropIndexExtensions}} =
+        PTree) ->
+    Rule = drop_index_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtx1 =
+        fold_i(FType, Fun, LOpts, FunState, NewCtxS, {drop_index_from, Table}),
+    NewCtx2 =
+        fold_i(FType, Fun, LOpts, FunState, NewCtx1, DropIndexExtensions),
+    NewCtxE = Fun(LOpts, FunState, NewCtx2, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_index_extensions
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, Type = PTree)
+    when Type == 'deferred invalidation';
+         Type == 'force deferred invalidation';
+         Type == 'force immediate invalidation';
+         Type == 'force';
+         Type == 'immediate invalidation';
+         Type == 'online deferred invalidation';
+         Type == 'online force deferred invalidation';
+         Type == 'online force immediate invalidation';
+         Type == 'online force';
+         Type == 'online immediate invalidation';
+         Type == 'online' ->
+    Rule = drop_extensions,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
         {Rule, get_start_end(FType, 'end')}),
     ?FOLD_RESULT(NewCtxE);
 
@@ -1037,6 +1209,124 @@ fold_i(FType, Fun, LOpts, FunState, Ctx, {drop_index_from = Rule, PTree}) ->
     ?FOLD_RESULT(NewCtxE);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_materialized_view_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
+    {'drop materialized view', Name, {}} = PTree)
+    when is_binary(Name) ->
+    Rule = drop_materialized_view_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
+    {'drop materialized view', _Name, 'preserve table' =
+        MaterializedViewExtensions} = PTree) ->
+    Rule = drop_materialized_view_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtx1 =
+        fold_i(FType, Fun, LOpts, FunState, NewCtxS,
+            MaterializedViewExtensions),
+    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_materialized_view_extensions
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, Type = PTree)
+    when Type == 'preserve table' ->
+    Rule = drop_extensions,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_package_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop package', Name, {}} = PTree)
+    when is_binary(Name) ->
+    Rule = drop_package_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop package', Name, body} = PTree)
+    when is_binary(Name) ->
+    Rule = drop_package_body_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_procedure_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop procedure', Name} = PTree)
+    when is_binary(Name) ->
+    Rule = drop_procedure_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_profile_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop profile', Name, {}} = PTree)
+    when is_binary(Name) ->
+    Rule = drop_profile_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
+    {'drop profile', _Name, DropProfileExtensions} = PTree) ->
+    Rule = drop_profile_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtx1 =
+        fold_i(FType, Fun, LOpts, FunState, NewCtxS, DropProfileExtensions),
+    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_profile_extensions
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, Type = PTree)
+    when Type == cascade ->
+    Rule = drop_extensions,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % drop_role_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1051,23 +1341,231 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop role', Role} = PTree)
     ?FOLD_RESULT(NewCtxE);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_sequence_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop sequence', Name} = PTree)
+    when is_binary(Name) ->
+    Rule = drop_sequence_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_synonym_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop synonym', Name, {}, {}} =
+    PTree)
+    when is_binary(Name) ->
+    Rule = drop_synonym_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
+    {'drop synonym', Name, {}, DropSynonymExtensions} = PTree)
+    when is_binary(Name) ->
+    Rule = drop_synonym_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtx1 =
+        fold_i(FType, Fun, LOpts, FunState, NewCtxS, DropSynonymExtensions),
+    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop synonym', Name, public, {}} =
+    PTree)
+    when is_binary(Name) ->
+    Rule = drop_synonym_public_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
+    {'drop synonym', Name, public, DropSynonymExtensions} = PTree)
+    when is_binary(Name) ->
+    Rule = drop_synonym_public_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtx1 =
+        fold_i(FType, Fun, LOpts, FunState, NewCtxS, DropSynonymExtensions),
+    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % drop_table_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
-    {'drop table', Tables, Exists, RestrictCascade, _DropOpt} = PTree) ->
+    {'drop table', Tables, Exists, {}, _Name} = PTree) ->
     Rule = drop_table_def,
     FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
     NewCtxS =
         Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
     NewCtx1 = fold_i(FType, Fun, LOpts, FunState, NewCtxS, {exists, Exists}),
     NewCtx2 = fold_i(FType, Fun, LOpts, FunState, NewCtx1, Tables),
-    NewCtx3 = case RestrictCascade of
-                  {} -> NewCtx2;
-                  _ -> fold_i(FType, Fun, LOpts, FunState, NewCtx2,
-                      {keyword, RestrictCascade})
-              end,
+    NewCtxE = Fun(LOpts, FunState, NewCtx2, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
+    {'drop table', Tables, Exists, {DropTableExtensions}, _Name} = PTree) ->
+    Rule = drop_table_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtx1 = fold_i(FType, Fun, LOpts, FunState, NewCtxS, {exists, Exists}),
+    NewCtx2 = fold_i(FType, Fun, LOpts, FunState, NewCtx1, Tables),
+    NewCtx3 = fold_i(FType, Fun, LOpts, FunState, NewCtx2, DropTableExtensions),
     NewCtxE = Fun(LOpts, FunState, NewCtx3, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_table_extensions
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, Type = PTree)
+    when Type == 'cascade constraints';
+         Type == 'cascade constraints purge';
+         Type == purge ->
+    Rule = drop_extensions,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_tablespace_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop tablespace', Name, {}} =
+    PTree)
+    when is_binary(Name) ->
+    Rule = drop_tablespace_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
+    {'drop tablespace', _Name, {DropTablespaceExtensions}} = PTree) ->
+    Rule = drop_tablespace_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtx1 =
+        fold_i(FType, Fun, LOpts, FunState, NewCtxS, DropTablespaceExtensions),
+    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_tablespace_extensions
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, Type = PTree)
+    when Type ==
+             'drop quota including contents and datafiles cascade constraints';
+    Type == 'drop quota including contents cascade constraints';
+    Type == 'drop quota including contents keep datafiles cascade constraints';
+    Type == 'drop quota including contents';
+    Type == 'drop quota';
+    Type == 'including contents';
+    Type == 'including contents and datafiles cascade constraints';
+    Type == 'including contents cascade constraints';
+    Type == 'including contents keep datafiles cascade constraints';
+    Type == 'keep quota including contents and datafiles cascade constraints';
+    Type == 'keep quota including contents cascade constraints';
+    Type == 'keep quota including contents keep datafiles cascade constraints';
+    Type == 'keep quota including contents';
+    Type == 'keep quota' ->
+    Rule = drop_extensions,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_trigger_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop trigger', Name} = PTree)
+    when is_binary(Name) ->
+    Rule = drop_trigger_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_type_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop type', Name, {}} = PTree)
+    when is_binary(Name) ->
+    Rule = drop_type_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
+    {'drop type', _Name, DropTypeExtensions} = PTree) ->
+    Rule = drop_type_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtx1 =
+        fold_i(FType, Fun, LOpts, FunState, NewCtxS, DropTypeExtensions),
+    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_type_extensions
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, Type = PTree)
+    when Type == force;
+         Type == validate ->
+    Rule = drop_extensions,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_type_body_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop type body', Name} = PTree)
+    when is_binary(Name) ->
+    Rule = drop_type_body_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
         {Rule, get_start_end(FType, 'end')}),
     ?FOLD_RESULT(NewCtxE);
 
@@ -1075,14 +1573,56 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
 % drop_user_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop user', User, _Cascade} =
-    PTree)
-    when is_binary(User) ->
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop user', Name, {}} = PTree)
+    when is_binary(Name) ->
     Rule = drop_user_def,
     FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
     NewCtxS =
         Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
     NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
+    {'drop user', _Name, DropUserExtensions} = PTree) ->
+    Rule = drop_user_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtx1 =
+        fold_i(FType, Fun, LOpts, FunState, NewCtxS, DropUserExtensions),
+    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% drop_view_def
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop view', Table, {}} = PTree) ->
+    Rule = drop_view_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtx1 = case is_binary(Table) of
+                  true -> NewCtxS;
+                  _ -> fold_i(FType, Fun, LOpts, FunState, NewCtxS, Table)
+              end,
+    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
+    {'drop view', Table, DropViewExtensions} = PTree) ->
+    Rule = drop_view_def,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtx1 = case is_binary(Table) of
+                  true -> NewCtxS;
+                  _ -> fold_i(FType, Fun, LOpts, FunState, NewCtxS, Table)
+              end,
+    NewCtx2 =
+        fold_i(FType, Fun, LOpts, FunState, NewCtx1, DropViewExtensions),
+    NewCtxE = Fun(LOpts, FunState, NewCtx2, PTree,
         {Rule, get_start_end(FType, 'end')}),
     ?FOLD_RESULT(NewCtxE);
 
@@ -2924,11 +3464,33 @@ fold_i(FType, Fun, LOpts, FunState, Ctx, {then = Rule, PTree}) ->
     ?FOLD_RESULT(NewCtxE);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% truncate_cluster
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
+    {'truncate cluster', Name, Cascade} = PTree) ->
+    Rule = truncate_cluster,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtx1 = case is_binary(Name) of
+                  true -> NewCtxS;
+                  _ -> fold_i(FType, Fun, LOpts, FunState, NewCtxS, Name)
+              end,
+    NewCtx2 = case Cascade of
+                  {} -> NewCtx1;
+                  _ -> fold_i(FType, Fun, LOpts, FunState, NewCtx1, Cascade)
+              end,
+    NewCtxE = Fun(LOpts, FunState, NewCtx2, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % truncate_table
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
-    {'truncate table', Table, Materialized, Storage} = PTree) ->
+    {'truncate table', Table, Materialized, Storage, Cascade} = PTree) ->
     Rule = truncate_table,
     FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
     NewCtxS =
@@ -2946,7 +3508,12 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
                   {} -> NewCtx2;
                   _ -> fold_i(FType, Fun, LOpts, FunState, NewCtx2, Storage)
               end,
-    NewCtxE = Fun(LOpts, FunState, NewCtx3, PTree,
+    NewCtx4 = case Cascade of
+                  {} -> NewCtx3;
+                  _ -> fold_i(FType, Fun, LOpts, FunState, NewCtx3,
+                      {keyword, atom_to_list(Cascade)})
+              end,
+    NewCtxE = Fun(LOpts, FunState, NewCtx4, PTree,
         {Rule, get_start_end(FType, 'end')}),
     ?FOLD_RESULT(NewCtxE);
 
@@ -3536,10 +4103,27 @@ set_state_rule(FunState, Rule) ->
 %     create_user_def
 %     cursor_def
 %     delete_statement
-%     drop_index_def
-%     drop_role_def
-%     drop_table_def
-%     drop_user_def
+%     drop_cluster_def,
+%     drop_context_def,
+%     drop_database_def,
+%     drop_database_link_def,
+%     drop_directory_def,
+%     drop_function_def,
+%     drop_index_def,
+%     drop_materialized_view_def,
+%     drop_package_def,
+%     drop_procedure_def,
+%     drop_profile_def,
+%     drop_role_def,
+%     drop_sequence_def,
+%     drop_synonym_def,
+%     drop_table_def,
+%     drop_tablespace_def,
+%     drop_trigger_def,
+%     drop_type_def,
+%     drop_type_body_def,
+%     drop_user_def,
+%     drop_view_def,
 %     fetch_statement
 %     grant_def
 %     insert_statement
@@ -3550,6 +4134,7 @@ set_state_rule(FunState, Rule) ->
 %     revoke_def
 %     rollback_statement
 %     schema
+%     truncate_cluster
 %     truncate_table
 %     update_statement
 %     view_def

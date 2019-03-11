@@ -1011,44 +1011,20 @@ drop table table_1, table_2;").
 %%------------------------------------------------------------------------------
 
 -define(DROP_05, "
-drop table table_1, table_2 cascade;").
+drop table table_1, table_2 cascade constraints;").
 
 -define(DROP_05_RESULT_DEFAULT, "DROP TABLE
-    Table_1, Table_2
-CASCADE;").
-
-%%------------------------------------------------------------------------------
-%% DROP 06 - TABLE.
-%%------------------------------------------------------------------------------
-
--define(DROP_06, "
-drop table table_1 restrict;").
-
--define(DROP_06_RESULT_DEFAULT, "DROP TABLE
-    Table_1
-RESTRICT;").
+    Table_1, Table_2 CASCADE CONSTRAINTS;").
 
 %%------------------------------------------------------------------------------
 %% DROP 07 - TABLE.
 %%------------------------------------------------------------------------------
 
 -define(DROP_07, "
-drop table if exists table_1,table_2 cascade;").
+drop table if exists table_1,table_2 cascade constraints;").
 
 -define(DROP_07_RESULT_DEFAULT, "DROP TABLE IF EXISTS
-    Table_1, Table_2
-CASCADE;").
-
-%%------------------------------------------------------------------------------
-%% DROP 08 - TABLE.
-%%------------------------------------------------------------------------------
-
--define(DROP_08, "
-drop table if exists table_1, table_2,table_3,table_4 restrict;").
-
--define(DROP_08_RESULT_DEFAULT, "DROP TABLE IF EXISTS
-    Table_1, Table_2, Table_3, Table_4
-RESTRICT;").
+    Table_1, Table_2 CASCADE CONSTRAINTS;").
 
 %%------------------------------------------------------------------------------
 %% DROP 09 - TABLE.
@@ -1067,8 +1043,7 @@ drop imem_dal_skvh table skvhtest;").
 -define(DROP_10, "
 drop user user_1;").
 
--define(DROP_10_RESULT_DEFAULT, "DROP USER
-    User_1;").
+-define(DROP_10_RESULT_DEFAULT, "DROP USER User_1;").
 
 %%------------------------------------------------------------------------------
 %% DROP 11 - USER.
@@ -1077,9 +1052,7 @@ drop user user_1;").
 -define(DROP_11, "
 drop user user_1 cascade;").
 
--define(DROP_11_RESULT_DEFAULT, "DROP USER
-    User_1
-CASCADE;").
+-define(DROP_11_RESULT_DEFAULT, "DROP USER User_1 CASCADE;").
 
 %%------------------------------------------------------------------------------
 %% DROP 12 - TABLE.
@@ -5540,18 +5513,18 @@ ORDER BY
 %%------------------------------------------------------------------------------
 
 -define(SELECT_30, "
-select 'columN_1' from 'tablE_1' where 'columN_3' = 'columN_4' having 'columN_6' = 'columN_7' order by 'columN_8';").
+select \"columN_1\" from \"tablE_1\" where \"columN_3\" = \"columN_4\" having \"columN_6\" = \"columN_7\" order by \"columN_8\";").
 
 -define(SELECT_30_RESULT_DEFAULT, "SELECT
-    'columN_1'
+    \"columN_1\"
 FROM
-    'tablE_1'
+    \"tablE_1\"
 WHERE
-    'columN_3' = 'columN_4'
+    \"columN_3\" = \"columN_4\"
 HAVING
-    'columN_6' = 'columN_7'
+    \"columN_6\" = \"columN_7\"
 ORDER BY
-    'columN_8';").
+    \"columN_8\";").
 
 %%------------------------------------------------------------------------------
 %% SELECT 31 - ANCHOR.
@@ -5706,7 +5679,7 @@ truncate table tbl preserve materialized view log;").
 
 -define(TRUNCATE_02_RESULT_DEFAULT, "TRUNCATE TABLE
     Tbl
-PRESERVE MATERIALIZED VIEW LOG;").
+        PRESERVE MATERIALIZED VIEW LOG;").
 
 %%------------------------------------------------------------------------------
 %% TRUNCATE 03 - PURGE.
@@ -5717,7 +5690,7 @@ truncate table tbl purge materialized view log;").
 
 -define(TRUNCATE_03_RESULT_DEFAULT, "TRUNCATE TABLE
     Tbl
-PURGE MATERIALIZED VIEW LOG;").
+        PURGE MATERIALIZED VIEW LOG;").
 
 %%------------------------------------------------------------------------------
 %% TRUNCATE 04 - DROP.
@@ -5728,7 +5701,7 @@ truncate table tbl drop storage;").
 
 -define(TRUNCATE_04_RESULT_DEFAULT, "TRUNCATE TABLE
     Tbl
-DROP STORAGE;").
+        DROP STORAGE;").
 
 %%------------------------------------------------------------------------------
 %% TRUNCATE 05 - REUSE.
@@ -5739,7 +5712,7 @@ truncate table tbl reuse storage;").
 
 -define(TRUNCATE_05_RESULT_DEFAULT, "TRUNCATE TABLE
     Tbl
-REUSE STORAGE;").
+        REUSE STORAGE;").
 
 %%------------------------------------------------------------------------------
 %% TRUNCATE 06 - PRESEREVE & DROP.
@@ -5750,8 +5723,8 @@ truncate table tbl preserve materialized view log drop storage;").
 
 -define(TRUNCATE_06_RESULT_DEFAULT, "TRUNCATE TABLE
     Tbl
-PRESERVE MATERIALIZED VIEW LOG
-DROP STORAGE;").
+        PRESERVE MATERIALIZED VIEW LOG
+        DROP STORAGE;").
 
 %%------------------------------------------------------------------------------
 %% TRUNCATE 07 - PURGE & DROP.
@@ -5762,8 +5735,8 @@ truncate table tbl purge materialized view log drop storage;").
 
 -define(TRUNCATE_07_RESULT_DEFAULT, "TRUNCATE TABLE
     Tbl
-PURGE MATERIALIZED VIEW LOG
-DROP STORAGE;").
+        PURGE MATERIALIZED VIEW LOG
+        DROP STORAGE;").
 
 %%------------------------------------------------------------------------------
 %% UNBREAKABLE 01 - |.

@@ -9,6 +9,27 @@
 %% -----------------------------------------------------------------------------
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% truncate_cluster
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+"truncate cluster cluster_name drop all storage".
+"truncate cluster cluster_name drop all storage;".
+"truncate cluster cluster_name drop storage".
+"truncate cluster cluster_name drop storage;".
+"truncate cluster cluster_name reuse storage".
+"truncate cluster cluster_name reuse storage;".
+"truncate cluster cluster_name".
+"truncate cluster cluster_name;".
+"truncate cluster schema_name.cluster_name drop all storage".
+"truncate cluster schema_name.cluster_name drop all storage;".
+"truncate cluster schema_name.cluster_name drop storage".
+"truncate cluster schema_name.cluster_name drop storage;".
+"truncate cluster schema_name.cluster_name reuse storage".
+"truncate cluster schema_name.cluster_name reuse storage;".
+"truncate cluster schema_name.cluster_name".
+"truncate cluster schema_name.cluster_name;".
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % truncate_table
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -43,6 +64,44 @@
 "truncate table tbl purge materialized view log reuse storage".
 "truncate table tbl purge materialized view log".
 "truncate table tbl reuse storage".
+"truncate table schema_name.table_name cascade".
+"truncate table schema_name.table_name drop all storage cascade".
+"truncate table schema_name.table_name drop storage cascade".
+"truncate table schema_name.table_name preserve materialized view log cascade".
+"truncate table schema_name.table_name preserve materialized view log drop all storage cascade".
+"truncate table schema_name.table_name preserve materialized view log drop all storage".
+"truncate table schema_name.table_name preserve materialized view log drop storage cascade".
+"truncate table schema_name.table_name preserve materialized view log drop storage".
+"truncate table schema_name.table_name preserve materialized view log reuse storage cascade".
+"truncate table schema_name.table_name preserve materialized view log reuse storage".
+"truncate table schema_name.table_name purge materialized view log cascade".
+"truncate table schema_name.table_name purge materialized view log drop all storage cascade".
+"truncate table schema_name.table_name purge materialized view log drop all storage".
+"truncate table schema_name.table_name purge materialized view log drop storage cascade".
+"truncate table schema_name.table_name purge materialized view log drop storage".
+"truncate table schema_name.table_name purge materialized view log reuse storage cascade".
+"truncate table schema_name.table_name purge materialized view log reuse storage".
+"truncate table schema_name.table_name reuse storage cascade".
+"truncate table schema_name.table_name".
+"truncate table table_name cascade".
+"truncate table table_name drop all storage cascade".
+"truncate table table_name drop storage cascade".
+"truncate table table_name preserve materialized view log cascade".
+"truncate table table_name preserve materialized view log drop all storage cascade".
+"truncate table table_name preserve materialized view log drop all storage".
+"truncate table table_name preserve materialized view log drop storage cascade".
+"truncate table table_name preserve materialized view log drop storage".
+"truncate table table_name preserve materialized view log reuse storage cascade".
+"truncate table table_name preserve materialized view log reuse storage".
+"truncate table table_name purge materialized view log cascade".
+"truncate table table_name purge materialized view log drop all storage cascade".
+"truncate table table_name purge materialized view log drop all storage".
+"truncate table table_name purge materialized view log drop storage cascade".
+"truncate table table_name purge materialized view log drop storage".
+"truncate table table_name purge materialized view log reuse storage cascade".
+"truncate table table_name purge materialized view log reuse storage".
+"truncate table table_name reuse storage cascade".
+"truncate table table_name".
 
 %% -----------------------------------------------------------------------------
 %% TESTS: TRUNCATE

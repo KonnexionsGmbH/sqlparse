@@ -368,15 +368,14 @@ fold_i(FType, Fun, LOpts, FunState, Ctx, {case_when_then_list = Rule, PTree}) ->
 % check
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% wwe
-%%fold_i(FType, Fun, LOpts, FunState, Ctx, {check = Rule, _, PTree})
-%%    when is_binary(PTree) ->
-%%    ?FOLD_INIT(FunState, Ctx, PTree),
-%%    NewCtxS =
-%%        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
-%%    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
-%%        {Rule, get_start_end(FType, 'end')}),
-%%    ?FOLD_RESULT(NewCtxE);
+fold_i(FType, Fun, LOpts, FunState, Ctx, {check = Rule, _, PTree})
+    when is_binary(PTree) ->
+    ?FOLD_INIT(FunState, Ctx, PTree),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % check & ref
@@ -395,20 +394,19 @@ fold_i(FType, Fun, LOpts, FunState, Ctx, {Type = Rule, PTree})
 % check & default & procedure_call
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% wwe
-%%fold_i(FType, Fun, LOpts, FunState, Ctx,
-%%    {Type = Rule, {as, {{'fun', _, _}, JSON, []}, Alias} = PTree})
-%%    when
-%%    (Type == check orelse Type == default orelse Type == procedure_call) andalso
-%%        is_tuple(JSON) andalso is_binary(Alias) ->
-%%    ?FOLD_INIT(FunState, Ctx, PTree),
-%%    NewCtxS =
-%%        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
-%%    NewCtx1 =
-%%        fold_i(FType, Fun, LOpts, FunState, NewCtxS, {function_ref, PTree}),
-%%    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
-%%        {Rule, get_start_end(FType, 'end')}),
-%%    ?FOLD_RESULT(NewCtxE);
+fold_i(FType, Fun, LOpts, FunState, Ctx,
+    {Type = Rule, {as, {{'fun', _, _}, JSON, []}, Alias} = PTree})
+    when
+    (Type == check orelse Type == default orelse Type == procedure_call) andalso
+        is_tuple(JSON) andalso is_binary(Alias) ->
+    ?FOLD_INIT(FunState, Ctx, PTree),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtx1 =
+        fold_i(FType, Fun, LOpts, FunState, NewCtxS, {function_ref, PTree}),
+    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
 fold_i(FType, Fun, LOpts, FunState, Ctx, {Type = Rule,
     {{'fun', _, _}, JSON, []} = PTree})
     when
@@ -1597,21 +1595,6 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
     ?FOLD_RESULT(NewCtxE);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% drop_user_extensions
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% wwe
-%%fold_i(FType, Fun, LOpts, FunStateIn, Ctx, Type = PTree)
-%%    when Type == cascade ->
-%%    Rule = drop_extensions,
-%%    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
-%%    NewCtxS =
-%%        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
-%%    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
-%%        {Rule, get_start_end(FType, 'end')}),
-%%    ?FOLD_RESULT(NewCtxE);
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % drop_view_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1642,21 +1625,6 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
     NewCtxE = Fun(LOpts, FunState, NewCtx2, PTree,
         {Rule, get_start_end(FType, 'end')}),
     ?FOLD_RESULT(NewCtxE);
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% drop_view_extensions
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% wwe
-%%fold_i(FType, Fun, LOpts, FunStateIn, Ctx, Type = PTree)
-%%    when Type == 'cascade constraints' ->
-%%    Rule = drop_extensions,
-%%    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
-%%    NewCtxS =
-%%        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
-%%    NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
-%%        {Rule, get_start_end(FType, 'end')}),
-%%    ?FOLD_RESULT(NewCtxE);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % else
@@ -1868,19 +1836,18 @@ fold_i(FType, Fun, LOpts, FunState, Ctx, {fun_arg_commalist = Rule, PTree}) ->
 % function_ref
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% wwe
-%%fold_i(FType, Fun, LOpts, FunState, Ctx,
-%%    {function_ref = Rule, {as, {FunRef, JSON, []}, Alias} = PTree})
-%%    when is_tuple(JSON); is_binary(Alias) ->
-%%    ?FOLD_INIT(FunState, Ctx, PTree),
-%%    NewCtxS =
-%%        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
-%%    NewCtx1 = fold_i(FType, Fun, LOpts, set_state_rule(FunState, Rule), NewCtxS,
-%%        {function_ref, FunRef}),
-%%    NewCtx2 = fold_i(FType, Fun, LOpts, FunState, NewCtx1, {jpparse, JSON}),
-%%    NewCtxE = Fun(LOpts, FunState, NewCtx2, PTree,
-%%        {Rule, get_start_end(FType, 'end')}),
-%%    ?FOLD_RESULT(NewCtxE);
+fold_i(FType, Fun, LOpts, FunState, Ctx,
+    {function_ref = Rule, {as, {FunRef, JSON, []}, Alias} = PTree})
+    when is_tuple(JSON); is_binary(Alias) ->
+    ?FOLD_INIT(FunState, Ctx, PTree),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtx1 = fold_i(FType, Fun, LOpts, set_state_rule(FunState, Rule), NewCtxS,
+        {function_ref, FunRef}),
+    NewCtx2 = fold_i(FType, Fun, LOpts, FunState, NewCtx1, {jpparse, JSON}),
+    NewCtxE = Fun(LOpts, FunState, NewCtx2, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
 fold_i(FType, Fun, LOpts, FunState, Ctx,
     {function_ref = Rule, {FunRef, JSON, []} = PTree})
     when is_tuple(JSON) ->

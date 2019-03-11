@@ -330,7 +330,8 @@ create_code_layer(Version) ->
     end,
     create_code(like_predicate),
     create_code(ordering_spec),
-    create_code(scalar_opt_as_exp),
+    create_code(scalar_opt_as_exp_1),
+    create_code(scalar_opt_as_exp_2),
     create_code(test_for_null),
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -678,24 +679,24 @@ create_code(assignment_commalist = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% assignment_statement ::= parameter ':=' scalar_opt_as_exp
+%% assignment_statement ::= parameter ':=' scalar_opt_as_exp_1
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(assignment_statement = Rule) ->
     ?CREATE_CODE_START,
     [{parameter, Parameter}] = ets:lookup(?CODE_TEMPLATES, parameter),
     Parameter_Length = length(Parameter),
-    [{scalar_opt_as_exp, Scalar_Opt_As_Exp}] =
-        ets:lookup(?CODE_TEMPLATES, scalar_opt_as_exp),
-    Scalar_Opt_As_Exp_Length = length(Scalar_Opt_As_Exp),
+    [{scalar_opt_as_exp_1, Scalar_Opt_As_Exp_1}] =
+        ets:lookup(?CODE_TEMPLATES, scalar_opt_as_exp_1),
+    Scalar_Opt_As_Exp_1_Length = length(Scalar_Opt_As_Exp_1),
 
     Code =
         [
             lists:append([
                 lists:nth(rand:uniform(Parameter_Length), Parameter),
                 " := ",
-                lists:nth(rand:uniform(Scalar_Opt_As_Exp_Length),
-                    Scalar_Opt_As_Exp)
+                lists:nth(rand:uniform(Scalar_Opt_As_Exp_1_Length),
+                    Scalar_Opt_As_Exp_1)
             ])
             || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
         ],
@@ -4577,14 +4578,41 @@ create_code(scalar_exp_commalist = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% scalar_opt_as_exp ::= ( scalar_exp ( COMPARISON scalar_exp )? )
-%%                     | ( scalar_exp ( AS )? NAME )
+%% scalar_opt_as_exp_1 ::= scalar_exp ( COMPARISON scalar_exp )?
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-create_code(scalar_opt_as_exp = Rule) ->
+create_code(scalar_opt_as_exp_1 = Rule) ->
     ?CREATE_CODE_START,
     [{comparison, Comparison}] = ets:lookup(?CODE_TEMPLATES, comparison),
     Comparison_Length = length(Comparison),
+    [{scalar_exp, Scalar_Exp}] = ets:lookup(?CODE_TEMPLATES, scalar_exp),
+    Scalar_Exp_Length = length(Scalar_Exp),
+
+    Code =
+        [
+            lists:append([
+                bracket_query_spec(
+                    lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp)),
+                lists:nth(rand:uniform(Comparison_Length), Comparison),
+                bracket_query_spec(
+                    lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp))
+            ])
+            || _ <- lists:seq(1, ?MAX_BASIC * 2)
+        ],
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    store_code(comparison_predicate, Code, ?MAX_BASIC, false),
+    store_code(predicate, Code, ?MAX_BASIC, false),
+    store_code(scalar_opt_as_exp, Code, ?MAX_BASIC, false),
+    store_code(select_field, Code, ?MAX_BASIC, false),
+    store_code(selection, Code, ?MAX_BASIC, false),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% scalar_opt_as_exp_2 ::= scalar_exp ( AS )? NAME
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(scalar_opt_as_exp_2 = Rule) ->
+    ?CREATE_CODE_START,
     [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
     [{scalar_exp, Scalar_Exp}] = ets:lookup(?CODE_TEMPLATES, scalar_exp),
@@ -4592,30 +4620,22 @@ create_code(scalar_opt_as_exp = Rule) ->
 
     Code =
         [
-            case rand:uniform(2) rem 2 of
-                1 -> lists:append([
-                    bracket_query_spec(
-                        lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp)),
-                    lists:nth(rand:uniform(Comparison_Length), Comparison),
-                    bracket_query_spec(
-                        lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp))
-                ]);
-                _ -> lists:append([
-                    bracket_query_spec(
-                        lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp)),
-                    case rand:uniform(2) rem 2 of
-                        1 -> " As";
-                        _ -> []
-                    end,
-                    " ",
-                    lists:nth(rand:uniform(Name_Length), Name)
-                ])
-            end
+            lists:append([
+                bracket_query_spec(
+                    lists:nth(rand:uniform(Scalar_Exp_Length), Scalar_Exp)),
+                case rand:uniform(2) rem 2 of
+                    1 -> " As";
+                    _ -> []
+                end,
+                " ",
+                lists:nth(rand:uniform(Name_Length), Name)
+            ])
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
     store_code(Rule, Code, ?MAX_BASIC, false),
     store_code(comparison_predicate, Code, ?MAX_BASIC, false),
     store_code(predicate, Code, ?MAX_BASIC, false),
+    store_code(scalar_opt_as_exp, Code, ?MAX_BASIC, false),
     store_code(select_field, Code, ?MAX_BASIC, false),
     store_code(selection, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;

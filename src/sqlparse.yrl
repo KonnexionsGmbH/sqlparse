@@ -181,6 +181,8 @@ Nonterminals
  scalar_exp
  scalar_exp_commalist
  scalar_opt_as_exp
+ scalar_opt_as_exp_1
+ scalar_opt_as_exp_2
  scalar_sub_exp
  schema
  schema_element
@@ -486,7 +488,7 @@ statement_pragma -> update_statement_searched      : '$1'.
 statement_pragma -> WHENEVER NOT FOUND when_action : {when_not_found, '$4'}.
 statement_pragma -> WHENEVER SQLERROR  when_action : {when_sql_err, '$3'}.
 
-assignment_statement -> parameter ':=' scalar_opt_as_exp : {':=', '$1', '$3'}.
+assignment_statement -> parameter ':=' scalar_opt_as_exp_1 : {':=', '$1', '$3'}.
 
 procedure_call -> CALL function_ref : {'call procedure',  '$2'}.
 
@@ -1316,11 +1318,15 @@ subquery -> query_exp : '$1'.
 %% scalar expressions
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-scalar_opt_as_exp -> scalar_exp                       : '$1'.
-scalar_opt_as_exp -> scalar_exp '='        scalar_exp : {'=',          '$1', '$3'}.
-scalar_opt_as_exp -> scalar_exp COMPARISON scalar_exp : {unwrap('$2'), '$1', '$3'}.
-scalar_opt_as_exp -> scalar_exp    NAME               : {as, '$1', unwrap_bin('$2')}.
-scalar_opt_as_exp -> scalar_exp AS NAME               : {as, '$1', unwrap_bin('$3')}.
+scalar_opt_as_exp_1 -> scalar_exp                       : '$1'.
+scalar_opt_as_exp_1 -> scalar_exp '='        scalar_exp : {'=',          '$1', '$3'}.
+scalar_opt_as_exp_1 -> scalar_exp COMPARISON scalar_exp : {unwrap('$2'), '$1', '$3'}.
+
+scalar_opt_as_exp_2 -> scalar_exp    NAME : {as, '$1', unwrap_bin('$2')}.
+scalar_opt_as_exp_2 -> scalar_exp AS NAME : {as, '$1', unwrap_bin('$3')}.
+
+scalar_opt_as_exp -> scalar_opt_as_exp_1 : '$1'.
+scalar_opt_as_exp -> scalar_opt_as_exp_2 : '$1'.
 
 scalar_exp -> scalar_sub_exp '||' scalar_exp : {'||','$1','$3'}.
 scalar_exp -> scalar_sub_exp                 : '$1'.

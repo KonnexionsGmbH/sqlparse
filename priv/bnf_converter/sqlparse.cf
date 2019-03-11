@@ -100,9 +100,9 @@ StatementPragma15.                StatementPragma ::= UpdateStatementSearched ;
 StatementPragma16.                StatementPragma ::= "WHENEVER" "NOT" "FOUND" WhenAction ;
 StatementPragma17.                StatementPragma ::= "WHENEVER" "SQLERROR"    WhenAction ;
 
--- assignment_statement -> parameter ':=' scalar_opt_as_exp : {':=', '$1', '$3'}.
+-- assignment_statement -> parameter ':=' scalar_opt_as_exp_1 : {':=', '$1', '$3'}.
 
-AssignStatement01.                AssignStatement ::= Parameter ":=" ScalarOptAsExp ;
+AssignStatement01.                AssignStatement ::= Parameter ":=" ScalarOptAsExp1 ;
 
 -- procedure_call -> procedure_call -> CALL function_ref : {'call procedure',  '$2'}.
 
@@ -1684,17 +1684,25 @@ Subquery01.                       Subquery ::= QueryExp ;
 -- Scalar expressions
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--- scalar_opt_as_exp -> scalar_exp                       : '$1'.
--- scalar_opt_as_exp -> scalar_exp '='        scalar_exp : {'=',          '$1', '$3'}.
--- scalar_opt_as_exp -> scalar_exp COMPARISON scalar_exp : {unwrap('$2'), '$1', '$3'}.
--- scalar_opt_as_exp -> scalar_exp    NAME               : {as, '$1', unwrap_bin('$2')}.
--- scalar_opt_as_exp -> scalar_exp AS NAME               : {as, '$1', unwrap_bin('$3')}.
+-- scalar_opt_as_exp_1 -> scalar_exp                       : '$1'.
+-- scalar_opt_as_exp_1 -> scalar_exp '='        scalar_exp : {'=',          '$1', '$3'}.
+-- scalar_opt_as_exp_1 -> scalar_exp COMPARISON scalar_exp : {unwrap('$2'), '$1', '$3'}.
 
-ScalarOptAsExp01.                 ScalarOptAsExp ::= ScalarExp                        ;
-ScalarOptAsExp02.                 ScalarOptAsExp ::= ScalarExp "="          ScalarExp ;
-ScalarOptAsExp03.                 ScalarOptAsExp ::= ScalarExp "COMPARISON" ScalarExp ;
-ScalarOptAsExp04.                 ScalarOptAsExp ::= ScalarExp      "NAME"            ;
-ScalarOptAsExp05.                 ScalarOptAsExp ::= ScalarExp "AS" "NAME"            ;
+ScalarOptAsExp101.                ScalarOptAsExp1 ::= ScalarExp                        ;
+ScalarOptAsExp102.                ScalarOptAsExp1 ::= ScalarExp "="          ScalarExp ;
+ScalarOptAsExp103.                ScalarOptAsExp1 ::= ScalarExp "COMPARISON" ScalarExp ;
+
+-- scalar_opt_as_exp_2 -> scalar_exp    NAME : {as, '$1', unwrap_bin('$2')}.
+-- scalar_opt_as_exp_2 -> scalar_exp AS NAME : {as, '$1', unwrap_bin('$3')}.
+
+ScalarOptAsExp201.                ScalarOptAsExp2 ::= ScalarExp      "NAME" ;
+ScalarOptAsExp202.                ScalarOptAsExp2 ::= ScalarExp "AS" "NAME" ;
+
+-- scalar_opt_as_exp -> scalar_opt_as_exp_1 : '$1'.
+-- scalar_opt_as_exp -> scalar_opt_as_exp_2 : '$1'.
+
+ScalarOptAsExp01.                 ScalarOptAsExp ::= ScalarOptAsExp1 ;
+ScalarOptAsExp02.                 ScalarOptAsExp ::= ScalarOptAsExp2 ;
 
 -- scalar_exp -> scalar_sub_exp '||' scalar_exp : {'||','$1','$3'}.
 -- scalar_exp -> scalar_sub_exp                 : '$1'.

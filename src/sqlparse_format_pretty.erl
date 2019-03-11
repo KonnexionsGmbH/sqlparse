@@ -216,15 +216,14 @@ fold(LOpts, FunState, Ctx, {'alter user', Users, _Spec} = _PTree,
 % anchor
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% wwe
-%%fold(_LOpts, _FunState, Ctx, {Anchor, '('} = _PTree, {anchor, Step} =
-%%    _FoldState)
-%%    when is_binary(Anchor) ->
-%%    RT = case Step of
-%%             start -> lists:append([Ctx, "(", binary_to_list(Anchor)]);
-%%             'end' -> Ctx ++ ")"
-%%         end,
-%%    ?CUSTOM_RESULT(RT);
+fold(_LOpts, _FunState, Ctx, {Anchor, '('} = _PTree, {anchor, Step} =
+    _FoldState)
+    when is_binary(Anchor) ->
+    RT = case Step of
+             start -> lists:append([Ctx, "(", binary_to_list(Anchor)]);
+             'end' -> Ctx ++ ")"
+         end,
+    ?CUSTOM_RESULT(RT);
 fold(_LOpts, _FunState, Ctx, {_Anchor, '('} = _PTree, {anchor, Step} =
     _FoldState) ->
     RT = case Step of
@@ -281,20 +280,19 @@ fold(LOpts, _FunState, Ctx, {Value, Alias} = _PTree, {explicit_as, Step} =
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
-% wwe
-%%fold(LOpts, _FunState, Ctx, {_Value, Alias} = _PTree, {explicit_as, Step} =
-%%    _FoldState)
-%%    when is_binary(Alias) ->
-%%    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
-%%    RT = case Step of
-%%             'end' -> lists:append([
-%%                 Ctx,
-%%                 " AS ",
-%%                 format_identifier(LOpts, Alias)
-%%             ]);
-%%             _ -> Ctx
-%%         end,
-%%    ?CUSTOM_RESULT(RT);
+fold(LOpts, _FunState, Ctx, {_Value, Alias} = _PTree, {explicit_as, Step} =
+    _FoldState)
+    when is_binary(Alias) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             'end' -> lists:append([
+                 Ctx,
+                 " AS ",
+                 format_identifier(LOpts, Alias)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % assignment
@@ -557,15 +555,14 @@ fold(LOpts, FunState, Ctx, {ScalarOptAsExpr, _CaseWhenThenList, Else} =
 % check
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% wwe
-%%fold(_LOpts, _FunState, Ctx, PTree, {check, Step} = _FoldState)
-%%    when is_binary(PTree) ->
-%%    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
-%%    RT = case Step of
-%%             start -> Ctx ++ binary_to_list(PTree);
-%%             _ -> Ctx
-%%         end,
-%%    ?CUSTOM_RESULT(RT);
+fold(_LOpts, _FunState, Ctx, PTree, {check, Step} = _FoldState)
+    when is_binary(PTree) ->
+    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+    RT = case Step of
+             start -> Ctx ++ binary_to_list(PTree);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % close_statement
@@ -766,44 +763,43 @@ fold(_LOpts, _FunState, Ctx, {Op, _ScalarExp} = _PTree,
 % connect_by
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% wwe
-%%fold(LOpts, FunState, Ctx, {'connect by', <<>>, SearchCondition} = _PTree,
-%%    {connect_by, Step} = _FoldState)
-%%    when is_binary(SearchCondition) ->
-%%    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
-%%    RT = case Step of
-%%             start -> lists:append([
-%%                 Ctx,
-%%                 ?CHAR_NEWLINE,
-%%                 format_column_pos(LOpts, FunState#fstate{indent_lvl =
-%%                 FunState#fstate.indent_lvl - 1}),
-%%                 format_keyword(LOpts, "connect by"),
-%%                 ?CHAR_NEWLINE,
-%%                 format_column_pos(LOpts, FunState),
-%%                 format_identifier(LOpts, SearchCondition)
-%%             ]);
-%%             _ -> Ctx
-%%         end,
-%%    ?CUSTOM_RESULT(RT);
-%%fold(LOpts, FunState, Ctx, {'connect by', NoCycle, SearchCondition} = _PTree,
-%%    {connect_by, Step} = _FoldState)
-%%    when is_binary(SearchCondition) ->
-%%    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
-%%    RT = case Step of
-%%             start -> lists:append([
-%%                 Ctx,
-%%                 ?CHAR_NEWLINE,
-%%                 format_column_pos(LOpts, FunState#fstate{indent_lvl =
-%%                 FunState#fstate.indent_lvl - 1}),
-%%                 format_keyword(LOpts, "connect by "),
-%%                 format_keyword(LOpts, NoCycle),
-%%                 ?CHAR_NEWLINE,
-%%                 format_column_pos(LOpts, FunState),
-%%                 format_identifier(LOpts, SearchCondition)
-%%             ]);
-%%             _ -> Ctx
-%%         end,
-%%    ?CUSTOM_RESULT(RT);
+fold(LOpts, FunState, Ctx, {'connect by', <<>>, SearchCondition} = _PTree,
+    {connect_by, Step} = _FoldState)
+    when is_binary(SearchCondition) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 ?CHAR_NEWLINE,
+                 format_column_pos(LOpts, FunState#fstate{indent_lvl =
+                 FunState#fstate.indent_lvl - 1}),
+                 format_keyword(LOpts, "connect by"),
+                 ?CHAR_NEWLINE,
+                 format_column_pos(LOpts, FunState),
+                 format_identifier(LOpts, SearchCondition)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+fold(LOpts, FunState, Ctx, {'connect by', NoCycle, SearchCondition} = _PTree,
+    {connect_by, Step} = _FoldState)
+    when is_binary(SearchCondition) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 ?CHAR_NEWLINE,
+                 format_column_pos(LOpts, FunState#fstate{indent_lvl =
+                 FunState#fstate.indent_lvl - 1}),
+                 format_keyword(LOpts, "connect by "),
+                 format_keyword(LOpts, NoCycle),
+                 ?CHAR_NEWLINE,
+                 format_column_pos(LOpts, FunState),
+                 format_identifier(LOpts, SearchCondition)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
 fold(LOpts, FunState, Ctx, {'connect by', <<>>, _SearchCondition} = _PTree,
     {connect_by, Step} = _FoldState) ->
     ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
@@ -1158,15 +1154,14 @@ fold(_LOpts, _FunState, Ctx, PTree, {dblink, Step} = _FoldState)
 % default
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% wwe
-%%fold(_LOpts, _FunState, Ctx, PTree, {default, Step} = _FoldState)
-%%    when is_atom(PTree) ->
-%%    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
-%%    RT = case Step of
-%%             start -> Ctx ++ atom_to_list(PTree);
-%%             _ -> Ctx
-%%         end,
-%%    ?CUSTOM_RESULT(RT);
+fold(_LOpts, _FunState, Ctx, PTree, {default, Step} = _FoldState)
+    when is_atom(PTree) ->
+    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+    RT = case Step of
+             start -> Ctx ++ atom_to_list(PTree);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
 fold(_LOpts, _FunState, Ctx, PTree, {default, Step} = _FoldState)
     when is_binary(PTree) ->
     ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
@@ -1859,24 +1854,23 @@ fold(LOpts, FunState, Ctx, _PTree, {from, Step} = _FoldState) ->
 % fun_arg
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% wwe
-%%fold(LOpts, _FunState, Ctx, {as, {'fun', _, _}, Alias} = _PTree,
-%%    {fun_arg, Step, Pos} = _FoldState) ->
-%%    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
-%%    RT = case Step of
-%%             'end' ->
-%%                 lists:append([
-%%                     Ctx,
-%%                     " ",
-%%                     format_identifier(LOpts, Alias),
-%%                     case Pos of
-%%                         other -> ", ";
-%%                         _ -> []
-%%                     end
-%%                 ]);
-%%             _ -> Ctx
-%%         end,
-%%    ?CUSTOM_RESULT(RT);
+fold(LOpts, _FunState, Ctx, {as, {'fun', _, _}, Alias} = _PTree,
+    {fun_arg, Step, Pos} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             'end' ->
+                 lists:append([
+                     Ctx,
+                     " ",
+                     format_identifier(LOpts, Alias),
+                     case Pos of
+                         other -> ", ";
+                         _ -> []
+                     end
+                 ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
 fold(LOpts, _FunState, Ctx, {Type, Value} = _PTree, {fun_arg, Step, _Pos} =
     _FoldState)
     when (Type == all orelse Type == distinct) andalso is_binary(Value) ->
@@ -1981,20 +1975,19 @@ fold(LOpts, FunState, Ctx, {'fun', Name, _} = _PTree, {function_ref, Step} =
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
-% wwe
-%%fold(LOpts, _FunState, Ctx, {as, {{'fun', _, _}, JSON, []}, Alias} = _PTree,
-%%    {function_ref, Step} = _FoldState)
-%%    when is_tuple(JSON) ->
-%%    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
-%%    RT = case Step of
-%%             'end' -> lists:append([
-%%                 Ctx,
-%%                 " ",
-%%                 format_identifier(LOpts, Alias)]
-%%             );
-%%             _ -> Ctx
-%%         end,
-%%    ?CUSTOM_RESULT(RT);
+fold(LOpts, _FunState, Ctx, {as, {{'fun', _, _}, JSON, []}, Alias} = _PTree,
+    {function_ref, Step} = _FoldState)
+    when is_tuple(JSON) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             'end' -> lists:append([
+                 Ctx,
+                 " ",
+                 format_identifier(LOpts, Alias)]
+             );
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % goto
@@ -2185,24 +2178,23 @@ fold(LOpts, FunState, Ctx, _PTree, {group_by, Step} = _FoldState) ->
 % having
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% wwe
-%%fold(LOpts, FunState, Ctx, PTree, {having, Step} = _FoldState)
-%%    when is_binary(PTree) ->
-%%    ?CUSTOM_INIT(FunState, Ctx, PTree, _FoldState),
-%%    RT = case Step of
-%%             start -> lists:append([
-%%                 Ctx,
-%%                 ?CHAR_NEWLINE,
-%%                 format_column_pos(LOpts, FunState#fstate{indent_lvl =
-%%                 FunState#fstate.indent_lvl - 1}),
-%%                 format_keyword(LOpts, "having"),
-%%                 ?CHAR_NEWLINE,
-%%                 format_column_pos(LOpts, FunState),
-%%                 format_identifier(LOpts, PTree)
-%%             ]);
-%%             _ -> Ctx
-%%         end,
-%%    ?CUSTOM_RESULT(RT);
+fold(LOpts, FunState, Ctx, PTree, {having, Step} = _FoldState)
+    when is_binary(PTree) ->
+    ?CUSTOM_INIT(FunState, Ctx, PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 ?CHAR_NEWLINE,
+                 format_column_pos(LOpts, FunState#fstate{indent_lvl =
+                 FunState#fstate.indent_lvl - 1}),
+                 format_keyword(LOpts, "having"),
+                 ?CHAR_NEWLINE,
+                 format_column_pos(LOpts, FunState),
+                 format_identifier(LOpts, PTree)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
 fold(LOpts, FunState, Ctx, _PTree, {having, Step} = _FoldState) ->
     ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
@@ -2664,21 +2656,20 @@ fold(LOpts, FunState, Ctx, {'materialized view log' = Value1, Value2} = _PTree,
 % on
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% wwe
-%%fold(LOpts, FunState, Ctx, PTree, {on, Step} = _FoldState)
-%%    when is_binary(PTree) ->
-%%    ?CUSTOM_INIT(FunState, Ctx, PTree, _FoldState),
-%%    RT = case Step of
-%%             start -> lists:append([
-%%                 Ctx,
-%%                 ?CHAR_NEWLINE,
-%%                 format_column_pos(LOpts, FunState),
-%%                 format_keyword(LOpts, "on "),
-%%                 format_identifier(LOpts, PTree)
-%%             ]);
-%%             _ -> Ctx
-%%         end,
-%%    ?CUSTOM_RESULT(RT);
+fold(LOpts, FunState, Ctx, PTree, {on, Step} = _FoldState)
+    when is_binary(PTree) ->
+    ?CUSTOM_INIT(FunState, Ctx, PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 ?CHAR_NEWLINE,
+                 format_column_pos(LOpts, FunState),
+                 format_keyword(LOpts, "on "),
+                 format_identifier(LOpts, PTree)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
 fold(LOpts, FunState, Ctx, _PTree, {on, Step} = _FoldState) ->
     ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
@@ -3532,25 +3523,24 @@ fold(LOpts, FunState, Ctx, {_SQL, Pos, {extra, Extra}} = _PTree,
 % start_with
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% wwe
-%%fold(LOpts, FunState, Ctx, {'start with', SearchCondition} = _PTree,
-%%    {start_with, Step} = _FoldState)
-%%    when is_binary(SearchCondition) ->
-%%    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
-%%    RT = case Step of
-%%             start -> lists:append([
-%%                 Ctx,
-%%                 ?CHAR_NEWLINE,
-%%                 format_column_pos(LOpts, FunState#fstate{indent_lvl =
-%%                 FunState#fstate.indent_lvl - 1}),
-%%                 format_keyword(LOpts, "start with"),
-%%                 ?CHAR_NEWLINE,
-%%                 format_column_pos(LOpts, FunState),
-%%                 format_identifier(LOpts, SearchCondition)
-%%             ]);
-%%             _ -> Ctx
-%%         end,
-%%    ?CUSTOM_RESULT(RT);
+fold(LOpts, FunState, Ctx, {'start with', SearchCondition} = _PTree,
+    {start_with, Step} = _FoldState)
+    when is_binary(SearchCondition) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 ?CHAR_NEWLINE,
+                 format_column_pos(LOpts, FunState#fstate{indent_lvl =
+                 FunState#fstate.indent_lvl - 1}),
+                 format_keyword(LOpts, "start with"),
+                 ?CHAR_NEWLINE,
+                 format_column_pos(LOpts, FunState),
+                 format_identifier(LOpts, SearchCondition)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
 fold(LOpts, FunState, Ctx, _PTree, {start_with, Step} = _FoldState) ->
     ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
@@ -3912,21 +3902,6 @@ fold(LOpts, FunState, Ctx,
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
-% wwe
-%%fold(LOpts, FunState, Ctx,
-%%    {'truncate cluster', _Name, _Cascade} = _PTree,
-%%    {truncate_cluster, Step} = _FoldState) ->
-%%    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
-%%    RT = case Step of
-%%             start -> lists:append([
-%%                 Ctx,
-%%                 format_new_statement(LOpts, FunState, "truncate cluster"),
-%%                 ?CHAR_NEWLINE,
-%%                 format_column_pos(LOpts, FunState)
-%%             ]);
-%%             _ -> Ctx
-%%         end,
-%%    ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % truncate_table
@@ -3967,22 +3942,21 @@ fold(LOpts, FunState, Ctx,
 % unary
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% wwe
-%%fold(LOpts, FunState, Ctx, {'not' = Op, Value} = _PTree, {unary, Step} =
-%%    _FoldState)
-%%    when is_binary(Value) ->
-%%    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
-%%    RT = case Step of
-%%             start -> lists:append([
-%%                 Ctx,
-%%                 format_operator(LOpts, FunState, Op, true),
-%%                 "(",
-%%                 format_identifier(LOpts, Value),
-%%                 ")"
-%%             ]);
-%%             _ -> Ctx
-%%         end,
-%%    ?CUSTOM_RESULT(RT);
+fold(LOpts, FunState, Ctx, {'not' = Op, Value} = _PTree, {unary, Step} =
+    _FoldState)
+    when is_binary(Value) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 format_operator(LOpts, FunState, Op, true),
+                 "(",
+                 format_identifier(LOpts, Value),
+                 ")"
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
 fold(LOpts, FunState, Ctx, {Op, Value} = _PTree, {unary, Step} =
     _FoldState)
     when is_atom(Op), is_binary(Value) ->
@@ -4171,22 +4145,21 @@ fold(LOpts, FunState, Ctx, _PTree, {view_query_spec, Step} = _FoldState) ->
 % 'when'
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% wwe
-%%fold(LOpts, FunState, Ctx, PTree, {'when', Step} = _FoldState)
-%%    when is_binary(PTree) ->
-%%    ?CUSTOM_INIT(FunState, Ctx, PTree, _FoldState),
-%%    RT = case Step of
-%%             start ->
-%%                 lists:append([Ctx,
-%%                     ?CHAR_NEWLINE,
-%%                     format_column_pos(LOpts, FunState#fstate{indent_lvl =
-%%                     FunState#fstate.indent_lvl + 1}),
-%%                     format_keyword(LOpts, "when "),
-%%                     format_identifier(LOpts, PTree)
-%%                 ]);
-%%             _ -> Ctx
-%%         end,
-%%    ?CUSTOM_RESULT(RT);
+fold(LOpts, FunState, Ctx, PTree, {'when', Step} = _FoldState)
+    when is_binary(PTree) ->
+    ?CUSTOM_INIT(FunState, Ctx, PTree, _FoldState),
+    RT = case Step of
+             start ->
+                 lists:append([Ctx,
+                     ?CHAR_NEWLINE,
+                     format_column_pos(LOpts, FunState#fstate{indent_lvl =
+                     FunState#fstate.indent_lvl + 1}),
+                     format_keyword(LOpts, "when "),
+                     format_identifier(LOpts, PTree)
+                 ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
 fold(LOpts, FunState, Ctx, _PTree, {'when', Step} = _FoldState) ->
     ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
@@ -4266,24 +4239,23 @@ fold(LOpts, FunState, Ctx, _PTree, {when_sql_err, Step} = _FoldState) ->
 % where_clause
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% wwe
-%%fold(LOpts, FunState, Ctx, PTree, {where_clause, Step} = _FoldState)
-%%    when is_binary(PTree) ->
-%%    ?CUSTOM_INIT(FunState, Ctx, PTree, _FoldState),
-%%    RT = case Step of
-%%             start -> lists:append([
-%%                 Ctx,
-%%                 ?CHAR_NEWLINE,
-%%                 format_column_pos(LOpts, FunState#fstate{indent_lvl =
-%%                 FunState#fstate.indent_lvl - 1}),
-%%                 format_keyword(LOpts, "where"),
-%%                 ?CHAR_NEWLINE,
-%%                 format_column_pos(LOpts, FunState),
-%%                 format_identifier(LOpts, PTree)
-%%             ]);
-%%             _ -> Ctx
-%%         end,
-%%    ?CUSTOM_RESULT(RT);
+fold(LOpts, FunState, Ctx, PTree, {where_clause, Step} = _FoldState)
+    when is_binary(PTree) ->
+    ?CUSTOM_INIT(FunState, Ctx, PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 ?CHAR_NEWLINE,
+                 format_column_pos(LOpts, FunState#fstate{indent_lvl =
+                 FunState#fstate.indent_lvl - 1}),
+                 format_keyword(LOpts, "where"),
+                 ?CHAR_NEWLINE,
+                 format_column_pos(LOpts, FunState),
+                 format_identifier(LOpts, PTree)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
 fold(LOpts, FunState, Ctx, _PTree, {where_clause, Step} = _FoldState) ->
     ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
@@ -4445,22 +4417,18 @@ break_line(Length, Prefix, Line) ->
 break_line(_Length, _Prefix, [], Acc) ->
     Acc;
 break_line(Length, Prefix, Line, Acc) ->
-    % erlang:display(io:format(user, "wwe 2 break_line Line In=~p~n", [Line])),
     case length(Line) < Length of
         true -> Acc ++ [Prefix ++ Line];
         _ -> BreakPoint = break_line_point(Length, Line),
-            % erlang:display(io:format(user, "wwe 2 break_line BreakPoint=~p~n", [BreakPoint])),
             case BreakPoint of
                 0 -> Acc ++ [Prefix ++ Line];
                 1 -> Acc ++ [Prefix ++ Line];
-                _ -> % erlang:display(io:format(user, "wwe 2 break_line Line=~p~n", [string:trim(string:slice(Line, 0, BreakPoint - 1), both, " ")])),
-                    % erlang:display(io:format(user, "wwe 2 break_line Rest=~p~n", [string:trim(string:slice(Line, BreakPoint - 1), both, " ")])),
-                    break_line(Length, Prefix,
-                        string:trim(string:slice(Line, BreakPoint - 1), both,
-                            " "),
-                        Acc ++ [Prefix ++
-                            string:trim(string:slice(Line, 0, BreakPoint - 1),
-                                both, " ")])
+                _ -> break_line(Length, Prefix,
+                    string:trim(string:slice(Line, BreakPoint - 1), both,
+                        " "),
+                    Acc ++ [Prefix ++
+                        string:trim(string:slice(Line, 0, BreakPoint - 1),
+                            both, " ")])
             end
     end.
 
@@ -4476,7 +4444,6 @@ break_line_point(_Length, _Line, [], BreakPoint, _Pos, _UnBreakable) ->
     BreakPoint;
 break_line_point(Length, Line, [Char | Tail], BreakPoint, Pos, UnBreakable)
     when Pos =< Length ->
-    % erlang:display(io:format(user, "wwe 2 Pos=~p[~p/~p]~n", [Pos, [Char], UnBreakable])),
     case UnBreakable of
         [] -> case Char of
                   $' -> case Pos > 1 andalso
@@ -4485,20 +4452,16 @@ break_line_point(Length, Line, [Char | Tail], BreakPoint, Pos, UnBreakable)
                             true ->
                                 break_line_point(Length, Line, Tail, BreakPoint,
                                     Pos + 1, UnBreakable);
-                            _ -> % erlang:display(io:format(user, "wwe 2 break_line F MayBe /=~p~n", [Pos])),
-                                break_line_point(Length, Line, Tail, Pos,
-                                    Pos + 1, "'")
+                            _ -> break_line_point(Length, Line, Tail, Pos,
+                                Pos + 1, "'")
                         end;
-                  $" -> % erlang:display(io:format(user, "wwe 2 break_line F MayBe \"=~p~n", [Pos])),
+                  $" ->
                       break_line_point(Length, Line, Tail, Pos, Pos + 1, "\"");
-                  $| -> % erlang:display( io:format(user, "wwe 2 break_line F MayBe |=~p~n", [Pos])),
-                      break_line_point(Length, Line, Tail, Pos, Pos + 1, "|");
-                  $  -> % erlang:display(io:format(user, "wwe 2 break_line F MayBe  =~p~n", [Pos])),
-                      break_line_point(Length, Line, Tail, Pos, Pos + 1,
-                          UnBreakable);
-                  $, -> % erlang:display(io:format(user, "wwe 2 break_line F MayBe ,=~p~n", [Pos + 1])),
-                      break_line_point(Length, Line, Tail, Pos + 1, Pos + 1,
-                          UnBreakable);
+                  $| -> break_line_point(Length, Line, Tail, Pos, Pos + 1, "|");
+                  $  -> break_line_point(Length, Line, Tail, Pos, Pos + 1,
+                      UnBreakable);
+                  $, -> break_line_point(Length, Line, Tail, Pos + 1, Pos + 1,
+                      UnBreakable);
                   $/ ->
                       case string:slice(Tail, 0, 1) == "*" of
                           true ->
@@ -4516,14 +4479,11 @@ break_line_point(Length, Line, [Char | Tail], BreakPoint, Pos, UnBreakable)
                 true ->
                     break_line_point(Length, Line, Tail, BreakPoint, Pos + 1,
                         UnBreakable);
-                _ -> % erlang:display(io:format(user, "wwe 2 break_line T MayBe '=~p~n", [Pos + 1])),
-                    break_line_point(Length, Line, Tail, Pos + 1, Pos + 1, [])
+                _ -> break_line_point(Length, Line, Tail, Pos + 1, Pos + 1, [])
             end;
         U when U == "\"" andalso Char == $" ->
-            % erlang:display(io:format(user, "wwe 2 break_line T MayBe \"=~p~n", [Pos + 1])),
             break_line_point(Length, Line, Tail, Pos + 1, Pos + 1, []);
         U when U == "|" andalso Char == $| ->
-            % erlang:display(io:format(user, "wwe 2 break_line T MayBe |=~p~n", [Pos + 1])),
             break_line_point(Length, Line, Tail, Pos + 1, Pos + 1, []);
         U when U == "/" andalso Char == $/
             ->
@@ -4538,10 +4498,6 @@ break_line_point(Length, Line, [Char | Tail], BreakPoint, Pos, UnBreakable)
             UnBreakable)
     end;
 break_line_point(_Length, _Line, [Char | _Tail], BreakPoint, Pos, UnBreakable) ->
-    % erlang:display(io:format(user, "wwe 2 break_line e Line=~p~n", [_Line])),
-    % erlang:display(io:format(user, "wwe 2 break_line e BreakPoint=~p~n", [BreakPoint])),
-    % erlang:display(io:format(user, "wwe 2 break_line e Char=~p~n", [[Char]])),
-    % erlang:display(io:format(user, "wwe 2 break_line e Pos=~p~n", [Pos])),
     case UnBreakable of
         [] -> case Char of
                   C when C == $ ;C == $,;C == $(;C == $) -> Pos;

@@ -12,8 +12,8 @@
 % delete_statement
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-"delete from 'exotic name' alias_1".
-"delete from 'exotic name'".
+"delete from \"exotic name\" alias_1".
+"delete from \"exotic name\"".
 "delete from :param_1 alias_1".
 "delete from :param_1 where current of cursor_1 return * into *".
 "delete from :param_1".

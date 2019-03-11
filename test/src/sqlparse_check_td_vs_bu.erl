@@ -1338,13 +1338,24 @@ fold(LOpts, _FunState, Ctx, {'drop user', Name, _DropExtensions} = _PTree,
 % drop_view_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(LOpts, _FunState, Ctx, {'drop view', Name, _DropExtensions} = _PTree,
+fold(LOpts, _FunState, Ctx, {'drop view', Table, _DropExtensions} = _PTree,
+    {drop_view_def = Rule, Step} = _FoldState)
+    when is_binary(Table) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {"drop view", binary_to_list(Table)};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+fold(LOpts, _FunState, Ctx, {'drop view', _Table, _DropExtensions} = _PTree,
     {drop_view_def = Rule, Step} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case {LOpts, Step} of
              {L, S} when L == top_down andalso S == start orelse
                              L == bottom_up andalso S == 'end' ->
-                 {"drop view", binary_to_list(Name)};
+                 {"drop view"};
              _ -> none
          end,
     ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);

@@ -5513,18 +5513,18 @@ ORDER BY
 %%------------------------------------------------------------------------------
 
 -define(SELECT_30, "
-select 'columN_1' from 'tablE_1' where 'columN_3' = 'columN_4' having 'columN_6' = 'columN_7' order by 'columN_8';").
+select \"columN_1\" from \"tablE_1\" where \"columN_3\" = \"columN_4\" having \"columN_6\" = \"columN_7\" order by \"columN_8\";").
 
 -define(SELECT_30_RESULT_DEFAULT, "SELECT
-    'columN_1'
+    \"columN_1\"
 FROM
-    'tablE_1'
+    \"tablE_1\"
 WHERE
-    'columN_3' = 'columN_4'
+    \"columN_3\" = \"columN_4\"
 HAVING
-    'columN_6' = 'columN_7'
+    \"columN_6\" = \"columN_7\"
 ORDER BY
-    'columN_8';").
+    \"columN_8\";").
 
 %%------------------------------------------------------------------------------
 %% SELECT 31 - ANCHOR.

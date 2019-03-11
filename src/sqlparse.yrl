@@ -457,7 +457,7 @@ extra -> NAME  ';' : {extra, unwrap_bin('$1')}.
 %% =============================================================================
 %% Helper definitions - test purposes.
 %% -----------------------------------------------------------------------------
-% sql -> table_ref                      : '$1'.
+% sql -> table_ref : '$1'.
 %% =============================================================================
 
 sql -> manipulative_statement : '$1'.
@@ -725,15 +725,15 @@ grantee_revokee -> PUBLIC : 'public'.
 grantee_revokee_commalist ->                               grantee_revokee :         ['$1'].
 grantee_revokee_commalist -> grantee_revokee_commalist ',' grantee_revokee : '$1' ++ ['$3'].
 
-object_privilege -> ALL            : 'all'.
-object_privilege -> ALTER          : 'alter'.
-object_privilege -> DELETE         : 'delete'.
-object_privilege -> EXECUTE        : 'execute'.
-object_privilege -> INDEX          : 'index'.
-object_privilege -> INSERT         : 'insert'.
-object_privilege -> REFERENCES     : 'references'.
-object_privilege -> SELECT         : 'select'.
-object_privilege -> UPDATE         : 'update'.
+object_privilege -> ALL        : 'all'.
+object_privilege -> ALTER      : 'alter'.
+object_privilege -> DELETE     : 'delete'.
+object_privilege -> EXECUTE    : 'execute'.
+object_privilege -> INDEX      : 'index'.
+object_privilege -> INSERT     : 'insert'.
+object_privilege -> REFERENCES : 'references'.
+object_privilege -> SELECT     : 'select'.
+object_privilege -> UPDATE     : 'update'.
 
 object_privilege_list -> object_privilege                           : ['$1'].
 object_privilege_list -> object_privilege ',' object_privilege_list : ['$1'|'$3'].
@@ -860,8 +860,8 @@ drop_context_def -> DROP CONTEXT NAME : {'drop context', unwrap_bin('$3')}.
 
 drop_database_def -> DROP DATABASE : {'drop database'}.
 
-drop_database_link_def -> DROP        DATABASE LINK NAME : {'drop database link', unwrap_bin('$4'), {}}.
-drop_database_link_def -> DROP PUBLIC DATABASE LINK NAME : {'drop database link', unwrap_bin('$5'), public}.
+drop_database_link_def -> DROP        DATABASE LINK DBLINK : {'drop database link', unwrap_bin('$4'), {}}.
+drop_database_link_def -> DROP PUBLIC DATABASE LINK DBLINK : {'drop database link', unwrap_bin('$5'), public}.
 
 drop_directory_def -> DROP DIRECTORY NAME : {'drop directory', unwrap_bin('$3')}.
 
@@ -970,7 +970,7 @@ type_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
 drop_type_body_def -> DROP TYPE BODY type_name : {'drop type body', '$4'}.
 
 drop_user_def -> DROP USER NAME         : {'drop user', unwrap_bin('$3'), {}}.
-drop_user_def -> DROP USER NAME CASCADE : {'drop user', unwrap_bin('$3'), 'cascade'}.
+drop_user_def -> DROP USER NAME CASCADE : {'drop user', unwrap_bin('$3'), cascade}.
 
 drop_view_def -> DROP VIEW table                     : {'drop view', '$3', {}}.
 drop_view_def -> DROP VIEW table CASCADE CONSTRAINTS : {'drop view', '$3', 'cascade constraints'}.
@@ -1230,7 +1230,7 @@ nocycle -> NOCYCLE : <<"nocycle">>.
 
 where_clause -> WHERE search_condition : {where, '$2'}.
 
-group_by_clause  -> GROUP BY column_ref_commalist : {'group by', '$3'}.
+group_by_clause -> GROUP BY column_ref_commalist : {'group by', '$3'}.
 
 column_ref_commalist ->                          column_ref   :         ['$1'].
 column_ref_commalist ->                          function_ref :         ['$1'].
@@ -1411,12 +1411,10 @@ literal -> APPROXNUM : unwrap_bin('$1').
 table -> NAME          : unwrap_bin('$1').
 table -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
 table -> parameter     : '$1'.
-table -> STRING        : unwrap_bin('$1').
 
 table_alias -> NAME          NAME : {as, unwrap_bin('$1'),                                unwrap_bin('$2')}.
 table_alias -> NAME '.' NAME NAME : {as, list_to_binary([unwrap('$1'),".",unwrap('$3')]), unwrap_bin('$4')}.
 table_alias -> parameter     NAME : {as, '$1',                                            unwrap_bin('$2')}.
-table_alias -> STRING        NAME : {as, unwrap_bin('$1'),                                unwrap_bin('$2')}.
 table_alias -> table              : '$1'.
 
 table_dblink -> NAME          DBLINK      : {    unwrap_bin('$1'),                                                    {dblink, unwrap_bin('$2')}}.
@@ -1456,8 +1454,7 @@ sgn_num -> '-' INTNUM : list_to_binary(["-",unwrap_bin('$2')]).
 %% the various things you can name
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-column -> NAME   : unwrap_bin('$1').
-column -> STRING : unwrap_bin('$1').
+column -> NAME : unwrap_bin('$1').
 
 cursor -> NAME : {cur, unwrap('$1')}.
 

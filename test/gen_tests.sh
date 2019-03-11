@@ -25,20 +25,16 @@ sleep .1
 #
 # ----------------------------------------------------------------------------
 
-timestamp() {
-  date +"%T"
-}
-
-echo "$(timestamp) Start Test Data Generation"
+echo "========================================================================="
+echo "Start $0"
+echo "-------------------------------------------------------------------------"
+echo "Start Test Data Generation"
+echo "-------------------------------------------------------------------------"
+date +"DATE TIME : %d.%m.%Y %H:%M:%S"
+echo "-------------------------------------------------------------------------"
 
 if [ -d "_build/test/lib/sqlparse/test/generated" ]; then
     rm -rf _build/test/lib/sqlparse/test/generated
-fi
-if ls _build/test/lib/sqlparse/test/performance_*.* 1> /dev/null 2>&1; then
-    rm _build/test/lib/sqlparse/test/performance_*.*
-fi
-if ls _build/test/lib/sqlparse/test/reliability_*.* 1> /dev/null 2>&1; then
-    rm _build/test/lib/sqlparse/test/reliability_*.*
 fi
 if [ -d "test/generated" ]; then
     rm -rf test/generated
@@ -67,6 +63,10 @@ if [ -f "code_templates" ]; then
     rm code_templates
 fi
 
-echo "$(timestamp) End  Test Data Generation"
+echo "-------------------------------------------------------------------------"
+date +"DATE TIME : %d.%m.%Y %H:%M:%S"
+echo "-------------------------------------------------------------------------"
+echo "End   $0"
+echo "========================================================================="
 
 exit 0

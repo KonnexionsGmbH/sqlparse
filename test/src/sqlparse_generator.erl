@@ -113,80 +113,6 @@ create_code() ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Level 01
-%% -----------------------------------------------------------------------------
-%%
-%% APPROXNUM ::= ( ( '.' [0-9]+ ) | ( [0-9]+ '.'? [0-9]* ) ) ( [eE] [+-]? [0-9]+ )? [fFdD]?
-%%
-%% == atom ::= parameter_ref
-%% ==        | literal
-%%        | 'USER'
-%%
-%% commit_statement ::= 'COMMIT' ( 'WORK' )?
-%%
-%% COMPARISON ::= '!=' | '^=' | '<>' | '<' | '>' | '<=' | '>='
-%%
-%% {"^(?i)(AVG)$",             'FUNS'},
-%% {"^(?i)(CORR)$",            'FUNS'},
-%% {"^(?i)(COUNT)$",           'FUNS'},
-%% ...
-%%
-%% DBLINK ::= (\"@[A-Za-z0-9_\$#\.@]+\")
-%%
-%% grantee_revokee ::= 'PUBLIC'
-%%                   | NAME
-%%
-%% HINT ::= '/*' [^\*\/]* '*/'
-%%
-%% INTNUM ::= ([0-9]+)
-%%
-%% JSON ::= ([|] [:{\[#] [^|]+ [|])
-%%
-%% NAME ::= [A-Za-z][A-Za-z0-9_\$#@~]*
-%%
-%% object_privilege ::= 'ALL'
-%%                    | 'ALTER'
-%%                    | 'DELETE'
-%%                    | 'EXECUTE'
-%%                    | 'INDEX'
-%%                    | 'INSERT'
-%%                    | 'REFERENCES'
-%%                    | 'SELECT'
-%%                    | 'UPDATE'
-%%
-%% object_with_grant_option ::= 'WITH' ( 'GRANT' | 'HIERARCHY' ) 'OPTION'
-%%
-%% object_with_grant_option ::= ( 'CASCADE' 'CONSTRAINTS' ) | 'FORCE'
-%%
-%% outer_join_type ::= ( 'FULL' ( 'OUTER' )? )
-%%                   | ( 'LEFT' ( 'OUTER' )? )
-%%                   | ( 'RIGHT' ( 'OUTER' )? )
-%%
-%% PARAMETER ::= ':' [A-Za-z0-9_\.]+
-%%
-%% rollback_statement ::= 'ROLLBACK' ( 'WORK' )?
-%%
-%% STRING ::= ( 'fun' [A-Za-z0-9,_]* [.]* '->' [.]* 'end.' )
-%%          | ( 'fun\s' ['A-Za-z0-9_]+ ':' ['A-Za-z0-9_]+ '/' [0-9]+ '.' )
-%%          | ( "'" [^\']* "''**" )
-%%
-%% system_privilege ::=  'ADMIN'
-%%                    |  'ALL' 'PRIVILEGES'
-%%                    | ( ( 'ALTER' | 'CREATE' | 'DROP' ) 'ANY' ( 'INDEX' | ( 'MATERIALIZED' 'VIEW' ) | 'TABLE' | 'VIEW' ) )
-%%                    | ( 'CREATE' ( ( 'MATERIALIZED' 'VIEW' ) | 'TABLE' | 'VIEW' ) )
-%%                    | ( ( 'DELETE' | 'INSERT' | 'SELECT' | 'UPDATE' ) 'ANY' 'TABLE' )
-%%                    | NAME
-%%
-%% system_with_grant_option ::= 'WITH' ( 'ADMIN' | 'DELEGATE' ) 'OPTION'
-%%
-%% tbl_scope ::= 'LOCAL'
-%%             | 'CLUSTER'
-%%             | 'SCHEMA'
-%%
-%% tbl_type ::= 'SET'
-%%            | 'ORDERED_SET'
-%%            | 'BAG'
-%% ==            | NAME
-%%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
@@ -197,7 +123,12 @@ create_code() ->
     create_code(atom),
     create_code(commit_statement),
     create_code(comparison),
+    create_code(drop_database_def),
     create_code(dblink),
+    create_code(drop_cluster_extensions),
+    create_code(drop_index_extensions),
+    create_code(drop_table_extensions),
+    create_code(drop_tablespace_extensions),
     create_code(funs),
     create_code(grantee_revokee),
     create_code(hint),
@@ -219,60 +150,6 @@ create_code() ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Level 02
-%% -----------------------------------------------------------------------------
-%%
-%% column_commalist ::= column ( ',' column )*
-%%
-%% column_ref ::= ( ( ( ( NAME '.' )? NAME '.' )? NAME )? JSON )
-%%              | ( ( ( NAME '.' )? NAME '.' )? NAME )
-%%              | ( ( ( NAME '.' )? NAME '.' )? NAME '(' '+' ')' )
-%%              | ( ( NAME '.' )? NAME '.' '*' )
-%%
-%% create_role_def ::= 'CREATE' 'ROLE' NAME
-%%
-%% cursor ::= NAME
-%%
-%% drop_role_def ::= 'DROP' 'ROLE' NAME
-%%
-%% drop_user_def ::= 'DROP' 'USER' NAME ( 'CASCADE' )?
-%%
-%% extra ::= NAME  ';'
-%%
-%% grantee_identified_by ::= NAME 'IDENTIFIED' 'BY' STRING
-%%
-%% grantee_revokee_commalist ::= grantee_revokee ( ',' grantee_revokee )*
-%%
-%% identified ::= IDENTIFIED ( ( 'BY' NAME ) | ( EXTERNALLY ( 'AS' NAME ) ) | ( 'GLOBALLY' ( 'AS' NAME )? ) )
-%%
-%% index_name ::= ( NAME '.' )? NAME
-%%
-%% object_privilege_list ::= object_privilege ( ',' object_privilege )*
-%%
-%% quota ::= ( 'QUOTA' 'UNLIMITED' 'ON' NAME )
-%%         | ( 'QUOTA' INTNUM ( NAME )? 'ON' NAME )
-%%
-%% role_list ::= NAME ( ',' NAME )*
-%%
-%% sgn_num ::= ( '-' )? INTNUM
-%%
-%% system_privilege_list ::= system_privilege ( ',' system_privilege )*
-%%
-%% table ::= ( ( NAME '.' )? NAME )
-%%         | parameter
-%%         | STRING
-%%
-%% table_alias ::= ( ( NAME '.' )? NAME NAME )
-%%               | ( parameter          NAME )
-%%               | ( STRING             NAME )
-%%               | table
-%%
-%% table_dblink ::= ( ( NAME '.' )? NAME DBLINK NAME? )
-%%                | ( parameter          DBLINK NAME? )
-%%                | table_alias
-%%
-%% when_action ::= ( 'GOTO' NAME )
-%%               | 'CONTINUE'
-%%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
@@ -283,8 +160,24 @@ create_code() ->
     create_code(column_ref),
     create_code(create_role_def),
     create_code(cursor),
+    create_code(drop_cluster_def),
+    create_code(drop_context_def),
+    create_code(drop_database_link_def),
+    create_code(drop_directory_def),
+    create_code(drop_function_def),
+    create_code(drop_materialized_view_def),
+    create_code(drop_package_def),
+    create_code(drop_procedure_def),
+    create_code(drop_profile_def),
     create_code(drop_role_def),
+    create_code(drop_sequence_def),
+    create_code(drop_synonym_def),
+    create_code(drop_tablespace_def),
+    create_code(drop_trigger_def),
+    create_code(drop_type_body_def),
+    create_code(drop_type_def),
     create_code(drop_user_def),
+    create_code(drop_view_def),
     create_code(extra),
     create_code(fun_arg_named),
     create_code(grantee_identified_by),
@@ -303,33 +196,6 @@ create_code() ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Level 03
-%% -----------------------------------------------------------------------------
-%%
-%% close_statement ::= 'CLOSE' cursor
-%%
-%% data_type ::= STRING
-%%              | ( NAME ( '(' sgn_num ')' )? )
-%%              | ( NAME '(' sgn_num ',' sgn_num ')' )
-%%
-%% open_statement ::= 'OPEN' cursor
-%%
-%% parameter_ref ::= parameter ( ( 'INDICATOR' )? parameter )?
-%%
-%% truncate_table ::= 'TRUNCATE' 'TABLE' table ( ( 'PRESERVE' | 'PURGE' ) 'MATERIALIZED' 'VIEW' 'LOG' )? ( ( 'DROP' | 'REUSE' ) 'STORAGE' )?
-%%
-%% user_opt ::= ( ( 'DEFAULT' | 'TEMPORARY' ) 'TABLESPACE' NAME )
-%%            | ( quota  ( quota )* )
-%%            | ( 'PROFILE' NAME )
-%%
-%% user_role ::= 'DEFAULT' 'ROLE' ( ( 'ALL' ( 'EXCEPT' role_list )? ) | NONE | role_list )
-%%
-%% == sql ::= procedure_call
-%% ==       | schema
-%% ==       | cursor_def
-%% ==       | manipulative_statement
-%%       | 'WHENEVER' 'NOT' 'FOUND' when_action
-%%       | 'WHENEVER' 'SQLERROR' when_action
-%%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
@@ -338,35 +204,19 @@ create_code() ->
 
     create_code(close_statement),
     create_code(data_type),
+    create_code(drop_index_def),
     create_code(fun_args_named),
     create_code(open_statement),
     create_code(parameter_ref),
+    create_code(table_list),
+    create_code(truncate_cluster),
     create_code(truncate_table),
     create_code(user_opt),
     create_code(user_role),
-    create_code(whenever),                                                %% sql
+    create_code(whenever),
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Level 04
-%% -----------------------------------------------------------------------------
-%%
-%% create_index_def ::= 'CREATE' ( 'BITMAP' | 'KEYLIST' | 'HASHMAP' | 'UNIQUE' )? 'INDEX' ( index_name )?
-%%                      'ON' table_alias ( '(' ( NAME  JSON? ) ( ',' NAME JSON? )* ')' )?
-%%                      ( 'NORM_WITH' STRING )?  ( 'FILTER_WITH' STRING )?
-%%
-%% create_user_def ::= 'CREATE' 'USER' NAME identified ( user_opt )*
-%%
-%% drop_index_def ::= 'DROP' 'INDEX' ( index_name )? 'FROM' table
-%%
-%% drop_table_def ::= 'DROP' ( NAME )? 'TABLE' ( 'IF' 'EXISTS' )? ( table ( ',' table )* ) ( 'RESTRICT' | 'CASCADE' )?
-%%
-%% on_obj_clause ::= ( 'ON' table )
-%%                 | ( 'ON' 'DIRECTORY' NAME )
-%%
-%% proxy_with ::= ( 'WITH' 'NO' 'ROLES' )
-%%              | ( 'WITH' 'ROLE' role_list )
-%%              | ( 'WITH' 'ROLE' 'ALL' 'EXCEPT' role_list )
-%%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
@@ -375,30 +225,12 @@ create_code() ->
 
     create_code(create_index_def),
     create_code(create_user_def),
-    create_code(drop_index_def),
     create_code(drop_table_def),
     create_code(on_obj_clause),
     create_code(proxy_with),
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Level 05
-%% -----------------------------------------------------------------------------
-%%
-%% db_user_proxy ::= proxy_with
-%%                 | ( ( proxy_with )? 'AUTHENTICATION' 'REQUIRED' )
-%%
-%% grant_def ::= 'GRANT' (
-%%                         ( ( ( 'ALL' 'PRIVILEGES' ) | ( object_privilege (',' object_privilege )* ) ) on_obj_clause 'TO' ( grantee_identified_by | ( grantee_revokee ( ',' grantee_revokee )* ) ) ( 'WITH' ( 'GRANT' | 'HIERARCHY' ) 'OPTION' )? )
-%%                       | ( ( ( 'ALL' 'PRIVILEGES' ) | ( system_privilege (',' system_privilege )* ) )               'TO' ( grantee_identified_by | ( grantee_revokee ( ',' grantee_revokee )* ) ) ( 'WITH' ( 'ADMIN' | 'DELEGATE'  ) 'OPTION' )? )
-%%                       )
-%%
-%% revoke_def ::= 'REVOKE' (
-%%                           ( ( ( 'ALL' 'PRIVILEGES' ) | ( object_privilege (',' object_privilege )* ) ) on_obj_clause 'FROM' grantee_revokee ( ',' grantee_revokee )* ( ( 'CASCADE' 'CONSTRAINTS' ) | 'FORCE' )? )
-%%                         | ( ( ( 'ALL' 'PRIVILEGES' ) | ( system_privilege (',' system_privilege )* ) )               'FROM' grantee_revokee ( ',' grantee_revokee )* )
-%%                         )
-%%
-%% target_commalist ::= target ( ',' target )*
-%%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
@@ -412,12 +244,6 @@ create_code() ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Level 06
-%% -----------------------------------------------------------------------------
-%%
-%% fetch_statement ::= 'FETCH' cursor 'INTO' target_commalist
-%%
-%% proxy_clause ::= ( 'GRANT' | 'REVOKE' ) 'CONNECT' 'THROUGH' ( ( 'ENTERPRISE' 'USERS' ) | db_user_proxy )
-%%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
@@ -429,12 +255,6 @@ create_code() ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Level 07
-%% -----------------------------------------------------------------------------
-%%
-%% alter_user_def ::= ( 'ALTER' 'USER' NAME ( ',' NAME )* proxy_clause )
-%%                  | ( 'ALTER' 'USER' NAME spec_item ( spec_item )* )
-%%                  | ( 'ALTER' 'USER' NAME NAME NAME )
-%%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
@@ -483,16 +303,6 @@ create_code_layer(Version) ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Level 11
-%% -----------------------------------------------------------------------------
-%%
-%% fun_args ::= fun_arg ( ',' fun_arg )*
-%%
-%% scalar_exp ::= scalar_sub_exp ( '||' scalar_exp )?
-%%
-%% schema ::= 'CREATE' 'SCHEMA' 'AUTHORIZATION' NAME ( schema_element ( schema_element )* )?
-%%
-%% sql_list ::= sql ';' ( extra )? ( sql ';' ( extra )? )*
-%%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
@@ -506,23 +316,6 @@ create_code_layer(Version) ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Level 12
-%% -----------------------------------------------------------------------------
-%%
-%% between_predicate ::= scalar_exp ( 'NOT' )? 'BETWEEN' scalar_exp 'AND' scalar_exp
-%%
-%% function_ref ::= ( ( ( NAME '.' )?  NAME '.' )? NAME '(' ( fun_args | fun_args_named )? ')' )
-%%                | ( 'FUNS' ( '(' ( fun_args | fun_args_named | '*' | ( 'DISTINCT' column_ref ) | ( 'ALL' scalar_exp ) )? ')' )? )
-%%                | ( function_ref JSON )
-%%
-%% like_predicate ::= scalar_exp ( 'NOT' )? 'LIKE' scalar_exp ( 'ESCAPE' atom )?
-%%
-%% ordering_spec ::= scalar_exp ( 'ASC' | 'DESC' )?
-%%
-%% scalar_opt_as_exp ::= ( scalar_exp ( ( '=' | COMPARISON ) scalar_exp )? )
-%%                     | ( scalar_exp ( AS )? NAME )
-%%
-%% test_for_null ::= scalar_exp 'IS' ( 'NOT' )? 'NULL'
-%%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
@@ -542,31 +335,6 @@ create_code_layer(Version) ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Level 13
-%% -----------------------------------------------------------------------------
-%%
-%% assignment ::= column '=' scalar_opt_as_exp
-%%
-%% assignment_statement ::= parameter ':=' scalar_opt_as_exp ';'
-%%
-%% case_when_then ::= 'WHEN' search_condition 'THEN' scalar_opt_as_exp
-%%
-%% column_ref_commalist ::= ( column_ref | function_ref ) ( ',' ( column_ref | function_ref ) )*
-%%
-%% comparison_predicate ::= scalar_opt_as_exp
-%%                        | (         scalar_exp ( '=' | COMPARISON ) 'PRIOR' scalar_exp )
-%%                        | ( 'PRIOR' scalar_exp ( '=' | COMPARISON )         scalar_exp )
-%%
-%% fun_arg_named ::= NAME '=>' scalar_opt_as_exp
-%%
-%% order_by_clause ::= 'ORDER' 'BY' ordering_spec ( ',' ordering_spec )*
-%%
-%% scalar_exp_commalist ::= scalar_opt_as_exp ( ',' scalar_opt_as_exp )*
-%%
-%% table_constraint_def ::= ( 'UNIQUE'        '(' column_commalist ')' )
-%%                        | ( 'PRIMARY' 'KEY' '(' column_commalist ')' )
-%%                        | ( 'FOREIGN' 'KEY' '(' column_commalist ')' 'REFERENCES' table ( '(' column_commalist ')' )? )
-%%                        | ( 'CHECK' '(' search_condition ')' )
-%%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
@@ -585,27 +353,6 @@ create_code_layer(Version) ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Level 14
-%% -----------------------------------------------------------------------------
-%%
-%% assignment_commalist ::= assignment ( ',' assignment )*
-%%
-%% case_when_then_list ::= case_when_then ( case_when_then )*
-%%
-%% create_table_def ::= 'CREATE' ( tbl_scope )? ( tbl_type )? 'TABLE' table '(' ( base_table_element ( ',' base_table_element )* )? ')'
-%%
-%% fun_args_named ::= fun_arg_named ( ',' fun_arg_named )*
-%%
-%% procedure_call ::= 'CALL' function_ref
-%%
-%% query_partition_clause ::= 'PARTITION' 'BY' ( ( '(' scalar_exp_commalist ')' ) | scalar_exp_commalist )
-%%
-%% search_condition ::= ( search_condition ( 'AND' | 'OR' ) search_condition )
-%%                    | ( 'NOT' search_condition )
-%%                    | ( '(' search_condition ')' )
-%%                    | predicate
-%%
-%% statement_pragma_list ::= statement_pragma ( statement_pragma )*
-%%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
@@ -623,25 +370,6 @@ create_code_layer(Version) ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Level 15
-%% -----------------------------------------------------------------------------
-%%
-%% case_when_exp ::= ( '(' case_when_exp ')' )
-%%                 | ( 'CASE' ( scalar_opt_as_exp )? case_when_then_list ( 'ELSE' scalar_opt_as_exp )? 'END' )
-%%
-%% column_def_opt ::= ( 'NOT' 'NULL' ( 'UNIQUE' | 'PRIMARY' 'KEY' )? )
-%%                  | ( 'DEFAULT' ( function_ref | literal | NAME | 'NULL' | 'USER' ) )
-%%                  | ( 'CHECK' '(' search_condition ')' )
-%%                  | ( 'REFERENCES' table ( '(' column_commalist ')' )? )
-%%
-%% hierarchical_query_clause ::= ( 'START' 'WITH' search_condition 'CONNECT' 'BY' ( 'NOCYCLE' )? search_condition )
-%%                             | ( 'CONNECT' 'BY' ( 'NOCYCLE' )? search_condition 'START' 'WITH' search_condition )
-%%
-%% plsql_body ::= 'BEGIN' statement_pragma_list 'END' ';'
-%%
-%% returning ::= ( 'RETURNING' | 'RETURN' ) selection 'INTO' selection
-%%
-%% where_clause ::= 'WHERE' search_condition
-%%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
@@ -657,22 +385,6 @@ create_code_layer(Version) ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Level 16
-%% -----------------------------------------------------------------------------
-%%
-%% column_def ::= column data_type ( column_def_opt )*
-%%
-%% delete_statement_positioned ::= 'DELETE' 'FROM' table_dblink 'WHERE' 'CURRENT' 'OF' cursor ( returning )?
-%%
-%% delete_statement_searched ::= 'DELETE' 'FROM' table_dblink ( where_clause )? ( returning )?
-%%
-%% select_field ::= ( case_when_exp ( ( 'AS' )? NAME )? )
-%%                | scalar_opt_as_exp
-%%                | '*'
-%%
-%% update_statement_positioned ::= 'UPDATE' table_dblink 'SET' assignment_commalist 'WHERE' 'CURRENT' 'OF' cursor ( returning )?
-%%
-%% update_statement_searched ::= 'UPDATE' table_dblink 'SET' assignment_commalist ( where_clause )? ( returning )?
-%%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
@@ -686,10 +398,6 @@ create_code_layer(Version) ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Level 17
-%% -----------------------------------------------------------------------------
-%%
-%% select_field_commalist ::= select_field ( ',' select_field )*
-%%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
@@ -700,13 +408,6 @@ create_code_layer(Version) ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Level 18
-%% -----------------------------------------------------------------------------
-%%
-%% join_on_or_using_clause ::= ( 'ON' search_condition )
-%%                           | ( 'USING' '(' select_field_commalist ')' )
-%%
-%% table_exp ::= 'FROM' from_column ( from_column )* ( where_clause )? ( hierarchical_query_clause )? ( 'GROUP' 'BY' column_ref_commalist )? ( 'HAVING' search_condition )? ( order_by_clause )?
-%%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
@@ -718,15 +419,6 @@ create_code_layer(Version) ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Level 19
-%% -----------------------------------------------------------------------------
-%%
-%% inner_cross_join ::= ( 'INNER' )? 'JOIN' join_ref join_on_or_using_clause
-%%                    | ( 'CROSS' | ( 'NATURAL' ( 'INNER' )? ) ) 'JOIN' join_ref
-%%
-%% outer_join ::= ( NATURAL | query_partition_clause | (query_partition_clause NATURAL) )? outer_join_type JOIN join_ref ( query_partition_clause )? ( join_on_or_using_clause )?
-%%
-%% query_spec ::= 'SELECT' ( HINT )? ( 'ALL' | 'DISTINCT' )? selection ( 'INTO' target_commalist )? table_exp
-%%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
@@ -739,18 +431,6 @@ create_code_layer(Version) ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Level 20
-%% -----------------------------------------------------------------------------
-%%
-%% insert_statement ::= 'INSERT' 'INTO' table_dblink ( ( '(' column_commalist ')' )? ( ( 'VALUES' '(' scalar_opt_as_exp ( ',' scalar_opt_as_exp )* ')' ) | query_spec ) ( returning )? )?
-%%
-%% join_clause ::= table_ref join ( join )*
-%%
-%% query_term ::= (     query_spec     ( JSON )? )
-%%              | ( '(' query_exp  ')' ( JSON )? )
-%%
-%% view_def ::= ( 'CREATE' 'VIEW' table ( '(' column_commalist ')' )? )
-%%            | ( 'AS' query_spec ( 'WITH' 'CHECK' 'OPTION' )? )
-%%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
@@ -768,11 +448,6 @@ create_code_layer(Version) ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Level 21
-%% -----------------------------------------------------------------------------
-%%
-%% query_exp ::= query_term
-%%             | ( query_exp ( ( 'UNION' ( 'ALL' )? ) | 'INTERSECT' | 'MINUS' ) query_term )
-%%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
@@ -783,47 +458,6 @@ create_code_layer(Version) ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Level 22
-%% -----------------------------------------------------------------------------
-%%
-%% all_or_any_predicate ::= scalar_exp ( '=' | COMPARISON ) ( 'ANY' | 'ALL' | 'SOME' ) subquery
-%%
-%% cursor_def ::= 'CURSOR' cursor 'IS' query_exp
-%%
-%% existence_test ::= 'EXISTS' subquery
-%%
-%% fun_arg ::= ( '(' fun_arg ')' )
-%%           | function_ref
-%%           | column_ref
-%%           | ( fun_arg ( '+' | '-' | '*' | '/' | 'div' | '||' ) fun_arg )
-%%           | ( ( '+' | '-' ) fun_arg )
-%%           | 'NULL'
-%%           | atom
-%%           | subquery
-%%           | ( fun_arg 'AS' NAME )
-%%           | ( fun_arg ( '=' | COMPARISON ) fun_arg )
-%%
-%% in_predicate ::= ( scalar_exp ( 'NOT' )? 'IN' '(' subquery ')' )
-%%                | ( scalar_exp ( 'NOT' )? 'IN' '(' scalar_exp_commalist ')' )
-%%                | ( scalar_exp ( 'NOT' )? 'IN' scalar_exp )
-%%
-%% join_ref ::= table_dblink
-%%            | ( query_term ( NAME )? )
-%%
-%% scalar_sub_exp ::= ( scalar_sub_exp ( '+' | '-' | '*' | '/' | 'div' ) scalar_sub_exp )
-%%                  | ( ( '+' | '-' ) scalar_sub_exp )
-%%                  | 'NULL'
-%%                  | atom
-%%                  | subquery
-%%                  | column_ref
-%%                  | function_ref
-%%                  | ( '(' scalar_sub_exp ')' )
-%%                  | ( '(' scalar_sub_exp ')' JSON? )
-%%
-%% table_coll_expr ::= TABLE '(' ( column_ref | function_ref | subquery ) ')'
-%%
-%% table_ref ::= table_dblink
-%%             | ( query_term ( NAME )? )
-%%
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     erlang:display(io:format(user, "~n" ++ ?MODULE_STRING ++
@@ -1969,12 +1603,178 @@ create_code(delete_statement = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% drop_index_def ::= ( 'DROP' 'INDEX' ( index_name )? 'FROM' table )
-%%                  | ( 'DROP' 'INDEX' index_name )
+%% drop_cluster_def ::= 'DROP' 'CLUSTER' cluster_name drop_cluster_extensions?
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(drop_cluster_def = Rule) ->
+    ?CREATE_CODE_START,
+    [{cluster_name, Cluster_Name}] = ets:lookup(?CODE_TEMPLATES, cluster_name),
+    Cluster_Name_Length = length(Cluster_Name),
+    [{drop_cluster_extensions, Drop_Cluster_Extensions}] =
+        ets:lookup(?CODE_TEMPLATES, drop_cluster_extensions),
+    Drop_Cluster_Extensions_Length = length(Drop_Cluster_Extensions),
+    [{schema_name, Schema_Name}] = ets:lookup(?CODE_TEMPLATES, schema_name),
+    Schema_Name_Length = length(Schema_Name),
+
+    Code =
+        [
+            lists:append([
+                "Drop Cluster ",
+                case rand:uniform(2) rem 2 of
+                    1 -> lists:nth(rand:uniform(Schema_Name_Length),
+                        Schema_Name) ++ ".";
+                    _ -> []
+                end,
+                lists:nth(rand:uniform(Cluster_Name_Length), Cluster_Name),
+                case rand:uniform(2) rem 2 of
+                    1 -> " " ++
+                    lists:nth(rand:uniform(Drop_Cluster_Extensions_Length),
+                        Drop_Cluster_Extensions);
+                    _ -> []
+                end
+            ])
+            || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
+        ],
+    store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% drop_cluster_extensions ::= 'INCLUDING' 'TABLES' ( 'CASCADE' 'CONSTRAINTS' )?
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(drop_cluster_extensions = Rule) ->
+    ?CREATE_CODE_START,
+
+    Code =
+        [
+            "Including Tables",
+            "Including Tables Cascade Constraints"
+        ],
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% drop_context_def ::= 'DROP' 'CONTEXT' NAME
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(drop_context_def = Rule) ->
+    ?CREATE_CODE_START,
+    [{context_name, Context_Name}] = ets:lookup(?CODE_TEMPLATES, context_name),
+
+    Code =
+        [
+                "Drop Context " ++ N || N <- Context_Name
+        ],
+    store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% drop_database_def ::= 'DROP' 'DATABASE'
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(drop_database_def = Rule) ->
+    ?CREATE_CODE_START,
+
+    Code =
+        [
+            "Drop Database"
+        ],
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% drop_database_link_def ::= 'DROP' 'PUBLIC'? 'DATABASE' 'LINK' NAME
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(drop_database_link_def = Rule) ->
+    ?CREATE_CODE_START,
+    [{dblink, Dblink}] = ets:lookup(?CODE_TEMPLATES, dblink),
+    Dblink_Length = length(Dblink),
+
+    Code =
+        [
+            lists:append([
+                "Drop ",
+                case rand:uniform(2) rem 2 of
+                    1 -> "Public ";
+                    _ -> []
+                end,
+                "Database Link ",
+                lists:nth(rand:uniform(Dblink_Length), Dblink)
+            ])
+            || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
+        ],
+    store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% drop_directory_def ::= 'DROP' 'DIRECTORY' NAME
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(drop_directory_def = Rule) ->
+    ?CREATE_CODE_START,
+    [{directory_name, Directory_Name}] =
+        ets:lookup(?CODE_TEMPLATES, directory_name),
+
+    Code =
+        [
+                "Drop Directory " ++ N || N <- Directory_Name
+        ],
+    store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% drop_function_def ::= 'DROP' 'FUNCTION' function_name
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(drop_function_def = Rule) ->
+    ?CREATE_CODE_START,
+    [{function_name, Function_Name}] =
+        ets:lookup(?CODE_TEMPLATES, function_name),
+    Function_Name_Length = length(Function_Name),
+    [{schema_name, Schema_Name}] = ets:lookup(?CODE_TEMPLATES, schema_name),
+    Schema_Name_Length = length(Schema_Name),
+
+    Code =
+        [
+            lists:append([
+                "Drop Function ",
+                case rand:uniform(2) rem 2 of
+                    1 -> lists:nth(rand:uniform(Schema_Name_Length),
+                        Schema_Name) ++ ".";
+                    _ -> []
+                end,
+                lists:nth(rand:uniform(Function_Name_Length), Function_Name)
+            ])
+            || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
+        ],
+    store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% drop_index_def ::= 'DROP' 'INDEX' ( index_name
+%%                                   | ( index_name 'FROM' table )
+%%                                   | ( 'FROM' table ) )
+%%                                   drop_index_extensions?
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(drop_index_def = Rule) ->
     ?CREATE_CODE_START,
+    [{drop_index_extensions, Drop_Index_Extensions}] =
+        ets:lookup(?CODE_TEMPLATES, drop_index_extensions),
+    Drop_Index_Extensions_Length = length(Drop_Index_Extensions),
     [{index_name, Index_Name}] = ets:lookup(?CODE_TEMPLATES, index_name),
     Index_Name_Length = length(Index_Name),
     [{table, Table}] = ets:lookup(?CODE_TEMPLATES, table),
@@ -1995,9 +1795,165 @@ create_code(drop_index_def = Rule) ->
                             _ -> []
                         end,
                         " From ",
-                        lists:nth(rand:uniform(Table_Length), Table)
+                        lists:nth(rand:uniform(Table_Length), Table),
+                        case rand:uniform(2) rem 2 of
+                            1 -> " " ++ lists:nth(
+                                rand:uniform(Drop_Index_Extensions_Length),
+                                Drop_Index_Extensions);
+                            _ -> []
+                        end
                     ])
                 end
+            || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
+        ],
+    store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% drop_index_extensions ::= ( ( 'DEFERRED' | 'IMMEDIATE' ) 'INVALIDATION' )
+%%                         | 'FORCE'
+%%                         | ( 'FORCE' ( 'DEFERRED' | 'IMMEDIATE' ) 'INVALIDATION' )
+%%                         | 'ONLINE'
+%%                         | ( 'ONLINE' ( 'DEFERRED' | 'IMMEDIATE' ) 'INVALIDATION' )
+%%                         | ( 'ONLINE' 'FORCE' ( 'DEFERRED' | 'IMMEDIATE' ) 'INVALIDATION' )
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(drop_index_extensions = Rule) ->
+    ?CREATE_CODE_START,
+
+    Code =
+        [
+            "Deferred Invalidation",
+            "Immediate Invalidation",
+            "Force",
+            "Force Deferred Invalidation",
+            "Force Immediate Invalidation",
+            "Online",
+            "Online Deferred Invalidation",
+            "Online Immediate Invalidation",
+            "Online Force",
+            "Online Force Deferred Invalidation",
+            "Online Force Immediate Invalidation"
+        ],
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% drop_materialized_view_def ::= 'DROP' 'MATERIALIZED' 'VIEW' materialized_view_name ( 'PRESERVE' 'TABLE' )?
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(drop_materialized_view_def = Rule) ->
+    ?CREATE_CODE_START,
+    [{materialized_view_name, Materialized_View_Name}] =
+        ets:lookup(?CODE_TEMPLATES, materialized_view_name),
+    Materialized_View_Name_Length = length(Materialized_View_Name),
+    [{schema_name, Schema_Name}] = ets:lookup(?CODE_TEMPLATES, schema_name),
+    Schema_Name_Length = length(Schema_Name),
+
+    Code =
+        [
+            lists:append([
+                "Drop Materialized View ",
+                case rand:uniform(2) rem 2 of
+                    1 -> lists:nth(rand:uniform(Schema_Name_Length),
+                        Schema_Name) ++ ".";
+                    _ -> []
+                end,
+                lists:nth(rand:uniform(Materialized_View_Name_Length),
+                    Materialized_View_Name),
+                case rand:uniform(2) rem 2 of
+                    1 -> " Preserve Table";
+                    _ -> []
+                end
+            ])
+            || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
+        ],
+    store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% drop_package_def ::= 'DROP' 'PACKAGE' 'BODY'? package_name
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(drop_package_def = Rule) ->
+    ?CREATE_CODE_START,
+    [{package_name, Function_Name}] = ets:lookup(?CODE_TEMPLATES, package_name),
+    Function_Name_Length = length(Function_Name),
+    [{schema_name, Schema_Name}] = ets:lookup(?CODE_TEMPLATES, schema_name),
+    Schema_Name_Length = length(Schema_Name),
+
+    Code =
+        [
+            lists:append([
+                "Drop Function ",
+                case rand:uniform(2) rem 2 of
+                    1 -> lists:nth(rand:uniform(Schema_Name_Length),
+                        Schema_Name) ++ ".";
+                    _ -> []
+                end,
+                lists:nth(rand:uniform(Function_Name_Length), Function_Name)
+            ])
+            || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
+        ],
+    store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% drop_procedure_def ::= 'DROP' 'PROCEDURE' procedure_name
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(drop_procedure_def = Rule) ->
+    ?CREATE_CODE_START,
+    [{procedure_name, Procedure_Name}] =
+        ets:lookup(?CODE_TEMPLATES, procedure_name),
+    Procedure_Name_Length = length(Procedure_Name),
+    [{schema_name, Schema_Name}] = ets:lookup(?CODE_TEMPLATES, schema_name),
+    Schema_Name_Length = length(Schema_Name),
+
+    Code =
+        [
+            lists:append([
+                "Drop Procedure ",
+                case rand:uniform(2) rem 2 of
+                    1 -> lists:nth(rand:uniform(Schema_Name_Length),
+                        Schema_Name) ++ ".";
+                    _ -> []
+                end,
+                lists:nth(rand:uniform(Procedure_Name_Length), Procedure_Name)
+            ])
+            || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
+        ],
+    store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% drop_profile_def ::= 'DROP' 'PROFILE' NAME 'CASCADE'?
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(drop_profile_def = Rule) ->
+    ?CREATE_CODE_START,
+    [{profile_name, Profile_Name}] = ets:lookup(?CODE_TEMPLATES, profile_name),
+    Profile_Name_Length = length(Profile_Name),
+
+    Code =
+        [
+            lists:append([
+                "Drop Profile ",
+                lists:nth(rand:uniform(Profile_Name_Length),
+                    Profile_Name),
+                case rand:uniform(2) rem 2 of
+                    1 -> " Cascade";
+                    _ -> []
+                end
+            ])
             || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
@@ -2011,11 +1967,11 @@ create_code(drop_index_def = Rule) ->
 
 create_code(drop_role_def = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
+    [{role_name, Role_Name}] = ets:lookup(?CODE_TEMPLATES, role_name),
 
     Code =
         [
-                "Drop Role " ++ N || N <- Name
+                "Drop Role " ++ N || N <- Role_Name
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
     store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
@@ -2023,15 +1979,85 @@ create_code(drop_role_def = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% drop_table_def ::= 'DROP' ( NAME )? 'TABLE' ( 'IF' 'EXISTS' )? ( table ( ',' table )* ) ( 'RESTRICT' | 'CASCADE' )?
+%% drop_sequence_def ::= 'DROP' 'SEQUENCE' sequence_name
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(drop_sequence_def = Rule) ->
+    ?CREATE_CODE_START,
+    [{schema_name, Schema_Name}] = ets:lookup(?CODE_TEMPLATES, schema_name),
+    Schema_Name_Length = length(Schema_Name),
+    [{sequence_name, Sequence_Name}] =
+        ets:lookup(?CODE_TEMPLATES, sequence_name),
+    Sequence_Name_Length = length(Sequence_Name),
+
+    Code =
+        [
+            lists:append([
+                "Drop Sequence ",
+                case rand:uniform(2) rem 2 of
+                    1 -> lists:nth(rand:uniform(Schema_Name_Length),
+                        Schema_Name) ++ ".";
+                    _ -> []
+                end,
+                lists:nth(rand:uniform(Sequence_Name_Length), Sequence_Name)
+            ])
+            || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
+        ],
+    store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% drop_synonym_def ::= 'DROP' 'PUBLIC'? 'SYNONYM' synonym_name 'FORCE'?
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(drop_synonym_def = Rule) ->
+    ?CREATE_CODE_START,
+    [{schema_name, Schema_Name}] = ets:lookup(?CODE_TEMPLATES, schema_name),
+    Schema_Name_Length = length(Schema_Name),
+    [{synonym_name, Synonym_Name}] = ets:lookup(?CODE_TEMPLATES, synonym_name),
+    Synonym_Name_Length = length(Synonym_Name),
+
+    Code =
+        [
+            lists:append([
+                "Drop ",
+                case rand:uniform(2) rem 2 of
+                    1 -> "Public ";
+                    _ -> []
+                end,
+                "Synonym ",
+                case rand:uniform(2) rem 2 of
+                    1 -> lists:nth(rand:uniform(Schema_Name_Length),
+                        Schema_Name) ++ ".";
+                    _ -> []
+                end,
+                lists:nth(rand:uniform(Synonym_Name_Length), Synonym_Name),
+                case rand:uniform(2) rem 2 of
+                    1 -> " Force";
+                    _ -> []
+                end])
+            || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
+        ],
+    store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% drop_table_def ::= 'DROP' NAME? 'TABLE' exists? table_list drop_table_extensions?
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(drop_table_def = Rule) ->
     ?CREATE_CODE_START,
     [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
-    [{table, Table}] = ets:lookup(?CODE_TEMPLATES, table),
-    Table_Length = length(Table),
+    [{table_list, Table_List}] = ets:lookup(?CODE_TEMPLATES, table_list),
+    Table_List_Length = length(Table_List),
+    [{drop_table_extensions, Drop_Table_Extensions}] =
+        ets:lookup(?CODE_TEMPLATES, drop_table_extensions),
+    Drop_Table_Extensions_Length = length(Drop_Table_Extensions),
 
     Code =
         [
@@ -2048,10 +2074,12 @@ create_code(drop_table_def = Rule) ->
                     _ -> []
                 end,
                 " ",
-                lists:nth(rand:uniform(Table_Length), Table),
-                case rand:uniform(3) rem 3 of
-                    1 -> " Restrict";
-                    2 -> " Cascade";
+                lists:nth(rand:uniform(Table_List_Length), Table_List),
+                case rand:uniform(2) rem 2 of
+                    1 ->
+                        " " ++
+                        lists:nth(rand:uniform(Drop_Table_Extensions_Length),
+                            Drop_Table_Extensions);
                     _ -> []
                 end
             ])
@@ -2063,7 +2091,179 @@ create_code(drop_table_def = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% drop_user_def ::= 'DROP' 'USER' NAME ( 'CASCADE' )?
+%% drop_table_extensions ::= ( 'CASCADE' 'CONSTRAINTS' )
+%%                         | ( 'CASCADE' 'CONSTRAINTS' 'PURGE' )
+%%                         | 'PURGE'
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(drop_table_extensions = Rule) ->
+    ?CREATE_CODE_START,
+
+    Code =
+        [
+            "Cascade Constraints",
+            "Cascade Constraints Purge",
+            "Purge"
+        ],
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% drop_tablespace_def ::= 'DROP' 'TABLESPACE' NAME drop_tablespace_extensions?
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(drop_tablespace_def = Rule) ->
+    ?CREATE_CODE_START,
+    [{drop_tablespace_extensions, Drop_Tablespace_Extensions}] =
+        ets:lookup(?CODE_TEMPLATES, drop_tablespace_extensions),
+    Drop_Tablespace_Extensions_Length = length(Drop_Tablespace_Extensions),
+    [{tablespace_name, Tablespace_Name}] =
+        ets:lookup(?CODE_TEMPLATES, tablespace_name),
+    Tablespace_Name_Length = length(Tablespace_Name),
+
+    Code =
+        [
+            lists:append([
+                "Drop Tablespace ",
+                lists:nth(rand:uniform(Tablespace_Name_Length),
+                    Tablespace_Name),
+                case rand:uniform(2) rem 2 of
+                    1 -> " " ++
+                    lists:nth(rand:uniform(Drop_Tablespace_Extensions_Length),
+                        Drop_Tablespace_Extensions);
+                    _ -> []
+                end
+            ])
+            || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
+        ],
+    store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% drop_tablespace_extensions ::= ( ( 'DROP' | 'KEEP' ) 'QUOTA' )?
+%%                                'INCLUDING' 'CONTENTS'
+%%                                ( ( 'AND' | 'KEEP' ) 'DATAFILES' )? ( 'CASCADE' 'CONSTRAINTS' )?
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(drop_tablespace_extensions = Rule) ->
+    ?CREATE_CODE_START,
+
+    Code =
+        [
+            "including contents",
+            "including contents cascade constraints",
+            "including contents and datafiles cascade constraints",
+            "including contents keep datafiles cascade constraints",
+            "drop quota",
+            "drop quota including contents",
+            "drop quota including contents cascade constraints",
+            "drop quota including contents and datafiles cascade constraints",
+            "drop quota including contents keep datafiles cascade constraints",
+            "keep quota",
+            "keep quota including contents",
+            "keep quota including contents cascade constraints",
+            "keep quota including contents and datafiles cascade constraints",
+            "keep quota including contents keep datafiles cascade constraints"
+        ],
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% drop_trigger_def ::= 'DROP' 'TRIGGER' trigger_name
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(drop_trigger_def = Rule) ->
+    ?CREATE_CODE_START,
+    [{trigger_name, Trigger_Name}] = ets:lookup(?CODE_TEMPLATES, trigger_name),
+    Trigger_Name_Length = length(Trigger_Name),
+    [{schema_name, Schema_Name}] = ets:lookup(?CODE_TEMPLATES, schema_name),
+    Schema_Name_Length = length(Schema_Name),
+
+    Code =
+        [
+            lists:append([
+                "Drop Trigger ",
+                case rand:uniform(2) rem 2 of
+                    1 -> lists:nth(rand:uniform(Schema_Name_Length),
+                        Schema_Name) ++ ".";
+                    _ -> []
+                end,
+                lists:nth(rand:uniform(Trigger_Name_Length), Trigger_Name)
+            ])
+            || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
+        ],
+    store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% drop_type_body_def ::= 'DROP' 'TYPE' 'BODY' type_name
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(drop_type_body_def = Rule) ->
+    ?CREATE_CODE_START,
+    [{schema_name, Schema_Name}] = ets:lookup(?CODE_TEMPLATES, schema_name),
+    Schema_Name_Length = length(Schema_Name),
+    [{type_name, Type_Name}] = ets:lookup(?CODE_TEMPLATES, type_name),
+    Type_Name_Length = length(Type_Name),
+
+    Code =
+        [
+            lists:append([
+                "Drop Type Body ",
+                case rand:uniform(2) rem 2 of
+                    1 -> lists:nth(rand:uniform(Schema_Name_Length),
+                        Schema_Name) ++ ".";
+                    _ -> []
+                end,
+                lists:nth(rand:uniform(Type_Name_Length), Type_Name)
+            ])
+            || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
+        ],
+    store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% drop_type_def ::= 'DROP' 'TYPE' type_name ( 'FORCE' | 'VALIDATE' )?
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(drop_type_def = Rule) ->
+    ?CREATE_CODE_START,
+    [{schema_name, Schema_Name}] = ets:lookup(?CODE_TEMPLATES, schema_name),
+    Schema_Name_Length = length(Schema_Name),
+    [{type_name, Type_Name}] = ets:lookup(?CODE_TEMPLATES, type_name),
+    Type_Name_Length = length(Type_Name),
+
+    Code =
+        [
+            lists:append([
+                "Drop Type ",
+                case rand:uniform(2) rem 2 of
+                    1 -> lists:nth(rand:uniform(Schema_Name_Length),
+                        Schema_Name) ++ ".";
+                    _ -> []
+                end,
+                lists:nth(rand:uniform(Type_Name_Length), Type_Name),
+                case rand:uniform(3) rem 3 of
+                    1 -> " Force";
+                    2 -> " Validate";
+                    _ -> []
+                end
+            ])
+            || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
+        ],
+    store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% drop_user_def ::= 'DROP' 'USER' NAME 'CASCADE'?
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(drop_user_def = Rule) ->
@@ -2078,6 +2278,32 @@ create_code(drop_user_def = Rule) ->
                 lists:nth(rand:uniform(Name_Length), Name),
                 case rand:uniform(2) rem 2 of
                     1 -> " Cascade";
+                    _ -> []
+                end
+            ])
+            || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
+        ],
+    store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% drop_view_def ::= 'DROP' 'VIEW' table ( 'CASCADE' 'CONSTRAINTS' )?
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(drop_view_def = Rule) ->
+    ?CREATE_CODE_START,
+    [{table, Table}] = ets:lookup(?CODE_TEMPLATES, table),
+    Table_Length = length(Table),
+
+    Code =
+        [
+            lists:append([
+                "Drop View ",
+                lists:nth(rand:uniform(Table_Length), Table),
+                case rand:uniform(2) rem 2 of
+                    1 -> " Cascade Constraints";
                     _ -> []
                 end
             ])
@@ -3288,6 +3514,11 @@ create_code(name = Rule) ->
             "X@YZ_ident"
         ],
     store_code(Rule, Code, ?MAX_BASIC, false),
+    store_code(cluster_name,
+        [re:replace(re:replace(C, "ident", "ident_cluster", [{return, list}]),
+            "IDENT", "IDENT_CLUSTER", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
+        false),
     store_code(column,
         [re:replace(re:replace(C, "ident", "ident_column", [{return, list}]),
             "IDENT", "IDENT_COLUMN", [{return, list}]) || C <- Code],
@@ -3295,18 +3526,62 @@ create_code(name = Rule) ->
     store_code(column_ref, [re:replace(
         re:replace(C, "ident", "ident_column_ref", [{return, list}]), "IDENT",
         "IDENT_COLUMN_REF", [{return, list}]) || C <- Code], ?MAX_BASIC, false),
+    store_code(context_name,
+        [re:replace(re:replace(C, "ident", "ident_context", [{return, list}]),
+            "IDENT", "IDENT_CONTEXT", [{return, list}]) || C <- Code],
+        ?MAX_BASIC, false),
+    store_code(directory_name,
+        [re:replace(re:replace(C, "ident", "ident_directory", [{return, list}]),
+            "IDENT", "IDENT_DIRECTORY", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
+        false),
     store_code(from_column, [re:replace(
         re:replace(C, "ident", "ident_from_column", [{return, list}]), "IDENT",
         "IDENT_FROM_COLUMN", [{return, list}]) || C <- Code], ?MAX_BASIC,
+        false),
+    store_code(function_name,
+        [re:replace(re:replace(C, "ident", "ident_function", [{return, list}]),
+            "IDENT", "IDENT_FUNCTION", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
         false),
     store_code(grantee_revokee, [re:replace(
         re:replace(C, "ident", "ident_grantee_revokee", [{return, list}]),
         "IDENT", "IDENT_GRANTEE_REVOKEE", [{return, list}]) || C <- Code],
         ?MAX_BASIC, false),
+    store_code(index_name,
+        [re:replace(re:replace(C, "ident", "ident_index", [{return, list}]),
+            "IDENT", "IDENT_INDEX", [{return, list}]) || C <- Code],
+        ?MAX_BASIC, false),
     store_code(join_ref,
         [re:replace(re:replace(C, "ident", "ident_join_ref", [{return, list}]),
             "IDENT", "IDENT_JOIN_REF", [{return, list}]) || C <- Code],
         ?MAX_BASIC, false),
+    store_code(materialized_view_name,
+        [re:replace(
+            re:replace(C, "ident", "ident_materialized_view", [{return, list}]),
+            "IDENT", "IDENT_MATERIALIZED_VIEW", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
+        false),
+    store_code(package_name,
+        [re:replace(re:replace(C, "ident", "ident_package", [{return, list}]),
+            "IDENT", "IDENT_PACKAGE", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
+        false),
+    store_code(procedure_name,
+        [re:replace(re:replace(C, "ident", "ident_procedure", [{return, list}]),
+            "IDENT", "IDENT_PROCEDURE", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
+        false),
+    store_code(profile_name,
+        [re:replace(re:replace(C, "ident", "ident_profile", [{return, list}]),
+            "IDENT", "IDENT_PROFILE", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
+        false),
+    store_code(role_name,
+        [re:replace(re:replace(C, "ident", "ident_role", [{return, list}]),
+            "IDENT", "IDENT_ROLE", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
+        false),
     store_code(scalar_exp, [re:replace(
         re:replace(C, "ident", "ident_scalar_exp", [{return, list}]), "IDENT",
         "IDENT_SCALAR_EXP", [{return, list}]) || C <- Code], ?MAX_BASIC, false),
@@ -3314,6 +3589,21 @@ create_code(name = Rule) ->
         re:replace(C, "ident", "ident_scalar_sub_exp", [{return, list}]),
         "IDENT", "IDENT_SCALAR_SUB_EXP", [{return, list}]) || C <- Code],
         ?MAX_BASIC, false),
+    store_code(schema_name,
+        [re:replace(re:replace(C, "ident", "ident_schema", [{return, list}]),
+            "IDENT", "IDENT_SCHEMA", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
+        false),
+    store_code(sequence_name,
+        [re:replace(re:replace(C, "ident", "ident_sequence", [{return, list}]),
+            "IDENT", "IDENT_SEQUENCE", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
+        false),
+    store_code(synonym_name,
+        [re:replace(re:replace(C, "ident", "ident_synonym", [{return, list}]),
+            "IDENT", "IDENT_SYNONYM", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
+        false),
     store_code(system_privilege,
         [re:replace(re:replace(C, "ident", "ident_sys_priv", [{return, list}]),
             "IDENT", "IDENT_SYS_PRIV", [{return, list}]) || C <- Code],
@@ -3330,10 +3620,21 @@ create_code(name = Rule) ->
         re:replace(C, "ident", "ident_table_dblink", [{return, list}]), "IDENT",
         "IDENT_TABLE_DBLINK", [{return, list}]) || C <- Code], ?MAX_BASIC,
         false),
+    store_code(table_name,
+        [re:replace(re:replace(C, "ident", "ident_table", [{return, list}]),
+            "IDENT", "IDENT_TABLE", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
+        false),
     store_code(table_ref,
         [re:replace(re:replace(C, "ident", "ident_table_ref", [{return, list}]),
             "IDENT", "IDENT_TABLE_REF", [{return, list}]) || C <- Code],
         ?MAX_BASIC, false),
+    store_code(tablespace_name,
+        [re:replace(
+            re:replace(C, "ident", "ident_tablespace", [{return, list}]),
+            "IDENT", "IDENT_TABLESPACE", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
+        false),
     store_code(target,
         [re:replace(re:replace(C, "ident", "ident_target", [{return, list}]),
             "IDENT", "IDENT_TARGET", [{return, list}]) || C <- Code],
@@ -3342,6 +3643,16 @@ create_code(name = Rule) ->
         [re:replace(re:replace(C, "ident", "ident_tbl_type", [{return, list}]),
             "IDENT", "IDENT_TBL_TYPE", [{return, list}]) || C <- Code],
         ?MAX_BASIC, false),
+    store_code(trigger_name,
+        [re:replace(re:replace(C, "ident", "ident_trigger", [{return, list}]),
+            "IDENT", "IDENT_TRIGGER", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
+        false),
+    store_code(type_name,
+        [re:replace(re:replace(C, "ident", "ident_type", [{return, list}]),
+            "IDENT", "IDENT_TYPE", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
+        false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4650,9 +4961,9 @@ create_code(special = Rule) ->
         "Insert Into table_name Values (1)",
         "Insert Into table_name Select source_column From source_table",
         "Insert Into table_name (column_name) Values (1)",
-        "Insert Into table_name ('column_string') Values (1)",
+        "Insert Into table_name (\\\"column_string\\\") Values (1)",
         "Insert Into table_name (column_name) Select source_column From source_table",
-        "Insert Into table_name ('column_string') Select source_column From source_table",
+        "Insert Into table_name (\\\"column_string\\\") Select source_column From source_table",
 %% ---------------------------------------------------------------------
 %% Problem: ORDER BY
 %% ---------------------------------------------------------------------
@@ -4796,24 +5107,13 @@ create_code(string = Rule) ->
         [re:replace(re:replace(C, "string", "string_atom", [{return, list}]),
             "STRING", "STRING_ATOM", [{return, list}]) || C <- Code],
         ?MAX_BASIC, false),
-    store_code(column,
-        [re:replace(re:replace(C, "string", "string_column", [{return, list}]),
-            "STRING", "STRING_COLUMN", [{return, list}]) || C <- Code],
-        ?MAX_BASIC, false),
     store_code(data_type, [re:replace(
         re:replace(C, "string", "string_data_type", [{return, list}]), "STRING",
         "STRING_DATA_TYPE", [{return, list}]) || C <- Code], ?MAX_BASIC, false),
-    store_code(from_column, [re:replace(
-        re:replace(C, "string", "string_from_column", [{return, list}]),
-        "STRING", "STRING_FROM_COLUMN", [{return, list}]) || C <- Code],
-        ?MAX_BASIC, false),
     store_code(fun_arg,
         [re:replace(re:replace(C, "string", "string_fun_arg", [{return, list}]),
             "STRING", "STRING_FUN_ARG", [{return, list}]) || C <- Code],
         ?MAX_BASIC, false),
-    store_code(join_ref, [re:replace(
-        re:replace(C, "string", "string_join_ref", [{return, list}]), "STRING",
-        "STRING_JOIN_REF", [{return, list}]) || C <- Code], ?MAX_BASIC, false),
     store_code(literal,
         [re:replace(re:replace(C, "string", "string_literal", [{return, list}]),
             "STRING", "STRING_LITERAL", [{return, list}]) || C <- Code],
@@ -4826,21 +5126,6 @@ create_code(string = Rule) ->
         re:replace(C, "string", "string_scalar_sub_exp", [{return, list}]),
         "STRING", "STRING_SCALAR_SUB_EXP", [{return, list}]) || C <- Code],
         ?MAX_BASIC, false),
-    store_code(table,
-        [re:replace(re:replace(C, "string", "string_table", [{return, list}]),
-            "STRING", "STRING_TABLE", [{return, list}]) || C <- Code],
-        ?MAX_BASIC, false),
-    store_code(table_alias, [re:replace(
-        re:replace(C, "string", "string_table_alias", [{return, list}]),
-        "STRING", "STRING_TABLE_ALIAS", [{return, list}]) || C <- Code],
-        ?MAX_BASIC, false),
-    store_code(table_dblink, [re:replace(
-        re:replace(C, "string", "string_table_dblink", [{return, list}]),
-        "STRING", "STRING_TABLE_DBLINK", [{return, list}]) || C <- Code],
-        ?MAX_BASIC, false),
-    store_code(table_ref, [re:replace(
-        re:replace(C, "string", "string_table_ref", [{return, list}]), "STRING",
-        "STRING_TABLE_REF", [{return, list}]) || C <- Code], ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -4928,21 +5213,23 @@ create_code(system_with_grant_option = Rule) ->
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% table ::= ( ( NAME '.' )? NAME )
 %%         | parameter
-%%         | STRING
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(table = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
-    Name_Length = length(Name),
+    [{schema_name, Schema_Name}] = ets:lookup(?CODE_TEMPLATES, schema_name),
+    Schema_Name_Length = length(Schema_Name),
+    [{table_name, Table_Name}] = ets:lookup(?CODE_TEMPLATES, table_name),
+    Table_Name_Length = length(Table_Name),
 
     Code =
         [
-            lists:append([
-                lists:nth(rand:uniform(Name_Length), Name),
-                ".",
-                lists:nth(rand:uniform(Name_Length), Name)
-            ])
+                case rand:uniform(2) rem 2 of
+                    1 -> lists:nth(rand:uniform(Schema_Name_Length),
+                        Schema_Name) ++ ".";
+                    _ -> []
+                end
+                ++ lists:nth(rand:uniform(Table_Name_Length), Table_Name)
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
     store_code(Rule, Code, ?MAX_BASIC, false),
@@ -4954,7 +5241,6 @@ create_code(table = Rule) ->
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% table_alias ::= ( ( NAME '.' )? NAME NAME )
 %%               | ( parameter          NAME )
-%%               | ( STRING             NAME )
 %%               | table
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -5215,6 +5501,30 @@ create_code(table_exp = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% table_list ::= table ( ',' table )*
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(table_list = Rule) ->
+    ?CREATE_CODE_START,
+    [{table, Table}] = ets:lookup(?CODE_TEMPLATES, table),
+    Table_Length = length(Table),
+
+    Code =
+        [
+            case rand:uniform(2) rem 2 of
+                1 -> lists:append([
+                    lists:nth(rand:uniform(Table_Length), Table),
+                    ",",
+                    lists:nth(rand:uniform(Table_Length), Table)
+                ]);
+                _ -> lists:nth(rand:uniform(Table_Length), Table)
+            end
+            || _ <- lists:seq(1, ?MAX_BASIC * 2)
+        ],
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% table_ref ::= table_dblink
 %%             | ( '(' query_exp ')' ( NAME )? )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -5333,7 +5643,42 @@ create_code(test_for_null = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% truncate_table ::= 'TRUNCATE' 'TABLE' table ( ( 'PRESERVE' | 'PURGE' ) 'MATERIALIZED' 'VIEW' 'LOG' )? ( ( 'DROP' | 'REUSE' ) 'STORAGE' )?
+%% truncate_cluster ::= 'TRUNCATE' 'CLUSTER' cluster_name storage?
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(truncate_cluster = Rule) ->
+    ?CREATE_CODE_START,
+    [{cluster_name, Cluster_Name}] = ets:lookup(?CODE_TEMPLATES, cluster_name),
+    Cluster_Name_Length = length(Cluster_Name),
+    [{schema_name, Schema_Name}] = ets:lookup(?CODE_TEMPLATES, schema_name),
+    Schema_Name_Length = length(Schema_Name),
+
+    Code =
+        [
+            lists:append([
+                "Truncate Cluster ",
+                case rand:uniform(2) rem 2 of
+                    1 -> lists:nth(rand:uniform(Schema_Name_Length),
+                        Schema_Name) ++ ".";
+                    _ -> []
+                end,
+                lists:nth(rand:uniform(Cluster_Name_Length), Cluster_Name),
+                case rand:uniform(4) rem 4 of
+                    1 -> " Drop Storage";
+                    2 -> " Drop All Storage";
+                    3 -> " Reuse Storage";
+                    _ -> []
+                end
+            ])
+            || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
+        ],
+    store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
+    store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% truncate_table ::= 'TRUNCATE' 'TABLE' table materialized? storage? 'CASCADE'?
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(truncate_table = Rule) ->
@@ -5351,9 +5696,14 @@ create_code(truncate_table = Rule) ->
                     2 -> " Purge Materialized View Log";
                     _ -> []
                 end,
-                case rand:uniform(3) rem 3 of
+                case rand:uniform(4) rem 4 of
                     1 -> " Drop Storage";
-                    2 -> " Reuse Storage";
+                    2 -> " Drop All Storage";
+                    3 -> " Reuse Storage";
+                    _ -> []
+                end,
+                case rand:uniform(2) rem 2 of
+                    1 -> " Cascade";
                     _ -> []
                 end
             ])

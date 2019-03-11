@@ -25,11 +25,13 @@ sleep .1
 #
 # ----------------------------------------------------------------------------
 
-timestamp() {
-  date +"%T"
-}
-
-echo "$(timestamp) Start Test Data Generation and Run"
+echo "========================================================================="
+echo "Start $0"
+echo "-------------------------------------------------------------------------"
+echo "Start Test Data Generation and Run"
+echo "-------------------------------------------------------------------------"
+date +"DATE TIME : %d.%m.%Y %H:%M:%S"
+echo "-------------------------------------------------------------------------"
 
 # Setting sqlparse options ...............................................
 # "true": compacted / "false": detailed.
@@ -43,24 +45,28 @@ export LOGGING="false"
 export MAX_BASIC=250
 test/gen_tests.sh
 
-echo "$(timestamp) Start EUnit Tests"
+echo "Start EUnit Tests"
 SOURCEFILES_OLD=SOURCEFILES
 SOURCEFILES=
 rebar3 eunit
 SOURCEFILES=SOURCEFILES_OLD
 
-echo "$(timestamp) Start Common Tests"
+echo "Start Common Tests"
 rebar3 ct
 
-echo "$(timestamp) Start Coverage Analysis"
+echo "Start Coverage Analysis"
 rebar3 cover
 
-echo "$(timestamp) Start Dialyzer"
+echo "Start Dialyzer"
 rebar3 dialyzer
 
-echo "$(timestamp) Start geas (Guess Erlang Application Scattering)"
+echo "Start geas (Guess Erlang Application Scattering)"
 rebar3 as test geas
 
-echo "$(timestamp) End   Test Data Generation and Run"
+echo "-------------------------------------------------------------------------"
+date +"DATE TIME : %d.%m.%Y %H:%M:%S"
+echo "-------------------------------------------------------------------------"
+echo "End   $0"
+echo "========================================================================="
 
 exit 0

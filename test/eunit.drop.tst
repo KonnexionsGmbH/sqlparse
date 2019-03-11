@@ -43,10 +43,10 @@
 % drop_database_link_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-"drop database link database_link_name".
-"drop database link database_link_name;".
-"drop public database link database_link_name".
-"drop public database link database_link_name;".
+"drop database link \"@k2informatics.ch\"".
+"drop database link \"@k2informatics.ch\";".
+"drop public database link \"@k2informatics.ch\"".
+"drop public database link \"@k2informatics.ch\";".
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % drop_directory_def

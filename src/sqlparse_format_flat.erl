@@ -133,14 +133,15 @@ fold([], _FunState, Ctx, {'alter user', Users, _Spec} = _PTree,
 % anchor
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold([], _FunState, Ctx, {Anchor, '('} = _PTree, {anchor, Step} =
-    _FoldState)
-    when is_binary(Anchor) ->
-    RT = case Step of
-             start -> lists:append([Ctx, "(", binary_to_list(Anchor)]);
-             'end' -> Ctx ++ ")"
-         end,
-    ?CUSTOM_RESULT(RT);
+% wwe
+%%fold([], _FunState, Ctx, {Anchor, '('} = _PTree, {anchor, Step} =
+%%    _FoldState)
+%%    when is_binary(Anchor) ->
+%%    RT = case Step of
+%%             start -> lists:append([Ctx, "(", binary_to_list(Anchor)]);
+%%             'end' -> Ctx ++ ")"
+%%         end,
+%%    ?CUSTOM_RESULT(RT);
 fold([], _FunState, Ctx, {_Anchor, '('} = _PTree, {anchor, Step} =
     _FoldState) ->
     RT = case Step of
@@ -198,15 +199,16 @@ fold([], _FunState, Ctx, {Value, Alias} = _PTree, {explicit_as, Step} =
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
-fold([], _FunState, Ctx, {_Value, Alias} = _PTree, {explicit_as, Step} =
-    _FoldState)
-    when is_binary(Alias) ->
-    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
-    RT = case Step of
-             'end' -> lists:append([Ctx, " as ", binary_to_list(Alias)]);
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
+% wwe
+%%fold([], _FunState, Ctx, {_Value, Alias} = _PTree, {explicit_as, Step} =
+%%    _FoldState)
+%%    when is_binary(Alias) ->
+%%    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+%%    RT = case Step of
+%%             'end' -> lists:append([Ctx, " as ", binary_to_list(Alias)]);
+%%             _ -> Ctx
+%%         end,
+%%    ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % assignment
@@ -440,14 +442,15 @@ fold([], _FunState, Ctx, {ScalarOptAsExpr, _CaseWhenThenList, Else} =
 % check
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold([], _FunState, Ctx, PTree, {check, Step} = _FoldState)
-    when is_binary(PTree) ->
-    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
-    RT = case Step of
-             start -> Ctx ++ binary_to_list(PTree);
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
+% wwe
+%%fold([], _FunState, Ctx, PTree, {check, Step} = _FoldState)
+%%    when is_binary(PTree) ->
+%%    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+%%    RT = case Step of
+%%             start -> Ctx ++ binary_to_list(PTree);
+%%             _ -> Ctx
+%%         end,
+%%    ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % close_statement
@@ -619,29 +622,30 @@ fold([], _FunState, Ctx, {Op, _ScalarExp} = _PTree,
 % connect_by
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold([], _FunState, Ctx, {'connect by', <<>>, SearchCondition} = _PTree,
-    {connect_by, Step} = _FoldState)
-    when is_binary(SearchCondition) ->
-    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
-    RT = case Step of
-             start ->
-                 lists:append(
-                     [Ctx, " connect by ", binary_to_list(SearchCondition)]);
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
-fold([], _FunState, Ctx, {'connect by', NoCycle, SearchCondition} = _PTree,
-    {connect_by, Step} = _FoldState)
-    when is_binary(SearchCondition) ->
-    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
-    RT = case Step of
-             start ->
-                 lists:append(
-                     [Ctx, " connect by ", binary_to_list(
-                         NoCycle), " ", binary_to_list(SearchCondition)]);
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
+% wwe
+%%fold([], _FunState, Ctx, {'connect by', <<>>, SearchCondition} = _PTree,
+%%    {connect_by, Step} = _FoldState)
+%%    when is_binary(SearchCondition) ->
+%%    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+%%    RT = case Step of
+%%             start ->
+%%                 lists:append(
+%%                     [Ctx, " connect by ", binary_to_list(SearchCondition)]);
+%%             _ -> Ctx
+%%         end,
+%%    ?CUSTOM_RESULT(RT);
+%%fold([], _FunState, Ctx, {'connect by', NoCycle, SearchCondition} = _PTree,
+%%    {connect_by, Step} = _FoldState)
+%%    when is_binary(SearchCondition) ->
+%%    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+%%    RT = case Step of
+%%             start ->
+%%                 lists:append(
+%%                     [Ctx, " connect by ", binary_to_list(
+%%                         NoCycle), " ", binary_to_list(SearchCondition)]);
+%%             _ -> Ctx
+%%         end,
+%%    ?CUSTOM_RESULT(RT);
 fold([], _FunState, Ctx, {'connect by', <<>>, _SearchCondition} = _PTree,
     {connect_by, Step} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
@@ -900,14 +904,15 @@ fold([], _FunState, Ctx, PTree, {dblink, Step} = _FoldState)
 % default
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold([], _FunState, Ctx, PTree, {default, Step} = _FoldState)
-    when is_atom(PTree) ->
-    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
-    RT = case Step of
-             start -> Ctx ++ atom_to_list(PTree);
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
+% wwe
+%%fold([], _FunState, Ctx, PTree, {default, Step} = _FoldState)
+%%    when is_atom(PTree) ->
+%%    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+%%    RT = case Step of
+%%             start -> Ctx ++ atom_to_list(PTree);
+%%             _ -> Ctx
+%%         end,
+%%    ?CUSTOM_RESULT(RT);
 fold([], _FunState, Ctx, PTree, {default, Step} = _FoldState)
     when is_binary(PTree) ->
     ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
@@ -1080,11 +1085,14 @@ fold([], _FunState, Ctx,
     {drop_index_def, Step} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
-             start -> lists:append([Ctx, "drop index",
+             start -> lists:append([
+                 Ctx,
+                 "drop index",
                  case IndexName of
                      {} -> [];
                      _ -> " " ++ binary_to_list(IndexName)
-                 end]);
+                 end
+             ]);
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
@@ -1118,40 +1126,6 @@ fold([], _FunState, Ctx,
                  Ctx,
                  "drop materialized view ",
                  binary_to_list(Name)
-             ]);
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% drop_materialized_view_extensions
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-fold([], _FunState, Ctx, PTree, {Type, Step} = _FoldState)
-    when Type == drop_materialized_view_extensions ->
-    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
-    RT = case Step of
-             start -> lists:append([
-                 Ctx,
-                 " ",
-                 atom_to_list(PTree)
-             ]);
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% drop_materialized_view_extensions
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-fold([], _FunState, Ctx, PTree, {Type, Step} = _FoldState)
-    when Type == drop_materialized_view_extensions ->
-    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
-    RT = case Step of
-             start -> lists:append([
-                 Ctx,
-                 " ",
-                 atom_to_list(PTree)
              ]);
              _ -> Ctx
          end,
@@ -1233,7 +1207,11 @@ fold([], _FunState, Ctx, {'drop role', Role} = _PTree,
     {drop_role_def, Step} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
-             start -> lists:append([Ctx, "drop role ", binary_to_list(Role)]);
+             start -> lists:append([
+                 Ctx,
+                 "drop role ",
+                 binary_to_list(Role)
+             ]);
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
@@ -1397,15 +1375,24 @@ fold([], _FunState, Ctx, {'drop user', Name, _DropExtensions} = _PTree,
 % drop_view_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold([], _FunState, Ctx, {'drop view', Name, _DropExtensions} = _PTree,
-    {drop_view_def, Step} = _FoldState) ->
+fold([], _FunState, Ctx, {'drop view', Table, _DropExtensions} = _PTree,
+    {drop_view_def, Step} = _FoldState)
+    when is_binary(Table) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
              start -> lists:append([
                  Ctx,
                  "drop view ",
-                 binary_to_list(Name)
+                 binary_to_list(Table)
              ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+fold([], _FunState, Ctx, {'drop view', _Table, _DropExtensions} = _PTree,
+    {drop_view_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> Ctx ++ "drop view ";
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
@@ -1508,19 +1495,20 @@ fold([], _FunState, Ctx, _PTree, {from, Step} = _FoldState) ->
 % fun_arg
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold([], _FunState, Ctx, {as, {'fun', _, _}, Alias} = _PTree,
-    {fun_arg, Step, Pos} = _FoldState) ->
-    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
-    RT = case Step of
-             'end' ->
-                 lists:append([Ctx, " ", binary_to_list(Alias),
-                     case Pos of
-                         other -> ", ";
-                         _ -> []
-                     end]);
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
+% wwe
+%%fold([], _FunState, Ctx, {as, {'fun', _, _}, Alias} = _PTree,
+%%    {fun_arg, Step, Pos} = _FoldState) ->
+%%    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+%%    RT = case Step of
+%%             'end' ->
+%%                 lists:append([Ctx, " ", binary_to_list(Alias),
+%%                     case Pos of
+%%                         other -> ", ";
+%%                         _ -> []
+%%                     end]);
+%%             _ -> Ctx
+%%         end,
+%%    ?CUSTOM_RESULT(RT);
 fold([], _FunState, Ctx, {Type, Value} = _PTree, {fun_arg, Step, _Pos} =
     _FoldState)
     when (Type == all orelse Type == distinct) andalso is_binary(Value) ->
@@ -1582,15 +1570,16 @@ fold([], _FunState, Ctx, {'fun', Name, _} = _PTree, {function_ref, Step} =
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
-fold([], _FunState, Ctx, {as, {{'fun', _, _}, JSON, []}, Alias} = _PTree,
-    {function_ref, Step} = _FoldState)
-    when is_tuple(JSON) ->
-    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
-    RT = case Step of
-             'end' -> lists:append([Ctx, " ", binary_to_list(Alias)]);
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
+% wwe
+%%fold([], _FunState, Ctx, {as, {{'fun', _, _}, JSON, []}, Alias} = _PTree,
+%%    {function_ref, Step} = _FoldState)
+%%    when is_tuple(JSON) ->
+%%    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+%%    RT = case Step of
+%%             'end' -> lists:append([Ctx, " ", binary_to_list(Alias)]);
+%%             _ -> Ctx
+%%         end,
+%%    ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % goto
@@ -1727,14 +1716,15 @@ fold([], _FunState, Ctx, _PTree, {group_by, Step} = _FoldState) ->
 % having
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold([], _FunState, Ctx, PTree, {having, Step} = _FoldState)
-    when is_binary(PTree) ->
-    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
-    RT = case Step of
-             start -> lists:append([Ctx, " having ", binary_to_list(PTree)]);
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
+% wwe
+%%fold([], _FunState, Ctx, PTree, {having, Step} = _FoldState)
+%%    when is_binary(PTree) ->
+%%    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+%%    RT = case Step of
+%%             start -> lists:append([Ctx, " having ", binary_to_list(PTree)]);
+%%             _ -> Ctx
+%%         end,
+%%    ?CUSTOM_RESULT(RT);
 fold([], _FunState, Ctx, _PTree, {having, Step} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
@@ -2102,15 +2092,16 @@ fold([], _FunState, Ctx, {'materialized view log' = Value1, Value2} =
 % on
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold([], _FunState, Ctx, PTree, {on, Step} = _FoldState)
-    when is_binary(PTree) ->
-    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
-    RT = case Step of
-             start ->
-                 lists:append([Ctx, " on ", binary_to_list(PTree)]);
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
+% wwe
+%%fold([], _FunState, Ctx, PTree, {on, Step} = _FoldState)
+%%    when is_binary(PTree) ->
+%%    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+%%    RT = case Step of
+%%             start ->
+%%                 lists:append([Ctx, " on ", binary_to_list(PTree)]);
+%%             _ -> Ctx
+%%         end,
+%%    ?CUSTOM_RESULT(RT);
 fold([], _FunState, Ctx, _PTree, {on, Step} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
@@ -2679,17 +2670,18 @@ fold([], _FunState, Ctx, {_SQL, Pos, {extra, Extra}} = _PTree,
 % start_with
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold([], _FunState, Ctx, {'start with', SearchCondition} = _PTree,
-    {start_with, Step} = _FoldState)
-    when is_binary(SearchCondition) ->
-    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
-    RT = case Step of
-             start ->
-                 lists:append(
-                     [Ctx, " start with ", binary_to_list(SearchCondition)]);
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
+% wwe
+%%fold([], _FunState, Ctx, {'start with', SearchCondition} = _PTree,
+%%    {start_with, Step} = _FoldState)
+%%    when is_binary(SearchCondition) ->
+%%    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+%%    RT = case Step of
+%%             start ->
+%%                 lists:append(
+%%                     [Ctx, " start with ", binary_to_list(SearchCondition)]);
+%%             _ -> Ctx
+%%         end,
+%%    ?CUSTOM_RESULT(RT);
 fold([], _FunState, Ctx, _PTree, {start_with, Step} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
@@ -2956,15 +2948,16 @@ fold([], _FunState, Ctx,
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
-fold([], _FunState, Ctx,
-    {'truncate cluster', _Name, _Cascade} = _PTree,
-    {truncate_cluster, Step} = _FoldState) ->
-    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
-    RT = case Step of
-             start -> Ctx ++ "truncate cluster ";
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
+% wwe
+%%fold([], _FunState, Ctx,
+%%    {'truncate cluster', _Name, _Cascade} = _PTree,
+%%    {truncate_cluster, Step} = _FoldState) ->
+%%    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+%%    RT = case Step of
+%%             start -> Ctx ++ "truncate cluster ";
+%%             _ -> Ctx
+%%         end,
+%%    ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % truncate_table
@@ -2995,16 +2988,17 @@ fold([], _FunState, Ctx,
 % unary
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold([], _FunState, Ctx, {'not' = Op, Value} = _PTree, {unary, Step} =
-    _FoldState)
-    when is_binary(Value) ->
-    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
-    RT = case Step of
-             start -> lists:append(
-                 [Ctx, atom_to_list(Op), "(", binary_to_list(Value), ")"]);
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
+% wwe
+%%fold([], _FunState, Ctx, {'not' = Op, Value} = _PTree, {unary, Step} =
+%%    _FoldState)
+%%    when is_binary(Value) ->
+%%    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+%%    RT = case Step of
+%%             start -> lists:append(
+%%                 [Ctx, atom_to_list(Op), "(", binary_to_list(Value), ")"]);
+%%             _ -> Ctx
+%%         end,
+%%    ?CUSTOM_RESULT(RT);
 fold([], _FunState, Ctx, {Op, Value} = _PTree, {unary, Step} =
     _FoldState)
     when is_atom(Op), is_binary(Value) ->
@@ -3151,15 +3145,16 @@ fold([], _FunState, Ctx, _PTree, {view_query_spec, Step} = _FoldState) ->
 % 'when'
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold([], _FunState, Ctx, PTree, {'when', Step} = _FoldState)
-    when is_binary(PTree) ->
-    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
-    RT = case Step of
-             start ->
-                 lists:append([Ctx, " when ", binary_to_list(PTree)]);
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
+% wwe
+%%fold([], _FunState, Ctx, PTree, {'when', Step} = _FoldState)
+%%    when is_binary(PTree) ->
+%%    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+%%    RT = case Step of
+%%             start ->
+%%                 lists:append([Ctx, " when ", binary_to_list(PTree)]);
+%%             _ -> Ctx
+%%         end,
+%%    ?CUSTOM_RESULT(RT);
 fold([], _FunState, Ctx, _PTree, {'when', Step} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
@@ -3214,14 +3209,15 @@ fold([], _FunState, Ctx, _PTree, {when_sql_err, Step} = _FoldState) ->
 % where_clause
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold([], _FunState, Ctx, PTree, {where_clause, Step} = _FoldState)
-    when is_binary(PTree) ->
-    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
-    RT = case Step of
-             start -> lists:append([Ctx, " where ", binary_to_list(PTree)]);
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
+% wwe
+%%fold([], _FunState, Ctx, PTree, {where_clause, Step} = _FoldState)
+%%    when is_binary(PTree) ->
+%%    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+%%    RT = case Step of
+%%             start -> lists:append([Ctx, " where ", binary_to_list(PTree)]);
+%%             _ -> Ctx
+%%         end,
+%%    ?CUSTOM_RESULT(RT);
 fold([], _FunState, Ctx, _PTree, {where_clause, Step} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case Step of

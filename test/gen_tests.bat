@@ -24,19 +24,20 @@ REM ----------------------------------------------------------------------------
 > gen_tests.log (
 
     SETLOCAL enableDelayedExpansion
-    ECHO !time! Start Test Data Generation
+
+    ECHO =======================================================================
+    ECHO Start %0
+    ECHO -----------------------------------------------------------------------
+    ECHO Start Test Data Generation
+    ECHO -----------------------------------------------------------------------
+    ECHO:| TIME
+    ECHO -----------------------------------------------------------------------
 
     IF EXIST _build\test\lib\sqlparse\test\generated (
-        RD /Q /S _build\test\lib\sqlparse\test\generated
-    )
-    IF EXIST _build\test\lib\sqlparse\test\performance_*.* (
-        DEL /Q _build\test\lib\sqlparse\test\performance_*.*
-    )
-    IF EXIST _build\test\lib\sqlparse\test\reliability_*.* (
-        DEL /Q _build\test\lib\sqlparse\test\reliability_*.*
+        DEL /Q /S _build\test\lib\sqlparse\test\generated
     )
     IF EXIST test\generated (
-        RD /Q /S test\generated
+        DEl /Q /S test\generated
     )
 
     CALL rebar3 as test compile
@@ -62,6 +63,10 @@ REM ----------------------------------------------------------------------------
         DEL /Q code_templates
     )
 
-    ECHO !time! End  Test Data Generation
+    ECHO -----------------------------------------------------------------------
+    ECHO:| TIME
+    ECHO -----------------------------------------------------------------------
+    ECHO End   %0
+    ECHO =======================================================================
 
 )

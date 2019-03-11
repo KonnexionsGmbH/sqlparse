@@ -34,17 +34,17 @@ PlSqlBlockSqlList02.              PlSqlBlockSqlList ::= SqlList    ;
 
 PlSqlBlock01.                     PlSqlBlock ::= PlSqlBody ;
 
--- sql_list ->          sql ';'                                                                    :         [{'$1',{extra, <<>>}}].
--- sql_list ->          sql ';' extra                                                              :         [{'$1','$3'}].
--- sql_list -> sql_list sql ';'                                                                    : '$1' ++ [{'$2',{extra, <<>>}}].
--- sql_list -> sql_list sql ';' extra                                                              : '$1' ++ [{'$2','$4'}].
+-- sql_list ->          sql ';'       :         [{'$1',{extra, <<>>}}].
+-- sql_list ->          sql ';' extra :         [{'$1','$3'}].
+-- sql_list -> sql_list sql ';'       : '$1' ++ [{'$2',{extra, <<>>}}].
+-- sql_list -> sql_list sql ';' extra : '$1' ++ [{'$2','$4'}].
 
 SqlList01.                        SqlList ::=         Sql ";"       ;
 SqlList02.                        SqlList ::=         Sql ";" Extra ;
 SqlList03.                        SqlList ::= SqlList Sql ";"       ;
 SqlList04.                        SqlList ::= SqlList Sql ";" Extra ;
 
--- extra -> NAME  ';'                                                                              : {extra, unwrap_bin('$1')}.
+-- extra -> NAME  ';' : {extra, unwrap_bin('$1')}.
 
 Extra01.                          Extra ::= "NAME"   ";" ;
 
@@ -104,7 +104,7 @@ StatementPragma17.                StatementPragma ::= "WHENEVER" "SQLERROR"    W
 
 AssignStatement01.                AssignStatement ::= Parameter ":=" ScalarOptAsExp ;
 
--- procedure_call -> CALL  function_ref          : {'call procedure', '$2'}.
+-- procedure_call -> procedure_call -> CALL function_ref : {'call procedure',  '$2'}.
 
 ProcedureCall01.                  ProcedureCall ::= "CALL"  FunctionRef ;
 
@@ -118,8 +118,8 @@ ProcedureCall01.                  ProcedureCall ::= "CALL"  FunctionRef ;
 Schema01.                         Schema ::= "CREATE" "SCHEMA" "AUTHORIZATION" "NAME"                   ;
 Schema02.                         Schema ::= "CREATE" "SCHEMA" "AUTHORIZATION" "NAME" SchemaElementList ;
 
--- schema_element_list ->                     schema_element                                       :         ['$1'].
--- schema_element_list -> schema_element_list schema_element                                       : '$1' ++ ['$2'].
+-- schema_element_list ->                     schema_element :         ['$1'].
+-- schema_element_list -> schema_element_list schema_element : '$1' ++ ['$2'].
 
 SchemaElementList01.              SchemaElementList ::=                   SchemaElement ;
 SchemaElementList02.              SchemaElementList ::= SchemaElementList SchemaElement ;
@@ -132,55 +132,25 @@ SchemaElement01.                  SchemaElement ::= CreateTableDef ;
 SchemaElement02.                  SchemaElement ::= ViewDef        ;
 SchemaElement03.                  SchemaElement ::= GrantDef       ;
 
--- create_role_def -> CREATE ROLE NAME                                                             : {'create role', unwrap_bin('$3')}.
+-- create_role_def -> CREATE ROLE NAME : {'create role', unwrap_bin('$3')}.
 
 CreateRoleDef01.                  CreateRoleDef ::= "CREATE" "ROLE" "NAME" ;
 
--- create_table_def -> CREATE             TABLE table '('                              ')'         : {'create table', '$3', [],   []}.
--- create_table_def -> CREATE             TABLE table '(' base_table_element_commalist ')'         : {'create table', '$3', '$5', []}.
--- create_table_def -> CREATE create_opts TABLE table '('                              ')'         : {'create table', '$4', [],   '$2'}.
--- create_table_def -> CREATE create_opts TABLE table '(' base_table_element_commalist ')'         : {'create table', '$4', '$6', '$2'}.
+-- create_table_def -> CREATE             TABLE table '('                              ')' : {'create table', '$3', [],   []}.
+-- create_table_def -> CREATE             TABLE table '(' base_table_element_commalist ')' : {'create table', '$3', '$5', []}.
+-- create_table_def -> CREATE create_opts TABLE table '('                              ')' : {'create table', '$4', [],   '$2'}.
+-- create_table_def -> CREATE create_opts TABLE table '(' base_table_element_commalist ')' : {'create table', '$4', '$6', '$2'}.
 
 CreateTableDef01.                 CreateTableDef ::= "CREATE"            "TABLE" Table "("                           ")" ;
 CreateTableDef02.                 CreateTableDef ::= "CREATE"            "TABLE" Table "(" BaseTableElementCommalist ")" ;
 CreateTableDef03.                 CreateTableDef ::= "CREATE" CreateOpts "TABLE" Table "("                           ")" ;
 CreateTableDef04.                 CreateTableDef ::= "CREATE" CreateOpts "TABLE" Table "(" BaseTableElementCommalist ")" ;
 
--- create_user_def -> CREATE USER NAME identified                                                  : {'create user', unwrap_bin('$3'), '$4', []}.
--- create_user_def -> CREATE USER NAME identified user_opts_list                                   : {'create user', unwrap_bin('$3'), '$4', '$5'}.
+-- create_user_def -> CREATE USER NAME identified                : {'create user', unwrap_bin('$3'), '$4', []}.
+-- create_user_def -> CREATE USER NAME identified user_opts_list : {'create user', unwrap_bin('$3'), '$4', '$5'}.
 
 CreateUserDef01.                  CreateUserDef ::= "CREATE" "USER" "NAME" Identified              ;
 CreateUserDef02.                  CreateUserDef ::= "CREATE" "USER" "NAME" Identified UserOptsList ;
-
--- drop_table_def -> DROP      TABLE        table_list                  : {'drop table', {'tables', '$3'}, {},   {},   []}.
--- drop_table_def -> DROP      TABLE        table_list restrict_cascade : {'drop table', {'tables', '$3'}, {},   '$4', []}.
--- drop_table_def -> DROP      TABLE exists table_list                  : {'drop table', {'tables', '$4'}, '$3', {},   []}.
--- drop_table_def -> DROP      TABLE exists table_list restrict_cascade : {'drop table', {'tables', '$4'}, '$3', '$5', []}.
--- drop_table_def -> DROP NAME TABLE        table_list                  : {'drop table', {'tables', '$4'}, {},   {},   unwrap('$2')}.
--- drop_table_def -> DROP NAME TABLE        table_list restrict_cascade : {'drop table', {'tables', '$4'}, {},   '$5', unwrap('$2')}.
--- drop_table_def -> DROP NAME TABLE exists table_list                  : {'drop table', {'tables', '$5'}, '$4', {},   unwrap('$2')}.
--- drop_table_def -> DROP NAME TABLE exists table_list restrict_cascade : {'drop table', {'tables', '$5'}, '$4', '$6', unwrap('$2')}.
-
-DropTableDef01.                   DropTableDef ::= "DROP"        "TABLE"        TableList                 ;
-DropTableDef02.                   DropTableDef ::= "DROP"        "TABLE"        TableList RestrictCascade ;
-DropTableDef03.                   DropTableDef ::= "DROP"        "TABLE" Exists TableList                 ;
-DropTableDef04.                   DropTableDef ::= "DROP"        "TABLE" Exists TableList RestrictCascade ;
-DropTableDef05.                   DropTableDef ::= "DROP" "NAME" "TABLE"        TableList                 ;
-DropTableDef06.                   DropTableDef ::= "DROP" "NAME" "TABLE"        TableList RestrictCascade ;
-DropTableDef07.                   DropTableDef ::= "DROP" "NAME" "TABLE" Exists TableList                 ;
-DropTableDef08.                   DropTableDef ::= "DROP" "NAME" "TABLE" Exists TableList RestrictCascade ;
-
--- drop_role_def -> DROP ROLE NAME                                                                 : {'drop role', unwrap_bin('$3')}.
-
-DropRoleDef01.                    DropRoleDef ::= "DROP" "ROLE" "NAME" ;
-
--- drop_index_def -> DROP INDEX            FROM table : {'drop index', {},   '$4'}.
--- drop_index_def -> DROP INDEX index_name            : {'drop index', '$3', []}.
--- drop_index_def -> DROP INDEX index_name FROM table : {'drop index', '$3', '$5'}.
-
-DropIndexDef01.                   DropIndexDef ::= "DROP" "INDEX"           "FROM" Table ;
-DropIndexDef02.                   DropIndexDef ::= "DROP" "INDEX" IndexName              ;
-DropIndexDef03.                   DropIndexDef ::= "DROP" "INDEX" IndexName "FROM" Table ;
 
 -- create_index_def -> CREATE                   INDEX            ON table_alias                                                         : {'create index', {},   {},   '$4', [],   {},   {}}.
 -- create_index_def -> CREATE                   INDEX            ON table_alias                                     create_index_filter : {'create index', {},   {},   '$4', [],   {},   '$5'}.
@@ -248,166 +218,158 @@ CreateIndexDef30.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "I
 CreateIndexDef31.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX" IndexName "ON" TableAlias CreateIndexSpec CreateIndexNorm                   ;
 CreateIndexDef32.                 CreateIndexDef ::= "CREATE" CreateIndexOpts "INDEX" IndexName "ON" TableAlias CreateIndexSpec CreateIndexNorm CreateIndexFilter ;
 
--- create_index_opts -> BITMAP                                                                     : bitmap.
--- create_index_opts -> KEYLIST                                                                    : keylist.
--- create_index_opts -> HASHMAP                                                                    : hashmap.
--- create_index_opts -> UNIQUE                                                                     : unique.
+-- create_index_opts -> BITMAP  : bitmap.
+-- create_index_opts -> KEYLIST : keylist.
+-- create_index_opts -> HASHMAP : hashmap.
+-- create_index_opts -> UNIQUE  : unique.
 
 CreateIndexOpts01.                CreateIndexOpts ::= "BITMAP"  ;
 CreateIndexOpts02.                CreateIndexOpts ::= "KEYLIST" ;
 CreateIndexOpts03.                CreateIndexOpts ::= "HASHMAP" ;
 CreateIndexOpts04.                CreateIndexOpts ::= "UNIQUE"  ;
 
--- index_name -> NAME                                                                              : unwrap_bin('$1').
--- index_name -> NAME '.' NAME                                                                     : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+-- index_name -> NAME          : unwrap_bin('$1').
+-- index_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
 
 IndexName01.                      IndexName ::= "NAME"            ;
 IndexName02.                      IndexName ::= "NAME" "." "NAME" ;
 
--- create_index_spec -> '(' create_index_spec_items ')'                                            : '$2'.
+-- create_index_spec -> '(' create_index_spec_items ')' : '$2'.
 
 CreateIndexSpec01.                CreateIndexSpec ::= "(" CreateIndexSpecItems ")" ;
 
--- create_index_spec_items -> create_index_spec_column                                             : ['$1'].
--- create_index_spec_items -> create_index_spec_column ',' create_index_spec_items                 : ['$1' | '$3'].
+-- create_index_spec_items -> create_index_spec_column                             : ['$1'].
+-- create_index_spec_items -> create_index_spec_column ',' create_index_spec_items : ['$1' | '$3'].
 
 CreateIndexSpecItems01.           CreateIndexSpecItems ::= CreateIndexSpecColumn                          ;
 CreateIndexSpecItems02.           CreateIndexSpecItems ::= CreateIndexSpecColumn "," CreateIndexSpecItems ;
 
--- create_index_spec_column -> NAME                                                                : unwrap_bin('$1').
--- create_index_spec_column -> NAME JSON                                                           : jpparse(list_to_binary([unwrap('$1'),unwrap('$2')])).
+-- create_index_spec_column -> NAME      : unwrap_bin('$1').
+-- create_index_spec_column -> NAME JSON : jpparse(list_to_binary([unwrap('$1'),unwrap('$2')])).
 
 CreateIndexSpecColumn01.          CreateIndexSpecColumn ::= "NAME"        ;
 CreateIndexSpecColumn02.          CreateIndexSpecColumn ::= "NAME" "JSON" ;
 
--- create_index_norm -> NORM_WITH STRING                                                           : {norm, unwrap_bin('$2')}.
+-- create_index_norm -> NORM_WITH STRING : {norm, unwrap_bin('$2')}.
 
 CreateIndexNorm01.             CreateIndexNorm ::= "NORM_WITH" "STRING" ;
 
--- create_index_filter -> FILTER_WITH STRING                                                       : {filter, unwrap_bin('$2')}.
+-- create_index_filter -> FILTER_WITH STRING : {filter, unwrap_bin('$2')}.
 
 CreateIndexFilter01.           CreateIndexFilter ::= "FILTER_WITH" "STRING" ;
 
--- create_opts ->           tbl_type                                                               : '$1'.
--- create_opts -> tbl_scope                                                                        : '$1'.
--- create_opts -> tbl_scope tbl_type                                                               : '$1' ++ '$2'.
+-- create_opts ->           tbl_type : '$1'.
+-- create_opts -> tbl_scope          : '$1'.
+-- create_opts -> tbl_scope tbl_type : '$1' ++ '$2'.
 
 CreateOpts01.                     CreateOpts ::=          TblType ;
 CreateOpts02.                     CreateOpts ::= TblScope         ;
 CreateOpts03.                     CreateOpts ::= TblScope TblType ;
 
--- tbl_scope -> LOCAL                                                                              : [{scope, <<"local">>}].
--- tbl_scope -> CLUSTER                                                                            : [{scope, <<"cluster">>}].
--- tbl_scope -> SCHEMA                                                                             : [{scope, <<"schema">>}].
+-- tbl_scope -> LOCAL   : [{scope, <<"local">>}].
+-- tbl_scope -> CLUSTER : [{scope, <<"cluster">>}].
+-- tbl_scope -> SCHEMA  : [{scope, <<"schema">>}].
 
 TblScope01.                       TblScope ::= "LOCAL"   ;
 TblScope02.                       TblScope ::= "CLUSTER" ;
 TblScope03.                       TblScope ::= "SCHEMA"  ;
 
--- tbl_type -> SET                                                                                 : [{type, <<"set">>}].
--- tbl_type -> ORDERED_SET                                                                         : [{type, <<"ordered_set">>}].
--- tbl_type -> BAG                                                                                 : [{type, <<"bag">>}].
--- tbl_type -> NAME                                                                                : [{type, unwrap_bin('$1')}].
+-- tbl_type -> SET         : [{type, <<"set">>}].
+-- tbl_type -> ORDERED_SET : [{type, <<"ordered_set">>}].
+-- tbl_type -> BAG         : [{type, <<"bag">>}].
+-- tbl_type -> NAME        : [{type, unwrap_bin('$1')}].
 
 TblType01.                        TblType ::= "SET"         ;
 TblType02.                        TblType ::= "ORDERED_SET" ;
 TblType03.                        TblType ::= "BAG"         ;
 TblType04.                        TblType ::= "NAME"        ;
 
--- alter_user_def -> ALTER USER user_list proxy_clause                                             : {'alter user', '$3', '$4'}.
--- alter_user_def -> ALTER USER NAME spec_list                                                     : {'alter user', unwrap_bin('$3'), {spec, '$4'}}.
--- alter_user_def -> ALTER USER NAME NAME NAME                                                     : {'alter user', unwrap_bin('$3'),
---                                                                                                    {'spec',
---                                                                                                     [case {string:to_lower(unwrap('$4')), string:to_lower(unwrap('$5'))} of
---                                                                                                          {"account", "lock"} -> {account, lock};
---                                                                                                          {"account", "unlock"} -> {account, unlock};
---                                                                                                          {"password", "expire"} -> {password, expire};
---                                                                                                          Unknown -> exit({invalid_option, Unknown})
---                                                                                                      end]
---                                                                                                    }
---                                                                                                   }.
+-- alter_user_def -> ALTER USER user_list proxy_clause : {'alter user', '$3', '$4'}.
+-- alter_user_def -> ALTER USER NAME spec_list         : {'alter user', unwrap_bin('$3'), {spec, '$4'}}.
+-- alter_user_def -> ALTER USER NAME NAME NAME         : {'alter user', unwrap_bin('$3'), {'spec', [case {string:to_lower(unwrap('$4')), string:to_lower(unwrap('$5'))} of
+--                                                                                                      {"account", "lock"} -> {account, lock};
+--                                                                                                      {"account", "unlock"} -> {account, unlock};
+--                                                                                                      {"password", "expire"} -> {password, expire};
+--                                                                                                      Unknown -> exit({invalid_option, Unknown})
+--                                                                                                  end]
+--                                                                                        }
+--                                                       }.
 
 AlterUserDef01.                   AlterUserDef ::= "ALTER" "USER" UserList ProxyClause        ;
 AlterUserDef02.                   AlterUserDef ::= "ALTER" "USER" "NAME"   SpecList           ;
 AlterUserDef03.                   AlterUserDef ::= "ALTER" "USER" "NAME"   "NAME"      "NAME" ;
 
--- drop_user_def -> DROP USER NAME                                                                 : {'drop user', unwrap_bin('$3'), []}.
--- drop_user_def -> DROP USER NAME CASCADE                                                         : {'drop user', unwrap_bin('$3'), ['cascade']}.
-
-DropUserDef01.                    DropUserDef ::= "DROP" "USER" "NAME"           ;
-DropUserDef02.                    DropUserDef ::= "DROP" "USER" "NAME" "CASCADE" ;
-
--- user_list -> NAME                                                                               : [unwrap_bin('$1')].
--- user_list -> NAME ',' user_list                                                                 : [unwrap_bin('$1') | '$3'].
+-- user_list -> NAME               : [unwrap_bin('$1')].
+-- user_list -> NAME ',' user_list : [unwrap_bin('$1') | '$3'].
 
 UserList01.                       UserList ::= "NAME"              ;
 UserList02.                       UserList ::= "NAME" "," UserList ;
 
--- proxy_clause -> GRANT CONNECT THROUGH ENTERPRISE USERS                                          : {'grant connect', 'enterprise users'}.
--- proxy_clause -> GRANT CONNECT THROUGH db_user_proxy                                             : {'grant connect', '$4'}.
--- proxy_clause -> REVOKE CONNECT THROUGH ENTERPRISE USERS                                         : {'revoke connect', 'enterprise users'}.
--- proxy_clause -> REVOKE CONNECT THROUGH db_user_proxy                                            : {'revoke connect', '$4'}.
+-- proxy_clause -> GRANT  CONNECT THROUGH ENTERPRISE USERS : {'grant connect', 'enterprise users'}.
+-- proxy_clause -> GRANT  CONNECT THROUGH db_user_proxy    : {'grant connect', '$4'}.
+-- proxy_clause -> REVOKE CONNECT THROUGH ENTERPRISE USERS : {'revoke connect', 'enterprise users'}.
+-- proxy_clause -> REVOKE CONNECT THROUGH db_user_proxy    : {'revoke connect', '$4'}.
 
 ProxyClause01.                    ProxyClause ::= "GRANT"  "CONNECT" "THROUGH" "ENTERPRISE" "USERS" ;
 ProxyClause02.                    ProxyClause ::= "GRANT"  "CONNECT" "THROUGH" DbUserProxy          ;
 ProxyClause03.                    ProxyClause ::= "REVOKE" "CONNECT" "THROUGH" "ENTERPRISE" "USERS" ;
 ProxyClause04.                    ProxyClause ::= "REVOKE" "CONNECT" "THROUGH" DbUserProxy          ;
 
--- db_user_proxy -> proxy_with                                                                     : '$1'.
--- db_user_proxy ->            proxy_auth_req                                                      : '$1'.
--- db_user_proxy -> proxy_with proxy_auth_req                                                      : {'$1', '$2'}.
+-- db_user_proxy -> proxy_with                : '$1'.
+-- db_user_proxy ->            proxy_auth_req : '$1'.
+-- db_user_proxy -> proxy_with proxy_auth_req : {'$1', '$2'}.
 
 DbUserProxy01.                    DbUserProxy ::= ProxyWith                 ;
 DbUserProxy02.                    DbUserProxy ::=              ProxyAuthReq ;
 DbUserProxy03.                    DbUserProxy ::= ProxyWith    ProxyAuthReq ;
 
--- proxy_with -> WITH NO ROLES                                                                     : 'with no roles'.
--- proxy_with -> WITH ROLE            role_list                                                    : {'with role', '$3'}.
--- proxy_with -> WITH ROLE ALL EXCEPT role_list                                                    : {'with role all except', '$5'}.
+-- proxy_with -> WITH NO ROLES                  : 'with no roles'.
+-- proxy_with -> WITH ROLE            role_list : {'with role', '$3'}.
+-- proxy_with -> WITH ROLE ALL EXCEPT role_list : {'with role all except', '$5'}.
 
 proxyWith01.                      ProxyWith ::= "WITH" "NO"   "ROLES"                    ;
 proxyWith02.                      ProxyWith ::= "WITH" "ROLE"                   RoleList ;
 proxyWith03.                      ProxyWith ::= "WITH" "ROLE" "ALL"    "EXCEPT" RoleList ;
 
--- proxy_auth_req -> AUTHENTICATION REQUIRED                                                       : 'authentication required'.
+-- proxy_auth_req -> AUTHENTICATION REQUIRED : 'authentication required'.
 
 ProxyAuthReq01.                   ProxyAuthReq ::= "AUTHENTICATION" "REQUIRED" ;
 
--- spec_list -> spec_item                                                                          : ['$1'].
--- spec_list -> spec_item spec_list                                                                : ['$1'|'$2'].
+-- spec_list -> spec_item           : ['$1'].
+-- spec_list -> spec_item spec_list : ['$1'|'$2'].
 
 SpecList01.                       SpecList ::= SpecItem          ;
 SpecList02.                       SpecList ::= SpecItem SpecList ;
 
--- spec_item -> identified                                                                         : '$1'.
--- spec_item -> user_opt                                                                           : '$1'.
--- spec_item -> user_role                                                                          : '$1'.
+-- spec_item -> identified : '$1'.
+-- spec_item -> user_opt   : '$1'.
+-- spec_item -> user_role  : '$1'.
 
 SpecItem01.                       SpecItem ::= Identified ;
 SpecItem02.                       SpecItem ::= UserOpt    ;
 SpecItem03.                       SpecItem ::= UserRole   ;
 
--- user_role -> DEFAULT ROLE ALL                                                                   : 'default role all'.
--- user_role -> DEFAULT ROLE ALL EXCEPT role_list                                                  : {'default role all except', '$5'}.
--- user_role -> DEFAULT ROLE NONE                                                                  : 'default role none'.
--- user_role -> DEFAULT ROLE            role_list                                                  : {'default role', '$3'}.
+-- user_role -> DEFAULT ROLE ALL                  : 'default role all'.
+-- user_role -> DEFAULT ROLE ALL EXCEPT role_list : {'default role all except', '$5'}.
+-- user_role -> DEFAULT ROLE NONE                 : 'default role none'.
+-- user_role -> DEFAULT ROLE            role_list : {'default role', '$3'}.
 
 UserRole01.                       UserRole ::= "DEFAULT" "ROLE" "ALL"                      ;
 UserRole02.                       UserRole ::= "DEFAULT" "ROLE" "ALL"    "EXCEPT" RoleList ;
 UserRole03.                       UserRole ::= "DEFAULT" "ROLE" "NONE"                     ;
 UserRole04.                       UserRole ::= "DEFAULT" "ROLE"                   RoleList ;
 
--- role_list -> NAME                                                                               : [unwrap_bin('$1')].
--- role_list -> NAME ',' role_list                                                                 : [unwrap_bin('$1') | '$3'].
+-- role_list -> NAME               : [unwrap_bin('$1')].
+-- role_list -> NAME ',' role_list : [unwrap_bin('$1') | '$3'].
 
 RoleList01.                       RoleList ::= "NAME"              ;
 RoleList02.                       RoleList ::= "NAME" "," RoleList ;
 
--- identified -> IDENTIFIED            BY NAME                                                     : {'identified by',       unwrap_bin('$3')}.
--- identified -> IDENTIFIED EXTERNALLY                                                             : {'identified extern',   {}}.
--- identified -> IDENTIFIED EXTERNALLY AS NAME                                                     : {'identified extern',   unwrap_bin('$4')}.
--- identified -> IDENTIFIED GLOBALLY                                                               : {'identified globally', {}}.
--- identified -> IDENTIFIED GLOBALLY   AS NAME                                                     : {'identified globally', unwrap_bin('$4')}.
+-- identified -> IDENTIFIED            BY NAME : {'identified by',       unwrap_bin('$3')}.
+-- identified -> IDENTIFIED EXTERNALLY         : {'identified extern',   {}}.
+-- identified -> IDENTIFIED EXTERNALLY AS NAME : {'identified extern',   unwrap_bin('$4')}.
+-- identified -> IDENTIFIED GLOBALLY           : {'identified globally', {}}.
+-- identified -> IDENTIFIED GLOBALLY   AS NAME : {'identified globally', unwrap_bin('$4')}.
 
 Identified01.                     Identified ::= "IDENTIFIED"              "BY" "NAME" ;
 Identified02.                     Identified ::= "IDENTIFIED" "EXTERNALLY"             ;
@@ -415,87 +377,81 @@ Identified03.                     Identified ::= "IDENTIFIED" "EXTERNALLY" "AS" 
 Identified04.                     Identified ::= "IDENTIFIED" "GLOBALLY"               ;
 Identified05.                     Identified ::= "IDENTIFIED" "GLOBALLY"   "AS" "NAME" ;
 
--- user_opts_list -> user_opt                                                                      : ['$1'].
--- user_opts_list -> user_opt user_opts_list                                                       : ['$1'] ++ '$2'.
+-- user_opts_list -> user_opt                : ['$1'].
+-- user_opts_list -> user_opt user_opts_list : ['$1'] ++ '$2'.
 
 UserOptsList01.                   UserOptsList ::= UserOpt               ;
 UserOptsList02.                   UserOptsList ::= UserOpt  UserOptsList ;
 
--- user_opt -> DEFAULT   TABLESPACE NAME                                                           : [{'default tablespace', unwrap_bin('$3')}].
--- user_opt -> TEMPORARY TABLESPACE NAME                                                           : [{'temporary tablespace', unwrap_bin('$3')}].
--- user_opt -> quota_list                                                                          : [{quotas, '$1'}].
--- user_opt -> PROFILE NAME                                                                        : [{profile, unwrap_bin('$2')}].
+-- user_opt -> DEFAULT   TABLESPACE NAME : [{'default tablespace', unwrap_bin('$3')}].
+-- user_opt -> TEMPORARY TABLESPACE NAME : [{'temporary tablespace', unwrap_bin('$3')}].
+-- user_opt -> quota_list                : [{quotas, '$1'}].
+-- user_opt -> PROFILE NAME              : [{profile, unwrap_bin('$2')}].
 
 UserOpt01.                        UserOpt ::= "DEFAULT"   "TABLESPACE" "NAME" ;
 UserOpt02.                        UserOpt ::= "TEMPORARY" "TABLESPACE" "NAME" ;
 UserOpt03.                        UserOpt ::= QuotaList                       ;
 UserOpt04.                        UserOpt ::= "PROFILE"                "NAME" ;
 
--- quota_list -> quota                                                                             : ['$1'].
--- quota_list -> quota quota_list                                                                  : ['$1'] ++ '$2'.
+-- quota_list -> quota            : ['$1'].
+-- quota_list -> quota quota_list : ['$1'] ++ '$2'.
 
 QuotaList01.                      QuotaList ::= Quota           ;
 QuotaList02.                      QuotaList ::= Quota QuotaList ;
 
--- quota -> QUOTA UNLIMITED   ON NAME                                                              : {'unlimited on', unwrap_bin('$4')}.
--- quota -> QUOTA INTNUM      ON NAME                                                              : {limited, unwrap_bin('$2'), unwrap_bin('$4')}.
--- quota -> QUOTA INTNUM NAME ON NAME                                                              : {limited, list_to_binary([unwrap('$2'),unwrap('$3')]),unwrap_bin('$5')}.
+-- quota -> QUOTA UNLIMITED   ON NAME : {'unlimited on', unwrap_bin('$4')}.
+-- quota -> QUOTA INTNUM      ON NAME : {limited, unwrap_bin('$2'), <<"">>,           unwrap_bin('$4')}.
+-- quota -> QUOTA INTNUM NAME ON NAME : {limited, unwrap_bin('$2'), unwrap_bin('$3'), unwrap_bin('$5')}.
 
 Quota01.                          Quota ::= "QUOTA" "UNLIMITED"        "ON" "NAME" ;
 Quota02.                          Quota ::= "QUOTA" "INTNUM"           "ON" "NAME" ;
 Quota03.                          Quota ::= "QUOTA" "INTNUM"    "NAME" "ON" "NAME" ;
 
--- table_list ->                table                                                              :         ['$1'].
--- table_list -> table_list ',' table                                                              : '$1' ++ ['$3'].
+-- table_list ->                table :         ['$1'].
+-- table_list -> table_list ',' table : '$1' ++ ['$3'].
 
 TableList01.                      TableList ::=               Table ;
 TableList02.                      TableList ::= TableList "," Table ;
 
---exists -> IF EXISTS                                                                             : 'exists'.
+-- exists -> IF EXISTS : 'exists'.
 
 Exists01.                      Exists ::= "IF" "EXISTS" ;
 
--- restrict_cascade -> RESTRICT                                                                    : 'restrict'.
--- restrict_cascade -> CASCADE                                                                     : 'cascade'.
-
-RestrictCascade01.                RestrictCascade ::= "RESTRICT" ;
-RestrictCascade02.                RestrictCascade ::= "CASCADE"  ;
-
--- base_table_element_commalist ->                                  base_table_element             :         ['$1'].
--- base_table_element_commalist -> base_table_element_commalist ',' base_table_element             : '$1' ++ ['$3'].
+-- base_table_element_commalist ->                                  base_table_element :         ['$1'].
+-- base_table_element_commalist -> base_table_element_commalist ',' base_table_element : '$1' ++ ['$3'].
 
 BaseTableElementCommalist01.      BaseTableElementCommalist ::=                               BaseTableElement ;
 BaseTableElementCommalist02.      BaseTableElementCommalist ::= BaseTableElementCommalist "," BaseTableElement ;
 
--- base_table_element -> column_def                                                                : '$1'.
--- base_table_element -> table_constraint_def                                                      : '$1'.
+-- base_table_element -> column_def           : '$1'.
+-- base_table_element -> table_constraint_def : '$1'.
 
 BaseTableElement01.               BaseTableElement ::= ColumnDef          ;
 BaseTableElement02.               BaseTableElement ::= TableConstraintDef ;
 
--- column_def -> column data_type                                                                  : {'$1', '$2', []}.
--- column_def -> column data_type column_def_list                                                  : {'$1', '$2', '$3'}.
+-- column_def -> column data_type                 : {'$1', '$2', []}.
+-- column_def -> column data_type column_def_list : {'$1', '$2', '$3'}.
 
 ColumnDef01.                      ColumnDef ::= Column DataType               ;
 ColumnDef02.                      ColumnDef ::= Column DataType ColumnDefList ;
 
--- column_def_list ->                 column_def_opt                                               : ['$1'].
--- column_def_list -> column_def_list column_def_opt                                               : '$1' ++ ['$2'].
+-- column_def_list ->                 column_def_opt : ['$1'].
+-- column_def_list -> column_def_list column_def_opt : '$1' ++ ['$2'].
 
 ColumnDefList01.                  ColumnDefList ::=               ColumnDefOpt ;
 ColumnDefList02.                  ColumnDefList ::= ColumnDefList ColumnDefOpt ;
 
--- column_def_opt -> NOT NULLX                                                                     : 'not null'.
--- column_def_opt -> NOT NULLX UNIQUE                                                              : 'not null unique'.
--- column_def_opt -> NOT NULLX PRIMARY KEY                                                         : 'not null primary key'.
--- column_def_opt -> DEFAULT function_ref                                                          : {default, '$2'}.
--- column_def_opt -> DEFAULT literal                                                               : {default, '$2'}.
--- column_def_opt -> DEFAULT NAME                                                                  : {default, unwrap_bin('$2')}.
--- column_def_opt -> DEFAULT NULLX                                                                 : {default, 'null'}.
--- column_def_opt -> DEFAULT USER                                                                  : {default, 'user'}.
--- column_def_opt -> CHECK '(' search_condition ')'                                                : {check, '$3'}.
--- column_def_opt -> REFERENCES table                                                              : {ref, '$2'}.
--- column_def_opt -> REFERENCES table '(' column_commalist ')'                                     : {ref, {'$2', '$4'}}.
+-- column_def_opt -> NOT NULLX                                 : 'not null'.
+-- column_def_opt -> NOT NULLX UNIQUE                          : 'not null unique'.
+-- column_def_opt -> NOT NULLX PRIMARY KEY                     : 'not null primary key'.
+-- column_def_opt -> DEFAULT function_ref                      : {default, '$2'}.
+-- column_def_opt -> DEFAULT literal                           : {default, '$2'}.
+-- column_def_opt -> DEFAULT NAME                              : {default, unwrap_bin('$2')}.
+-- column_def_opt -> DEFAULT NULLX                             : {default, 'null'}.
+-- column_def_opt -> DEFAULT USER                              : {default, 'user'}.
+-- column_def_opt -> CHECK '(' search_condition ')'            : {check, '$3'}.
+-- column_def_opt -> REFERENCES table                          : {ref, '$2'}.
+-- column_def_opt -> REFERENCES table '(' column_commalist ')' : {ref, {'$2', '$4'}}.
 
 ColumnDefOpt01.                   ColumnDefOpt ::= "NOT" "NULL"                               ;
 ColumnDefOpt02.                   ColumnDefOpt ::= "NOT" "NULL" "UNIQUE"                      ;
@@ -531,8 +487,8 @@ TableConstraintDef08.             TableConstraintDef ::= "CONSTRAINT" "NAME" "FO
 TableConstraintDef09.             TableConstraintDef ::= "CONSTRAINT" "NAME" "FOREIGN" "KEY" "(" ColumnCommalist ")" "REFERENCES" Table "(" ColumnCommalist ")" ;
 TableConstraintDef10.             TableConstraintDef ::= "CONSTRAINT" "NAME" "CHECK"         "(" SearchCondition ")"                                            ;
 
--- column_commalist -> column                                                                      : ['$1'].
--- column_commalist -> column ',' column_commalist                                                 : ['$1' | '$3'].
+-- column_commalist -> column                      : ['$1'].
+-- column_commalist -> column ',' column_commalist : ['$1' | '$3'].
 
 ColumnCommalist01.                ColumnCommalist ::= Column                     ;
 ColumnCommalist02.                ColumnCommalist ::= Column "," ColumnCommalist ;
@@ -547,22 +503,22 @@ ViewDef02.                        ViewDef ::= "CREATE" "VIEW" Table             
 ViewDef03.                        ViewDef ::= "CREATE" "VIEW" Table ColumnCommalist "AS" QuerySpec                         ;
 ViewDef04.                        ViewDef ::= "CREATE" "VIEW" Table ColumnCommalist "AS" QuerySpec "WITH" "CHECK" "OPTION" ;
 
--- grant_def -> GRANT ALL PRIVILEGES        on_obj_clause TO grantee_revokee_commalist                          : {grant, 'all privileges', '$3',         {to, '$5'}, ''}.
--- grant_def -> GRANT object_privilege_list on_obj_clause TO grantee_revokee_commalist                          : {grant, '$2',             '$3',         {to, '$5'}, ''}.
--- grant_def -> GRANT ALL PRIVILEGES        on_obj_clause TO grantee_identified_by                              : {grant, 'all privileges', '$3',         {to, '$5'}, ''}.
--- grant_def -> GRANT object_privilege_list on_obj_clause TO grantee_identified_by                              : {grant, '$2',             '$3',         {to, '$5'}, ''}.
--- grant_def -> GRANT ALL PRIVILEGES        on_obj_clause TO grantee_revokee_commalist object_with_grant_option : {grant, 'all privileges', '$3',         {to, '$5'}, '$6'}.
--- grant_def -> GRANT object_privilege_list on_obj_clause TO grantee_revokee_commalist object_with_grant_option : {grant, '$2',             '$3',         {to, '$5'}, '$6'}.
--- grant_def -> GRANT ALL PRIVILEGES        on_obj_clause TO grantee_identified_by     object_with_grant_option : {grant, 'all privileges', '$3',         {to, '$5'}, '$6'}.
--- grant_def -> GRANT object_privilege_list on_obj_clause TO grantee_identified_by     object_with_grant_option : {grant, '$2',             '$3',         {to, '$5'}, '$6'}.
--- grant_def -> GRANT ALL PRIVILEGES                      TO grantee_revokee_commalist                          : {grant, 'all privileges', {on, <<"">>}, {to, '$4'}, ''}.
--- grant_def -> GRANT system_privilege_list               TO grantee_revokee_commalist                          : {grant, '$2',             {on, <<"">>}, {to, '$4'}, ''}.
--- grant_def -> GRANT ALL PRIVILEGES                      TO grantee_identified_by                              : {grant, 'all privileges', {on, <<"">>}, {to, '$4'}, ''}.
--- grant_def -> GRANT system_privilege_list               TO grantee_identified_by                              : {grant, '$2',             {on, <<"">>}, {to, '$4'}, ''}.
--- grant_def -> GRANT ALL PRIVILEGES                      TO grantee_revokee_commalist system_with_grant_option : {grant, 'all privileges', {on, <<"">>}, {to, '$4'}, '$5'}.
--- grant_def -> GRANT system_privilege_list               TO grantee_revokee_commalist system_with_grant_option : {grant, '$2',             {on, <<"">>}, {to, '$4'}, '$5'}.
--- grant_def -> GRANT ALL PRIVILEGES                      TO grantee_identified_by     system_with_grant_option : {grant, 'all privileges', {on, <<"">>}, {to, '$4'}, '$5'}.
--- grant_def -> GRANT system_privilege_list               TO grantee_identified_by     system_with_grant_option : {grant, '$2',             {on, <<"">>}, {to, '$4'}, '$5'}.
+-- grant_def -> GRANT ALL PRIVILEGES        on_obj_clause TO grantee_revokee_commalist                          : {grant, ['all privileges'], '$4',         {to, '$6'},   ''}.
+-- grant_def -> GRANT object_privilege_list on_obj_clause TO grantee_revokee_commalist                          : {grant, '$2',               '$3',         {to, '$5'},   ''}.
+-- grant_def -> GRANT ALL PRIVILEGES        on_obj_clause TO grantee_identified_by                              : {grant, ['all privileges'], '$4',         {to, ['$6']}, ''}.
+-- grant_def -> GRANT object_privilege_list on_obj_clause TO grantee_identified_by                              : {grant, '$2',               '$3',         {to, ['$5']}, ''}.
+-- grant_def -> GRANT ALL PRIVILEGES        on_obj_clause TO grantee_revokee_commalist object_with_grant_option : {grant, ['all privileges'], '$4',         {to, '$6'},   '$7'}.
+-- grant_def -> GRANT object_privilege_list on_obj_clause TO grantee_revokee_commalist object_with_grant_option : {grant, '$2',               '$3',         {to, '$5'},   '$6'}.
+-- grant_def -> GRANT ALL PRIVILEGES        on_obj_clause TO grantee_identified_by     object_with_grant_option : {grant, ['all privileges'], '$4',         {to, ['$6']}, '$7'}.
+-- grant_def -> GRANT object_privilege_list on_obj_clause TO grantee_identified_by     object_with_grant_option : {grant, '$2',               '$3',         {to, ['$5']}, '$6'}.
+-- grant_def -> GRANT ALL PRIVILEGES                      TO grantee_revokee_commalist                          : {grant, ['all privileges'], {on, <<"">>}, {to, '$5'},   ''}.
+-- grant_def -> GRANT system_privilege_list               TO grantee_revokee_commalist                          : {grant, '$2',               {on, <<"">>}, {to, '$4'},   ''}.
+-- grant_def -> GRANT ALL PRIVILEGES                      TO grantee_identified_by                              : {grant, ['all privileges'], {on, <<"">>}, {to, ['$5']}, ''}.
+-- grant_def -> GRANT system_privilege_list               TO grantee_identified_by                              : {grant, '$2',               {on, <<"">>}, {to, ['$4']}, ''}.
+-- grant_def -> GRANT ALL PRIVILEGES                      TO grantee_revokee_commalist system_with_grant_option : {grant, ['all privileges'], {on, <<"">>}, {to, '$5'},   '$6'}.
+-- grant_def -> GRANT system_privilege_list               TO grantee_revokee_commalist system_with_grant_option : {grant, '$2',               {on, <<"">>}, {to, '$4'},   '$5'}.
+-- grant_def -> GRANT ALL PRIVILEGES                      TO grantee_identified_by     system_with_grant_option : {grant, ['all privileges'], {on, <<"">>}, {to, ['$5']}, '$6'}.
+-- grant_def -> GRANT system_privilege_list               TO grantee_identified_by     system_with_grant_option : {grant, '$2',               {on, <<"">>}, {to, ['$4']}, '$5'}.
 
 GrantDef01.                       GrantDef ::= "GRANT" "ALL" "PRIVILEGES"  OnObjClause "TO" GranteeRevokeeCommalist                       ;
 GrantDef02.                       GrantDef ::= "GRANT" ObjectPrivilegeList OnObjClause "TO" GranteeRevokeeCommalist                       ;
@@ -581,12 +537,12 @@ GrantDef14.                       GrantDef ::= "GRANT" SystemPrivilegeList      
 GrantDef15.                       GrantDef ::= "GRANT" "ALL" "PRIVILEGES"              "TO" GranteeIdentifiedBy     SystemWithGrantOption ;
 GrantDef16.                       GrantDef ::= "GRANT" SystemPrivilegeList             "TO" GranteeIdentifiedBy     SystemWithGrantOption ;
 
--- revoke_def -> REVOKE ALL PRIVILEGES        on_obj_clause FROM grantee_revokee_commalist                           : {revoke, 'all privileges', '$3',         {from, '$5'}, ''}.
--- revoke_def -> REVOKE object_privilege_list on_obj_clause FROM grantee_revokee_commalist                           : {revoke, '$2',             '$3',         {from, '$5'}, ''}.
--- revoke_def -> REVOKE ALL PRIVILEGES        on_obj_clause FROM grantee_revokee_commalist object_with_revoke_option : {revoke, 'all privileges', '$3',         {from, '$5'}, '$6'}.
--- revoke_def -> REVOKE object_privilege_list on_obj_clause FROM grantee_revokee_commalist object_with_revoke_option : {revoke, '$2',             '$3',         {from, '$5'}, '$6'}.
--- revoke_def -> REVOKE ALL PRIVILEGES                      FROM grantee_revokee_commalist                           : {revoke, 'all privileges', {on, <<"">>}, {from, '$4'}, ''}.
--- revoke_def -> REVOKE system_privilege_list               FROM grantee_revokee_commalist                           : {revoke, '$2',             {on, <<"">>}, {from, '$4'}, ''}.
+-- revoke_def -> REVOKE ALL PRIVILEGES        on_obj_clause FROM grantee_revokee_commalist                           : {revoke, ['all privileges'], '$4',         {from, '$6'}, ''}.
+-- revoke_def -> REVOKE object_privilege_list on_obj_clause FROM grantee_revokee_commalist                           : {revoke, '$2',               '$3',         {from, '$5'}, ''}.
+-- revoke_def -> REVOKE ALL PRIVILEGES        on_obj_clause FROM grantee_revokee_commalist object_with_revoke_option : {revoke, ['all privileges'], '$4',         {from, '$6'}, '$7'}.
+-- revoke_def -> REVOKE object_privilege_list on_obj_clause FROM grantee_revokee_commalist object_with_revoke_option : {revoke, '$2',               '$3',         {from, '$5'}, '$6'}.
+-- revoke_def -> REVOKE ALL PRIVILEGES                      FROM grantee_revokee_commalist                           : {revoke, ['all privileges'], {on, <<"">>}, {from, '$5'}, ''}.
+-- revoke_def -> REVOKE system_privilege_list               FROM grantee_revokee_commalist                           : {revoke, '$2',               {on, <<"">>}, {from, '$4'}, ''}.
 
 RevokeDef01.                      RevokeDef ::= "REVOKE" "ALL" "PRIVILEGES"  OnObjClause "FROM" GranteeRevokeeCommalist                        ;
 RevokeDef02.                      RevokeDef ::= "REVOKE" ObjectPrivilegeList OnObjClause "FROM" GranteeRevokeeCommalist                        ;
@@ -595,15 +551,15 @@ RevokeDef04.                      RevokeDef ::= "REVOKE" ObjectPrivilegeList OnO
 RevokeDef05.                      RevokeDef ::= "REVOKE" "ALL" "PRIVILEGES"              "FROM" GranteeRevokeeCommalist                        ;
 RevokeDef06.                      RevokeDef ::= "REVOKE" SystemPrivilegeList             "FROM" GranteeRevokeeCommalist                        ;
 
+-- grantee_identified_by -> NAME IDENTIFIED BY STRING : {'identified by', unwrap_bin('$1'), unwrap_bin('$4')}.
+
+GranteeIdentifiedBy01.                GranteeIdentifiedBy ::= "NAME" "IDENTIFIED" "BY" "STRING" ;
+
 -- grantee_revokee -> NAME   : unwrap_bin('$1').
 -- grantee_revokee -> PUBLIC : 'public'.
 
 GranteeRevokee01.                 GranteeRevokee ::= "NAME"   ;
 GranteeRevokee02.                 GranteeRevokee ::= "PUBLIC" ;
-
--- grantee_identified_by -> NAME IDENTIFIED BY STRING : {'identified by', unwrap_bin('$1'), unwrap_bin('$4')}.
-
-GranteeIdentifiedBy01.                GranteeIdentifiedBy ::= "NAME" "IDENTIFIED" "BY" "STRING" ;
 
 -- grantee_revokee_commalist ->                               grantee_revokee :         ['$1'].
 -- grantee_revokee_commalist -> grantee_revokee_commalist ',' grantee_revokee : '$1' ++ ['$3'].
@@ -611,15 +567,15 @@ GranteeIdentifiedBy01.                GranteeIdentifiedBy ::= "NAME" "IDENTIFIED
 GranteeRevokeeCommalist01.            GranteeRevokeeCommalist ::= GranteeRevokee                         ;
 GranteeRevokeeCommalist02.            GranteeRevokeeCommalist ::= GranteeRevokee "," GranteeRevokeeCommalist ;
 
--- object_privilege -> ALL            : 'all'.
--- object_privilege -> ALTER          : 'alter'.
--- object_privilege -> DELETE         : 'delete'.
--- object_privilege -> EXECUTE        : 'execute'.
--- object_privilege -> INDEX          : 'index'.
--- object_privilege -> INSERT         : 'insert'.
--- object_privilege -> REFERENCES     : 'references'.
--- object_privilege -> SELECT         : 'select'.
--- object_privilege -> UPDATE         : 'update'.
+-- object_privilege -> ALL        : 'all'.
+-- object_privilege -> ALTER      : 'alter'.
+-- object_privilege -> DELETE     : 'delete'.
+-- object_privilege -> EXECUTE    : 'execute'.
+-- object_privilege -> INDEX      : 'index'.
+-- object_privilege -> INSERT     : 'insert'.
+-- object_privilege -> REFERENCES : 'references'.
+-- object_privilege -> SELECT     : 'select'.
+-- object_privilege -> UPDATE     : 'update'.
 
 ObjectPrivilege01.                ObjectPrivilege ::= "ALL"         ;
 ObjectPrivilege02.                ObjectPrivilege ::= "ALTER"       ;
@@ -719,24 +675,24 @@ SystemWithGrantOption02.          SystemWithGrantOption ::= "WITH" "DELEGATE" "O
 
 Cursordef01.                      Cursordef ::= "CURSOR" Cursor "IS" QueryExp ;
 
--- order_by_clause -> ORDER BY ordering_spec_commalist                                             : {'order by', '$3'}.
+-- order_by_clause -> ORDER BY ordering_spec_commalist : {'order by', '$3'}.
 
 OrderByClause01.                  OrderByClause ::= "ORDER" "BY" OrderingSpecCommalist ;
 
--- ordering_spec_commalist ->                             ordering_spec                            :         ['$1'].
--- ordering_spec_commalist -> ordering_spec_commalist ',' ordering_spec                            : '$1' ++ ['$3'].
+-- ordering_spec_commalist ->                             ordering_spec :         ['$1'].
+-- ordering_spec_commalist -> ordering_spec_commalist ',' ordering_spec : '$1' ++ ['$3'].
 
 OrderingSpecCommalist01.          OrderingSpecCommalist ::=                           OrderingSpec ;
 OrderingSpecCommalist02.          OrderingSpecCommalist ::= OrderingSpecCommalist "," OrderingSpec ;
 
--- ordering_spec -> scalar_exp                                                                     : {'$1', <<>>}.
--- ordering_spec -> scalar_exp asc_desc                                                            : {'$1', '$2'}.
+-- ordering_spec -> scalar_exp          : {'$1', <<>>}.
+-- ordering_spec -> scalar_exp asc_desc : {'$1', '$2'}.
 
 OrderingSpec01.                   OrderingSpec ::= ScalarExp         ;
 OrderingSpec02.                   OrderingSpec ::= ScalarExp AscDesc ;
 
--- asc_desc -> ASC                                                                                 : <<"asc">>.
--- asc_desc -> DESC                                                                                : <<"desc">>.
+-- asc_desc -> ASC  : <<"asc">>.
+-- asc_desc -> DESC : <<"desc">>.
 
 AscDesc01.                     AscDesc ::= "ASC"      ;
 AscDesc02.                     AscDesc ::= "DESC"     ;
@@ -745,25 +701,43 @@ AscDesc02.                     AscDesc ::= "DESC"     ;
 -- manipulative statements
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--- manipulative_statement -> alter_user_def                                                        : '$1'.
--- manipulative_statement -> create_index_def                                                      : '$1'.
--- manipulative_statement -> create_role_def                                                       : '$1'.
--- manipulative_statement -> create_table_def                                                      : '$1'.
--- manipulative_statement -> create_user_def                                                       : '$1'.
--- manipulative_statement -> delete_statement_positioned                                           : '$1'.
--- manipulative_statement -> delete_statement_searched                                             : '$1'.
--- manipulative_statement -> drop_index_def                                                        : '$1'.
--- manipulative_statement -> drop_role_def                                                         : '$1'.
--- manipulative_statement -> drop_table_def                                                        : '$1'.
--- manipulative_statement -> drop_user_def                                                         : '$1'.
--- manipulative_statement -> grant_def                                                             : '$1'.
--- manipulative_statement -> insert_statement                                                      : '$1'.
--- manipulative_statement -> revoke_def                                                            : '$1'.
--- manipulative_statement -> select_statement                                                      : '$1'.
--- manipulative_statement -> truncate_table                                                        : '$1'.
--- manipulative_statement -> update_statement_positioned                                           : '$1'.
--- manipulative_statement -> update_statement_searched                                             : '$1'.
--- manipulative_statement -> view_def                                                              : '$1'.
+-- manipulative_statement -> alter_user_def              : '$1'.
+-- manipulative_statement -> create_index_def            : '$1'.
+-- manipulative_statement -> create_role_def             : '$1'.
+-- manipulative_statement -> create_table_def            : '$1'.
+-- manipulative_statement -> create_user_def             : '$1'.
+-- manipulative_statement -> delete_statement_positioned : '$1'.
+-- manipulative_statement -> delete_statement_searched   : '$1'.
+-- manipulative_statement -> drop_cluster_def            : '$1'.
+-- manipulative_statement -> drop_context_def            : '$1'.
+-- manipulative_statement -> drop_database_def           : '$1'.
+-- manipulative_statement -> drop_database_link_def      : '$1'.
+-- manipulative_statement -> drop_directory_def          : '$1'.
+-- manipulative_statement -> drop_function_def           : '$1'.
+-- manipulative_statement -> drop_index_def              : '$1'.
+-- manipulative_statement -> drop_materialized_view_def  : '$1'.
+-- manipulative_statement -> drop_package_def            : '$1'.
+-- manipulative_statement -> drop_procedure_def          : '$1'.
+-- manipulative_statement -> drop_profile_def            : '$1'.
+-- manipulative_statement -> drop_role_def               : '$1'.
+-- manipulative_statement -> drop_sequence_def           : '$1'.
+-- manipulative_statement -> drop_synonym_def            : '$1'.
+-- manipulative_statement -> drop_table_def              : '$1'.
+-- manipulative_statement -> drop_tablespace_def         : '$1'.
+-- manipulative_statement -> drop_trigger_def            : '$1'.
+-- manipulative_statement -> drop_type_def               : '$1'.
+-- manipulative_statement -> drop_type_body_def          : '$1'.
+-- manipulative_statement -> drop_user_def               : '$1'.
+-- manipulative_statement -> drop_view_def               : '$1'.
+-- manipulative_statement -> grant_def                   : '$1'.
+-- manipulative_statement -> insert_statement            : '$1'.
+-- manipulative_statement -> revoke_def                  : '$1'.
+-- manipulative_statement -> select_statement            : '$1'.
+-- manipulative_statement -> truncate_cluster            : '$1'.
+-- manipulative_statement -> truncate_table              : '$1'.
+-- manipulative_statement -> update_statement_positioned : '$1'.
+-- manipulative_statement -> update_statement_searched   : '$1'.
+-- manipulative_statement -> view_def                    : '$1'.
 
 ManipulativeStatement01.          ManipulativeStatement ::= AlterUserDef              ;
 ManipulativeStatement02.          ManipulativeStatement ::= CreateIndexDef            ;
@@ -772,47 +746,43 @@ ManipulativeStatement04.          ManipulativeStatement ::= CreateTableDef      
 ManipulativeStatement05.          ManipulativeStatement ::= CreateUserDef             ;
 ManipulativeStatement06.          ManipulativeStatement ::= DeleteStatementPositioned ;
 ManipulativeStatement07.          ManipulativeStatement ::= DeleteStatementSearched   ;
-ManipulativeStatement08.          ManipulativeStatement ::= DropIndexDef              ;
-ManipulativeStatement09.          ManipulativeStatement ::= DropRoleDef               ;
-ManipulativeStatement10.          ManipulativeStatement ::= DropTableDef              ;
-ManipulativeStatement11.          ManipulativeStatement ::= DropUserDef               ;
-ManipulativeStatement12.          ManipulativeStatement ::= GrantDef                  ;
-ManipulativeStatement13.          ManipulativeStatement ::= InsertStatement           ;
-ManipulativeStatement14.          ManipulativeStatement ::= RevokeDef                 ;
-ManipulativeStatement15.          ManipulativeStatement ::= SelectStatement           ;
-ManipulativeStatement16.          ManipulativeStatement ::= TruncateTable             ;
-ManipulativeStatement17.          ManipulativeStatement ::= UpdateStatementPositioned ;
-ManipulativeStatement18.          ManipulativeStatement ::= UpdateStatementSearched   ;
-ManipulativeStatement19.          ManipulativeStatement ::= ViewDef                   ;
+ManipulativeStatement08.          ManipulativeStatement ::= DropClusterDef            ;
+ManipulativeStatement09.          ManipulativeStatement ::= DropContextDef            ;
+ManipulativeStatement10.          ManipulativeStatement ::= DropDatabaseDef           ;
+ManipulativeStatement11.          ManipulativeStatement ::= DropDatabaseLinkDef       ;
+ManipulativeStatement12.          ManipulativeStatement ::= DropDirectoryDef          ;
+ManipulativeStatement13.          ManipulativeStatement ::= DropFunctionDef           ;
+ManipulativeStatement14.          ManipulativeStatement ::= DropIndexDef              ;
+ManipulativeStatement15.          ManipulativeStatement ::= DropMaterializedViewDef   ;
+ManipulativeStatement16.          ManipulativeStatement ::= DropPackageDef            ;
+ManipulativeStatement17.          ManipulativeStatement ::= DropProcedureDef          ;
+ManipulativeStatement18.          ManipulativeStatement ::= DropProfileDef            ;
+ManipulativeStatement19.          ManipulativeStatement ::= DropRoleDef               ;
+ManipulativeStatement20.          ManipulativeStatement ::= DropSequenceDef           ;
+ManipulativeStatement21.          ManipulativeStatement ::= DropSynonymDef            ;
+ManipulativeStatement22.          ManipulativeStatement ::= DropTableDef              ;
+ManipulativeStatement23.          ManipulativeStatement ::= DropTablespaceDef         ;
+ManipulativeStatement24.          ManipulativeStatement ::= DropTriggerDef            ;
+ManipulativeStatement25.          ManipulativeStatement ::= DropTypeDef               ;
+ManipulativeStatement26.          ManipulativeStatement ::= DropTypeBodyDef           ;
+ManipulativeStatement27.          ManipulativeStatement ::= DropUserDef               ;
+ManipulativeStatement28.          ManipulativeStatement ::= DropViewDef               ;
+ManipulativeStatement29.          ManipulativeStatement ::= GrantDef                  ;
+ManipulativeStatement30.          ManipulativeStatement ::= InsertStatement           ;
+ManipulativeStatement31.          ManipulativeStatement ::= RevokeDef                 ;
+ManipulativeStatement32.          ManipulativeStatement ::= SelectStatement           ;
+ManipulativeStatement33.          ManipulativeStatement ::= TruncateCluster           ;
+ManipulativeStatement34.          ManipulativeStatement ::= TruncateTable             ;
+ManipulativeStatement35.          ManipulativeStatement ::= UpdateStatementPositioned ;
+ManipulativeStatement36.          ManipulativeStatement ::= UpdateStatementSearched   ;
+ManipulativeStatement37.          ManipulativeStatement ::= ViewDef                   ;
 
--- truncate_table -> TRUNCATE TABLE table                      : {'truncate table', '$3', {},   {}}.
--- truncate_table -> TRUNCATE TABLE table              storage : {'truncate table', '$3', {},   '$4'}.
--- truncate_table -> TRUNCATE TABLE table materialized         : {'truncate table', '$3', '$4', {}}.
--- truncate_table -> TRUNCATE TABLE table materialized storage : {'truncate table', '$3', '$4', '$5'}.
-
-TruncateTable01.                  TruncateTable ::= "TRUNCATE" "TABLE" Table                      ;
-TruncateTable02.                  TruncateTable ::= "TRUNCATE" "TABLE" Table              Storage ;
-TruncateTable03.                  TruncateTable ::= "TRUNCATE" "TABLE" Table Materialized         ;
-TruncateTable04.                  TruncateTable ::= "TRUNCATE" "TABLE" Table Materialized Storage ;
-
--- materialized -> PRESERVE MATERIALIZED VIEW LOG                                                  : {'materialized view log', preserve}.
--- materialized -> PURGE    MATERIALIZED VIEW LOG                                                  : {'materialized view log', purge}.
-
-Materialized01.                   Materialized ::= "PRESERVE" "MATERIALIZED" "VIEW" "LOG" ;
-Materialized02.                   Materialized ::= "PURGE"    "MATERIALIZED" "VIEW" "LOG" ;
-
--- storage ->  DROP  STORAGE                                                                       : {storage, drop}.
--- storage ->  REUSE STORAGE                                                                       : {storage, reuse}.
-
-Storage01.                        Storage ::=  "DROP"  "STORAGE" ;
-Storage02.                        Storage ::=  "REUSE" "STORAGE" ;
-
--- close_statement -> CLOSE cursor                                                                 : {close, '$2'}.
+-- close_statement -> CLOSE cursor : {close, '$2'}.
 
 CloseStatement01.                 CloseStatement ::= "CLOSE" Cursor ;
 
--- commit_statement -> COMMIT                                                                      : 'commit'.
--- commit_statement -> COMMIT WORK                                                                 : 'commit work'.
+-- commit_statement -> COMMIT      : 'commit'.
+-- commit_statement -> COMMIT WORK : 'commit work'.
 
 CommitStatement01.                CommitStatement ::= "COMMIT"        ;
 CommitStatement02.                CommitStatement ::= "COMMIT" "WORK" ;
@@ -833,7 +803,261 @@ DeleteStatementSearched02.        DeleteStatementSearched ::= "DELETE" "FROM" Ta
 DeleteStatementSearched03.        DeleteStatementSearched ::= "DELETE" "FROM" TableDblink             Returning ;
 DeleteStatementSearched04.        DeleteStatementSearched ::= "DELETE" "FROM" TableDblink WhereClause Returning ;
 
--- fetch_statement -> FETCH cursor INTO target_commalist                                           : {fetch, '$2', {into, '$4'}}.
+-- drop_cluster_def -> DROP CLUSTER cluster_name                         : {'drop cluster', '$3', {}}.
+-- drop_cluster_def -> DROP CLUSTER cluster_name drop_cluster_extensions : {'drop cluster', '$3', '$4'}.
+
+DropClusterDef01.                 DropClusterDef ::= "DROP" "CLUSTER" ClusterName                       ;
+DropClusterDef02.                 DropClusterDef ::= "DROP" "CLUSTER" ClusterName DropClusterExtensions ;
+
+-- drop_cluster_extensions -> INCLUDING TABLES                     : {'including tables'}.
+-- drop_cluster_extensions -> INCLUDING TABLES CASCADE CONSTRAINTS : {'including tables cascade constraints'}.
+
+DropClusterExtensions01.          DropClusterExtensions ::= "INCLUDING" "TABLES"                         ;
+DropClusterExtensions02.          DropClusterExtensions ::= "INCLUDING" "TABLES" "CASCADE" "CONSTRAINTS" ; 
+
+-- cluster_name -> NAME          : unwrap_bin('$1').
+-- cluster_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+
+ClusterName01.                    ClusterName ::= "NAME"            ;
+ClusterName02.                    ClusterName ::= "NAME" "." "NAME" ;
+
+-- drop_context_def -> DROP CONTEXT NAME : {'drop context', unwrap_bin('$3')}.
+
+DropContextDef01.                 DropContextDef ::= "DROP" "CONTEXT" "NAME" ; 
+
+-- drop_database_def -> DROP DATABASE : {'drop database'}.
+
+DropDatabaseDef01.                DropDatabaseDef ::= "DROP" "DATABASE" ;
+
+-- drop_database_link_def -> DROP        DATABASE LINK DBLINK : {'drop database link', unwrap_bin('$4'), {}}.
+-- drop_database_link_def -> DROP PUBLIC DATABASE LINK DBLINK : {'drop database link', unwrap_bin('$5'), public}.
+
+DropDatabaseLinkDef01.            DropDatabaseLinkDef ::= "DROP"          "DATABASE" "LINK" "DBLINK" ;
+DropDatabaseLinkDef02.            DropDatabaseLinkDef ::= "DROP" "PUBLIC" "DATABASE" "LINK" "DBLINK" ;
+
+-- drop_directory_def -> DROP DIRECTORY NAME : {'drop directory', unwrap_bin('$3')}.
+
+DropDirectoryDef01.               DropDirectoryDef ::= "DROP" "DIRECTORY" "NAME" ;
+
+-- drop_function_def -> DROP FUNCTION function_name : {'drop function', '$3'}.
+
+DropFunctionDef01.                DropFunctionDef ::= "DROP" "FUNCTION" FunctionName ; 
+
+-- function_name -> NAME          : unwrap_bin('$1').
+-- function_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+
+FunctionName01.                   FunctionName ::= "NAME"            ;
+FunctionName02.                   FunctionName ::= "NAME" "." "NAME" ;
+
+-- drop_index_def -> DROP INDEX            FROM table                       : {'drop index', {},   '$4', {}}.
+-- drop_index_def -> DROP INDEX            FROM table drop_index_extensions : {'drop index', {},   '$4', '$5'}.
+-- drop_index_def -> DROP INDEX index_name                                  : {'drop index', '$3', [],   {}}.
+-- drop_index_def -> DROP INDEX index_name            drop_index_extensions : {'drop index', '$3', [],   '$4'}.
+-- drop_index_def -> DROP INDEX index_name FROM table                       : {'drop index', '$3', '$5', {}}.
+-- drop_index_def -> DROP INDEX index_name FROM table drop_index_extensions : {'drop index', '$3', '$5', '$6'}.
+
+DropIndexDef01.                   DropIndexDef ::= "DROP" "INDEX"           "FROM" Table                     ;  
+DropIndexDef02.                   DropIndexDef ::= "DROP" "INDEX"           "FROM" Table DropIndexExtensions ;  
+DropIndexDef03.                   DropIndexDef ::= "DROP" "INDEX" IndexName                                  ;  
+DropIndexDef04.                   DropIndexDef ::= "DROP" "INDEX" IndexName              DropIndexExtensions ;  
+DropIndexDef05.                   DropIndexDef ::= "DROP" "INDEX" IndexName "FROM" Table                     ;  
+DropIndexDef06.                   DropIndexDef ::= "DROP" "INDEX" IndexName "FROM" Table DropIndexExtensions ;  
+
+-- drop_index_extensions ->              DEFERRED  INVALIDATION : {'deferred invalidation'}.
+-- drop_index_extensions ->              IMMEDIATE INVALIDATION : {'immediate invalidation'}.
+-- drop_index_extensions ->        FORCE                        : {'force'}.
+-- drop_index_extensions ->        FORCE DEFERRED  INVALIDATION : {'force deferred invalidation'}.
+-- drop_index_extensions ->        FORCE IMMEDIATE INVALIDATION : {'force immediate invalidation'}.
+-- drop_index_extensions -> ONLINE                              : {'online'}.
+-- drop_index_extensions -> ONLINE       DEFERRED  INVALIDATION : {'online deferred invalidation'}.
+-- drop_index_extensions -> ONLINE       IMMEDIATE INVALIDATION : {'online immediate invalidation'}.
+-- drop_index_extensions -> ONLINE FORCE                        : {'online force'}.
+-- drop_index_extensions -> ONLINE FORCE DEFERRED  INVALIDATION : {'online force deferred invalidation'}.
+-- drop_index_extensions -> ONLINE FORCE IMMEDIATE INVALIDATION : {'online force immediate invalidation'}.
+
+DropIndexExtensions01.            DropIndexExtensions ::=                  "DEFERRED"  "INVALIDATION" ;
+DropIndexExtensions02.            DropIndexExtensions ::=                  "IMMEDIATE" "INVALIDATION" ;
+DropIndexExtensions03.            DropIndexExtensions ::=          "FORCE"                            ;
+DropIndexExtensions04.            DropIndexExtensions ::=          "FORCE" "DEFERRED"  "INVALIDATION" ;
+DropIndexExtensions05.            DropIndexExtensions ::=          "FORCE" "IMMEDIATE" "INVALIDATION" ;
+DropIndexExtensions06.            DropIndexExtensions ::= "ONLINE"                                    ;
+DropIndexExtensions07.            DropIndexExtensions ::= "ONLINE"         "DEFERRED"  "INVALIDATION" ;
+DropIndexExtensions08.            DropIndexExtensions ::= "ONLINE"         "IMMEDIATE" "INVALIDATION" ;
+DropIndexExtensions09.            DropIndexExtensions ::= "ONLINE" "FORCE"                            ;
+DropIndexExtensions10.            DropIndexExtensions ::= "ONLINE" "FORCE" "DEFERRED"  "INVALIDATION" ;
+DropIndexExtensions11.            DropIndexExtensions ::= "ONLINE" "FORCE" "IMMEDIATE" "INVALIDATION" ;
+
+-- drop_materialized_view_def -> DROP MATERIALIZED VIEW materialized_view_name                : {'drop materialized view', '$4', {}}.
+-- drop_materialized_view_def -> DROP MATERIALIZED VIEW materialized_view_name PRESERVE TABLE : {'drop materialized view', '$4', 'preserve table'}.
+
+DropMaterializedViewDef01.        DropMaterializedViewDef ::= "DROP" "MATERIALIZED" "VIEW" MaterializedViewName                    ;   
+DropMaterializedViewDef02.        DropMaterializedViewDef ::= "DROP" "MATERIALIZED" "VIEW" MaterializedViewName "PRESERVE" "TABLE" ;   
+
+-- materialized_view_name -> NAME          : unwrap_bin('$1').
+-- materialized_view_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+
+MaterializedViewName01.           MaterializedViewName ::= "NAME"            ;
+MaterializedViewName02.           MaterializedViewName ::= "NAME" "." "NAME" ;
+
+-- drop_package_def -> DROP PACKAGE      package_name : {'drop package', '$3', {}}.
+-- drop_package_def -> DROP PACKAGE BODY package_name : {'drop package', '$4', body}.
+
+DropPackageDef01.                 DropPackageDef ::= "DROP" "PACKAGE" "BODY" PackageName ;
+
+-- package_name -> NAME          : unwrap_bin('$1').
+-- package_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+
+PackageName01.                    PackageName ::= "NAME"            ;
+PackageName02.                    PackageName ::= "NAME" "." "NAME" ;
+
+-- drop_procedure_def -> DROP PROCEDURE procedure_name : {'drop procedure', '$3'}.
+
+DropProcedureDef01.               DropProcedureDef ::= "DROP" "PROCEDURE" ProcedureName ; 
+
+-- procedure_name -> NAME          : unwrap_bin('$1').
+-- procedure_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+
+ProcedureName01.                  ProcedureName ::= "NAME"            ;
+ProcedureName02.                  ProcedureName ::= "NAME" "." "NAME" ;
+
+-- drop_profile_def -> DROP PROFILE NAME         : {'drop profile', unwrap_bin('$3'), {}}.
+-- drop_profile_def -> DROP PROFILE NAME CASCADE : {'drop profile', unwrap_bin('$3'), cascade}.
+
+DropProfileDef01.                 DropProfileDef ::= "DROP" "PROFILE" "NAME"           ;
+DropProfileDef02.                 DropProfileDef ::= "DROP" "PROFILE" "NAME" "CASCADE" ;
+
+-- drop_role_def -> DROP ROLE NAME                                                                 : {'drop role', unwrap_bin('$3')}.
+
+DropRoleDef01.                    DropRoleDef ::= "DROP" "ROLE" "NAME" ;
+
+-- drop_sequence_def -> DROP SEQUENCE sequence_name : {'drop sequence', '$3'}.
+
+DropSequenceDef01.                DropSequenceDef ::= "DROP" "SEQUENCE" SequenceName ;  
+
+-- sequence_name -> NAME          : unwrap_bin('$1').
+-- sequence_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+
+SequenceName01.                   SequenceName ::= "NAME"            ;
+SequenceName02.                   SequenceName ::= "NAME" "." "NAME" ;
+
+-- drop_synonym_def -> DROP        SYNONYM synonym_name       : {'drop synonym', '$3', {},     {}}.
+-- drop_synonym_def -> DROP        SYNONYM synonym_name FORCE : {'drop synonym', '$3', {},     force}.
+-- drop_synonym_def -> DROP PUBLIC SYNONYM synonym_name       : {'drop synonym', '$4', public, {}}.
+-- drop_synonym_def -> DROP PUBLIC SYNONYM synonym_name FORCE : {'drop synonym', '$4', public, force}.
+
+DropSynonymDef01.                 DropSynonymDef ::= "DROP"          "SYNONYM" SynonymName         ;
+DropSynonymDef02.                 DropSynonymDef ::= "DROP"          "SYNONYM" SynonymName "FORCE" ;
+DropSynonymDef03.                 DropSynonymDef ::= "DROP" "PUBLIC" "SYNONYM" SynonymName         ;
+DropSynonymDef04.                 DropSynonymDef ::= "DROP" "PUBLIC" "SYNONYM" SynonymName "FORCE" ;
+
+-- synonym_name -> NAME          : unwrap_bin('$1').
+-- synonym_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+
+SynonymName01.                    SynonymName ::= "NAME"            ;
+SynonymName02.                    SynonymName ::= "NAME" "." "NAME" ;
+
+-- drop_table_def -> DROP      TABLE        table_list                       : {'drop table', {'tables', '$3'}, {},   {},   []}.
+-- drop_table_def -> DROP      TABLE        table_list drop_table_extensions : {'drop table', {'tables', '$3'}, {},   '$4', []}.
+-- drop_table_def -> DROP      TABLE exists table_list                       : {'drop table', {'tables', '$4'}, '$3', {},   []}.
+-- drop_table_def -> DROP      TABLE exists table_list drop_table_extensions : {'drop table', {'tables', '$4'}, '$3', '$5', []}.
+-- drop_table_def -> DROP NAME TABLE        table_list                       : {'drop table', {'tables', '$4'}, {},   {},   unwrap('$2')}.
+-- drop_table_def -> DROP NAME TABLE        table_list drop_table_extensions : {'drop table', {'tables', '$4'}, {},   '$5', unwrap('$2')}.
+-- drop_table_def -> DROP NAME TABLE exists table_list                       : {'drop table', {'tables', '$5'}, '$4', {},   unwrap('$2')}.
+-- drop_table_def -> DROP NAME TABLE exists table_list drop_table_extensions : {'drop table', {'tables', '$5'}, '$4', '$6', unwrap('$2')}.
+
+DropTableDef01.                   DropTableDef ::= "DROP"        "TABLE"        TableList                     ;
+DropTableDef02.                   DropTableDef ::= "DROP"        "TABLE"        TableList DropTableExtensions ;
+DropTableDef03.                   DropTableDef ::= "DROP"        "TABLE" Exists TableList                     ;
+DropTableDef04.                   DropTableDef ::= "DROP"        "TABLE" Exists TableList DropTableExtensions ;
+DropTableDef05.                   DropTableDef ::= "DROP" "NAME" "TABLE"        TableList                     ;
+DropTableDef06.                   DropTableDef ::= "DROP" "NAME" "TABLE"        TableList DropTableExtensions ;
+DropTableDef07.                   DropTableDef ::= "DROP" "NAME" "TABLE" Exists TableList                     ;
+DropTableDef08.                   DropTableDef ::= "DROP" "NAME" "TABLE" Exists TableList DropTableExtensions ;
+
+-- drop_table_extensions ->                     PURGE : {'purge'}.
+-- drop_table_extensions -> CASCADE CONSTRAINTS       : {'cascade constraints'}.
+-- drop_table_extensions -> CASCADE CONSTRAINTS PURGE : {'cascade constraints purge'}.
+
+DropTableExtensions01.            DropTableExtensions ::=                         "PURGE" ;
+DropTableExtensions02.            DropTableExtensions ::= "CASCADE" "CONSTRAINTS"         ;
+DropTableExtensions03.            DropTableExtensions ::= "CASCADE" "CONSTRAINTS" "PURGE" ;
+
+-- drop_tablespace_def -> DROP TABLESPACE NAME                            : {'drop tablespace', unwrap_bin('$3'), {}}.
+-- drop_tablespace_def -> DROP TABLESPACE NAME drop_tablespace_extensions : {'drop tablespace', unwrap_bin('$3'), '$4'}.
+
+DropTablespaceDef01.              DropTablespaceDef ::= "DROP" "TABLESPACE" "NAME"                          ;
+DropTablespaceDef02.              DropTablespaceDef ::= "DROP" "TABLESPACE" "NAME" DropTablespaceExtensions ;
+
+-- drop_tablespace_extensions ->            INCLUDING CONTENTS                                    : {'including contents'}.
+-- drop_tablespace_extensions ->            INCLUDING CONTENTS                CASCADE CONSTRAINTS : {'including contents cascade constraints'}.
+-- drop_tablespace_extensions ->            INCLUDING CONTENTS AND  DATAFILES CASCADE CONSTRAINTS : {'including contents and datafiles cascade constraints'}.
+-- drop_tablespace_extensions ->            INCLUDING CONTENTS KEEP DATAFILES CASCADE CONSTRAINTS : {'including contents keep datafiles cascade constraints'}.
+-- drop_tablespace_extensions -> DROP QUOTA                                                       : {'drop quota'}.
+-- drop_tablespace_extensions -> DROP QUOTA INCLUDING CONTENTS                                    : {'drop quota including contents'}.
+-- drop_tablespace_extensions -> DROP QUOTA INCLUDING CONTENTS                CASCADE CONSTRAINTS : {'drop quota including contents cascade constraints'}.
+-- drop_tablespace_extensions -> DROP QUOTA INCLUDING CONTENTS AND  DATAFILES CASCADE CONSTRAINTS : {'drop quota including contents and datafiles cascade constraints'}.
+-- drop_tablespace_extensions -> DROP QUOTA INCLUDING CONTENTS KEEP DATAFILES CASCADE CONSTRAINTS : {'drop quota including contents keep datafiles cascade constraints'}.
+-- drop_tablespace_extensions -> KEEP QUOTA                                                       : {'keep quota'}.
+-- drop_tablespace_extensions -> KEEP QUOTA INCLUDING CONTENTS                                    : {'keep quota including contents'}.
+-- drop_tablespace_extensions -> KEEP QUOTA INCLUDING CONTENTS                CASCADE CONSTRAINTS : {'keep quota including contents cascade constraints'}.
+-- drop_tablespace_extensions -> KEEP QUOTA INCLUDING CONTENTS AND  DATAFILES CASCADE CONSTRAINTS : {'keep quota including contents and datafiles cascade constraints'}.
+-- drop_tablespace_extensions -> KEEP QUOTA INCLUDING CONTENTS KEEP DATAFILES CASCADE CONSTRAINTS : {'keep quota including contents keep datafiles cascade constraints'}.
+
+DropTablespaceExtensions01.       DropTablespaceExtensions ::=                "INCLUDING" "CONTENTS"                                            ;
+DropTablespaceExtensions02.       DropTablespaceExtensions ::=                "INCLUDING" "CONTENTS"                    "CASCADE" "CONSTRAINTS" ;
+DropTablespaceExtensions03.       DropTablespaceExtensions ::=                "INCLUDING" "CONTENTS" "AND"  "DATAFILES" "CASCADE" "CONSTRAINTS" ;
+DropTablespaceExtensions04.       DropTablespaceExtensions ::=                "INCLUDING" "CONTENTS" "KEEP" "DATAFILES" "CASCADE" "CONSTRAINTS" ;
+DropTablespaceExtensions05.       DropTablespaceExtensions ::= "DROP" "QUOTA"                                                                   ;
+DropTablespaceExtensions06.       DropTablespaceExtensions ::= "DROP" "QUOTA" "INCLUDING" "CONTENTS"                                            ;
+DropTablespaceExtensions07.       DropTablespaceExtensions ::= "DROP" "QUOTA" "INCLUDING" "CONTENTS"                    "CASCADE" "CONSTRAINTS" ;
+DropTablespaceExtensions08.       DropTablespaceExtensions ::= "DROP" "QUOTA" "INCLUDING" "CONTENTS" "AND"  "DATAFILES" "CASCADE" "CONSTRAINTS" ;
+DropTablespaceExtensions09.       DropTablespaceExtensions ::= "DROP" "QUOTA" "INCLUDING" "CONTENTS" "KEEP" "DATAFILES" "CASCADE" "CONSTRAINTS" ;
+DropTablespaceExtensions10.       DropTablespaceExtensions ::= "KEEP" "QUOTA"                                                                   ;
+DropTablespaceExtensions11.       DropTablespaceExtensions ::= "KEEP" "QUOTA" "INCLUDING" "CONTENTS"                                            ;
+DropTablespaceExtensions12.       DropTablespaceExtensions ::= "KEEP" "QUOTA" "INCLUDING" "CONTENTS"                    "CASCADE" "CONSTRAINTS" ;
+DropTablespaceExtensions13.       DropTablespaceExtensions ::= "KEEP" "QUOTA" "INCLUDING" "CONTENTS" "AND"  "DATAFILES" "CASCADE" "CONSTRAINTS" ;
+DropTablespaceExtensions14.       DropTablespaceExtensions ::= "KEEP" "QUOTA" "INCLUDING" "CONTENTS" "KEEP" "DATAFILES" "CASCADE" "CONSTRAINTS" ;
+
+-- drop_trigger_def -> DROP TRIGGER trigger_name : {'drop trigger', '$3'}.
+
+DropTriggerDef01.                 DropTriggerDef ::= "DROP" "TRIGGER" TriggerName ;
+
+-- trigger_name -> NAME          : unwrap_bin('$1').
+-- trigger_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+
+TriggerName01.                    TriggerName ::= "NAME"            ;
+TriggerName02.                    TriggerName ::= "NAME" "." "NAME" ;
+
+-- drop_type_def -> DROP TYPE type_name          : {'drop type', '$3', {}}.
+-- drop_type_def -> DROP TYPE type_name FORCE    : {'drop type', '$3', force}.
+-- drop_type_def -> DROP TYPE type_name VALIDATE : {'drop type', '$3', validate}.
+
+DropTypeDef01.                    DropTypeDef ::= "DROP" "TYPE" TypeName            ;
+DropTypeDef02.                    DropTypeDef ::= "DROP" "TYPE" TypeName "FORCE"    ;
+DropTypeDef03.                    DropTypeDef ::= "DROP" "TYPE" TypeName "VALIDATE" ;
+
+-- type_name -> NAME          : unwrap_bin('$1').
+-- type_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+
+TypeName01.                       TypeName ::= "NAME"            ;
+TypeName02.                       TypeName ::= "NAME" "." "NAME" ;
+
+-- drop_type_body_def -> DROP TYPE BODY type_name : {'drop type body', '$4'}.
+
+DropTypeBodyDef01.                DropTypeBodyDef ::= "DROP" "TYPE" "BODY" TypeName ;
+
+-- drop_user_def -> DROP USER NAME         : {'drop user', unwrap_bin('$3'), {}}.
+-- drop_user_def -> DROP USER NAME CASCADE : {'drop user', unwrap_bin('$3'), 'cascade'}.
+
+DropUserDef01.                    DropUserDef ::= "DROP" "USER" "NAME"           ;
+DropUserDef02.                    DropUserDef ::= "DROP" "USER" "NAME" "CASCADE" ;
+
+-- drop_view_def -> DROP VIEW table                     : {'drop view', '$3', {}}.
+-- drop_view_def -> DROP VIEW table CASCADE CONSTRAINTS : {'drop view', '$3', 'cascade constraints'}.
+
+DropViewDef01.                    DropViewDef ::= "DROP" "VIEW" Table "CASCADE" "CONSTRAINTS" ;
+
+-- fetch_statement -> FETCH cursor INTO target_commalist : {fetch, '$2', {into, '$4'}}.
 
 FetchStatement01.                 FetchStatement ::= "FETCH" Cursor "INTO" TargetCommalist ;
 
@@ -859,39 +1083,76 @@ ValuesOrQuerySpec01.              ValuesOrQuerySpec ::= "VALUES" "(" InsertAtomC
 ValuesOrQuerySpec02.              ValuesOrQuerySpec ::=     QuerySpec                        ;
 ValuesOrQuerySpec03.              ValuesOrQuerySpec ::= "(" QuerySpec ")"                    ;
 
--- insert_atom_commalist ->                           insert_atom                                  :         ['$1'].
--- insert_atom_commalist -> insert_atom_commalist ',' insert_atom                                  : '$1' ++ ['$3'].
+-- insert_atom_commalist ->                           insert_atom :         ['$1'].
+-- insert_atom_commalist -> insert_atom_commalist ',' insert_atom : '$1' ++ ['$3'].
 
 InsertAtomCommalist01.            InsertAtomCommalist ::=                         InsertAtom ;
 InsertAtomCommalist02.            InsertAtomCommalist ::= InsertAtomCommalist "," InsertAtom ;
 
--- insert_atom -> scalar_opt_as_exp                                                                : '$1'.
+-- insert_atom -> scalar_opt_as_exp : '$1'.
 
 InsertAtom01.                     InsertAtom ::= ScalarOptAsExp ;
 
--- open_statement -> OPEN cursor                                                                   : {open, '$2'}.
+-- open_statement -> OPEN cursor : {open, '$2'}.
 
 OpenStatement01.                  OpenStatement ::= "OPEN" Cursor ;
 
--- rollback_statement -> ROLLBACK                                                                  : 'rollback'.
--- rollback_statement -> ROLLBACK WORK                                                             : 'rollback work'.
+-- rollback_statement -> ROLLBACK      : 'rollback'.
+-- rollback_statement -> ROLLBACK WORK : 'rollback work'.
 
 RollbackStatement01.              RollbackStatement ::= "ROLLBACK"        ;
 RollbackStatement02.              RollbackStatement ::= "ROLLBACK" "WORK" ;
 
--- select_statement -> query_exp                                                                   : '$1'.
+-- select_statement -> query_exp : '$1'.
 
 SelectStatement01.                SelectStatement ::= QueryExp ;
 
--- hint -> HINT                                                                                    : {hints, unwrap_bin('$1')}.
+-- hint -> HINT : {hints, unwrap_bin('$1')}.
 
 Hint01.                           Hint ::= "HINT"   ;
 
--- all_distinct -> ALL                                                                             : {opt, <<"all">>}.
--- all_distinct -> DISTINCT                                                                        : {opt, <<"distinct">>}.
+-- all_distinct -> ALL      : {opt, <<"all">>}.
+-- all_distinct -> DISTINCT : {opt, <<"distinct">>}.
 
 AllDistinct01.                    AllDistinct ::= "ALL"      ;
 AllDistinct02.                    AllDistinct ::= "DISTINCT" ;
+
+-- truncate_cluster -> TRUNCATE CLUSTER cluster_name         : {'truncate cluster', '$3', {}}.
+-- truncate_cluster -> TRUNCATE CLUSTER cluster_name storage : {'truncate cluster', '$3', '$4'}.
+
+TruncateCluster01.                TruncateCluster ::= "TRUNCATE" "CLUSTER" ClusterName Storage ;
+
+-- truncate_table -> TRUNCATE TABLE table                              : {'truncate table', '$3', {},   {},   {}}.
+-- truncate_table -> TRUNCATE TABLE table                      CASCADE : {'truncate table', '$3', {},   {},   cascade}.
+-- truncate_table -> TRUNCATE TABLE table              storage         : {'truncate table', '$3', {},   '$4', {}}.
+-- truncate_table -> TRUNCATE TABLE table              storage CASCADE : {'truncate table', '$3', {},   '$4', cascade}.
+-- truncate_table -> TRUNCATE TABLE table materialized                 : {'truncate table', '$3', '$4', {},   {}}.
+-- truncate_table -> TRUNCATE TABLE table materialized         CASCADE : {'truncate table', '$3', '$4', {},   cascade}.
+-- truncate_table -> TRUNCATE TABLE table materialized storage         : {'truncate table', '$3', '$4', '$5', {}}.
+-- truncate_table -> TRUNCATE TABLE table materialized storage CASCADE : {'truncate table', '$3', '$4', '$5', cascade}.
+
+TruncateTable01.                  TruncateTable ::= "TRUNCATE" "TABLE" Table                                ;
+TruncateTable02.                  TruncateTable ::= "TRUNCATE" "TABLE" Table                      "CASCADE" ;
+TruncateTable03.                  TruncateTable ::= "TRUNCATE" "TABLE" Table              Storage           ;
+TruncateTable04.                  TruncateTable ::= "TRUNCATE" "TABLE" Table              Storage "CASCADE" ;
+TruncateTable05.                  TruncateTable ::= "TRUNCATE" "TABLE" Table Materialized                   ;
+TruncateTable06.                  TruncateTable ::= "TRUNCATE" "TABLE" Table Materialized         "CASCADE" ;
+TruncateTable07.                  TruncateTable ::= "TRUNCATE" "TABLE" Table Materialized Storage           ;
+TruncateTable08.                  TruncateTable ::= "TRUNCATE" "TABLE" Table Materialized Storage "CASCADE" ;
+
+-- materialized -> PRESERVE MATERIALIZED VIEW LOG : {'materialized view log', preserve}.
+-- materialized -> PURGE    MATERIALIZED VIEW LOG : {'materialized view log', purge}.
+
+Materialized01.                   Materialized ::= "PRESERVE" "MATERIALIZED" "VIEW" "LOG" ;
+Materialized02.                   Materialized ::= "PURGE"    "MATERIALIZED" "VIEW" "LOG" ;
+
+-- storage ->  DROP      STORAGE : {storage, drop}.
+-- storage ->  DROP  ALL STORAGE : {storage, 'drop all'}.
+-- storage ->  REUSE     STORAGE : {storage, reuse}.
+
+Storage01.                        Storage ::=  "DROP"        "STORAGE" ;
+Storage02.                        Storage ::=  "DROP"  "ALL" "STORAGE" ;
+Storage03.                        Storage ::=  "REUSE"       "STORAGE" ;
 
 -- update_statement_positioned -> UPDATE table_dblink SET assignment_commalist WHERE CURRENT OF cursor           : {update, '$2', {set, '$4'}, {where_current_of, '$8'}, {returning, {}}}.
 -- update_statement_positioned -> UPDATE table_dblink SET assignment_commalist WHERE CURRENT OF cursor returning : {update, '$2', {set, '$4'}, {where_current_of, '$8'}, '$9'}.
@@ -899,13 +1160,13 @@ AllDistinct02.                    AllDistinct ::= "DISTINCT" ;
 UpdateStatementPositioned01.      UpdateStatementPositioned ::= "UPDATE" TableDblink "SET" AssignmentCommalist "WHERE" "CURRENT" "OF" Cursor           ;
 UpdateStatementPositioned02.      UpdateStatementPositioned ::= "UPDATE" TableDblink "SET" AssignmentCommalist "WHERE" "CURRENT" "OF" Cursor Returning ;
 
--- assignment_commalist ->                          assignment                                     :         ['$1'].
--- assignment_commalist -> assignment_commalist ',' assignment                                     : '$1' ++ ['$3'].
+-- assignment_commalist ->                          assignment :         ['$1'].
+-- assignment_commalist -> assignment_commalist ',' assignment : '$1' ++ ['$3'].
 
 AssignmentCommalist01.            AssignmentCommalist ::=                         Assignment ;
 AssignmentCommalist02.            AssignmentCommalist ::= AssignmentCommalist "," Assignment ;
 
--- assignment -> column '=' scalar_opt_as_exp                                                      : {'=', '$1', '$3'}.
+-- assignment -> column '=' scalar_opt_as_exp : {'=', '$1', '$3'}.
 
 Assignment01.                     Assignment ::= Column "=" ScalarOptAsExp ;
 
@@ -919,14 +1180,14 @@ UpdateStatementSearched02.        UpdateStatementSearched ::= "UPDATE" TableDbli
 UpdateStatementSearched03.        UpdateStatementSearched ::= "UPDATE" TableDblink "SET" AssignmentCommalist             Returning ;
 UpdateStatementSearched04.        UpdateStatementSearched ::= "UPDATE" TableDblink "SET" AssignmentCommalist WhereClause Returning ;
 
--- target_commalist ->                      target                                                 :         ['$1'].
--- target_commalist -> target_commalist ',' target                                                 : '$1' ++ ['$3'].
+-- target_commalist ->                      target :         ['$1'].
+-- target_commalist -> target_commalist ',' target : '$1' ++ ['$3'].
 
 TargetCommalist01.                TargetCommalist ::=                     Target ;
 TargetCommalist02.                TargetCommalist ::= TargetCommalist "," Target ;
 
--- target -> NAME                                                                                  : unwrap_bin('$1').
--- target -> parameter_ref                                                                         : '$1'.
+-- target -> NAME          : unwrap_bin('$1').
+-- target -> parameter_ref : '$1'.
 
 Target01.                         Target ::= "NAME"       ;
 Target02.                         Target ::= ParameterRef ;
@@ -935,11 +1196,11 @@ Target02.                         Target ::= ParameterRef ;
 -- query expressions
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--- query_exp ->                     query_term                                                     : '$1'.
--- query_exp -> query_exp UNION     query_term                                                     : {union,       '$1', '$3'}.
--- query_exp -> query_exp UNION ALL query_term                                                     : {'union all', '$1', '$4'}.
--- query_exp -> query_exp INTERSECT query_term                                                     : {intersect,   '$1', '$3'}.
--- query_exp -> query_exp MINUS     query_term                                                     : {minus,       '$1', '$3'}.
+-- query_exp ->                     query_term : '$1'.
+-- query_exp -> query_exp UNION     query_term : {union,       '$1', '$3'}.
+-- query_exp -> query_exp UNION ALL query_term : {'union all', '$1', '$4'}.
+-- query_exp -> query_exp INTERSECT query_term : {intersect,   '$1', '$3'}.
+-- query_exp -> query_exp MINUS     query_term : {minus,       '$1', '$3'}.
 
 QueryExp01.                       QueryExp ::=                        QueryTerm ;
 QueryExp02.                       QueryExp ::= QueryExp "UNION"       QueryTerm ;
@@ -947,8 +1208,8 @@ QueryExp03.                       QueryExp ::= QueryExp "UNION" "ALL" QueryTerm 
 QueryExp04.                       QueryExp ::= QueryExp "INTERSECT"   QueryTerm ;
 QueryExp05.                       QueryExp ::= QueryExp "MINUS"       QueryTerm ;
 
--- returning -> RETURNING selection INTO selection                                                 : {returning, '$2', '$4'}.
--- returning -> RETURN    selection INTO selection                                                 : {return,    '$2', '$4'}.
+-- returning -> RETURNING selection INTO selection : {returning, '$2', '$4'}.
+-- returning -> RETURN    selection INTO selection : {return,    '$2', '$4'}.
 
 Returning01.                      Returning ::= "RETURNING" Selection "INTO" Selection ;
 Returning02.                      Returning ::= "RETURN"    Selection "INTO" Selection ;
@@ -961,42 +1222,42 @@ QueryTerm01.                      QueryTerm ::=     QuerySpec            ;
 QueryTerm02.                      QueryTerm ::= "(" QueryExp  ")"        ;
 QueryTerm03.                      QueryTerm ::= "(" QueryExp  ")" "JSON" ;
 
--- query_spec -> SELECT                   selection      table_exp                                 : {select,
---                                                                                                    [{fields, '$2'}] ++
---                                                                                                    '$3'}.
--- query_spec -> SELECT                   selection into table_exp                                 : {select,
---                                                                                                    [{fields, '$2'}] ++
---                                                                                                    if '$3' == {} -> []; true -> [{into, '$3'}] end ++
---                                                                                                    '$4'}.
--- query_spec -> SELECT      all_distinct selection      table_exp                                 : {select,
---                                                                                                    if '$2' == {} -> []; true -> ['$2'] end ++
---                                                                                                    [{fields, '$3'}] ++
---                                                                                                    '$4'}.
--- query_spec -> SELECT      all_distinct selection into table_exp                                 : {select,
---                                                                                                    if '$2' == {} -> []; true -> ['$2'] end ++
---                                                                                                    [{fields, '$3'}] ++
---                                                                                                    if '$4' == {} -> []; true -> [{into, '$4'}] end ++
---                                                                                                    '$5'}.
--- query_spec -> SELECT hint              selection      table_exp                                 : {select,
---                                                                                                    if '$2' == {} -> []; true -> ['$2'] end ++
---                                                                                                    [{fields, '$3'}] ++
---                                                                                                    '$4'}.
--- query_spec -> SELECT hint              selection into table_exp                                 : {select,
---                                                                                                    if '$2' == {} -> []; true -> ['$2'] end ++
---                                                                                                    [{fields, '$3'}] ++
---                                                                                                    if '$4' == {} -> []; true -> [{into, '$4'}] end ++
---                                                                                                    '$5'}.
--- query_spec -> SELECT hint all_distinct selection      table_exp                                 : {select,
---                                                                                                    if '$2' == {} -> []; true -> ['$2'] end ++
---                                                                                                    if '$3' == {} -> []; true -> ['$3'] end ++
---                                                                                                    [{fields, '$4'}] ++
---                                                                                                    '$5'}.
--- query_spec -> SELECT hint all_distinct selection into table_exp                                 : {select,
---                                                                                                    if '$2' == {} -> []; true -> ['$2'] end ++
---                                                                                                    if '$3' == {} -> []; true -> ['$3'] end ++
---                                                                                                    [{fields, '$4'}] ++
---                                                                                                    if '$5' == {} -> []; true -> [{into, '$5'}] end ++
---                                                                                                    '$6'}.
+-- query_spec -> SELECT                   selection      table_exp : {select,
+--                                                                    [{fields, '$2'}] ++
+--                                                                    '$3'}.
+-- query_spec -> SELECT                   selection into table_exp : {select,
+--                                                                    [{fields, '$2'}] ++
+--                                                                    if '$3' == {} -> []; true -> [{into, '$3'}] end ++
+--                                                                    '$4'}.
+-- query_spec -> SELECT      all_distinct selection      table_exp : {select,
+--                                                                    if '$2' == {} -> []; true -> ['$2'] end ++
+--                                                                    [{fields, '$3'}] ++
+--                                                                    '$4'}.
+-- query_spec -> SELECT      all_distinct selection into table_exp : {select,
+--                                                                    if '$2' == {} -> []; true -> ['$2'] end ++
+--                                                                    [{fields, '$3'}] ++
+--                                                                    if '$4' == {} -> []; true -> [{into, '$4'}] end ++
+--                                                                    '$5'}.
+-- query_spec -> SELECT hint              selection      table_exp : {select,
+--                                                                    if '$2' == {} -> []; true -> ['$2'] end ++
+--                                                                    [{fields, '$3'}] ++
+--                                                                    '$4'}.
+-- query_spec -> SELECT hint              selection into table_exp : {select,
+--                                                                    if '$2' == {} -> []; true -> ['$2'] end ++
+--                                                                    [{fields, '$3'}] ++
+--                                                                    if '$4' == {} -> []; true -> [{into, '$4'}] end ++
+--                                                                    '$5'}.
+-- query_spec -> SELECT hint all_distinct selection      table_exp : {select,
+--                                                                    if '$2' == {} -> []; true -> ['$2'] end ++
+--                                                                    if '$3' == {} -> []; true -> ['$3'] end ++
+--                                                                    [{fields, '$4'}] ++
+--                                                                    '$5'}.
+-- query_spec -> SELECT hint all_distinct selection into table_exp : {select,
+--                                                                    if '$2' == {} -> []; true -> ['$2'] end ++
+--                                                                    if '$3' == {} -> []; true -> ['$3'] end ++
+--                                                                    [{fields, '$4'}] ++
+--                                                                    if '$5' == {} -> []; true -> [{into, '$5'}] end ++
+--                                                                    '$6'}.
 
 QuerySpec01.                      QuerySpec ::= "SELECT"                  Selection      TableExp ;
 QuerySpec02.                      QuerySpec ::= "SELECT"                  Selection Into TableExp ;
@@ -1011,37 +1272,37 @@ QuerySpec08.                      QuerySpec ::= "SELECT" Hint AllDistinct Select
 
 Into01.                           Into ::= "INTO" TargetCommalist ;
 
--- selection -> select_field_commalist                                                             : '$1'.
+-- selection -> select_field_commalist : '$1'.
 
 Selection01.                      Selection ::= SelectFieldCommalist ;
 
--- select_field -> case_when_opt_as_exp                                                            : ['$1'].
--- select_field -> scalar_opt_as_exp                                                               : ['$1'].
--- select_field -> '*'                                                                             : [<<"*">>].
+-- select_field -> case_when_opt_as_exp : ['$1'].
+-- select_field -> scalar_opt_as_exp    : ['$1'].
+-- select_field -> '*'                  : [<<"*">>].
 
 SelectField01.                    SelectField ::= CaseWhenOptAsExp ;
 SelectField02.                    SelectField ::= ScalarOptAsExp   ;
 SelectField03.                    SelectField ::= "*"              ;
 
--- select_field_commalist ->                            select_field                               :         '$1'.
--- select_field_commalist -> select_field_commalist ',' select_field                               : '$1' ++ '$3'.
+-- select_field_commalist ->                            select_field :         '$1'.
+-- select_field_commalist -> select_field_commalist ',' select_field : '$1' ++ '$3'.
 
 SelectFieldCommalist01.           SelectFieldCommalist ::=                          SelectField ;
 SelectFieldCommalist02.           SelectFieldCommalist ::= SelectFieldCommalist "," SelectField ;
 
--- case_when_opt_as_exp -> case_when_exp                                                           : '$1'.
--- case_when_opt_as_exp -> case_when_exp    NAME                                                   : {as, '$1', unwrap_bin('$2')}.
--- case_when_opt_as_exp -> case_when_exp AS NAME                                                   : {as, '$1', unwrap_bin('$3')}.
+-- case_when_opt_as_exp -> case_when_exp         : '$1'.
+-- case_when_opt_as_exp -> case_when_exp    NAME : {as, '$1', unwrap_bin('$2')}.
+-- case_when_opt_as_exp -> case_when_exp AS NAME : {as, '$1', unwrap_bin('$3')}.
 
 CaseWhenOptAsExp01.               CaseWhenOptAsExp ::= CaseWhenExp             ;
 CaseWhenOptAsExp02.               CaseWhenOptAsExp ::= CaseWhenExp      "NAME" ;
 CaseWhenOptAsExp03.               CaseWhenOptAsExp ::= CaseWhenExp "AS" "NAME" ;
 
--- case_when_exp -> CASE                   case_when_then_list      END                            : {'case', <<>>, '$2', {}}.
--- case_when_exp -> CASE                   case_when_then_list else END                            : {'case', <<>>, '$2', '$3'}.
--- case_when_exp -> CASE scalar_opt_as_exp case_when_then_list      END                            : {'case', '$2', '$3', {}}.
--- case_when_exp -> CASE scalar_opt_as_exp case_when_then_list else END                            : {'case', '$2', '$3', '$4'}.
--- case_when_exp -> '(' case_when_exp ')'                                                          : '$2'.
+-- case_when_exp -> CASE                   case_when_then_list      END : {'case', <<>>, '$2', {}}.
+-- case_when_exp -> CASE                   case_when_then_list else END : {'case', <<>>, '$2', '$3'}.
+-- case_when_exp -> CASE scalar_opt_as_exp case_when_then_list      END : {'case', '$2', '$3', {}}.
+-- case_when_exp -> CASE scalar_opt_as_exp case_when_then_list else END : {'case', '$2', '$3', '$4'}.
+-- case_when_exp -> '(' case_when_exp ')'                               : '$2'.
 
 CaseWhenExp01.                    CaseWhenExp ::= "CASE"                CaseWhenThenList      "END" ;
 CaseWhenExp02.                    CaseWhenExp ::= "CASE"                CaseWhenThenList Else "END" ;
@@ -1049,68 +1310,52 @@ CaseWhenExp03.                    CaseWhenExp ::= "CASE" ScalarOptAsExp CaseWhen
 CaseWhenExp04.                    CaseWhenExp ::= "CASE" ScalarOptAsExp CaseWhenThenList Else "END" ;
 CaseWhenExp05.                    CaseWhenExp ::= "(" CaseWhenExp ")"                                  ;
 
--- case_when_then_list -> case_when_then                                                           : ['$1'].
--- case_when_then_list -> case_when_then case_when_then_list                                       : ['$1'|'$2'].
+-- case_when_then_list -> case_when_then                     : ['$1'].
+-- case_when_then_list -> case_when_then case_when_then_list : ['$1'|'$2'].
 
 CaseWhenThenList01.               CaseWhenThenList ::= CaseWhenThen                  ;
 CaseWhenThenList02.               CaseWhenThenList ::= CaseWhenThen CaseWhenThenList ;
 
--- case_when_then -> WHEN search_condition THEN scalar_opt_as_exp                                  : {'$2', '$4'}.
+-- case_when_then -> WHEN search_condition THEN scalar_opt_as_exp : {'$2', '$4'}.
 
 CaseWhenThen01.                   CaseWhenThen ::= "WHEN" SearchCondition "THEN" ScalarOptAsExp ;
 
--- else -> ELSE scalar_opt_as_exp                                                                  : '$2'.
+-- else -> ELSE scalar_opt_as_exp : '$2'.
 
 Else01.                           Else ::= "ELSE" ScalarOptAsExp ;
 
--- table_exp -> from_clause                                                                        : ['$1', {where, {}}, {'hierarchical query', {}}, {'group by', []},  {having, {}}, {'order by', []}].
--- table_exp -> from_clause                                                                      order_by_clause
---                                                                                                 : ['$1', {where, {}}, {'hierarchical query', {}}, {'group by', []},  {having, {}}, '$2'].
--- table_exp -> from_clause                                                        having_clause   : ['$1', {where, {}}, {'hierarchical query', {}}, {'group by', []},  '$2',         {'order by', []}].
--- table_exp -> from_clause                                                        having_clause order_by_clause
---                                                                                                 : ['$1', {where, {}}, {'hierarchical query', {}}, {'group by', []},  '$2',         '$3'].
--- table_exp -> from_clause                                        group_by_clause                 : ['$1', {where, {}}, {'hierarchical query', {}}, '$2',              {having, {}}, {'order by', []}].
--- table_exp -> from_clause                                        group_by_clause               order_by_clause
---                                                                                                 : ['$1', {where, {}}, {'hierarchical query', {}}, '$2',              {having, {}}, '$3'].
--- table_exp -> from_clause                                        group_by_clause having_clause   : ['$1', {where, {}}, {'hierarchical query', {}}, '$2',              '$3',         {'order by', []}].
--- table_exp -> from_clause                                        group_by_clause having_clause order_by_clause
---                                                                                                 : ['$1', {where, {}}, {'hierarchical query', {}}, '$2',              '$3',         '$4'].
--- table_exp -> from_clause              hierarchical_query_clause                                 : ['$1', {where, {}}, '$2',                       {'group by', []},  {having, {}}, {'order by', []}].
--- table_exp -> from_clause              hierarchical_query_clause                               order_by_clause
---                                                                                                 : ['$1', {where, {}}, '$2',                       {'group by', []},  {having, {}}, '$3'].
--- table_exp -> from_clause              hierarchical_query_clause                 having_clause   : ['$1', {where, {}}, '$2',                       {'group by', []},  '$3',         {'order by', []}].
--- table_exp -> from_clause              hierarchical_query_clause                 having_clause order_by_clause
---                                                                                                 : ['$1', {where, {}}, '$2',                       {'group by', []},  '$3',         '$4'].
--- table_exp -> from_clause              hierarchical_query_clause group_by_clause                 : ['$1', {where, {}}, '$2',                       '$3',              {having, {}}, {'order by', []}].
--- table_exp -> from_clause              hierarchical_query_clause group_by_clause               order_by_clause
---                                                                                                 : ['$1', {where, {}}, '$2',                       '$3',              {having, {}}, '$4'].
--- table_exp -> from_clause              hierarchical_query_clause group_by_clause having_clause   : ['$1', {where, {}}, '$2',                       '$3',              '$4',         {'order by', []}].
--- table_exp -> from_clause              hierarchical_query_clause group_by_clause having_clause order_by_clause
---                                                                                                 : ['$1', {where, {}}, '$2',                       '$3',              '$4',         '$5'].
--- table_exp -> from_clause where_clause                                                           : ['$1', '$2',        {'hierarchical query', {}}, {'group by', []},  {having, {}}, {'order by', []}].
--- table_exp -> from_clause where_clause                                                         order_by_clause
---                                                                                                 : ['$1', '$2',        {'hierarchical query', {}}, {'group by', []},  {having, {}}, '$3'].
--- table_exp -> from_clause where_clause                                           having_clause   : ['$1', '$2',        {'hierarchical query', {}}, {'group by', []},  '$3', {'order by', []}].
--- table_exp -> from_clause where_clause                                           having_clause order_by_clause
---                                                                                                 : ['$1', '$2',        {'hierarchical query', {}}, {'group by', []},  '$3',         '$4'].
--- table_exp -> from_clause where_clause                           group_by_clause                 : ['$1', '$2',        {'hierarchical query', {}}, '$3',              {having, {}}, {'order by', []}].
--- table_exp -> from_clause where_clause                           group_by_clause               order_by_clause
---                                                                                                 : ['$1', '$2',        {'hierarchical query', {}}, '$3',              {having, {}}, '$4'].
--- table_exp -> from_clause where_clause                           group_by_clause having_clause   : ['$1', '$2',        {'hierarchical query', {}}, '$3',              '$4',         {'order by', []}].
--- table_exp -> from_clause where_clause                           group_by_clause having_clause order_by_clause
---                                                                                                 : ['$1', '$2',        {'hierarchical query', {}}, '$3',              '$4',         '$5'].
--- table_exp -> from_clause where_clause hierarchical_query_clause                                 : ['$1', '$2',        '$3',                       {'group by', []},  {having, {}}, {'order by', []}].
--- table_exp -> from_clause where_clause hierarchical_query_clause                               order_by_clause
---                                                                                                 : ['$1', '$2',        '$3',                       {'group by', []},  {having, {}}, '$4'].
--- table_exp -> from_clause where_clause hierarchical_query_clause                 having_clause   : ['$1', '$2',        '$3',                       {'group by', []},  '$4', {'order by', []}].
--- table_exp -> from_clause where_clause hierarchical_query_clause                 having_clause order_by_clause
---                                                                                                 : ['$1', '$2',        '$3',                       {'group by', []},  '$4',         '$5'].
--- table_exp -> from_clause where_clause hierarchical_query_clause group_by_clause                 : ['$1', '$2',        '$3',                       '$4',              {having, {}}, {'order by', []}].
--- table_exp -> from_clause where_clause hierarchical_query_clause group_by_clause               order_by_clause
---                                                                                                 : ['$1', '$2',        '$3',                       '$4',              {having, {}}, '$5'].
--- table_exp -> from_clause where_clause hierarchical_query_clause group_by_clause having_clause   : ['$1', '$2',        '$3',                       '$4',              '$5',         {'order by', []}].
--- table_exp -> from_clause where_clause hierarchical_query_clause group_by_clause having_clause order_by_clause
---                                                                                                 : ['$1', '$2',        '$3',                       '$4',              '$5',         '$6'].
+-- table_exp -> from_clause                                                                                      : ['$1', {where, {}}, {'hierarchical query', {}}, {'group by', []},  {having, {}}, {'order by', []}].
+-- table_exp -> from_clause                                                                      order_by_clause : ['$1', {where, {}}, {'hierarchical query', {}}, {'group by', []},  {having, {}}, '$2'].
+-- table_exp -> from_clause                                                        having_clause                 : ['$1', {where, {}}, {'hierarchical query', {}}, {'group by', []},  '$2',         {'order by', []}].
+-- table_exp -> from_clause                                                        having_clause order_by_clause : ['$1', {where, {}}, {'hierarchical query', {}}, {'group by', []},  '$2',         '$3'].
+-- table_exp -> from_clause                                        group_by_clause                               : ['$1', {where, {}}, {'hierarchical query', {}}, '$2',              {having, {}}, {'order by', []}].
+-- table_exp -> from_clause                                        group_by_clause               order_by_clause : ['$1', {where, {}}, {'hierarchical query', {}}, '$2',              {having, {}}, '$3'].
+-- table_exp -> from_clause                                        group_by_clause having_clause                 : ['$1', {where, {}}, {'hierarchical query', {}}, '$2',              '$3',         {'order by', []}].
+-- table_exp -> from_clause                                        group_by_clause having_clause order_by_clause : ['$1', {where, {}}, {'hierarchical query', {}}, '$2',              '$3',         '$4'].
+-- table_exp -> from_clause              hierarchical_query_clause                                               : ['$1', {where, {}}, '$2',                       {'group by', []},  {having, {}}, {'order by', []}].
+-- table_exp -> from_clause              hierarchical_query_clause                               order_by_clause : ['$1', {where, {}}, '$2',                       {'group by', []},  {having, {}}, '$3'].
+-- table_exp -> from_clause              hierarchical_query_clause                 having_clause                 : ['$1', {where, {}}, '$2',                       {'group by', []},  '$3',         {'order by', []}].
+-- table_exp -> from_clause              hierarchical_query_clause                 having_clause order_by_clause : ['$1', {where, {}}, '$2',                       {'group by', []},  '$3',         '$4'].
+-- table_exp -> from_clause              hierarchical_query_clause group_by_clause                               : ['$1', {where, {}}, '$2',                       '$3',              {having, {}}, {'order by', []}].
+-- table_exp -> from_clause              hierarchical_query_clause group_by_clause               order_by_clause : ['$1', {where, {}}, '$2',                       '$3',              {having, {}}, '$4'].
+-- table_exp -> from_clause              hierarchical_query_clause group_by_clause having_clause                 : ['$1', {where, {}}, '$2',                       '$3',              '$4',         {'order by', []}].
+-- table_exp -> from_clause              hierarchical_query_clause group_by_clause having_clause order_by_clause : ['$1', {where, {}}, '$2',                       '$3',              '$4',         '$5'].
+-- table_exp -> from_clause where_clause                                                                         : ['$1', '$2',        {'hierarchical query', {}}, {'group by', []},  {having, {}}, {'order by', []}].
+-- table_exp -> from_clause where_clause                                                         order_by_clause : ['$1', '$2',        {'hierarchical query', {}}, {'group by', []},  {having, {}}, '$3'].
+-- table_exp -> from_clause where_clause                                           having_clause                 : ['$1', '$2',        {'hierarchical query', {}}, {'group by', []},  '$3', {'order by', []}].
+-- table_exp -> from_clause where_clause                                           having_clause order_by_clause : ['$1', '$2',        {'hierarchical query', {}}, {'group by', []},  '$3',         '$4'].
+-- table_exp -> from_clause where_clause                           group_by_clause                               : ['$1', '$2',        {'hierarchical query', {}}, '$3',              {having, {}}, {'order by', []}].
+-- table_exp -> from_clause where_clause                           group_by_clause               order_by_clause : ['$1', '$2',        {'hierarchical query', {}}, '$3',              {having, {}}, '$4'].
+-- table_exp -> from_clause where_clause                           group_by_clause having_clause                 : ['$1', '$2',        {'hierarchical query', {}}, '$3',              '$4',         {'order by', []}].
+-- table_exp -> from_clause where_clause                           group_by_clause having_clause order_by_clause : ['$1', '$2',        {'hierarchical query', {}}, '$3',              '$4',         '$5'].
+-- table_exp -> from_clause where_clause hierarchical_query_clause                                               : ['$1', '$2',        '$3',                       {'group by', []},  {having, {}}, {'order by', []}].
+-- table_exp -> from_clause where_clause hierarchical_query_clause                               order_by_clause : ['$1', '$2',        '$3',                       {'group by', []},  {having, {}}, '$4'].
+-- table_exp -> from_clause where_clause hierarchical_query_clause                 having_clause                 : ['$1', '$2',        '$3',                       {'group by', []},  '$4', {'order by', []}].
+-- table_exp -> from_clause where_clause hierarchical_query_clause                 having_clause order_by_clause : ['$1', '$2',        '$3',                       {'group by', []},  '$4',         '$5'].
+-- table_exp -> from_clause where_clause hierarchical_query_clause group_by_clause                               : ['$1', '$2',        '$3',                       '$4',              {having, {}}, {'order by', []}].
+-- table_exp -> from_clause where_clause hierarchical_query_clause group_by_clause               order_by_clause : ['$1', '$2',        '$3',                       '$4',              {having, {}}, '$5'].
+-- table_exp -> from_clause where_clause hierarchical_query_clause group_by_clause having_clause                 : ['$1', '$2',        '$3',                       '$4',              '$5',         {'order by', []}].
+-- table_exp -> from_clause where_clause hierarchical_query_clause group_by_clause having_clause order_by_clause : ['$1', '$2',        '$3',                       '$4',              '$5',         '$6'].
 
 TableExp01.                       TableExp ::= FromClause                                                                              ;
 TableExp02.                       TableExp ::= FromClause                                                                OrderByClause ;
@@ -1145,45 +1390,45 @@ TableExp30.                       TableExp ::= FromClause WhereClause Hierarchic
 TableExp31.                       TableExp ::= FromClause WhereClause HierarchicalQueryClause GroupByClause HavingClause               ;
 TableExp32.                       TableExp ::= FromClause WhereClause HierarchicalQueryClause GroupByClause HavingClause OrderByClause ;
 
--- from_clause -> FROM from_column_commalist                                                       : {from, '$2'}.
+-- from_clause -> FROM from_column_commalist : {from, '$2'}.
 
 FromClause01.                     FromClause ::= "FROM" FromColumnCommalist ;
 
--- from_column -> table_ref                                                                        : ['$1'].
--- from_column -> '(' join_clause ')'                                                              : ['$2'].
--- from_column ->     join_clause                                                                  : ['$1'].
+-- from_column -> table_ref           : ['$1'].
+-- from_column -> '(' join_clause ')' : ['$2'].
+-- from_column ->     join_clause     : ['$1'].
 
 FromColumn01.                     FromColumn ::= TableRef           ;
 FromColumn02.                     FromColumn ::= "(" JoinClause ")" ;
 FromColumn03.                     FromColumn ::=     JoinClause     ;
 
--- from_column_commalist ->                           from_column                                  :        '$1'.
--- from_column_commalist -> from_column_commalist ',' from_column                                  : '$1'++ '$3'.
+-- from_column_commalist ->                           from_column :        '$1'.
+-- from_column_commalist -> from_column_commalist ',' from_column : '$1'++ '$3'.
 
 FromCommalist01.                  FromColumnCommalist ::=                         FromColumn ;
 FromCommalist02.                  FromColumnCommalist ::= FromColumnCommalist "," FromColumn ;
 
--- join_clause -> table_ref join_list                                                              : {'$1', '$2'}.
+-- join_clause -> table_ref join_list : {'$1', '$2'}.
 
 JoinClause01.                     JoinClause ::= TableRef JoinList ;
 
--- join -> inner_cross_join                                                                        : '$1'.
--- join -> outer_join                                                                              : '$1'.
+-- join -> inner_cross_join : '$1'.
+-- join -> outer_join       : '$1'.
 
 Join01.                           Join ::= InnerCrossJoin ;
 Join02.                           Join ::= OuterJoin      ;
 
--- join_list ->           join                                                                     :        ['$1'].
--- join_list -> join_list join                                                                     : '$1'++ ['$2'].
+-- join_list ->           join :        ['$1'].
+-- join_list -> join_list join : '$1'++ ['$2'].
 
 JoinList01.                       JoinList ::=          Join ;
 JoinList02.                       JoinList ::= JoinList Join ;
 
--- inner_cross_join ->               JOIN join_ref join_on_or_using_clause                         : {join,               '$2', '$3'}.
--- inner_cross_join -> CROSS         JOIN join_ref                                                 : {cross_join,         '$3'}.
--- inner_cross_join -> INNER         JOIN join_ref join_on_or_using_clause                         : {join_inner,         '$3', '$4'}.
--- inner_cross_join -> NATURAL       JOIN join_ref                                                 : {natural_join,       '$3'}.
--- inner_cross_join -> NATURAL INNER JOIN join_ref                                                 : {natural_inner_join, '$4'}.
+-- inner_cross_join ->               JOIN join_ref join_on_or_using_clause : {join,               '$2', '$3'}.
+-- inner_cross_join -> CROSS         JOIN join_ref                         : {cross_join,         '$3'}.
+-- inner_cross_join -> INNER         JOIN join_ref join_on_or_using_clause : {join_inner,         '$3', '$4'}.
+-- inner_cross_join -> NATURAL       JOIN join_ref                         : {natural_join,       '$3'}.
+-- inner_cross_join -> NATURAL INNER JOIN join_ref                         : {natural_inner_join, '$4'}.
 
 InnerCrossJoin01.                 InnerCrossJoin ::=                   "JOIN" JoinRef JoinOnOrUsingClause ;
 InnerCrossJoin02.                 InnerCrossJoin ::= "CROSS"           "JOIN" JoinRef ;
@@ -1191,41 +1436,29 @@ InnerCrossJoin03.                 InnerCrossJoin ::= "INNER"           "JOIN" Jo
 InnerCrossJoin04.                 InnerCrossJoin ::= "NATURAL"         "JOIN" JoinRef ;
 InnerCrossJoin05.                 InnerCrossJoin ::= "NATURAL" "INNER" "JOIN" JoinRef ;
 
--- join_on_or_using_clause -> ON search_condition                                                  : {on, '$2'}.
--- join_on_or_using_clause -> USING '(' select_field_commalist ')'                                 : {using, '$3'}.
+-- join_on_or_using_clause -> ON search_condition                  : {on,    '$2'}.
+-- join_on_or_using_clause -> USING '(' select_field_commalist ')' : {using, '$3'}.
 
 JoinOnOrUsingClause01.            JoinOnOrUsingClause ::= "ON" SearchCondition                 ;
 JoinOnOrUsingClause02.            JoinOnOrUsingClause ::= "USING" "(" SelectFieldCommalist ")" ;
 
 -- ----------------------------------------------------------------------------------------------- {{JoinType, Partition, OptNatural} ... }
--- outer_join ->                                outer_join_type JOIN join_ref                        join_on_or_using_clause
---                                                                                                 : {{'$1', {}, {}}, '$3', {}, '$4'}.
--- outer_join ->                                outer_join_type JOIN join_ref                      : {{'$1', {},   {}},      '$3', {},   {}}.
--- outer_join ->                                outer_join_type JOIN join_ref query_partition_clause
---                                                                                                 : {{'$1', {},   {}},      '$3', '$4', {}}.
--- outer_join ->                                outer_join_type JOIN join_ref query_partition_clause join_on_or_using_clause
---                                                                                                 : {{'$1', {}, {}}, '$3', '$4', '$5'}.
--- outer_join -> NATURAL                        outer_join_type JOIN join_ref                        join_on_or_using_clause
---                                                                                                 : {{'$2', {}, natural}, '$4', {}, '$5'}.
--- outer_join -> NATURAL                        outer_join_type JOIN join_ref                      : {{'$2', {},   natural}, '$4', {},   {}}.
--- outer_join -> NATURAL                        outer_join_type JOIN join_ref query_partition_clause
---                                                                                                  : {{'$2', {},   natural}, '$4', '$5', {}}.
--- outer_join -> NATURAL                        outer_join_type JOIN join_ref query_partition_clause join_on_or_using_clause
---                                                                                                 : {{'$2', {}, natural}, '$4', '$5', '$6'}.
--- outer_join -> query_partition_clause         outer_join_type JOIN join_ref                        join_on_or_using_clause
---                                                                                                 : {{'$2', '$1', {}}, '$4', {}, '$5'}.
--- outer_join -> query_partition_clause         outer_join_type JOIN join_ref                      : {{'$2', '$1', {}},      '$4', {},   {}}.
--- outer_join -> query_partition_clause         outer_join_type JOIN join_ref query_partition_clause
---                                                                                                  : {{'$2', '$1', {}},      '$4', '$5', {}}.
--- outer_join -> query_partition_clause         outer_join_type JOIN join_ref query_partition_clause join_on_or_using_clause
---                                                                                                 : {{'$2', '$1', {}}, '$4', '$5', '$6'}.
--- outer_join -> query_partition_clause NATURAL outer_join_type JOIN join_ref                        join_on_or_using_clause
---                                                                                                 : {{'$3', '$1', natural}, '$5', {}, '$6'}.
--- outer_join -> query_partition_clause NATURAL outer_join_type JOIN join_ref                      : {{'$3', '$1', natural}, '$5', {},   {}}.
--- outer_join -> query_partition_clause NATURAL outer_join_type JOIN join_ref query_partition_clause
---                                                                                                  : {{'$3', '$1', natural}, '$5', '$6', {}}.
--- outer_join -> query_partition_clause NATURAL outer_join_type JOIN join_ref query_partition_clause join_on_or_using_clause
---                                                                                                : {{'$3', '$1', natural}, '$5', '$6', '$7'}.
+-- outer_join ->                                outer_join_type JOIN join_ref                        join_on_or_using_clause : {{'$1', {},   {}},      '$3', {},   '$4'}.
+-- outer_join ->                                outer_join_type JOIN join_ref                                                : {{'$1', {},   {}},      '$3', {},   {}}.
+-- outer_join ->                                outer_join_type JOIN join_ref query_partition_clause                         : {{'$1', {},   {}},      '$3', '$4', {}}.
+-- outer_join ->                                outer_join_type JOIN join_ref query_partition_clause join_on_or_using_clause : {{'$1', {},   {}},      '$3', '$4', '$5'}.
+-- outer_join -> NATURAL                        outer_join_type JOIN join_ref                        join_on_or_using_clause : {{'$2', {},   natural}, '$4', {},   '$5'}.
+-- outer_join -> NATURAL                        outer_join_type JOIN join_ref                                                : {{'$2', {},   natural}, '$4', {},   {}}.
+-- outer_join -> NATURAL                        outer_join_type JOIN join_ref query_partition_clause                         : {{'$2', {},   natural}, '$4', '$5', {}}.
+-- outer_join -> NATURAL                        outer_join_type JOIN join_ref query_partition_clause join_on_or_using_clause : {{'$2', {},   natural}, '$4', '$5', '$6'}.
+-- outer_join -> query_partition_clause         outer_join_type JOIN join_ref                        join_on_or_using_clause : {{'$2', '$1', {}},      '$4', {},   '$5'}.
+-- outer_join -> query_partition_clause         outer_join_type JOIN join_ref                                                : {{'$2', '$1', {}},      '$4', {},   {}}.
+-- outer_join -> query_partition_clause         outer_join_type JOIN join_ref query_partition_clause                         : {{'$2', '$1', {}},      '$4', '$5', {}}.
+-- outer_join -> query_partition_clause         outer_join_type JOIN join_ref query_partition_clause join_on_or_using_clause : {{'$2', '$1', {}},      '$4', '$5', '$6'}.
+-- outer_join -> query_partition_clause NATURAL outer_join_type JOIN join_ref                        join_on_or_using_clause : {{'$3', '$1', natural}, '$5', {},   '$6'}.
+-- outer_join -> query_partition_clause NATURAL outer_join_type JOIN join_ref                                                : {{'$3', '$1', natural}, '$5', {},   {}}.
+-- outer_join -> query_partition_clause NATURAL outer_join_type JOIN join_ref query_partition_clause                         : {{'$3', '$1', natural}, '$5', '$6', {}}.
+-- outer_join -> query_partition_clause NATURAL outer_join_type JOIN join_ref query_partition_clause join_on_or_using_clause : {{'$3', '$1', natural}, '$5', '$6', '$7'}.
 
 OuterJoin01.                      OuterJoin ::=                                OuterJoinType "JOIN" JoinRef                                          ;
 OuterJoin02.                      OuterJoin ::=                                OuterJoinType "JOIN" JoinRef                      JoinOnOrUsingClause ;
@@ -1245,18 +1478,18 @@ OuterJoin15.                      OuterJoin ::= QueryPartitionClause "NATURAL" O
 OuterJoin16.                      OuterJoin ::= QueryPartitionClause "NATURAL" OuterJoinType "JOIN" JoinRef QueryPartitionClause JoinOnOrUsingClause ;
 -- -----------------------------------------------------------------------------------------------
 
--- query_partition_clause -> PARTITION BY     scalar_exp_commalist                                 : {partition_by, '$3'} .
--- query_partition_clause -> PARTITION BY '(' scalar_exp_commalist ')'                             : {partition_by, '$4'}.
+-- query_partition_clause -> PARTITION BY     scalar_exp_commalist     : {partition_by, '$3'} .
+-- query_partition_clause -> PARTITION BY '(' scalar_exp_commalist ')' : {partition_by, '$4'}.
 
 QueryPartitionClause01.           QueryPartitionClause ::= "PARTITION" "BY"     ScalarExpCommalist     ;
 QueryPartitionClause02.           QueryPartitionClause ::= "PARTITION" "BY" "(" ScalarExpCommalist ")" ;
 
--- outer_join_type -> FULL                                                                         : full.
--- outer_join_type -> FULL  OUTER                                                                  : full_outer.
--- outer_join_type -> LEFT                                                                         : left.
--- outer_join_type -> LEFT  OUTER                                                                  : left_outer.
--- outer_join_type -> RIGHT                                                                        : right.
--- outer_join_type -> RIGHT OUTER                                                                  : right_outer.
+-- outer_join_type -> FULL        : full.
+-- outer_join_type -> FULL  OUTER : full_outer.
+-- outer_join_type -> LEFT        : left.
+-- outer_join_type -> LEFT  OUTER : left_outer.
+-- outer_join_type -> RIGHT       : right.
+-- outer_join_type -> RIGHT OUTER : right_outer.
 
 OuterJoinType01.                  OuterJoinType ::= "FULL"          ;
 OuterJoinType02.                  OuterJoinType ::= "FULL"  "OUTER" ;
@@ -1281,51 +1514,51 @@ JoinRef01.                        JoinRef ::= TableDblink      ;
 JoinRef02.                        JoinRef ::= QueryTerm        ;
 JoinRef03.                        JoinRef ::= QueryTerm "NAME" ;
 
--- hierarchical_query_clause -> START WITH search_condition CONNECT BY         search_condition    : {'hierarchical query', {{'start with', '$3'}, {'connect by', <<>>, '$6'}}}.
--- hierarchical_query_clause -> START WITH search_condition CONNECT BY nocycle search_condition    : {'hierarchical query', {{'start with', '$3'}, {'connect by', '$6', '$7'}}}.
--- hierarchical_query_clause -> CONNECT BY         search_condition START WITH search_condition    : {'hierarchical query', {{'connect by', <<>>, '$3'}, {'start with', '$6'}}}.
--- hierarchical_query_clause -> CONNECT BY nocycle search_condition START WITH search_condition    : {'hierarchical query', {{'connect by', '$3', '$4'}, {'start with', '$7'}}}.
+-- hierarchical_query_clause -> START WITH         search_condition CONNECT BY         search_condition : {'hierarchical query', {{'start with', '$3'},       {'connect by', <<>>, '$6'}}}.
+-- hierarchical_query_clause -> START WITH         search_condition CONNECT BY nocycle search_condition : {'hierarchical query', {{'start with', '$3'},       {'connect by', '$6', '$7'}}}.
+-- hierarchical_query_clause -> CONNECT BY         search_condition START WITH         search_condition : {'hierarchical query', {{'connect by', <<>>, '$3'}, {'start with', '$6'}}}.
+-- hierarchical_query_clause -> CONNECT BY nocycle search_condition START WITH         search_condition : {'hierarchical query', {{'connect by', '$3', '$4'}, {'start with', '$7'}}}.
 
 HierarchicalQueryClause01.        HierarchicalQueryClause ::= "START" "WITH" SearchCondition "CONNECT" "BY"         SearchCondition ;
 HierarchicalQueryClause02.        HierarchicalQueryClause ::= "START" "WITH" SearchCondition "CONNECT" "BY" Nocycle SearchCondition ;
 HierarchicalQueryClause03.        HierarchicalQueryClause ::= "CONNECT" "BY"         SearchCondition "START" "WITH" SearchCondition ;
 HierarchicalQueryClause04.        HierarchicalQueryClause ::= "CONNECT" "BY" Nocycle SearchCondition "START" "WITH" SearchCondition ;
 
--- nocycle -> NOCYCLE                                                                              : <<"nocycle">>.
+-- nocycle -> NOCYCLE : <<"nocycle">>.
 
 Nocycle01.                        Nocycle ::= "NOCYCLE" ;
 
--- where_clause -> WHERE search_condition                                                          : {where, '$2'}.
+-- where_clause -> WHERE search_condition : {where, '$2'}.
 
 WhereClause01.                    WhereClause ::= "WHERE" SearchCondition ;
 
--- group_by_clause  -> GROUP BY column_ref_commalist                                               : {'group by', '$3'}.
+-- group_by_clause -> GROUP BY column_ref_commalist : {'group by', '$3'}.
 
 GroupByClause01.                  GroupByClause  ::= "GROUP" "BY" ColumnRefCommalist ;
 
--- column_ref_commalist ->                          column_ref                                     :         ['$1'].
--- column_ref_commalist ->                          function_ref                                   :         ['$1'].
--- column_ref_commalist -> column_ref_commalist ',' column_ref                                     : '$1' ++ ['$3'].
--- column_ref_commalist -> column_ref_commalist ',' function_ref                                   : '$1' ++ ['$3'].
+-- column_ref_commalist ->                          column_ref   :         ['$1'].
+-- column_ref_commalist ->                          function_ref :         ['$1'].
+-- column_ref_commalist -> column_ref_commalist ',' column_ref   : '$1' ++ ['$3'].
+-- column_ref_commalist -> column_ref_commalist ',' function_ref : '$1' ++ ['$3'].
 
 ColumnRefCommalist01.             ColumnRefCommalist ::=                        ColumnRef   ;
 ColumnRefCommalist02.             ColumnRefCommalist ::=                        FunctionRef ;
 ColumnRefCommalist03.             ColumnRefCommalist ::= ColumnRefCommalist "," ColumnRef   ;
 ColumnRefCommalist04.             ColumnRefCommalist ::= ColumnRefCommalist "," FunctionRef ;
 
--- having_clause -> HAVING search_condition                                                        : {having, '$2'}.
+-- having_clause -> HAVING search_condition : {having, '$2'}.
 
-HavingClause02.                   HavingClause ::= "HAVING" SearchCondition ;
+HavingClause01.                   HavingClause ::= "HAVING" SearchCondition ;
 
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 -- search conditions
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--- search_condition -> search_condition OR  search_condition                                       : {'or',  '$1', '$3'}.
--- search_condition -> search_condition AND search_condition                                       : {'and', '$1', '$3'}.
--- search_condition -> NOT search_condition                                                        : {'not', '$2'}.
--- search_condition -> '(' search_condition ')'                                                    : '$2'.
--- search_condition -> predicate                                                                   : '$1'.
+-- search_condition -> search_condition OR  search_condition : {'or',  '$1', '$3'}.
+-- search_condition -> search_condition AND search_condition : {'and', '$1', '$3'}.
+-- search_condition -> NOT search_condition                  : {'not', '$2'}.
+-- search_condition -> '(' search_condition ')'              : '$2'.
+-- search_condition -> predicate                             : '$1'.
 
 SearchCondition01.                SearchCondition ::= SearchCondition "OR"  SearchCondition ;
 SearchCondition02.                SearchCondition ::= SearchCondition "AND" SearchCondition ;
@@ -1333,13 +1566,13 @@ SearchCondition03.                SearchCondition ::= "NOT" SearchCondition     
 SearchCondition04.                SearchCondition ::= "(" SearchCondition ")"               ;
 SearchCondition05.                SearchCondition ::= Predicate                             ;
 
--- predicate -> comparison_predicate                                                               : '$1'.
--- predicate -> between_predicate                                                                  : '$1'.
--- predicate -> like_predicate                                                                     : '$1'.
--- predicate -> test_for_null                                                                      : '$1'.
--- predicate -> in_predicate                                                                       : '$1'.
--- predicate -> all_or_any_predicate                                                               : '$1'.
--- predicate -> existence_test                                                                     : '$1'.
+-- predicate -> comparison_predicate : '$1'.
+-- predicate -> between_predicate    : '$1'.
+-- predicate -> like_predicate       : '$1'.
+-- predicate -> test_for_null        : '$1'.
+-- predicate -> in_predicate         : '$1'.
+-- predicate -> all_or_any_predicate : '$1'.
+-- predicate -> existence_test       : '$1'.
 
 Predicate01.                      Predicate ::= ComparisonPredicate ;
 Predicate02.                      Predicate ::= BetweenPredicate    ;
@@ -1349,11 +1582,11 @@ Predicate05.                      Predicate ::= InPredicate         ;
 Predicate06.                      Predicate ::= AllOrAnyPredicate   ;
 Predicate07.                      Predicate ::= ExistenceTest       ;
 
--- comparison_predicate -> scalar_opt_as_exp                                                       : '$1'.
--- comparison_predicate ->       scalar_exp '='        PRIOR scalar_exp                            : {'=',          '$1',          {prior, '$4'}}.
--- comparison_predicate ->       scalar_exp COMPARISON PRIOR scalar_exp                            : {unwrap('$2'), '$1',          {prior, '$4'}}.
--- comparison_predicate -> PRIOR scalar_exp '='              scalar_exp                            : {'=',          {prior, '$2'}, '$4'}.
--- comparison_predicate -> PRIOR scalar_exp COMPARISON       scalar_exp                            : {unwrap('$3'), {prior, '$2'}, '$4'}.
+-- comparison_predicate -> scalar_opt_as_exp                            : '$1'.
+-- comparison_predicate ->       scalar_exp '='        PRIOR scalar_exp : {'=',          '$1',          {prior, '$4'}}.
+-- comparison_predicate ->       scalar_exp COMPARISON PRIOR scalar_exp : {unwrap('$2'), '$1',          {prior, '$4'}}.
+-- comparison_predicate -> PRIOR scalar_exp '='              scalar_exp : {'=',          {prior, '$2'}, '$4'}.
+-- comparison_predicate -> PRIOR scalar_exp COMPARISON       scalar_exp : {unwrap('$3'), {prior, '$2'}, '$4'}.
 
 ComparisonPredicate01.            ComparisonPredicate ::= ScalarOptAsExp                                   ;
 ComparisonPredicate02.            ComparisonPredicate ::=         ScalarExp "="          "PRIOR" ScalarExp ;
@@ -1361,77 +1594,77 @@ ComparisonPredicate03.            ComparisonPredicate ::=         ScalarExp "COM
 ComparisonPredicate04.            ComparisonPredicate ::= "PRIOR" ScalarExp "="                  ScalarExp ;
 ComparisonPredicate05.            ComparisonPredicate ::= "PRIOR" ScalarExp "COMPARISON"         ScalarExp ;
 
--- between_predicate -> scalar_exp     BETWEEN scalar_exp AND scalar_exp                           :         {between, '$1', '$3', '$5'}.
--- between_predicate -> scalar_exp not_between scalar_exp AND scalar_exp                           : {'not', {between, '$1', '$3', '$5'}}.
+-- between_predicate -> scalar_exp     BETWEEN scalar_exp AND scalar_exp:         {between, '$1', '$3', '$5'}.
+-- between_predicate -> scalar_exp not_between scalar_exp AND scalar_exp: {'not', {between, '$1', '$3', '$5'}}.
 
 BetweenPredicate01.               BetweenPredicate ::= ScalarExp "BETWEEN"  ScalarExp "AND" ScalarExp ;
 BetweenPredicate02.               BetweenPredicate ::= ScalarExp NotBetween ScalarExp "AND" ScalarExp ;
 
--- not_between -> NOT BETWEEN                                                                      : 'not between'.
+-- not_between -> NOT BETWEEN : 'not between'.
 
 NotBetween01.                     NotBetween ::= "NOT" "BETWEEN" ;
 
--- like_predicate -> scalar_exp     LIKE scalar_exp                                                :         {like, '$1', '$3', <<>>}.
--- like_predicate -> scalar_exp     LIKE scalar_exp escape                                         :         {like, '$1', '$3', '$4'}.
--- like_predicate -> scalar_exp not_like scalar_exp                                                : {'not', {like, '$1', '$3', <<>>}}.
--- like_predicate -> scalar_exp not_like scalar_exp escape                                         : {'not', {like, '$1', '$3', '$4'}}.
+-- like_predicate -> scalar_exp     LIKE scalar_exp        :         {like, '$1', '$3', <<>>}.
+-- like_predicate -> scalar_exp     LIKE scalar_exp escape :         {like, '$1', '$3', '$4'}.
+-- like_predicate -> scalar_exp not_like scalar_exp        : {'not', {like, '$1', '$3', <<>>}}.
+-- like_predicate -> scalar_exp not_like scalar_exp escape : {'not', {like, '$1', '$3', '$4'}}.
 
 LikePredicate01.                  LikePredicate ::= ScalarExp "LIKE"  ScalarExp        ;
 LikePredicate02.                  LikePredicate ::= ScalarExp "LIKE"  ScalarExp Escape ;
 LikePredicate03.                  LikePredicate ::= ScalarExp NotLike ScalarExp        ;
 LikePredicate04.                  LikePredicate ::= ScalarExp NotLike ScalarExp Escape ;
 
--- not_like -> NOT LIKE                                                                            : 'not like'.
+-- not_like -> NOT LIKE  : 'not like'.
 
 NotLike01.                        NotLike ::= "NOT" "LIKE" ;
 
--- escape -> ESCAPE atom                                                                           : '$2'.
+-- escape -> ESCAPE atom : '$2'.
 
 Escape01.                         Escape ::= "ESCAPE" Atom ;
 
--- test_for_null -> scalar_exp is_null                                                             :         {'is', '$1', <<"null">>}.
--- test_for_null -> scalar_exp is_not_null                                                         : {'not', {'is', '$1', <<"null">>}}.
+-- test_for_null -> scalar_exp is_null     :         {'is', '$1', <<"null">>}.
+-- test_for_null -> scalar_exp is_not_null : {'not', {'is', '$1', <<"null">>}}.
 
 TestForNull01.                    TestForNull ::= ScalarExp IsNotNull ;
 TestForNull02.                    TestForNull ::= ScalarExp IsNull    ;
 
--- is_not_null -> IS NOT NULLX                                                                     : 'is not'.
+-- is_not_null -> IS NOT NULLX : 'is not'.
 
 IsNotNull01.                      IsNotNull ::= "IS" "NOT" "NULL" ;
 
--- is_null -> IS NULLX                                                                             : is.
+-- is_null -> IS NULLX : is.
 
 IsNull01.                         IsNull ::= "IS" "NULL" ;
 
--- in_predicate -> scalar_exp     IN '(' scalar_exp_commalist ')'                                  :         {in, '$1', {list, '$4'}}.
--- in_predicate -> scalar_exp     IN '(' subquery ')'                                              :         {in, '$1', '$4'}.
--- in_predicate -> scalar_exp not_in '(' scalar_exp_commalist ')'                                  : {'not', {in, '$1', {list, '$4'}}}.
--- in_predicate -> scalar_exp not_in '(' subquery ')'                                              : {'not', {in, '$1', '$4'}}.
+-- in_predicate -> scalar_exp     IN '(' scalar_exp_commalist ')' :         {in, '$1', {list, '$4'}}.
+-- in_predicate -> scalar_exp     IN '(' subquery ')'             :         {in, '$1', '$4'}.
+-- in_predicate -> scalar_exp not_in '(' scalar_exp_commalist ')' : {'not', {in, '$1', {list, '$4'}}}.
+-- in_predicate -> scalar_exp not_in '(' subquery ')'             : {'not', {in, '$1', '$4'}}.
 
 InPredicate04.                    InPredicate ::= ScalarExp "IN" "(" ScalarExpCommalist ")" ;
 InPredicate02.                    InPredicate ::= ScalarExp "IN" "(" Subquery ")"           ;
 InPredicate03.                    InPredicate ::= ScalarExp NotIn "(" ScalarExpCommalist ")" ;
 InPredicate01.                    InPredicate ::= ScalarExp NotIn "(" Subquery ")"           ;
 
--- not_in -> NOT IN                                                                                : 'not in'.
+-- not_in -> NOT IN : 'not in'.
 
 NotIn01.                          NotIn ::= "NOT" "IN" ;
 
--- all_or_any_predicate -> scalar_exp '='        any_all_some subquery                             : {'=',          '$1', {'$3', ['$4']}}.
--- all_or_any_predicate -> scalar_exp COMPARISON any_all_some subquery                             : {unwrap('$2'), '$1', {'$3', ['$4']}}.
+-- all_or_any_predicate -> scalar_exp '='        any_all_some subquery : {'=',          '$1', {'$3', ['$4']}}.
+-- all_or_any_predicate -> scalar_exp COMPARISON any_all_some subquery : {unwrap('$2'), '$1', {'$3', ['$4']}}.
 
 AllOrAnyPredicate01.              AllOrAnyPredicate ::= ScalarExp "="          AnyAllSome Subquery ;
 AllOrAnyPredicate02.              AllOrAnyPredicate ::= ScalarExp "COMPARISON" AnyAllSome Subquery ;
 
--- any_all_some -> ANY                                                                             : any.
--- any_all_some -> ALL                                                                             : all.
--- any_all_some -> SOME                                                                            : some.
+-- any_all_some -> ANY  : any.
+-- any_all_some -> ALL  : all.
+-- any_all_some -> SOME : some.
 
 AnyAllSome01.                     AnyAllSome ::= "ANY"  ;
 AnyAllSome02.                     AnyAllSome ::= "ALL"  ;
 AnyAllSome03.                     AnyAllSome ::= "SOME" ;
 
--- existence_test -> EXISTS subquery                                                               : {exists, '$2'}.
+-- existence_test -> EXISTS subquery : {exists, '$2'}.
 
 ExistenceTest01.                  ExistenceTest ::= "EXISTS" Subquery ;
 
@@ -1443,7 +1676,7 @@ TableCollExprey01.                TableCollExpr ::= "TABLE" "(" ColumnRef   ")" 
 TableCollExprey02.                TableCollExpr ::= "TABLE" "(" FunctionRef ")" ;
 TableCollExprey03.                TableCollExpr ::= "TABLE" "(" Subquery    ")" ;
 
--- subquery -> query_exp                                                                           : '$1'.
+-- subquery -> query_exp : '$1'.
 
 Subquery01.                       Subquery ::= QueryExp ;
 
@@ -1451,11 +1684,11 @@ Subquery01.                       Subquery ::= QueryExp ;
 -- Scalar expressions
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--- scalar_opt_as_exp -> scalar_exp                                                                 : '$1'.
--- scalar_opt_as_exp -> scalar_exp '='        scalar_exp                                           : {'=',          '$1', '$3'}.
--- scalar_opt_as_exp -> scalar_exp COMPARISON scalar_exp                                           : {unwrap('$2'), '$1', '$3'}.
--- scalar_opt_as_exp -> scalar_exp    NAME                                                         : {as, '$1', unwrap_bin('$2')}.
--- scalar_opt_as_exp -> scalar_exp AS NAME                                                         : {as, '$1', unwrap_bin('$3')}.
+-- scalar_opt_as_exp -> scalar_exp                       : '$1'.
+-- scalar_opt_as_exp -> scalar_exp '='        scalar_exp : {'=',          '$1', '$3'}.
+-- scalar_opt_as_exp -> scalar_exp COMPARISON scalar_exp : {unwrap('$2'), '$1', '$3'}.
+-- scalar_opt_as_exp -> scalar_exp    NAME               : {as, '$1', unwrap_bin('$2')}.
+-- scalar_opt_as_exp -> scalar_exp AS NAME               : {as, '$1', unwrap_bin('$3')}.
 
 ScalarOptAsExp01.                 ScalarOptAsExp ::= ScalarExp                        ;
 ScalarOptAsExp02.                 ScalarOptAsExp ::= ScalarExp "="          ScalarExp ;
@@ -1463,8 +1696,8 @@ ScalarOptAsExp03.                 ScalarOptAsExp ::= ScalarExp "COMPARISON" Scal
 ScalarOptAsExp04.                 ScalarOptAsExp ::= ScalarExp      "NAME"            ;
 ScalarOptAsExp05.                 ScalarOptAsExp ::= ScalarExp "AS" "NAME"            ;
 
--- scalar_exp -> scalar_sub_exp '||' scalar_exp                                                    : {'||','$1','$3'}.
--- scalar_exp -> scalar_sub_exp                                                                    : '$1'.
+-- scalar_exp -> scalar_sub_exp '||' scalar_exp : {'||','$1','$3'}.
+-- scalar_exp -> scalar_sub_exp                 : '$1'.
 
 ScalarExp01.                      ScalarExp ::= ScalarSubExp "||" ScalarExp ;
 ScalarExp02.                      ScalarExp ::= ScalarSubExp                ;
@@ -1495,31 +1728,31 @@ ScalarSubExp12.                   ScalarSubExp ::= Subquery                     
 ScalarSubExp13.                   ScalarSubExp ::= ColumnRef                       ;
 ScalarSubExp14.                   ScalarSubExp ::= FunctionRef                     ;
 ScalarSubExp15.                   ScalarSubExp ::= "(" ScalarSubExp ")"            ;
-ScalarSubExp15.                   ScalarSubExp ::= "(" ScalarSubExp ")" "JSON"     ;
+ScalarSubExp16.                   ScalarSubExp ::= "(" ScalarSubExp ")" "JSON"     ;
 
--- unary_add_or_subtract -> '+'                                                                    : '+'.
--- unary_add_or_subtract -> '-'                                                                    : '-'.
+-- unary_add_or_subtract -> '+' : '+'.
+-- unary_add_or_subtract -> '-' : '-'.
 
 UnaryAddOrSubtract01.             UnaryAddOrSubtract ::= "+" ;
 UnaryAddOrSubtract02.             UnaryAddOrSubtract ::= "-" ;
 
--- scalar_exp_commalist ->                          scalar_opt_as_exp                              :         ['$1'].
--- scalar_exp_commalist -> scalar_exp_commalist ',' scalar_opt_as_exp                              : '$1' ++ ['$3'].
+-- scalar_exp_commalist ->                          scalar_opt_as_exp :         ['$1'].
+-- scalar_exp_commalist -> scalar_exp_commalist ',' scalar_opt_as_exp : '$1' ++ ['$3'].
 
 ScalarExpCommalist01.             ScalarExpCommalist ::=                        ScalarOptAsExp ;
 ScalarExpCommalist02.             ScalarExpCommalist ::= ScalarExpCommalist "," ScalarOptAsExp ;
 
--- atom -> parameter_ref                                                                           : '$1'.
--- atom -> literal                                                                                 : '$1'.
--- atom -> USER                                                                                    : <<"user">>.
+-- atom -> parameter_ref : '$1'.
+-- atom -> literal       : '$1'.
+-- atom -> USER          : <<"user">>.
 
 Atom01.                           Atom ::= ParameterRef ;
 Atom02.                           Atom ::= Literal      ;
 Atom03.                           Atom ::= "USER"       ;
 
--- parameter_ref -> parameter                                                                      : '$1'.
--- parameter_ref -> parameter           parameter                                                  : {'$1', '$2'}.
--- parameter_ref -> parameter INDICATOR parameter                                                  : {indicator, '$1', '$3'}.
+-- parameter_ref -> parameter                     : '$1'.
+-- parameter_ref -> parameter           parameter : {'$1', '$2'}.
+-- parameter_ref -> parameter INDICATOR parameter : {indicator, '$1', '$3'}.
 
 ParameterRef01.                   ParameterRef ::= Parameter                       ;
 ParameterRef02.                   ParameterRef ::= Parameter             Parameter ;
@@ -1561,8 +1794,8 @@ FunctionRef15.                    FunctionRef ::= "NAME" "." "NAME" "." "NAME" "
 FunctionRef16.                    FunctionRef ::= "NAME" "." "NAME" "." "NAME" "(" FunArgs      ")" ;
 FunctionRef17.                    FunctionRef ::= "NAME" "." "NAME" "." "NAME" "(" FunArgsNamed ")" ;
 
--- fun_args -> fun_arg                                                                             : ['$1'].
--- fun_args -> fun_arg ',' fun_args                                                                : ['$1' | '$3'].
+-- fun_args -> fun_arg              : ['$1'].
+-- fun_args -> fun_arg ',' fun_args : ['$1' | '$3'].
 
 FunArgs01.                        FunArgs ::= FunArg             ;
 FunArgs02.                        FunArgs ::= FunArg "," FunArgs ;
@@ -1620,9 +1853,9 @@ FunArgNamed01.                    FunArgNamed ::= "NAME" "=>" Literal   ;
 FunArgNamed02.                    FunArgNamed ::= "NAME" "=>" "NAME"    ;
 FunArgNamed03.                    FunArgNamed ::= "NAME" "=>" Parameter ;
 
--- literal -> STRING                                                                               : unwrap_bin('$1').
--- literal -> INTNUM                                                                               : unwrap_bin('$1').
--- literal -> APPROXNUM                                                                            : unwrap_bin('$1').
+-- literal -> STRING    : unwrap_bin('$1').
+-- literal -> INTNUM    : unwrap_bin('$1').
+-- literal -> APPROXNUM : unwrap_bin('$1').
 
 Literal01.                        Literal ::= "STRING"    ;
 Literal02.                        Literal ::= "INTNUM"    ;
@@ -1635,24 +1868,20 @@ Literal03.                        Literal ::= "APPROXNUM" ;
 -- table -> NAME          : unwrap_bin('$1').
 -- table -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
 -- table -> parameter     : '$1'.
--- table -> STRING        : unwrap_bin('$1').
 
 Table01.                          Table ::= "NAME"            ;
 Table02.                          Table ::= "NAME" "." "NAME" ;
 Table03.                          Table ::= Parameter         ;
-Table04.                          Table ::= "STRING"          ;
 
 -- table_alias -> NAME          NAME : {as, unwrap_bin('$1'),                                unwrap_bin('$2')}.
 -- table_alias -> NAME '.' NAME NAME : {as, list_to_binary([unwrap('$1'),".",unwrap('$3')]), unwrap_bin('$4')}.
 -- table_alias -> parameter     NAME : {as, '$1',                                            unwrap_bin('$2')}.
--- table_alias -> STRING        NAME : {as, unwrap_bin('$1'),                                unwrap_bin('$2')}.
 -- table_alias -> table              : '$1'.
 
 TableAlias01.                     TableAlias ::= "NAME"                     "NAME" ;
 TableAlias02.                     TableAlias ::= "NAME" "." "NAME"          "NAME" ;
 TableAlias03.                     TableAlias ::= Parameter                  "NAME" ;
-TableAlias04.                     TableAlias ::= "STRING"                   "NAME" ;
-TableAlias05.                     TableAlias ::= Table                             ;
+TableAlias04.                     TableAlias ::= Table                             ;
 
 -- table_dblink -> NAME          DBLINK      : {    unwrap_bin('$1'),                                                    {dblink, unwrap_bin('$2')}}.
 -- table_dblink -> NAME          DBLINK NAME : {as, unwrap_bin('$1'),                                  unwrap_bin('$3'), {dblink, unwrap_bin('$2')}}.
@@ -1672,18 +1901,17 @@ TableDblink06.                    TableDblink ::= Parameter         "DBLINK" "NA
 TableDblink07.                    TableDblink ::= TableAlias                        ;
 TableDblink08.                    TableDblink ::= TableCollExpr                     ;
 
--- column_ref -> JSON                                                                              : {jp, jpparse('$1')}.
--- column_ref -> NAME     JSON                                                                     : {jp, list_to_binary(unwrap('$1')), jpparse('$2')}.
--- column_ref -> NAME '.' NAME     JSON                                                            : {jp, list_to_binary([unwrap('$1'),".",unwrap('$3')]), jpparse('$4')}.
--- column_ref -> NAME '.' NAME '.' NAME     JSON                                                   : {jp, list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]), jpparse('$6')}.
--- column_ref -> NAME                                                                              : unwrap_bin('$1').
--- column_ref -> NAME '.' NAME                                                                     : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
--- column_ref -> NAME '.' NAME '.' NAME                                                            : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).
--- column_ref -> NAME '(' '+' ')'                                                                  : list_to_binary([unwrap('$1'),"(+)"]).
--- column_ref -> NAME '.' NAME '(' '+' ')'                                                         : list_to_binary([unwrap('$1'),".",unwrap('$3'),"(+)"]).
--- column_ref -> NAME '.' NAME '.' NAME '(' '+' ')'                                                : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5'),"(+)"]).
--- column_ref -> NAME '.' '*'                                                                      : list_to_binary([unwrap('$1'),".*"]).
--- column_ref -> NAME '.' NAME '.' '*'                                                             : list_to_binary([unwrap('$1'),".",unwrap('$3'),".*"]).
+-- column_ref -> NAME                   JSON        : jpparse(list_to_binary([unwrap('$1'),unwrap('$2')])).
+-- column_ref -> NAME '.' NAME          JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),unwrap('$4')])).
+-- column_ref -> NAME '.' NAME '.' NAME JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5'),unwrap('$6')])).
+-- column_ref -> NAME                               : unwrap_bin('$1').
+-- column_ref -> NAME '.' NAME                      : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
+-- column_ref -> NAME '.' NAME '.' NAME             : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).
+-- column_ref -> NAME '(' '+' ')'                   : list_to_binary([unwrap('$1'),"(+)"]).
+-- column_ref -> NAME '.' NAME '(' '+' ')'          : list_to_binary([unwrap('$1'),".",unwrap('$3'),"(+)"]).
+-- column_ref -> NAME '.' NAME '.' NAME '(' '+' ')' : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5'),"(+)"]).
+-- column_ref -> NAME '.' '*'                       : list_to_binary([unwrap('$1'),".*"]).
+-- column_ref -> NAME '.' NAME '.' '*'              : list_to_binary([unwrap('$1'),".",unwrap('$3'),".*"]).
 
 ColumnRef01.                      ColumnRef ::=                                  "JSON"  ;
 ColumnRef02.                      ColumnRef ::=            "NAME"                "JSON"  ;
@@ -1702,18 +1930,18 @@ ColumnRef12.                      ColumnRef ::= "NAME" "." "NAME" "." "*"       
 -- data types
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--- data_type -> STRING                                                                             : unwrap_bin('$1').
--- data_type -> NAME                                                                               : unwrap_bin('$1').
--- data_type -> NAME '(' sgn_num ')'                                                               : {unwrap_bin('$1'), '$3'}.
--- data_type -> NAME '(' sgn_num ',' sgn_num ')'                                                   : {unwrap_bin('$1'), '$3', '$5'}.
+-- data_type -> STRING                           : unwrap_bin('$1').
+-- data_type -> NAME                             : unwrap_bin('$1').
+-- data_type -> NAME '(' sgn_num ')'             : {unwrap_bin('$1'), '$3'}.
+-- data_type -> NAME '(' sgn_num ',' sgn_num ')' : {unwrap_bin('$1'), '$3', '$5'}.
 
 DataType01.                       DataType ::= "STRING"                           ;
 DataType02.                       DataType ::= "NAME"                             ;
 DataType03.                       DataType ::= "NAME"   "(" SgnNum ")"            ;
 DataType04.                       DataType ::= "NAME"   "(" SgnNum "," SgnNum ")" ;
 
--- sgn_num ->     INTNUM                                                                           : unwrap_bin('$1').
--- sgn_num -> '-' INTNUM                                                                           : list_to_binary(["-",unwrap_bin('$2')]).
+-- sgn_num ->     INTNUM : unwrap_bin('$1').
+-- sgn_num -> '-' INTNUM : list_to_binary(["-",unwrap_bin('$2')]).
 
 SgnNum01.                         SgnNum ::=     "INTNUM" ;
 SgnNum02.                         SgnNum ::= "-" "INTNUM" ;
@@ -1722,17 +1950,15 @@ SgnNum02.                         SgnNum ::= "-" "INTNUM" ;
 -- the various things you can name
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--- column -> NAME                                                                                  : unwrap_bin('$1').
--- column -> STRING                                                                                : unwrap_bin('$1').
+-- column -> NAME : unwrap_bin('$1').
 
 Column01.                         Column ::= "NAME"   ;
-Column02.                         Column ::= "STRING" ;
 
--- cursor -> NAME                                                                                  : {cur, unwrap('$1')}.
+-- cursor -> NAME : {cur, unwrap('$1')}.
 
 Cursor01.                         Cursor ::= "NAME" ;
 
--- parameter -> PARAMETER                                                                          : {param, unwrap_bin('$1')}.
+-- parameter -> PARAMETER : {param, unwrap_bin('$1')}.
 
 Parameter01.                      Parameter ::= "PARAMETER" ;
 
@@ -1740,8 +1966,8 @@ Parameter01.                      Parameter ::= "PARAMETER" ;
 -- embedded condition things
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
--- when_action -> GOTO NAME                                                                        : {goto, unwrap('$2')}.
--- when_action -> CONTINUE                                                                         : 'continue'.
+-- when_action -> GOTO NAME : {goto, unwrap('$2')}.
+-- when_action -> CONTINUE  : 'continue'.
 
 WhenAction01.                     WhenAction ::= "GOTO" "NAME" ;
 WhenAction02.                     WhenAction ::= "CONTINUE"  ;

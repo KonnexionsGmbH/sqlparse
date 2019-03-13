@@ -1308,7 +1308,7 @@ fold(LOpts, FunState, Ctx, {'drop directory', Name} = _PTree,
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fold(LOpts, _FunState, Ctx, PTree, {drop_extensions = _Rule, Step} = _FoldState)
-    when is_atom(PTree) ->
+    when is_atom(PTree);is_list(PTree) ->
     ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
     RT = case Step of
              start -> lists:append([Ctx, " ", format_keyword(LOpts, PTree)]);
@@ -1670,14 +1670,28 @@ fold(LOpts, FunState, Ctx, {'drop type body', Name} = _PTree,
 % drop_user_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(LOpts, FunState, Ctx, {'drop user', Name, _DropExtensions} = _PTree,
+fold(LOpts, FunState, Ctx, {'drop user', User, []} = _PTree,
     {drop_user_def, Step} = _FoldState) ->
     ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
              start -> lists:append([
                  Ctx,
                  format_new_statement(LOpts, FunState, "drop user "),
-                 format_identifier(LOpts, Name)
+                 format_identifier(LOpts, User)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+fold(LOpts, FunState, Ctx, {'drop user', User, [Cascade]} = _PTree,
+    {drop_user_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 format_new_statement(LOpts, FunState, "drop user "),
+                 format_identifier(LOpts, User),
+                 " ",
+                 format_keyword(LOpts, Cascade)
              ]);
              _ -> Ctx
          end,

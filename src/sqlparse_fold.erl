@@ -1403,9 +1403,8 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % drop_table_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
-    {'drop table', Tables, Exists, _Name} = PTree) ->
+    {'drop table', Tables, Exists, {}, _Name} = PTree) ->
     Rule = drop_table_def,
     FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
     NewCtxS =
@@ -1570,24 +1569,14 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop type body', Name} = PTree)
 % drop_user_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop user', Name, {}} = PTree)
-    when is_binary(Name) ->
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop user', User, _Cascade} =
+    PTree)
+    when is_binary(User) ->
     Rule = drop_user_def,
     FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
     NewCtxS =
         Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
     NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree,
-        {Rule, get_start_end(FType, 'end')}),
-    ?FOLD_RESULT(NewCtxE);
-fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
-    {'drop user', _Name, DropUserExtensions} = PTree) ->
-    Rule = drop_user_def,
-    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
-    NewCtxS =
-        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
-    NewCtx1 =
-        fold_i(FType, Fun, LOpts, FunState, NewCtxS, DropUserExtensions),
-    NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
         {Rule, get_start_end(FType, 'end')}),
     ?FOLD_RESULT(NewCtxE);
 

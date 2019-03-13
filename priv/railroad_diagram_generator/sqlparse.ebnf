@@ -2002,7 +2002,7 @@ column_ref ->                   NAME     '.' '*'     : list_to_binary([unwrap('$
 column_ref ->          NAME '.' NAME     '.' '*'     : list_to_binary([unwrap('$1'),".",unwrap('$3'),".*"]).
 ============================================================================= */
 
-column_ref ::= ( ( ( ( NAME '.' )? NAME '.' )? ( 'FUNCTION' | NAME | 'TYPE' )? JSON )
+column_ref ::= ( ( ( NAME '.' )? NAME '.' )? ( 'FUNCTION' | NAME | 'TYPE' ) JSON )
              | ( ( ( NAME '.' )? NAME '.' )? ( 'FUNCTION' | NAME | 'TYPE' ) )
              | ( ( ( NAME '.' )? NAME '.' )? ( 'FUNCTION' | NAME | 'TYPE' ) '(' '+' ')' )
              | ( ( NAME '.' )? NAME '.' '*' )

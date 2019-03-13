@@ -926,13 +926,13 @@ drop_synonym_def -> DROP PUBLIC SYNONYM synonym_name FORCE : {'drop synonym', '$
 synonym_name -> NAME          : unwrap_bin('$1').
 synonym_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
 
-drop_table_def -> DROP      TABLE        table_list                       : {'drop table', {'tables', '$3'}, {},         []}.
+drop_table_def -> DROP      TABLE        table_list                       : {'drop table', {'tables', '$3'}, {},   {},   []}.
 drop_table_def -> DROP      TABLE        table_list drop_table_extensions : {'drop table', {'tables', '$3'}, {},   '$4', []}.
-drop_table_def -> DROP      TABLE exists table_list                       : {'drop table', {'tables', '$4'}, '$3',       []}.
+drop_table_def -> DROP      TABLE exists table_list                       : {'drop table', {'tables', '$4'}, '$3', {},   []}.
 drop_table_def -> DROP      TABLE exists table_list drop_table_extensions : {'drop table', {'tables', '$4'}, '$3', '$5', []}.
-drop_table_def -> DROP NAME TABLE        table_list                       : {'drop table', {'tables', '$4'}, {},         unwrap('$2')}.
+drop_table_def -> DROP NAME TABLE        table_list                       : {'drop table', {'tables', '$4'}, {},   {},   unwrap('$2')}.
 drop_table_def -> DROP NAME TABLE        table_list drop_table_extensions : {'drop table', {'tables', '$4'}, {},   '$5', unwrap('$2')}.
-drop_table_def -> DROP NAME TABLE exists table_list                       : {'drop table', {'tables', '$5'}, '$4',       unwrap('$2')}.
+drop_table_def -> DROP NAME TABLE exists table_list                       : {'drop table', {'tables', '$5'}, '$4', {},   unwrap('$2')}.
 drop_table_def -> DROP NAME TABLE exists table_list drop_table_extensions : {'drop table', {'tables', '$5'}, '$4', '$6', unwrap('$2')}.
 
 drop_table_extensions ->                     PURGE : {'purge'}.

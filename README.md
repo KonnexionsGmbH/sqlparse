@@ -5,7 +5,7 @@
 ![GitHub](https://img.shields.io/github/license/K2InformaticsGmbH/sqlparse.svg)
 ![GitHub release](https://img.shields.io/github/release/K2InformaticsGmbH/sqlparse.svg)
 ![GitHub Release Date](https://img.shields.io/github/release-date/K2InformaticsGmbH/sqlparse.svg)
-![GitHub commits since latest release](https://img.shields.io/github/commits-since/K2InformaticsGmbH/sqlparse/4.4.0.svg)
+![GitHub commits since latest release](https://img.shields.io/github/commits-since/K2InformaticsGmbH/sqlparse/4.5.0.svg)
 
 **sqlparse** is a production-ready SQL parser written in pure Erlang. 
 **sqlparse** is aligned to the Oracle SQL language and enriched with [imem](https://github.com/K2InformaticsGmbH/imem) and [JSONPath](https://github.com/K2InformaticsGmbH/jpparse) specific features.

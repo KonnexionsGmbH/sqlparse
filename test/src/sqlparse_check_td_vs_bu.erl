@@ -1053,9 +1053,21 @@ fold(LOpts, _FunState, Ctx, {'drop function', Name} = _PTree,
 % drop_index_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(LOpts, _FunState, Ctx,
-    {'drop index', IndexName, _Table, _DropExtensions} = _PTree,
+fold(LOpts, _FunState, Ctx, {'drop index', IndexName, _Table} = _PTree,
     {drop_index_def = Rule, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 case IndexName of
+                     {} -> {"drop index"};
+                     _ -> {"drop index", binary_to_list(IndexName)}
+                 end;
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+fold(LOpts, _FunState, Ctx, {'drop index', IndexName, _Table, _DropExtensions} =
+    _PTree, {drop_index_def = Rule, Step} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case {LOpts, Step} of
              {L, S} when L == top_down andalso S == start orelse
@@ -1228,8 +1240,21 @@ fold(LOpts, _FunState, Ctx,
 % drop_table_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+fold(LOpts, _FunState, Ctx, {'drop table', _Tables, _Exists, DropOpt} = _PTree,
+    {drop_table_def = Rule, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 case DropOpt of
+                     [] -> {"drop"};
+                     _ -> {"drop", DropOpt}
+                 end;
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
 fold(LOpts, _FunState, Ctx,
-    {'drop table', _Tables, _Exists, _RestrictCascade, DropOpt} = _PTree,
+    {'drop table', _Tables, _Exists, _DropExtensions, DropOpt} = _PTree,
     {drop_table_def = Rule, Step} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case {LOpts, Step} of
@@ -2940,6 +2965,17 @@ fold(LOpts, _FunState, Ctx,
 % truncate_table
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+fold(LOpts, _FunState, Ctx, {'truncate table', Table, _Materialized, _Storage} =
+    _PTree, {truncate_table = Rule, Step} = _FoldState)
+    when is_binary(Table) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {"truncate table", binary_to_list(Table)};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
 fold(LOpts, _FunState, Ctx,
     {'truncate table', Table, _Materialized, _Storage, _Cascade} = _PTree,
     {truncate_table = Rule, Step} = _FoldState)
@@ -2949,6 +2985,17 @@ fold(LOpts, _FunState, Ctx,
              {L, S} when L == top_down andalso S == start orelse
                              L == bottom_up andalso S == 'end' ->
                  {"truncate table", binary_to_list(Table)};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+fold(LOpts, _FunState, Ctx,
+    {'truncate table', _Table, _Materialized, _Storage} = _PTree,
+    {truncate_table = Rule, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {"truncate table"};
              _ -> none
          end,
     ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);

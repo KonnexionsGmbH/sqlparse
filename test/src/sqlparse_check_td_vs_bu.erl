@@ -1023,13 +1023,23 @@ fold(LOpts, _FunState, Ctx, {'drop directory', Name} = _PTree,
 % drop_extensions
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(LOpts, _FunState, Ctx, PTree, {drop_extensions = Rule, Step} =
-    _FoldState) ->
+fold(LOpts, _FunState, Ctx, PTree, {drop_extensions = Rule, Step} = _FoldState)
+    when is_atom(PTree) ->
     ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
     RT = case {LOpts, Step} of
              {L, S} when L == top_down andalso S == start orelse
                              L == bottom_up andalso S == 'end' ->
                  {atom_to_list(PTree)};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+fold(LOpts, _FunState, Ctx, PTree, {drop_extensions = Rule, Step} = _FoldState)
+    when is_list(PTree) ->
+    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {PTree};
              _ -> none
          end,
     ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
@@ -1348,13 +1358,23 @@ fold(LOpts, _FunState, Ctx, {'drop type body', Name} = _PTree,
 % drop_user_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(LOpts, _FunState, Ctx, {'drop user', Name, _DropExtensions} = _PTree,
+fold(LOpts, _FunState, Ctx, {'drop user', User, []} = _PTree,
     {drop_user_def = Rule, Step} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case {LOpts, Step} of
              {L, S} when L == top_down andalso S == start orelse
                              L == bottom_up andalso S == 'end' ->
-                 {"drop user", binary_to_list(Name)};
+                 {"drop user", binary_to_list(User)};
+             _ -> none
+         end,
+    ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
+fold(LOpts, _FunState, Ctx, {'drop user', User, [Cascade]} = _PTree,
+    {drop_user_def = Rule, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case {LOpts, Step} of
+             {L, S} when L == top_down andalso S == start orelse
+                             L == bottom_up andalso S == 'end' ->
+                 {"drop user", binary_to_list(User), atom_to_list(Cascade)};
              _ -> none
          end,
     ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);

@@ -1042,13 +1042,25 @@ fold([], _FunState, Ctx, {'drop directory', Name} = _PTree,
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fold([], _FunState, Ctx, PTree, {Type, Step} = _FoldState)
-    when Type == drop_extensions ->
+    when Type == drop_extensions, is_atom(PTree) ->
     ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
     RT = case Step of
              start -> lists:append([
                  Ctx,
                  " ",
                  atom_to_list(PTree)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+fold([], _FunState, Ctx, PTree, {Type, Step} = _FoldState)
+    when Type == drop_extensions, is_list(PTree) ->
+    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 " ",
+                 PTree
              ]);
              _ -> Ctx
          end,
@@ -1380,15 +1392,21 @@ fold([], _FunState, Ctx, {'drop type body', Name} = _PTree,
 % drop_user_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold([], _FunState, Ctx, {'drop user', Name, _DropExtensions} = _PTree,
+fold([], _FunState, Ctx, {'drop user', User, []} = _PTree,
     {drop_user_def, Step} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
-             start -> lists:append([
-                 Ctx,
-                 "drop user ",
-                 binary_to_list(Name)
-             ]);
+             start -> lists:append([Ctx, "drop user ", binary_to_list(User)]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+fold([], _FunState, Ctx, {'drop user', User, [Cascade]} = _PTree,
+    {drop_user_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append(
+                 [Ctx, "drop user ", binary_to_list(User), " ", atom_to_list(
+                     Cascade)]);
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);

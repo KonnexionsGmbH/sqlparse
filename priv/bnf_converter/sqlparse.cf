@@ -1046,8 +1046,8 @@ TypeName02.                       TypeName ::= "NAME" "." "NAME" ;
 
 DropTypeBodyDef01.                DropTypeBodyDef ::= "DROP" "TYPE" "BODY" TypeName ;
 
--- drop_user_def -> DROP USER NAME         : {'drop user', unwrap_bin('$3'), {}}.
--- drop_user_def -> DROP USER NAME CASCADE : {'drop user', unwrap_bin('$3'), 'cascade'}.
+-- drop_user_def -> DROP USER NAME         : {'drop user', unwrap_bin('$3'), []}.
+-- drop_user_def -> DROP USER NAME CASCADE : {'drop user', unwrap_bin('$3'), ['cascade']}.
 
 DropUserDef01.                    DropUserDef ::= "DROP" "USER" "NAME"           ;
 DropUserDef02.                    DropUserDef ::= "DROP" "USER" "NAME" "CASCADE" ;

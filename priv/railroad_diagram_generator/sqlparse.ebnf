@@ -1097,8 +1097,8 @@ drop_type_body_def -> DROP TYPE BODY type_name : {'drop type body', '$4'}.
 drop_type_body_def ::= 'DROP' 'TYPE' 'BODY' type_name
 
 /* =============================================================================
-drop_user_def -> DROP USER NAME         : {'drop user', unwrap_bin('$3'), {}}.
-drop_user_def -> DROP USER NAME CASCADE : {'drop user', unwrap_bin('$3'), 'cascade'}.
+drop_user_def -> DROP USER NAME         : {'drop user', unwrap_bin('$3'), []}.
+drop_user_def -> DROP USER NAME CASCADE : {'drop user', unwrap_bin('$3'), ['cascade']}.
 ============================================================================= */
 
 drop_user_def ::= 'DROP' 'USER' NAME 'CASCADE'?

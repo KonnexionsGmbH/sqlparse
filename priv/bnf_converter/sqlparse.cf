@@ -849,11 +849,11 @@ DropFunctionDef01.                DropFunctionDef ::= "DROP" "FUNCTION" Function
 FunctionName01.                   FunctionName ::= "NAME"            ;
 FunctionName02.                   FunctionName ::= "NAME" "." "NAME" ;
 
--- drop_index_def -> DROP INDEX            FROM table                       : {'drop index', {},   '$4', {}}.
+-- drop_index_def -> DROP INDEX            FROM table                       : {'drop index', {},   '$4'}.
 -- drop_index_def -> DROP INDEX            FROM table drop_index_extensions : {'drop index', {},   '$4', '$5'}.
--- drop_index_def -> DROP INDEX index_name                                  : {'drop index', '$3', [],   {}}.
+-- drop_index_def -> DROP INDEX index_name                                  : {'drop index', '$3', []}.
 -- drop_index_def -> DROP INDEX index_name            drop_index_extensions : {'drop index', '$3', [],   '$4'}.
--- drop_index_def -> DROP INDEX index_name FROM table                       : {'drop index', '$3', '$5', {}}.
+-- drop_index_def -> DROP INDEX index_name FROM table                       : {'drop index', '$3', '$5'}.
 -- drop_index_def -> DROP INDEX index_name FROM table drop_index_extensions : {'drop index', '$3', '$5', '$6'}.
 
 DropIndexDef01.                   DropIndexDef ::= "DROP" "INDEX"           "FROM" Table                     ;  
@@ -956,13 +956,13 @@ DropSynonymDef04.                 DropSynonymDef ::= "DROP" "PUBLIC" "SYNONYM" S
 SynonymName01.                    SynonymName ::= "NAME"            ;
 SynonymName02.                    SynonymName ::= "NAME" "." "NAME" ;
 
--- drop_table_def -> DROP      TABLE        table_list                       : {'drop table', {'tables', '$3'}, {},   {},   []}.
+-- drop_table_def -> DROP      TABLE        table_list                       : {'drop table', {'tables', '$3'}, {},         []}.
 -- drop_table_def -> DROP      TABLE        table_list drop_table_extensions : {'drop table', {'tables', '$3'}, {},   '$4', []}.
--- drop_table_def -> DROP      TABLE exists table_list                       : {'drop table', {'tables', '$4'}, '$3', {},   []}.
+-- drop_table_def -> DROP      TABLE exists table_list                       : {'drop table', {'tables', '$4'}, '$3',       []}.
 -- drop_table_def -> DROP      TABLE exists table_list drop_table_extensions : {'drop table', {'tables', '$4'}, '$3', '$5', []}.
--- drop_table_def -> DROP NAME TABLE        table_list                       : {'drop table', {'tables', '$4'}, {},   {},   unwrap('$2')}.
+-- drop_table_def -> DROP NAME TABLE        table_list                       : {'drop table', {'tables', '$4'}, {},         unwrap('$2')}.
 -- drop_table_def -> DROP NAME TABLE        table_list drop_table_extensions : {'drop table', {'tables', '$4'}, {},   '$5', unwrap('$2')}.
--- drop_table_def -> DROP NAME TABLE exists table_list                       : {'drop table', {'tables', '$5'}, '$4', {},   unwrap('$2')}.
+-- drop_table_def -> DROP NAME TABLE exists table_list                       : {'drop table', {'tables', '$5'}, '$4',       unwrap('$2')}.
 -- drop_table_def -> DROP NAME TABLE exists table_list drop_table_extensions : {'drop table', {'tables', '$5'}, '$4', '$6', unwrap('$2')}.
 
 DropTableDef01.                   DropTableDef ::= "DROP"        "TABLE"        TableList                     ;
@@ -1122,13 +1122,13 @@ AllDistinct02.                    AllDistinct ::= "DISTINCT" ;
 
 TruncateCluster01.                TruncateCluster ::= "TRUNCATE" "CLUSTER" ClusterName Storage ;
 
--- truncate_table -> TRUNCATE TABLE table                              : {'truncate table', '$3', {},   {},   {}}.
+-- truncate_table -> TRUNCATE TABLE table                              : {'truncate table', '$3', {},   {}}.
 -- truncate_table -> TRUNCATE TABLE table                      CASCADE : {'truncate table', '$3', {},   {},   cascade}.
--- truncate_table -> TRUNCATE TABLE table              storage         : {'truncate table', '$3', {},   '$4', {}}.
+-- truncate_table -> TRUNCATE TABLE table              storage         : {'truncate table', '$3', {},   '$4'}.
 -- truncate_table -> TRUNCATE TABLE table              storage CASCADE : {'truncate table', '$3', {},   '$4', cascade}.
--- truncate_table -> TRUNCATE TABLE table materialized                 : {'truncate table', '$3', '$4', {},   {}}.
+-- truncate_table -> TRUNCATE TABLE table materialized                 : {'truncate table', '$3', '$4', {}}.
 -- truncate_table -> TRUNCATE TABLE table materialized         CASCADE : {'truncate table', '$3', '$4', {},   cascade}.
--- truncate_table -> TRUNCATE TABLE table materialized storage         : {'truncate table', '$3', '$4', '$5', {}}.
+-- truncate_table -> TRUNCATE TABLE table materialized storage         : {'truncate table', '$3', '$4', '$5'}.
 -- truncate_table -> TRUNCATE TABLE table materialized storage CASCADE : {'truncate table', '$3', '$4', '$5', cascade}.
 
 TruncateTable01.                  TruncateTable ::= "TRUNCATE" "TABLE" Table                                ;
@@ -1909,30 +1909,65 @@ TableDblink06.                    TableDblink ::= Parameter         "DBLINK" "NA
 TableDblink07.                    TableDblink ::= TableAlias                        ;
 TableDblink08.                    TableDblink ::= TableCollExpr                     ;
 
--- column_ref -> NAME                   JSON        : jpparse(list_to_binary([unwrap('$1'),unwrap('$2')])).
--- column_ref -> NAME '.' NAME          JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),unwrap('$4')])).
--- column_ref -> NAME '.' NAME '.' NAME JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5'),unwrap('$6')])).
--- column_ref -> NAME                               : unwrap_bin('$1').
--- column_ref -> NAME '.' NAME                      : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
--- column_ref -> NAME '.' NAME '.' NAME             : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).
--- column_ref -> NAME '(' '+' ')'                   : list_to_binary([unwrap('$1'),"(+)"]).
--- column_ref -> NAME '.' NAME '(' '+' ')'          : list_to_binary([unwrap('$1'),".",unwrap('$3'),"(+)"]).
--- column_ref -> NAME '.' NAME '.' NAME '(' '+' ')' : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5'),"(+)"]).
--- column_ref -> NAME '.' '*'                       : list_to_binary([unwrap('$1'),".*"]).
--- column_ref -> NAME '.' NAME '.' '*'              : list_to_binary([unwrap('$1'),".",unwrap('$3'),".*"]).
+-- column_ref ->                   FUNCTION JSON        : jpparse(list_to_binary(["FUNCTION",unwrap('$2')])).
+-- column_ref ->                   NAME     JSON        : jpparse(list_to_binary([unwrap('$1'),unwrap('$2')])).
+-- column_ref ->                   TYPE     JSON        : jpparse(list_to_binary(["TYPE",unwrap('$2')])).
+-- column_ref ->          NAME '.' FUNCTION JSON        : jpparse(list_to_binary([unwrap('$1'),".","FUNCTION",unwrap('$4')])).
+-- column_ref ->          NAME '.' NAME     JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),unwrap('$4')])).
+-- column_ref ->          NAME '.' TYPE     JSON        : jpparse(list_to_binary([unwrap('$1'),".","TYPE",unwrap('$4')])).
+-- column_ref -> NAME '.' NAME '.' FUNCTION JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".","FUNCTION",unwrap('$6')])).
+-- column_ref -> NAME '.' NAME '.' NAME     JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5'),unwrap('$6')])).
+-- column_ref -> NAME '.' NAME '.' TYPE     JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".","TYPE",unwrap('$6')])).
+-- column_ref ->                   FUNCTION             : list_to_binary("FUNCTION").
+-- column_ref ->                   NAME                 : unwrap_bin('$1').
+-- column_ref ->                   TYPE                 : list_to_binary("TYPE").
+-- column_ref ->          NAME '.' FUNCTION             : list_to_binary([unwrap('$1'),".","FUNCTION"]).
+-- column_ref ->          NAME '.' NAME                 : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
+-- column_ref ->          NAME '.' TYPE                 : list_to_binary([unwrap('$1'),".","TYPE"]).
+-- column_ref -> NAME '.' NAME '.' FUNCTION             : list_to_binary([unwrap('$1'),".",unwrap('$3'),".","FUNCTION"]).
+-- column_ref -> NAME '.' NAME '.' NAME                 : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).
+-- column_ref -> NAME '.' NAME '.' TYPE                 : list_to_binary([unwrap('$1'),".",unwrap('$3'),".","TYPE"]).
+-- column_ref ->                   FUNCTION '(' '+' ')' : list_to_binary(["FUNCTION","(+)"]).
+-- column_ref ->                   NAME     '(' '+' ')' : list_to_binary([unwrap('$1'),"(+)"]).
+-- column_ref ->                   TYPE     '(' '+' ')' : list_to_binary(["TYPE","(+)"]).
+-- column_ref ->          NAME '.' FUNCTION '(' '+' ')' : list_to_binary([unwrap('$1'),".","FUNCTION","(+)"]).
+-- column_ref ->          NAME '.' NAME     '(' '+' ')' : list_to_binary([unwrap('$1'),".",unwrap('$3'),"(+)"]).
+-- column_ref ->          NAME '.' TYPE     '(' '+' ')' : list_to_binary([unwrap('$1'),".","TYPE","(+)"]).
+-- column_ref -> NAME '.' NAME '.' FUNCTION '(' '+' ')' : list_to_binary([unwrap('$1'),".",unwrap('$3'),".","FUNCTION","(+)"]).
+-- column_ref -> NAME '.' NAME '.' NAME     '(' '+' ')' : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5'),"(+)"]).
+-- column_ref -> NAME '.' NAME '.' TYPE     '(' '+' ')' : list_to_binary([unwrap('$1'),".",unwrap('$3'),".","TYPE","(+)"]).
+-- column_ref ->                   NAME     '.' '*'     : list_to_binary([unwrap('$1'),".*"]).
+-- column_ref ->          NAME '.' NAME     '.' '*'     : list_to_binary([unwrap('$1'),".",unwrap('$3'),".*"]).
 
-ColumnRef01.                      ColumnRef ::=                                  "JSON"  ;
-ColumnRef02.                      ColumnRef ::=            "NAME"                "JSON"  ;
-ColumnRef03.                      ColumnRef ::= "NAME" "." "NAME"                "JSON"  ;
-ColumnRef04.                      ColumnRef ::= "NAME" "." "NAME" "." "NAME"     "JSON"  ;
-ColumnRef05.                      ColumnRef ::=                       "NAME"             ;
-ColumnRef06.                      ColumnRef ::=            "NAME" "." "NAME"             ;
-ColumnRef07.                      ColumnRef ::= "NAME" "." "NAME" "." "NAME"             ;
-ColumnRef08.                      ColumnRef ::= "NAME"                       "(" "+" ")" ;
-ColumnRef09.                      ColumnRef ::= "NAME"            "." "NAME" "(" "+" ")" ;
-ColumnRef10.                      ColumnRef ::= "NAME" "." "NAME" "." "NAME" "(" "+" ")" ;
-ColumnRef11.                      ColumnRef ::= "NAME"            "." "*"                ;
-ColumnRef12.                      ColumnRef ::= "NAME" "." "NAME" "." "*"                ;
+ColumnRef01.                      ColumnRef ::=                       "FUNCTION"             ;
+ColumnRef02.                      ColumnRef ::=                       "FUNCTION"     "JSON"  ;
+ColumnRef03.                      ColumnRef ::=                       "FUNCTION" "(" "+" ")" ;
+ColumnRef04.                      ColumnRef ::=                       "NAME"                 ;
+ColumnRef05.                      ColumnRef ::=                       "NAME"         "JSON"  ;
+ColumnRef06.                      ColumnRef ::=                       "NAME"     "(" "+" ")" ;
+ColumnRef07.                      ColumnRef ::=                       "TYPE"                 ;
+ColumnRef08.                      ColumnRef ::=                       "TYPE"         "JSON"  ;
+ColumnRef09.                      ColumnRef ::=                       "TYPE"     "(" "+" ")" ;
+ColumnRef10.                      ColumnRef ::=            "NAME" "." "*"                    ;
+ColumnRef11.                      ColumnRef ::=            "NAME" "." "FUNCTION"             ;
+ColumnRef12.                      ColumnRef ::=            "NAME" "." "FUNCTION"     "JSON"  ;
+ColumnRef13.                      ColumnRef ::=            "NAME" "." "FUNCTION" "(" "+" ")" ;
+ColumnRef14.                      ColumnRef ::=            "NAME" "." "NAME"                 ;
+ColumnRef15.                      ColumnRef ::=            "NAME" "." "NAME"         "JSON"  ;
+ColumnRef16.                      ColumnRef ::=            "NAME" "." "NAME"     "(" "+" ")" ;
+ColumnRef17.                      ColumnRef ::=            "NAME" "." "TYPE"                 ;
+ColumnRef18.                      ColumnRef ::=            "NAME" "." "TYPE"         "JSON"  ;
+ColumnRef19.                      ColumnRef ::=            "NAME" "." "TYPE"     "(" "+" ")" ;
+ColumnRef20.                      ColumnRef ::= "NAME" "." "NAME" "." "FUNCTION"             ;
+ColumnRef21.                      ColumnRef ::= "NAME" "." "NAME" "." "FUNCTION"     "JSON"  ;
+ColumnRef22.                      ColumnRef ::= "NAME" "." "NAME" "." "FUNCTION" "(" "+" ")" ;
+ColumnRef23.                      ColumnRef ::= "NAME" "." "NAME" "." "NAME"                 ;
+ColumnRef24.                      ColumnRef ::= "NAME" "." "NAME" "." "NAME"         "JSON"  ;
+ColumnRef25.                      ColumnRef ::= "NAME" "." "NAME" "." "NAME"     "(" "+" ")" ;
+ColumnRef26.                      ColumnRef ::= "NAME" "." "NAME" "." "TYPE"                 ;
+ColumnRef27.                      ColumnRef ::= "NAME" "." "NAME" "." "TYPE"         "JSON"  ;
+ColumnRef28.                      ColumnRef ::= "NAME" "." "NAME" "." "TYPE"     "(" "+" ")" ;
+ColumnRef29.                      ColumnRef ::= "NAME" "." "NAME" "." "*"                    ;
 
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 -- data types

@@ -872,11 +872,11 @@ drop_function_def -> DROP FUNCTION function_name : {'drop function', '$3'}.
 function_name -> NAME          : unwrap_bin('$1').
 function_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
 
-drop_index_def -> DROP INDEX            FROM table                       : {'drop index', {},   '$4', {}}.
+drop_index_def -> DROP INDEX            FROM table                       : {'drop index', {},   '$4'}.
 drop_index_def -> DROP INDEX            FROM table drop_index_extensions : {'drop index', {},   '$4', '$5'}.
-drop_index_def -> DROP INDEX index_name                                  : {'drop index', '$3', [],   {}}.
+drop_index_def -> DROP INDEX index_name                                  : {'drop index', '$3', []}.
 drop_index_def -> DROP INDEX index_name            drop_index_extensions : {'drop index', '$3', [],   '$4'}.
-drop_index_def -> DROP INDEX index_name FROM table                       : {'drop index', '$3', '$5', {}}.
+drop_index_def -> DROP INDEX index_name FROM table                       : {'drop index', '$3', '$5'}.
 drop_index_def -> DROP INDEX index_name FROM table drop_index_extensions : {'drop index', '$3', '$5', '$6'}.
 
 drop_index_extensions ->              DEFERRED  INVALIDATION : {'deferred invalidation'}.
@@ -926,13 +926,13 @@ drop_synonym_def -> DROP PUBLIC SYNONYM synonym_name FORCE : {'drop synonym', '$
 synonym_name -> NAME          : unwrap_bin('$1').
 synonym_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
 
-drop_table_def -> DROP      TABLE        table_list                       : {'drop table', {'tables', '$3'}, {},   {},   []}.
+drop_table_def -> DROP      TABLE        table_list                       : {'drop table', {'tables', '$3'}, {},         []}.
 drop_table_def -> DROP      TABLE        table_list drop_table_extensions : {'drop table', {'tables', '$3'}, {},   '$4', []}.
-drop_table_def -> DROP      TABLE exists table_list                       : {'drop table', {'tables', '$4'}, '$3', {},   []}.
+drop_table_def -> DROP      TABLE exists table_list                       : {'drop table', {'tables', '$4'}, '$3',       []}.
 drop_table_def -> DROP      TABLE exists table_list drop_table_extensions : {'drop table', {'tables', '$4'}, '$3', '$5', []}.
-drop_table_def -> DROP NAME TABLE        table_list                       : {'drop table', {'tables', '$4'}, {},   {},   unwrap('$2')}.
+drop_table_def -> DROP NAME TABLE        table_list                       : {'drop table', {'tables', '$4'}, {},         unwrap('$2')}.
 drop_table_def -> DROP NAME TABLE        table_list drop_table_extensions : {'drop table', {'tables', '$4'}, {},   '$5', unwrap('$2')}.
-drop_table_def -> DROP NAME TABLE exists table_list                       : {'drop table', {'tables', '$5'}, '$4', {},   unwrap('$2')}.
+drop_table_def -> DROP NAME TABLE exists table_list                       : {'drop table', {'tables', '$5'}, '$4',       unwrap('$2')}.
 drop_table_def -> DROP NAME TABLE exists table_list drop_table_extensions : {'drop table', {'tables', '$5'}, '$4', '$6', unwrap('$2')}.
 
 drop_table_extensions ->                     PURGE : {'purge'}.
@@ -1010,13 +1010,13 @@ all_distinct -> DISTINCT : {opt, <<"distinct">>}.
 truncate_cluster -> TRUNCATE CLUSTER cluster_name         : {'truncate cluster', '$3', {}}.
 truncate_cluster -> TRUNCATE CLUSTER cluster_name storage : {'truncate cluster', '$3', '$4'}.
 
-truncate_table -> TRUNCATE TABLE table                              : {'truncate table', '$3', {},   {},   {}}.
+truncate_table -> TRUNCATE TABLE table                              : {'truncate table', '$3', {},   {}}.
 truncate_table -> TRUNCATE TABLE table                      CASCADE : {'truncate table', '$3', {},   {},   cascade}.
-truncate_table -> TRUNCATE TABLE table              storage         : {'truncate table', '$3', {},   '$4', {}}.
+truncate_table -> TRUNCATE TABLE table              storage         : {'truncate table', '$3', {},   '$4'}.
 truncate_table -> TRUNCATE TABLE table              storage CASCADE : {'truncate table', '$3', {},   '$4', cascade}.
-truncate_table -> TRUNCATE TABLE table materialized                 : {'truncate table', '$3', '$4', {},   {}}.
+truncate_table -> TRUNCATE TABLE table materialized                 : {'truncate table', '$3', '$4', {}}.
 truncate_table -> TRUNCATE TABLE table materialized         CASCADE : {'truncate table', '$3', '$4', {},   cascade}.
-truncate_table -> TRUNCATE TABLE table materialized storage         : {'truncate table', '$3', '$4', '$5', {}}.
+truncate_table -> TRUNCATE TABLE table materialized storage         : {'truncate table', '$3', '$4', '$5'}.
 truncate_table -> TRUNCATE TABLE table materialized storage CASCADE : {'truncate table', '$3', '$4', '$5', cascade}.
 
 materialized -> PRESERVE MATERIALIZED VIEW LOG : {'materialized view log', preserve}.
@@ -1432,17 +1432,35 @@ table_dblink -> parameter     DBLINK NAME : {as, '$1',                          
 table_dblink -> table_alias               : '$1'.
 table_dblink -> table_coll_expr           : '$1'.
 
-column_ref -> NAME                   JSON        : jpparse(list_to_binary([unwrap('$1'),unwrap('$2')])).
-column_ref -> NAME '.' NAME          JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),unwrap('$4')])).
-column_ref -> NAME '.' NAME '.' NAME JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5'),unwrap('$6')])).
-column_ref -> NAME                               : unwrap_bin('$1').
-column_ref -> NAME '.' NAME                      : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
-column_ref -> NAME '.' NAME '.' NAME             : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).
-column_ref -> NAME '(' '+' ')'                   : list_to_binary([unwrap('$1'),"(+)"]).
-column_ref -> NAME '.' NAME '(' '+' ')'          : list_to_binary([unwrap('$1'),".",unwrap('$3'),"(+)"]).
-column_ref -> NAME '.' NAME '.' NAME '(' '+' ')' : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5'),"(+)"]).
-column_ref -> NAME '.' '*'                       : list_to_binary([unwrap('$1'),".*"]).
-column_ref -> NAME '.' NAME '.' '*'              : list_to_binary([unwrap('$1'),".",unwrap('$3'),".*"]).
+column_ref ->                   FUNCTION JSON        : jpparse(list_to_binary(["FUNCTION",unwrap('$2')])).
+column_ref ->                   NAME     JSON        : jpparse(list_to_binary([unwrap('$1'),unwrap('$2')])).
+column_ref ->                   TYPE     JSON        : jpparse(list_to_binary(["TYPE",unwrap('$2')])).
+column_ref ->          NAME '.' FUNCTION JSON        : jpparse(list_to_binary([unwrap('$1'),".","FUNCTION",unwrap('$4')])).
+column_ref ->          NAME '.' NAME     JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),unwrap('$4')])).
+column_ref ->          NAME '.' TYPE     JSON        : jpparse(list_to_binary([unwrap('$1'),".","TYPE",unwrap('$4')])).
+column_ref -> NAME '.' NAME '.' FUNCTION JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".","FUNCTION",unwrap('$6')])).
+column_ref -> NAME '.' NAME '.' NAME     JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5'),unwrap('$6')])).
+column_ref -> NAME '.' NAME '.' TYPE     JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".","TYPE",unwrap('$6')])).
+column_ref ->                   FUNCTION             : list_to_binary("FUNCTION").
+column_ref ->                   NAME                 : unwrap_bin('$1').
+column_ref ->                   TYPE                 : list_to_binary("TYPE").
+column_ref ->          NAME '.' FUNCTION             : list_to_binary([unwrap('$1'),".","FUNCTION"]).
+column_ref ->          NAME '.' NAME                 : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
+column_ref ->          NAME '.' TYPE                 : list_to_binary([unwrap('$1'),".","TYPE"]).
+column_ref -> NAME '.' NAME '.' FUNCTION             : list_to_binary([unwrap('$1'),".",unwrap('$3'),".","FUNCTION"]).
+column_ref -> NAME '.' NAME '.' NAME                 : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).
+column_ref -> NAME '.' NAME '.' TYPE                 : list_to_binary([unwrap('$1'),".",unwrap('$3'),".","TYPE"]).
+column_ref ->                   FUNCTION '(' '+' ')' : list_to_binary(["FUNCTION","(+)"]).
+column_ref ->                   NAME     '(' '+' ')' : list_to_binary([unwrap('$1'),"(+)"]).
+column_ref ->                   TYPE     '(' '+' ')' : list_to_binary(["TYPE","(+)"]).
+column_ref ->          NAME '.' FUNCTION '(' '+' ')' : list_to_binary([unwrap('$1'),".","FUNCTION","(+)"]).
+column_ref ->          NAME '.' NAME     '(' '+' ')' : list_to_binary([unwrap('$1'),".",unwrap('$3'),"(+)"]).
+column_ref ->          NAME '.' TYPE     '(' '+' ')' : list_to_binary([unwrap('$1'),".","TYPE","(+)"]).
+column_ref -> NAME '.' NAME '.' FUNCTION '(' '+' ')' : list_to_binary([unwrap('$1'),".",unwrap('$3'),".","FUNCTION","(+)"]).
+column_ref -> NAME '.' NAME '.' NAME     '(' '+' ')' : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5'),"(+)"]).
+column_ref -> NAME '.' NAME '.' TYPE     '(' '+' ')' : list_to_binary([unwrap('$1'),".",unwrap('$3'),".","TYPE","(+)"]).
+column_ref ->                   NAME     '.' '*'     : list_to_binary([unwrap('$1'),".*"]).
+column_ref ->          NAME '.' NAME     '.' '*'     : list_to_binary([unwrap('$1'),".",unwrap('$3'),".*"]).
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% data types

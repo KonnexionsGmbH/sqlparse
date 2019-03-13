@@ -1075,9 +1075,23 @@ fold([], _FunState, Ctx, {'drop function', Name} = _PTree,
 % drop_index_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold([], _FunState, Ctx,
-    {'drop index', IndexName, _Table, _DropExtensions} = _PTree,
+fold([], _FunState, Ctx, {'drop index', IndexName, _Table} = _PTree,
     {drop_index_def, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 "drop index",
+                 case IndexName of
+                     {} -> [];
+                     _ -> " " ++ binary_to_list(IndexName)
+                 end
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+fold([], _FunState, Ctx, {'drop index', IndexName, _Table, _DropExtensions} =
+    _PTree, {drop_index_def, Step} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
     RT = case Step of
              start -> lists:append([
@@ -1267,6 +1281,19 @@ fold([], _FunState, Ctx,
 % drop_table_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+fold([], _FunState, Ctx,
+    {'drop table', _Tables, _Exists, DropOpt} = _PTree, {drop_table_def, Step} =
+        _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([Ctx, "drop ",
+                 case DropOpt of
+                     [] -> [];
+                     _ -> DropOpt ++ " "
+                 end]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
 fold([], _FunState, Ctx,
     {'drop table', _Tables, _Exists, _DropExtensions, DropOpt} = _PTree,
     {drop_table_def, Step} = _FoldState) ->
@@ -2944,6 +2971,17 @@ fold([], _FunState, Ctx,
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fold([], _FunState, Ctx,
+    {'truncate table', Table, _Materialized, _Storage} = _PTree,
+    {truncate_table, Step} = _FoldState)
+    when is_binary(Table) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start ->
+                 lists:append([Ctx, "truncate table ", binary_to_list(Table)]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+fold([], _FunState, Ctx,
     {'truncate table', Table, _Materialized, _Storage, _Cascade} = _PTree,
     {truncate_table, Step} = _FoldState)
     when is_binary(Table) ->
@@ -2951,6 +2989,15 @@ fold([], _FunState, Ctx,
     RT = case Step of
              start ->
                  lists:append([Ctx, "truncate table ", binary_to_list(Table)]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
+fold([], _FunState, Ctx,
+    {'truncate table', _Table, _Materialized, _Storage} = _PTree,
+    {truncate_table, Step} = _FoldState) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> Ctx ++ "truncate table ";
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);

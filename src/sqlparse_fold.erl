@@ -1118,7 +1118,7 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop function', Name} = PTree)
 % drop_index_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop index', IndexName, [], {}} =
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop index', IndexName, []} =
     PTree)
     when is_binary(IndexName) ->
     Rule = drop_index_def,
@@ -1129,8 +1129,7 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop index', IndexName, [], {}} =
         {Rule, get_start_end(FType, 'end')}),
     ?FOLD_RESULT(NewCtxE);
 fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
-    {'drop index', IndexName, [], {DropIndexExtensions}} =
-        PTree)
+    {'drop index', IndexName, [], {DropIndexExtensions}} = PTree)
     when is_binary(IndexName) ->
     Rule = drop_index_def,
     FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
@@ -1141,9 +1140,8 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
     NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree,
         {Rule, get_start_end(FType, 'end')}),
     ?FOLD_RESULT(NewCtxE);
-fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
-    {'drop index', _IndexName, Table, {}} =
-        PTree) ->
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop index', _IndexName, Table} =
+    PTree) ->
     Rule = drop_index_def,
     FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
     NewCtxS =
@@ -1154,8 +1152,7 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
         {Rule, get_start_end(FType, 'end')}),
     ?FOLD_RESULT(NewCtxE);
 fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
-    {'drop index', _IndexName, Table, {DropIndexExtensions}} =
-        PTree) ->
+    {'drop index', _IndexName, Table, {DropIndexExtensions}} = PTree) ->
     Rule = drop_index_def,
     FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
     NewCtxS =
@@ -1408,7 +1405,7 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
-    {'drop table', Tables, Exists, {}, _Name} = PTree) ->
+    {'drop table', Tables, Exists, _Name} = PTree) ->
     Rule = drop_table_def,
     FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
     NewCtxS =
@@ -3490,6 +3487,28 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
+    {'truncate table', Table, Materialized, Storage} = PTree) ->
+    Rule = truncate_table,
+    FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+    NewCtxS =
+        Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+    NewCtx1 = case is_binary(Table) of
+                  true -> NewCtxS;
+                  _ -> fold_i(FType, Fun, LOpts, FunState, NewCtxS, Table)
+              end,
+    NewCtx2 = case Materialized of
+                  {} -> NewCtx1;
+                  _ ->
+                      fold_i(FType, Fun, LOpts, FunState, NewCtx1, Materialized)
+              end,
+    NewCtx3 = case Storage of
+                  {} -> NewCtx2;
+                  _ -> fold_i(FType, Fun, LOpts, FunState, NewCtx2, Storage)
+              end,
+    NewCtxE = Fun(LOpts, FunState, NewCtx3, PTree,
+        {Rule, get_start_end(FType, 'end')}),
+    ?FOLD_RESULT(NewCtxE);
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
     {'truncate table', Table, Materialized, Storage, Cascade} = PTree) ->
     Rule = truncate_table,
     FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
@@ -3508,11 +3527,8 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx,
                   {} -> NewCtx2;
                   _ -> fold_i(FType, Fun, LOpts, FunState, NewCtx2, Storage)
               end,
-    NewCtx4 = case Cascade of
-                  {} -> NewCtx3;
-                  _ -> fold_i(FType, Fun, LOpts, FunState, NewCtx3,
-                      {keyword, atom_to_list(Cascade)})
-              end,
+    NewCtx4 = fold_i(FType, Fun, LOpts, FunState, NewCtx3,
+        {keyword, atom_to_list(Cascade)}),
     NewCtxE = Fun(LOpts, FunState, NewCtx4, PTree,
         {Rule, get_start_end(FType, 'end')}),
     ?FOLD_RESULT(NewCtxE);
@@ -3901,21 +3917,21 @@ get_stmnt_clause_pred(FunState, Pos) ->
 binary_needs_paren(LOrR, Op) when is_tuple(LOrR), is_atom(Op) ->
     binary_needs_paren(element(1, LOrR), Op);
 
-binary_needs_paren('fun', _)    -> false;
+binary_needs_paren('fun', _) -> false;
 binary_needs_paren('or', 'and') -> true;
-binary_needs_paren('+', '*')    -> true;
-binary_needs_paren('+', '/')    -> true;
-binary_needs_paren('+', 'div')  -> true;
-binary_needs_paren('-', '*')    -> true;
-binary_needs_paren('-', '/')    -> true;
-binary_needs_paren('-', 'div')  -> true;
-binary_needs_paren('-', '+')    -> true;
-binary_needs_paren('/', '*')    -> true;
-binary_needs_paren('div', '*')  -> true;
-binary_needs_paren(_, '/')      -> true;
-binary_needs_paren(_, 'div')    -> true;
-binary_needs_paren(_, '-')      -> true;
-binary_needs_paren(_, _)        -> false.
+binary_needs_paren('+', '*') -> true;
+binary_needs_paren('+', '/') -> true;
+binary_needs_paren('+', 'div') -> true;
+binary_needs_paren('-', '*') -> true;
+binary_needs_paren('-', '/') -> true;
+binary_needs_paren('-', 'div') -> true;
+binary_needs_paren('-', '+') -> true;
+binary_needs_paren('/', '*') -> true;
+binary_needs_paren('div', '*') -> true;
+binary_needs_paren(_, '/') -> true;
+binary_needs_paren(_, 'div') -> true;
+binary_needs_paren(_, '-') -> true;
+binary_needs_paren(_, _) -> false.
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Find the innermost value.

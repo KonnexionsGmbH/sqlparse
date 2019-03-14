@@ -1519,6 +1519,7 @@ Erlang code.
 % parser and compiler interface
 -export([
     is_reserved/1,
+    is_reserved_column/1,
     parsetree/1,
     parsetree_with_tokens/1
 ]).
@@ -1596,3 +1597,17 @@ is_reserved(Word) when is_atom(Word) ->
 is_reserved(Word) when is_list(Word) ->
     lists:member(erlang:list_to_atom(string:to_upper(Word)),
         sql_lex:reserved_keywords()).
+
+-spec is_reserved_column(binary() | atom() | list()) -> true | false.
+is_reserved_column(Word) when is_binary(Word) ->
+    is_reserved_column(erlang:binary_to_list(Word));
+is_reserved_column(Word) when is_atom(Word) ->
+    is_reserved_column(erlang:atom_to_list(Word));
+is_reserved_column(Word) when is_list(Word) ->
+    WordUpper = string:to_upper(Word),
+    case WordUpper of
+        "FUNCTION" -> false;
+        "TYPE" -> false;
+        _ -> lists:member(erlang:list_to_atom(WordUpper),
+            sql_lex:reserved_keywords())
+    end.

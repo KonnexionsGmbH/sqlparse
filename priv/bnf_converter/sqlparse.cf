@@ -2019,4 +2019,4 @@ WhenAction02.                     WhenAction ::= "CONTINUE"  ;
 -- LBNF specifica
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-entrypoints Sql ;
+entrypoints PlSqlBlockSqlList ;

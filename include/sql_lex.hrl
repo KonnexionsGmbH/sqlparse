@@ -25,6 +25,81 @@
 
 -include("sqlparse.hrl").
 
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% May not be used as identifier !!!
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+-define(KEYWORDS, [
+    {"^(?i)(ALL)$",             'ALL'},
+    {"^(?i)(ALTER)$",           'ALTER'},
+    {"^(?i)(AND)$",             'AND'},
+    {"^(?i)(ANY)$",             'ANY'},
+    {"^(?i)(AS)$",              'AS'},
+    {"^(?i)(ASC)$",             'ASC'},
+    {"^(?i)(BETWEEN)$",         'BETWEEN'},
+    {"^(?i)(BY)$",              'BY'},
+    {"^(?i)(CHECK)$",           'CHECK'},
+    {"^(?i)(CLUSTER)$",         'CLUSTER'},
+    {"^(?i)(CREATE)$",          'CREATE'},
+    {"^(?i)(DEFAULT)$",         'DEFAULT'},
+    {"^(?i)(DELETE)$",          'DELETE'},
+    {"^(?i)(DESC)$",            'DESC'},
+    {"^(?i)(DISTINCT)$",        'DISTINCT'},
+    {"^(?i)(DROP)$",            'DROP'},
+    {"^(?i)(ELSE)$",            'ELSE'},
+    {"^(?i)(EXISTS)$",          'EXISTS'},
+    {"^(?i)(FROM)$",            'FROM'},
+    {"^(?i)(GRANT)$",           'GRANT'},
+    {"^(?i)(GROUP)$",           'GROUP'},
+    {"^(?i)(HAVING)$",          'HAVING'},
+    {"^(?i)(IDENTIFIED)$",      'IDENTIFIED'},
+    {"^(?i)(IN)$",              'IN'},
+    {"^(?i)(INDEX)$",           'INDEX'},
+    {"^(?i)(INSERT)$",          'INSERT'},
+    {"^(?i)(INTERSECT)$",       'INTERSECT'},
+    {"^(?i)(INTO)$",            'INTO'},
+    {"^(?i)(IS)$",              'IS'},
+    {"^(?i)(LIKE)$",            'LIKE'},
+    {"^(?i)(MINUS)$",           'MINUS'},
+    {"^(?i)(NOCYCLE)$",         'NOCYCLE'},
+    {"^(?i)(NOT)$",             'NOT'},
+    {"^(?i)(NULL)$",            'NULLX'},
+    {"^(?i)(OF)$",              'OF'},
+    {"^(?i)(ON)$",              'ON'},
+    {"^(?i)(OPTION)$",          'OPTION'},
+    {"^(?i)(OR)$",              'OR'},
+    {"^(?i)(ORDER)$",           'ORDER'},
+    {"^(?i)(PRIOR)$",           'PRIOR'},
+    {"^(?i)(PUBLIC)$",          'PUBLIC'},
+    {"^(?i)(REVOKE)$",          'REVOKE'},
+    {"^(?i)(SELECT)$",          'SELECT'},
+    {"^(?i)(SET)$",             'SET'},
+    {"^(?i)(SOME)$",            'SOME'},
+    {"^(?i)(START)$",           'START'},
+    {"^(?i)(SYNONYM)$",         'SYNONYM'},
+    {"^(?i)(TABLE)$",           'TABLE'},
+    {"^(?i)(TABLESPACE)$",      'TABLESPACE'},
+    {"^(?i)(TABLES)$",          'TABLES'},
+    {"^(?i)(TEMPORARY)$",       'TEMPORARY'},
+    {"^(?i)(THEN)$",            'THEN'},
+    {"^(?i)(THROUGH)$",         'THROUGH'},
+    {"^(?i)(TO)$",              'TO'},
+    {"^(?i)(TRIGGER)$",         'TRIGGER'},
+    {"^(?i)(TRUNCATE)$",        'TRUNCATE'},
+    {"^(?i)(UNION)$",           'UNION'},
+    {"^(?i)(UNIQUE)$",          'UNIQUE'},
+    {"^(?i)(UPDATE)$",          'UPDATE'},
+    {"^(?i)(UPDATE)$",          'UPDATE'},
+    {"^(?i)(USER)$",            'USER'},
+    {"^(?i)(VIEW)$",            'VIEW'},
+    {"^(?i)(WHERE)$",           'WHERE'},
+    {"^(?i)(WITH)$",            'WITH'}
+]).
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Includes all terminals.
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 -define(TOKENPATTERNS, [
     {"^(?i)((GO[\s\t]*TO))$",   'GOTO'},
     {"^(?i)(ABS)$",             'FUNS'},
@@ -94,7 +169,6 @@
     {"^(?i)(EXCEPT)$",          'EXCEPT'},
     {"^(?i)(EXECUTE)$",         'EXECUTE'},
     {"^(?i)(EXISTS)$",          'EXISTS'},
-%   {"^(?i)(EXPIRE)$",          'EXPIRE'},
     {"^(?i)(EXTERNALLY)$",      'EXTERNALLY'},
     {"^(?i)(FETCH)$",           'FETCH'},
     {"^(?i)(FILTER_WITH)$",     'FILTER_WITH'},
@@ -158,7 +232,6 @@
     {"^(?i)(ORDERED_SET)$",     'ORDERED_SET'},
     {"^(?i)(OUTER)$",           'OUTER'},
     {"^(?i)(PACKAGE)$",         'PACKAGE'},
-%   {"^(?i)(PASSWORD)$",        'PASSWORD'},
     {"^(?i)(PARTITION)$",       'PARTITION'},
     {"^(?i)(PRECISION)$",       'PRECISION'},
     {"^(?i)(PRESERVE)$",        'PRESERVE'},

@@ -1971,41 +1971,23 @@ table_dblink ::= ( ( NAME '.' )? NAME DBLINK ( NAME )? )
                | table_coll_expr
 
 /* =============================================================================
-column_ref ->                   FUNCTION JSON        : jpparse(list_to_binary(["FUNCTION",unwrap('$2')])).
-column_ref ->                   NAME     JSON        : jpparse(list_to_binary([unwrap('$1'),unwrap('$2')])).
-column_ref ->                   TYPE     JSON        : jpparse(list_to_binary(["TYPE",unwrap('$2')])).
-column_ref ->          NAME '.' FUNCTION JSON        : jpparse(list_to_binary([unwrap('$1'),".","FUNCTION",unwrap('$4')])).
-column_ref ->          NAME '.' NAME     JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),unwrap('$4')])).
-column_ref ->          NAME '.' TYPE     JSON        : jpparse(list_to_binary([unwrap('$1'),".","TYPE",unwrap('$4')])).
-column_ref -> NAME '.' NAME '.' FUNCTION JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".","FUNCTION",unwrap('$6')])).
-column_ref -> NAME '.' NAME '.' NAME     JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5'),unwrap('$6')])).
-column_ref -> NAME '.' NAME '.' TYPE     JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".","TYPE",unwrap('$6')])).
-column_ref ->                   FUNCTION             : list_to_binary("FUNCTION").
-column_ref ->                   NAME                 : unwrap_bin('$1').
-column_ref ->                   TYPE                 : list_to_binary("TYPE").
-column_ref ->          NAME '.' FUNCTION             : list_to_binary([unwrap('$1'),".","FUNCTION"]).
-column_ref ->          NAME '.' NAME                 : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
-column_ref ->          NAME '.' TYPE                 : list_to_binary([unwrap('$1'),".","TYPE"]).
-column_ref -> NAME '.' NAME '.' FUNCTION             : list_to_binary([unwrap('$1'),".",unwrap('$3'),".","FUNCTION"]).
-column_ref -> NAME '.' NAME '.' NAME                 : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).
-column_ref -> NAME '.' NAME '.' TYPE                 : list_to_binary([unwrap('$1'),".",unwrap('$3'),".","TYPE"]).
-column_ref ->                   FUNCTION '(' '+' ')' : list_to_binary(["FUNCTION","(+)"]).
-column_ref ->                   NAME     '(' '+' ')' : list_to_binary([unwrap('$1'),"(+)"]).
-column_ref ->                   TYPE     '(' '+' ')' : list_to_binary(["TYPE","(+)"]).
-column_ref ->          NAME '.' FUNCTION '(' '+' ')' : list_to_binary([unwrap('$1'),".","FUNCTION","(+)"]).
-column_ref ->          NAME '.' NAME     '(' '+' ')' : list_to_binary([unwrap('$1'),".",unwrap('$3'),"(+)"]).
-column_ref ->          NAME '.' TYPE     '(' '+' ')' : list_to_binary([unwrap('$1'),".","TYPE","(+)"]).
-column_ref -> NAME '.' NAME '.' FUNCTION '(' '+' ')' : list_to_binary([unwrap('$1'),".",unwrap('$3'),".","FUNCTION","(+)"]).
-column_ref -> NAME '.' NAME '.' NAME     '(' '+' ')' : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5'),"(+)"]).
-column_ref -> NAME '.' NAME '.' TYPE     '(' '+' ')' : list_to_binary([unwrap('$1'),".",unwrap('$3'),".","TYPE","(+)"]).
-column_ref ->                   NAME     '.' '*'     : list_to_binary([unwrap('$1'),".*"]).
-column_ref ->          NAME '.' NAME     '.' '*'     : list_to_binary([unwrap('$1'),".",unwrap('$3'),".*"]).
+column_ref ->                               identifier             : '$1'.
+column_ref ->                               identifier '(' '+' ')' : list_to_binary(['$1',"(+)"]).
+column_ref ->                               identifier JSON        : jpparse(list_to_binary(['$1',unwrap('$2')])).
+column_ref ->                               identifier '.' '*'     : list_to_binary(['$1',".*"]).
+column_ref ->                identifier '.' identifier             : list_to_binary(['$1',".",'$3']).
+column_ref ->                identifier '.' identifier '(' '+' ')' : list_to_binary(['$1',".",'$3',"(+)"]).
+column_ref ->                identifier '.' identifier JSON        : jpparse(list_to_binary(['$1',".",'$3',unwrap('$4')])).
+column_ref ->                identifier '.' identifier '.' '*'     : list_to_binary(['$1',".",'$3',".*"]).
+column_ref -> identifier '.' identifier '.' identifier             : list_to_binary(['$1',".",'$3',".",'$5']).
+column_ref -> identifier '.' identifier '.' identifier '(' '+' ')' : list_to_binary(['$1',".",'$3',".",'$5',"(+)"]).
+column_ref -> identifier '.' identifier '.' identifier JSON        : jpparse(list_to_binary(['$1',".",'$3',".",'$5',unwrap('$6')])).
 ============================================================================= */
 
-column_ref ::= ( ( ( NAME '.' )? NAME '.' )? ( 'FUNCTION' | NAME | 'TYPE' ) JSON )
-             | ( ( ( NAME '.' )? NAME '.' )? ( 'FUNCTION' | NAME | 'TYPE' ) )
-             | ( ( ( NAME '.' )? NAME '.' )? ( 'FUNCTION' | NAME | 'TYPE' ) '(' '+' ')' )
-             | ( ( NAME '.' )? NAME '.' '*' )
+column_ref ::= ( ( ( identifier '.' )? identifier '.' )? identifier JSON )
+             | ( ( ( identifier '.' )? identifier '.' )? identifier )
+             | ( ( ( identifier '.' )? identifier '.' )? identifier '(' '+' ')' )
+             | ( ( identifier '.' )? identifier '.' '*' )
 
 /* =============================================================================
 data_type -> STRING                           : unwrap_bin('$1').
@@ -2044,6 +2026,224 @@ parameter -> PARAMETER : {param, unwrap_bin('$1')}.
 parameter ::= PARAMETER
 
 PARAMETER ::= ':' [A-Za-z0-9_\.]+
+
+/* =============================================================================
+identifier -> NAME            : unwrap_bin('$1').
+
+identifier -> ADMIN           : unwrap_bin('$1').
+% identifier -> APPROXNUM       : unwrap_bin('$1').
+identifier -> AUTHENTICATION  : unwrap_bin('$1').
+identifier -> AUTHORIZATION   : unwrap_bin('$1').
+identifier -> BAG             : unwrap_bin('$1').
+identifier -> BEGIN           : unwrap_bin('$1').
+identifier -> BITMAP          : unwrap_bin('$1').
+identifier -> BODY            : unwrap_bin('$1').
+identifier -> CALL            : unwrap_bin('$1').
+identifier -> CASCADE         : unwrap_bin('$1').
+identifier -> CASE            : unwrap_bin('$1').
+identifier -> CLOSE           : unwrap_bin('$1').
+identifier -> COMMIT          : unwrap_bin('$1').
+identifier -> COMPARISON      : unwrap_bin('$1').
+identifier -> CONSTRAINT      : unwrap_bin('$1').
+identifier -> CONSTRAINTS     : unwrap_bin('$1').
+identifier -> CONTENTS        : unwrap_bin('$1').
+identifier -> CONTEXT         : unwrap_bin('$1').
+identifier -> CONTINUE        : unwrap_bin('$1').
+identifier -> CROSS           : unwrap_bin('$1').
+identifier -> CURRENT         : unwrap_bin('$1').
+identifier -> CURSOR          : unwrap_bin('$1').
+identifier -> DATABASE        : unwrap_bin('$1').
+identifier -> DATAFILES       : unwrap_bin('$1').
+identifier -> DBLINK          : unwrap_bin('$1').
+identifier -> DEFERRED        : unwrap_bin('$1').
+identifier -> DELEGATE        : unwrap_bin('$1').
+identifier -> DIRECTORY       : unwrap_bin('$1').
+identifier -> END             : unwrap_bin('$1').
+identifier -> ENTERPRISE      : unwrap_bin('$1').
+identifier -> ESCAPE          : unwrap_bin('$1').
+identifier -> EXCEPT          : unwrap_bin('$1').
+identifier -> EXECUTE         : unwrap_bin('$1').
+identifier -> EXTERNALLY      : unwrap_bin('$1').
+identifier -> FETCH           : unwrap_bin('$1').
+identifier -> FILTER_WITH     : unwrap_bin('$1').
+identifier -> FORCE           : unwrap_bin('$1').
+identifier -> FOREIGN         : unwrap_bin('$1').
+identifier -> FOUND           : unwrap_bin('$1').
+identifier -> FULL            : unwrap_bin('$1').
+identifier -> FUNCTION        : unwrap_bin('$1').
+% identifier -> FUNS            : unwrap_bin('$1').
+identifier -> GLOBALLY        : unwrap_bin('$1').
+identifier -> GOTO            : unwrap_bin('$1').
+identifier -> HASHMAP         : unwrap_bin('$1').
+identifier -> HIERARCHY       : unwrap_bin('$1').
+% identifier -> HINT            : unwrap_bin('$1').
+identifier -> IF              : unwrap_bin('$1').
+identifier -> IMMEDIATE       : unwrap_bin('$1').
+identifier -> INCLUDING       : unwrap_bin('$1').
+identifier -> INDICATOR       : unwrap_bin('$1').
+identifier -> INNER           : unwrap_bin('$1').
+% identifier -> INTNUM          : unwrap_bin('$1').
+identifier -> INVALIDATION    : unwrap_bin('$1').
+identifier -> JOIN            : unwrap_bin('$1').
+identifier -> JSON            : unwrap_bin('$1').
+identifier -> KEEP            : unwrap_bin('$1').
+identifier -> KEY             : unwrap_bin('$1').
+identifier -> KEYLIST         : unwrap_bin('$1').
+identifier -> LEFT            : unwrap_bin('$1').
+identifier -> LINK            : unwrap_bin('$1').
+identifier -> LOCAL           : unwrap_bin('$1').
+identifier -> LOG             : unwrap_bin('$1').
+identifier -> MATERIALIZED    : unwrap_bin('$1').
+identifier -> NATURAL         : unwrap_bin('$1').
+identifier -> NO              : unwrap_bin('$1').
+% identifier -> NOCYCLE         : unwrap_bin('$1').
+identifier -> NONE            : unwrap_bin('$1').
+identifier -> NORM_WITH       : unwrap_bin('$1').
+% identifier -> NULLX           : unwrap_bin('$1').
+identifier -> ONLINE          : unwrap_bin('$1').
+identifier -> OPEN            : unwrap_bin('$1').
+identifier -> ORDERED_SET     : unwrap_bin('$1').
+identifier -> OUTER           : unwrap_bin('$1').
+identifier -> PACKAGE         : unwrap_bin('$1').
+% identifier -> PARAMETER       : unwrap_bin('$1').
+identifier -> PARTITION       : unwrap_bin('$1').
+identifier -> PRESERVE        : unwrap_bin('$1').
+identifier -> PRIMARY         : unwrap_bin('$1').
+identifier -> PRIVILEGES      : unwrap_bin('$1').
+identifier -> PROCEDURE       : unwrap_bin('$1').
+identifier -> PROFILE         : unwrap_bin('$1').
+identifier -> PURGE           : unwrap_bin('$1').
+identifier -> QUOTA           : unwrap_bin('$1').
+identifier -> REFERENCES      : unwrap_bin('$1').
+identifier -> REQUIRED        : unwrap_bin('$1').
+identifier -> RETURN          : unwrap_bin('$1').
+identifier -> RETURNING       : unwrap_bin('$1').
+identifier -> REUSE           : unwrap_bin('$1').
+identifier -> RIGHT           : unwrap_bin('$1').
+identifier -> ROLE            : unwrap_bin('$1').
+identifier -> ROLES           : unwrap_bin('$1').
+identifier -> ROLLBACK        : unwrap_bin('$1').
+identifier -> SCHEMA          : unwrap_bin('$1').
+identifier -> SEQUENCE        : unwrap_bin('$1').
+% identifier -> SOME            : unwrap_bin('$1').
+identifier -> SQLERROR        : unwrap_bin('$1').
+identifier -> STORAGE         : unwrap_bin('$1').
+% identifier -> STRING          : unwrap_bin('$1').
+% identifier -> TABLES          : unwrap_bin('$1').
+% identifier -> TABLESPACE      : unwrap_bin('$1').
+% identifier -> TEMPORARY       : unwrap_bin('$1').
+% identifier -> THROUGH         : unwrap_bin('$1').
+% identifier -> TRUNCATE        : unwrap_bin('$1').
+identifier -> TYPE            : unwrap_bin('$1').
+identifier -> UNLIMITED       : unwrap_bin('$1').
+% identifier -> USER            : unwrap_bin('$1').
+identifier -> USERS           : unwrap_bin('$1').
+identifier -> USING           : unwrap_bin('$1').
+identifier -> VALIDATE        : unwrap_bin('$1').
+identifier -> WHEN            : unwrap_bin('$1').
+identifier -> WHENEVER        : unwrap_bin('$1').
+identifier -> WORK            : unwrap_bin('$1').
+============================================================================= */
+
+identifier ::= NAME
+             | ADMIN           
+             | AUTHENTICATION  
+             | AUTHORIZATION   
+             | BAG             
+             | BEGIN           
+             | BITMAP          
+             | BODY            
+             | CALL            
+             | CASCADE         
+             | CASE            
+             | CLOSE           
+             | COMMIT          
+             | COMPARISON      
+             | CONSTRAINT      
+             | CONSTRAINTS     
+             | CONTENTS        
+             | CONTEXT         
+             | CONTINUE        
+             | CROSS           
+             | CURRENT         
+             | CURSOR          
+             | DATABASE        
+             | DATAFILES       
+             | DBLINK          
+             | DEFERRED        
+             | DELEGATE        
+             | DIRECTORY       
+             | END             
+             | ENTERPRISE      
+             | ESCAPE          
+             | EXCEPT          
+             | EXECUTE         
+             | EXTERNALLY      
+             | FETCH           
+             | FILTER_WITH     
+             | FORCE           
+             | FOREIGN         
+             | FOUND           
+             | FULL            
+             | FUNCTION        
+             | GLOBALLY        
+             | GOTO            
+             | HASHMAP         
+             | HIERARCHY       
+             | IF              
+             | IMMEDIATE       
+             | INCLUDING       
+             | INDICATOR       
+             | INNER           
+             | INVALIDATION    
+             | JOIN            
+             | JSON            
+             | KEEP            
+             | KEY             
+             | KEYLIST         
+             | LEFT            
+             | LINK            
+             | LOCAL           
+             | LOG             
+             | MATERIALIZED    
+             | NATURAL         
+             | NO              
+             | NONE            
+             | NORM_WITH       
+             | ONLINE          
+             | OPEN            
+             | ORDERED_SET     
+             | OUTER           
+             | PACKAGE         
+             | PARTITION       
+             | PRESERVE        
+             | PRIMARY         
+             | PRIVILEGES      
+             | PROCEDURE       
+             | PROFILE         
+             | PURGE           
+             | QUOTA           
+             | REFERENCES      
+             | REQUIRED        
+             | RETURN          
+             | RETURNING       
+             | REUSE           
+             | RIGHT           
+             | ROLE            
+             | ROLES           
+             | ROLLBACK        
+             | SCHEMA          
+             | SEQUENCE        
+             | SQLERROR        
+             | STORAGE         
+             | TYPE            
+             | UNLIMITED       
+             | USERS           
+             | USING           
+             | VALIDATE        
+             | WHEN            
+             | WHENEVER        
+             | WORK            
 
 /* =============================================================================
 when_action -> GOTO NAME : {goto, unwrap('$2')}.

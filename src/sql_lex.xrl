@@ -97,7 +97,7 @@ Erlang code.
 -define(NODEBUG, true).
 -include("sql_lex.hrl").
 
-reserved_keywords() -> [T || {_, T} <- ?TOKENPATTERNS].
+reserved_keywords() -> [T || {_, T} <- ?KEYWORDS].
 
 match_any(TokenChars, TokenLen, _TokenLine, []) ->
     {token, {'NAME', TokenLen, TokenChars}};

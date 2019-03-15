@@ -1909,65 +1909,29 @@ TableDblink06.                    TableDblink ::= Parameter         "DBLINK" "NA
 TableDblink07.                    TableDblink ::= TableAlias                        ;
 TableDblink08.                    TableDblink ::= TableCollExpr                     ;
 
--- column_ref ->                   FUNCTION JSON        : jpparse(list_to_binary(["FUNCTION",unwrap('$2')])).
--- column_ref ->                   NAME     JSON        : jpparse(list_to_binary([unwrap('$1'),unwrap('$2')])).
--- column_ref ->                   TYPE     JSON        : jpparse(list_to_binary(["TYPE",unwrap('$2')])).
--- column_ref ->          NAME '.' FUNCTION JSON        : jpparse(list_to_binary([unwrap('$1'),".","FUNCTION",unwrap('$4')])).
--- column_ref ->          NAME '.' NAME     JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),unwrap('$4')])).
--- column_ref ->          NAME '.' TYPE     JSON        : jpparse(list_to_binary([unwrap('$1'),".","TYPE",unwrap('$4')])).
--- column_ref -> NAME '.' NAME '.' FUNCTION JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".","FUNCTION",unwrap('$6')])).
--- column_ref -> NAME '.' NAME '.' NAME     JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5'),unwrap('$6')])).
--- column_ref -> NAME '.' NAME '.' TYPE     JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".","TYPE",unwrap('$6')])).
--- column_ref ->                   FUNCTION             : list_to_binary("FUNCTION").
--- column_ref ->                   NAME                 : unwrap_bin('$1').
--- column_ref ->                   TYPE                 : list_to_binary("TYPE").
--- column_ref ->          NAME '.' FUNCTION             : list_to_binary([unwrap('$1'),".","FUNCTION"]).
--- column_ref ->          NAME '.' NAME                 : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
--- column_ref ->          NAME '.' TYPE                 : list_to_binary([unwrap('$1'),".","TYPE"]).
--- column_ref -> NAME '.' NAME '.' FUNCTION             : list_to_binary([unwrap('$1'),".",unwrap('$3'),".","FUNCTION"]).
--- column_ref -> NAME '.' NAME '.' NAME                 : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).
--- column_ref -> NAME '.' NAME '.' TYPE                 : list_to_binary([unwrap('$1'),".",unwrap('$3'),".","TYPE"]).
--- column_ref ->                   FUNCTION '(' '+' ')' : list_to_binary(["FUNCTION","(+)"]).
--- column_ref ->                   NAME     '(' '+' ')' : list_to_binary([unwrap('$1'),"(+)"]).
--- column_ref ->                   TYPE     '(' '+' ')' : list_to_binary(["TYPE","(+)"]).
--- column_ref ->          NAME '.' FUNCTION '(' '+' ')' : list_to_binary([unwrap('$1'),".","FUNCTION","(+)"]).
--- column_ref ->          NAME '.' NAME     '(' '+' ')' : list_to_binary([unwrap('$1'),".",unwrap('$3'),"(+)"]).
--- column_ref ->          NAME '.' TYPE     '(' '+' ')' : list_to_binary([unwrap('$1'),".","TYPE","(+)"]).
--- column_ref -> NAME '.' NAME '.' FUNCTION '(' '+' ')' : list_to_binary([unwrap('$1'),".",unwrap('$3'),".","FUNCTION","(+)"]).
--- column_ref -> NAME '.' NAME '.' NAME     '(' '+' ')' : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5'),"(+)"]).
--- column_ref -> NAME '.' NAME '.' TYPE     '(' '+' ')' : list_to_binary([unwrap('$1'),".",unwrap('$3'),".","TYPE","(+)"]).
--- column_ref ->                   NAME     '.' '*'     : list_to_binary([unwrap('$1'),".*"]).
--- column_ref ->          NAME '.' NAME     '.' '*'     : list_to_binary([unwrap('$1'),".",unwrap('$3'),".*"]).
+-- column_ref ->                               identifier             : '$1'.
+-- column_ref ->                               identifier '(' '+' ')' : list_to_binary(['$1',"(+)"]).
+-- column_ref ->                               identifier JSON        : jpparse(list_to_binary(['$1',unwrap('$2')])).
+-- column_ref ->                               identifier '.' '*'     : list_to_binary(['$1',".*"]).
+-- column_ref ->                identifier '.' identifier             : list_to_binary(['$1',".",'$3']).
+-- column_ref ->                identifier '.' identifier '(' '+' ')' : list_to_binary(['$1',".",'$3',"(+)"]).
+-- column_ref ->                identifier '.' identifier JSON        : jpparse(list_to_binary(['$1',".",'$3',unwrap('$4')])).
+-- column_ref ->                identifier '.' identifier '.' '*'     : list_to_binary(['$1',".",'$3',".*"]).
+-- column_ref -> identifier '.' identifier '.' identifier             : list_to_binary(['$1',".",'$3',".",'$5']).
+-- column_ref -> identifier '.' identifier '.' identifier '(' '+' ')' : list_to_binary(['$1',".",'$3',".",'$5',"(+)"]).
+-- column_ref -> identifier '.' identifier '.' identifier JSON        : jpparse(list_to_binary(['$1',".",'$3',".",'$5',unwrap('$6')])).
 
-ColumnRef01.                      ColumnRef ::=                       "FUNCTION"             ;
-ColumnRef02.                      ColumnRef ::=                       "FUNCTION"     "JSON"  ;
-ColumnRef03.                      ColumnRef ::=                       "FUNCTION" "(" "+" ")" ;
-ColumnRef04.                      ColumnRef ::=                       "NAME"                 ;
-ColumnRef05.                      ColumnRef ::=                       "NAME"         "JSON"  ;
-ColumnRef06.                      ColumnRef ::=                       "NAME"     "(" "+" ")" ;
-ColumnRef07.                      ColumnRef ::=                       "TYPE"                 ;
-ColumnRef08.                      ColumnRef ::=                       "TYPE"         "JSON"  ;
-ColumnRef09.                      ColumnRef ::=                       "TYPE"     "(" "+" ")" ;
-ColumnRef10.                      ColumnRef ::=            "NAME" "." "*"                    ;
-ColumnRef11.                      ColumnRef ::=            "NAME" "." "FUNCTION"             ;
-ColumnRef12.                      ColumnRef ::=            "NAME" "." "FUNCTION"     "JSON"  ;
-ColumnRef13.                      ColumnRef ::=            "NAME" "." "FUNCTION" "(" "+" ")" ;
-ColumnRef14.                      ColumnRef ::=            "NAME" "." "NAME"                 ;
-ColumnRef15.                      ColumnRef ::=            "NAME" "." "NAME"         "JSON"  ;
-ColumnRef16.                      ColumnRef ::=            "NAME" "." "NAME"     "(" "+" ")" ;
-ColumnRef17.                      ColumnRef ::=            "NAME" "." "TYPE"                 ;
-ColumnRef18.                      ColumnRef ::=            "NAME" "." "TYPE"         "JSON"  ;
-ColumnRef19.                      ColumnRef ::=            "NAME" "." "TYPE"     "(" "+" ")" ;
-ColumnRef20.                      ColumnRef ::= "NAME" "." "NAME" "." "FUNCTION"             ;
-ColumnRef21.                      ColumnRef ::= "NAME" "." "NAME" "." "FUNCTION"     "JSON"  ;
-ColumnRef22.                      ColumnRef ::= "NAME" "." "NAME" "." "FUNCTION" "(" "+" ")" ;
-ColumnRef23.                      ColumnRef ::= "NAME" "." "NAME" "." "NAME"                 ;
-ColumnRef24.                      ColumnRef ::= "NAME" "." "NAME" "." "NAME"         "JSON"  ;
-ColumnRef25.                      ColumnRef ::= "NAME" "." "NAME" "." "NAME"     "(" "+" ")" ;
-ColumnRef26.                      ColumnRef ::= "NAME" "." "NAME" "." "TYPE"                 ;
-ColumnRef27.                      ColumnRef ::= "NAME" "." "NAME" "." "TYPE"         "JSON"  ;
-ColumnRef28.                      ColumnRef ::= "NAME" "." "NAME" "." "TYPE"     "(" "+" ")" ;
-ColumnRef29.                      ColumnRef ::= "NAME" "." "NAME" "." "*"                    ;
+ColumnRef01.                      ColumnRef ::=                               Identifier                 ;
+ColumnRef02.                      ColumnRef ::=                               Identifier         "JSON"  ;
+ColumnRef03.                      ColumnRef ::=                               Identifier     "(" "+" ")" ;
+ColumnRef04.                      ColumnRef ::=                Identifier "." "*"                        ;
+ColumnRef05.                      ColumnRef ::=                Identifier "." Identifier                 ;
+ColumnRef06.                      ColumnRef ::=                Identifier "." Identifier         "JSON"  ;
+ColumnRef07.                      ColumnRef ::=                Identifier "." Identifier     "(" "+" ")" ;
+ColumnRef08.                      ColumnRef ::= Identifier "." Identifier "." Identifier                 ;
+ColumnRef09.                      ColumnRef ::= Identifier "." Identifier "." Identifier         "JSON"  ;
+ColumnRef10.                      ColumnRef ::= Identifier "." Identifier "." Identifier     "(" "+" ")" ;
+ColumnRef11.                      ColumnRef ::= Identifier "." Identifier "." "*"                        ;
 
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 -- data types
@@ -2004,6 +1968,228 @@ Cursor01.                         Cursor ::= "NAME" ;
 -- parameter -> PARAMETER : {param, unwrap_bin('$1')}.
 
 Parameter01.                      Parameter ::= "PARAMETER" ;
+
+-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+-- identifier
+--
+-- Attention: The commented out terminals cause reduce/reduce problems.
+-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+-- identifier -> NAME            : unwrap_bin('$1').
+-- 
+-- identifier -> ADMIN           : unwrap_bin('$1').
+-- % identifier -> APPROXNUM       : unwrap_bin('$1').
+-- identifier -> AUTHENTICATION  : unwrap_bin('$1').
+-- identifier -> AUTHORIZATION   : unwrap_bin('$1').
+-- identifier -> BAG             : unwrap_bin('$1').
+-- identifier -> BEGIN           : unwrap_bin('$1').
+-- identifier -> BITMAP          : unwrap_bin('$1').
+-- identifier -> BODY            : unwrap_bin('$1').
+-- identifier -> CALL            : unwrap_bin('$1').
+-- identifier -> CASCADE         : unwrap_bin('$1').
+-- identifier -> CASE            : unwrap_bin('$1').
+-- identifier -> CLOSE           : unwrap_bin('$1').
+-- identifier -> COMMIT          : unwrap_bin('$1').
+-- identifier -> COMPARISON      : unwrap_bin('$1').
+-- identifier -> CONSTRAINT      : unwrap_bin('$1').
+-- identifier -> CONSTRAINTS     : unwrap_bin('$1').
+-- identifier -> CONTENTS        : unwrap_bin('$1').
+-- identifier -> CONTEXT         : unwrap_bin('$1').
+-- identifier -> CONTINUE        : unwrap_bin('$1').
+-- identifier -> CROSS           : unwrap_bin('$1').
+-- identifier -> CURRENT         : unwrap_bin('$1').
+-- identifier -> CURSOR          : unwrap_bin('$1').
+-- identifier -> DATABASE        : unwrap_bin('$1').
+-- identifier -> DATAFILES       : unwrap_bin('$1').
+-- identifier -> DBLINK          : unwrap_bin('$1').
+-- identifier -> DEFERRED        : unwrap_bin('$1').
+-- identifier -> DELEGATE        : unwrap_bin('$1').
+-- identifier -> DIRECTORY       : unwrap_bin('$1').
+-- identifier -> END             : unwrap_bin('$1').
+-- identifier -> ENTERPRISE      : unwrap_bin('$1').
+-- identifier -> ESCAPE          : unwrap_bin('$1').
+-- identifier -> EXCEPT          : unwrap_bin('$1').
+-- identifier -> EXECUTE         : unwrap_bin('$1').
+-- identifier -> EXTERNALLY      : unwrap_bin('$1').
+-- identifier -> FETCH           : unwrap_bin('$1').
+-- identifier -> FILTER_WITH     : unwrap_bin('$1').
+-- identifier -> FORCE           : unwrap_bin('$1').
+-- identifier -> FOREIGN         : unwrap_bin('$1').
+-- identifier -> FOUND           : unwrap_bin('$1').
+-- identifier -> FULL            : unwrap_bin('$1').
+-- identifier -> FUNCTION        : unwrap_bin('$1').
+-- % identifier -> FUNS            : unwrap_bin('$1').
+-- identifier -> GLOBALLY        : unwrap_bin('$1').
+-- identifier -> GOTO            : unwrap_bin('$1').
+-- identifier -> HASHMAP         : unwrap_bin('$1').
+-- identifier -> HIERARCHY       : unwrap_bin('$1').
+-- % identifier -> HINT            : unwrap_bin('$1').
+-- identifier -> IF              : unwrap_bin('$1').
+-- identifier -> IMMEDIATE       : unwrap_bin('$1').
+-- identifier -> INCLUDING       : unwrap_bin('$1').
+-- identifier -> INDICATOR       : unwrap_bin('$1').
+-- identifier -> INNER           : unwrap_bin('$1').
+-- % identifier -> INTNUM          : unwrap_bin('$1').
+-- identifier -> INVALIDATION    : unwrap_bin('$1').
+-- identifier -> JOIN            : unwrap_bin('$1').
+-- identifier -> JSON            : unwrap_bin('$1').
+-- identifier -> KEEP            : unwrap_bin('$1').
+-- identifier -> KEY             : unwrap_bin('$1').
+-- identifier -> KEYLIST         : unwrap_bin('$1').
+-- identifier -> LEFT            : unwrap_bin('$1').
+-- identifier -> LINK            : unwrap_bin('$1').
+-- identifier -> LOCAL           : unwrap_bin('$1').
+-- identifier -> LOG             : unwrap_bin('$1').
+-- identifier -> MATERIALIZED    : unwrap_bin('$1').
+-- identifier -> NATURAL         : unwrap_bin('$1').
+-- identifier -> NO              : unwrap_bin('$1').
+-- % identifier -> NOCYCLE         : unwrap_bin('$1').
+-- identifier -> NONE            : unwrap_bin('$1').
+-- identifier -> NORM_WITH       : unwrap_bin('$1').
+-- % identifier -> NULLX           : unwrap_bin('$1').
+-- identifier -> ONLINE          : unwrap_bin('$1').
+-- identifier -> OPEN            : unwrap_bin('$1').
+-- identifier -> ORDERED_SET     : unwrap_bin('$1').
+-- identifier -> OUTER           : unwrap_bin('$1').
+-- identifier -> PACKAGE         : unwrap_bin('$1').
+-- % identifier -> PARAMETER       : unwrap_bin('$1').
+-- identifier -> PARTITION       : unwrap_bin('$1').
+-- identifier -> PRESERVE        : unwrap_bin('$1').
+-- identifier -> PRIMARY         : unwrap_bin('$1').
+-- identifier -> PRIVILEGES      : unwrap_bin('$1').
+-- identifier -> PROCEDURE       : unwrap_bin('$1').
+-- identifier -> PROFILE         : unwrap_bin('$1').
+-- identifier -> PURGE           : unwrap_bin('$1').
+-- identifier -> QUOTA           : unwrap_bin('$1').
+-- identifier -> REFERENCES      : unwrap_bin('$1').
+-- identifier -> REQUIRED        : unwrap_bin('$1').
+-- identifier -> RETURN          : unwrap_bin('$1').
+-- identifier -> RETURNING       : unwrap_bin('$1').
+-- identifier -> REUSE           : unwrap_bin('$1').
+-- identifier -> RIGHT           : unwrap_bin('$1').
+-- identifier -> ROLE            : unwrap_bin('$1').
+-- identifier -> ROLES           : unwrap_bin('$1').
+-- identifier -> ROLLBACK        : unwrap_bin('$1').
+-- identifier -> SCHEMA          : unwrap_bin('$1').
+-- identifier -> SEQUENCE        : unwrap_bin('$1').
+-- % identifier -> SOME            : unwrap_bin('$1').
+-- identifier -> SQLERROR        : unwrap_bin('$1').
+-- identifier -> STORAGE         : unwrap_bin('$1').
+-- % identifier -> STRING          : unwrap_bin('$1').
+-- % identifier -> TABLES          : unwrap_bin('$1').
+-- % identifier -> TABLESPACE      : unwrap_bin('$1').
+-- % identifier -> TEMPORARY       : unwrap_bin('$1').
+-- % identifier -> THROUGH         : unwrap_bin('$1').
+-- % identifier -> TRUNCATE        : unwrap_bin('$1').
+-- identifier -> TYPE            : unwrap_bin('$1').
+-- identifier -> UNLIMITED       : unwrap_bin('$1').
+-- % identifier -> USER            : unwrap_bin('$1').
+-- identifier -> USERS           : unwrap_bin('$1').
+-- identifier -> USING           : unwrap_bin('$1').
+-- identifier -> VALIDATE        : unwrap_bin('$1').
+-- identifier -> WHEN            : unwrap_bin('$1').
+-- identifier -> WHENEVER        : unwrap_bin('$1').
+-- identifier -> WORK            : unwrap_bin('$1').
+
+Identifier01.                     Identifier ::= "NAME"           ;
+Identifier02.                     Identifier ::= "ADMIN"          ;
+Identifier03.                     Identifier ::= "AUTHENTICATION" ;
+Identifier04.                     Identifier ::= "AUTHORIZATION"  ;
+Identifier05.                     Identifier ::= "BAG"            ;
+Identifier06.                     Identifier ::= "BEGIN"          ;
+Identifier07.                     Identifier ::= "BITMAP"         ;
+Identifier08.                     Identifier ::= "BODY"           ;
+Identifier09.                     Identifier ::= "CALL"           ;
+Identifier10.                     Identifier ::= "CASCADE"        ;
+Identifier11.                     Identifier ::= "CASE"           ;
+Identifier12.                     Identifier ::= "CLOSE"          ;
+Identifier13.                     Identifier ::= "COMMIT"         ;
+Identifier14.                     Identifier ::= "COMPARISON"     ;
+Identifier15.                     Identifier ::= "CONSTRAINT"     ;
+Identifier16.                     Identifier ::= "CONSTRAINTS"    ;
+Identifier17.                     Identifier ::= "CONTENTS"       ;
+Identifier18.                     Identifier ::= "CONTEXT"        ;
+Identifier19.                     Identifier ::= "CONTINUE"       ;
+Identifier20.                     Identifier ::= "CROSS"          ;
+Identifier21.                     Identifier ::= "CURRENT"        ;
+Identifier22.                     Identifier ::= "CURSOR"         ;
+Identifier23.                     Identifier ::= "DATABASE"       ;
+Identifier24.                     Identifier ::= "DATAFILES"      ;
+Identifier25.                     Identifier ::= "DBLINK"         ;
+Identifier26.                     Identifier ::= "DEFERRED"       ;
+Identifier27.                     Identifier ::= "DELEGATE"       ;
+Identifier28.                     Identifier ::= "DIRECTORY"      ;
+Identifier29.                     Identifier ::= "END"            ;
+Identifier30.                     Identifier ::= "ENTERPRISE"     ;
+Identifier31.                     Identifier ::= "ESCAPE"         ;
+Identifier32.                     Identifier ::= "EXCEPT"         ;
+Identifier33.                     Identifier ::= "EXECUTE"        ;
+Identifier34.                     Identifier ::= "EXTERNALLY"     ;
+Identifier35.                     Identifier ::= "FETCH"          ;
+Identifier36.                     Identifier ::= "FILTER_WITH"    ;
+Identifier37.                     Identifier ::= "FORCE"          ;
+Identifier38.                     Identifier ::= "FOREIGN"        ;
+Identifier39.                     Identifier ::= "FOUND"          ;
+Identifier40.                     Identifier ::= "FULL"           ;
+Identifier41.                     Identifier ::= "FUNCTION"       ;
+Identifier42.                     Identifier ::= "GLOBALLY"       ;
+Identifier43.                     Identifier ::= "GOTO"           ;
+Identifier44.                     Identifier ::= "HASHMAP"        ;
+Identifier45.                     Identifier ::= "HIERARCHY"      ;
+Identifier46.                     Identifier ::= "IF"             ;
+Identifier47.                     Identifier ::= "IMMEDIATE"      ;
+Identifier48.                     Identifier ::= "INCLUDING"      ;
+Identifier49.                     Identifier ::= "INDICATOR"      ;
+Identifier50.                     Identifier ::= "INNER"          ;
+Identifier51.                     Identifier ::= "INVALIDATION"   ;
+Identifier52.                     Identifier ::= "JOIN"           ;
+Identifier53.                     Identifier ::= "JSON"           ;
+Identifier54.                     Identifier ::= "KEEP"           ;
+Identifier55.                     Identifier ::= "KEY"            ;
+Identifier56.                     Identifier ::= "KEYLIST"        ;
+Identifier57.                     Identifier ::= "LEFT"           ;
+Identifier58.                     Identifier ::= "LINK"           ;
+Identifier59.                     Identifier ::= "LOCAL"          ;
+Identifier60.                     Identifier ::= "LOG"            ;
+Identifier61.                     Identifier ::= "MATERIALIZED"   ;
+Identifier62.                     Identifier ::= "NATURAL"        ;
+Identifier63.                     Identifier ::= "NO"             ;
+Identifier64.                     Identifier ::= "NONE"           ;
+Identifier65.                     Identifier ::= "NORM_WITH"      ;
+Identifier66.                     Identifier ::= "ONLINE"         ;
+Identifier67.                     Identifier ::= "OPEN"           ;
+Identifier68.                     Identifier ::= "ORDERED_SET"    ;
+Identifier69.                     Identifier ::= "OUTER"          ;
+Identifier70.                     Identifier ::= "PACKAGE"        ;
+Identifier71.                     Identifier ::= "PARTITION"      ;
+Identifier72.                     Identifier ::= "PRESERVE"       ;
+Identifier73.                     Identifier ::= "PRIMARY"        ;
+Identifier74.                     Identifier ::= "PRIVILEGES"     ;
+Identifier75.                     Identifier ::= "PROCEDURE"      ;
+Identifier76.                     Identifier ::= "PROFILE"        ;
+Identifier77.                     Identifier ::= "PURGE"          ;
+Identifier78.                     Identifier ::= "QUOTA"          ;
+Identifier79.                     Identifier ::= "REFERENCES"     ;
+Identifier80.                     Identifier ::= "REQUIRED"       ;
+Identifier81.                     Identifier ::= "RETURN"         ;
+Identifier82.                     Identifier ::= "RETURNING"      ;
+Identifier83.                     Identifier ::= "REUSE"          ;
+Identifier84.                     Identifier ::= "RIGHT"          ;
+Identifier85.                     Identifier ::= "ROLE"           ;
+Identifier86.                     Identifier ::= "ROLES"          ;
+Identifier87.                     Identifier ::= "ROLLBACK"       ;
+Identifier88.                     Identifier ::= "SCHEMA"         ;
+Identifier89.                     Identifier ::= "SEQUENCE"       ;
+Identifier90.                     Identifier ::= "SQLERROR"       ;
+Identifier91.                     Identifier ::= "STORAGE"        ;
+Identifier92.                     Identifier ::= "TYPE"           ;
+Identifier93.                     Identifier ::= "UNLIMITED"      ;
+Identifier94.                     Identifier ::= "USERS"          ;
+Identifier95.                     Identifier ::= "USING"          ;
+Identifier96.                     Identifier ::= "VALIDATE"       ;
+Identifier97.                     Identifier ::= "WHEN"           ;
+Identifier98.                     Identifier ::= "WHENEVER"       ;
+Identifier99.                     Identifier ::= "WORK"           ;
 
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 -- embedded condition things

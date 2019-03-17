@@ -256,13 +256,19 @@ Terminals
  BAG
  BEGIN
  BETWEEN
+ BFILE
+ BINARY_DOUBLE
+ BINARY_FLOAT
  BITMAP
+ BLOB
  BODY
  BY
  CALL
  CASCADE
  CASE
+ CHAR
  CHECK
+ CLOB
  CLOSE
  CLUSTER
  COMMIT
@@ -279,6 +285,7 @@ Terminals
  CURSOR
  DATABASE
  DATAFILES
+ DATE
  DBLINK
  DEFAULT
  DEFERRED
@@ -298,6 +305,7 @@ Terminals
  EXTERNALLY
  FETCH
  FILTER_WITH
+ FLOAT
  FORCE
  FOREIGN
  FOUND
@@ -337,16 +345,21 @@ Terminals
  LINK
  LOCAL
  LOG
+ LONG
  MATERIALIZED
  MINUS
  NAME
  NATURAL
+ NCHAR
+ NCLOB
  NO
  NOCYCLE
  NONE
  NORM_WITH
  NOT
  NULLX
+ NUMBER
+ NVARCHAR2
  OF
  ON
  ONLINE
@@ -368,6 +381,7 @@ Terminals
  PUBLIC
  PURGE
  QUOTA
+ RAW
  REFERENCES
  REQUIRED
  RETURN
@@ -378,6 +392,7 @@ Terminals
  ROLE
  ROLES
  ROLLBACK
+ ROWID
  SCHEMA
  SELECT
  SEQUENCE
@@ -394,6 +409,7 @@ Terminals
  TEMPORARY
  THEN
  THROUGH
+ TIMESTAMP
  TO
  TRIGGER
  TRUNCATE
@@ -402,17 +418,20 @@ Terminals
  UNIQUE
  UNLIMITED
  UPDATE
+ UROWID
  USER
  USERS
  USING
  VALIDATE
  VALUES
+ VARCHAR2
  VIEW
  WHEN
  WHENEVER
  WHERE
  WITH
  WORK
+ XMLTYPE
  '('
  ')'
  '*'
@@ -639,7 +658,7 @@ user_opts_list -> user_opt user_opts_list : ['$1'] ++ '$2'.
 user_opt -> DEFAULT   TABLESPACE identifier : [{'default tablespace',   '$3'}].
 user_opt -> TEMPORARY TABLESPACE identifier : [{'temporary tablespace', '$3'}].
 user_opt -> quota_list                      : [{quotas,  '$1'}].
-user_opt -> PROFILE identifier              : [{profile, '$2'}].
+user_opt -> PROFILE              identifier : [{profile, '$2'}].
 
 quota_list -> quota            : ['$1'].
 quota_list -> quota quota_list : ['$1'] ++ '$2'.
@@ -870,8 +889,8 @@ drop_directory_def -> DROP DIRECTORY identifier : {'drop directory', '$3'}.
 
 drop_function_def -> DROP FUNCTION function_name : {'drop function', '$3'}.
 
-function_name -> identifier                : '$1'.
-function_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
+function_name -> NAME          : unwrap_bin('$1').
+function_name -> NAME '.' NAME : list_to_binary([unwrap_bin('$1'),".",unwrap_bin('$3')]).
 
 drop_index_def -> DROP INDEX            FROM table                       : {'drop index', {},   '$4'}.
 drop_index_def -> DROP INDEX            FROM table drop_index_extensions : {'drop index', {},   '$4', '$5'}.
@@ -1385,7 +1404,7 @@ fun_arg -> '(' fun_arg ')'               : '$2'.
 fun_arg -> atom                          : '$1'.
 fun_arg -> case_when_exp                 : '$1'.
 fun_arg -> column_ref                    : '$1'.
-fun_arg -> fun_arg       identifier      : {as,   '$1','$2'}.
+fun_arg -> fun_arg       NAME            : {as,   '$1',unwrap_bin('$2')}.
 fun_arg -> fun_arg '*'   fun_arg         : {'*',  '$1','$3'}.
 fun_arg -> fun_arg '+'   fun_arg         : {'+',  '$1','$3'}.
 fun_arg -> fun_arg '-'   fun_arg         : {'-',  '$1','$3'}.
@@ -1403,8 +1422,8 @@ fun_arg -> unary_add_or_subtract fun_arg : {'$1', '$2'}.
 fun_args_named -> fun_arg_named                    : ['$1'].
 fun_args_named -> fun_arg_named ',' fun_args_named : ['$1' | '$3'].
 
-fun_arg_named -> identifier '=>' literal    : {'=>', '$1', '$3'}.
 fun_arg_named -> identifier '=>' identifier : {'=>', '$1', '$3'}.
+fun_arg_named -> identifier '=>' literal    : {'=>', '$1', '$3'}.
 fun_arg_named -> identifier '=>' parameter  : {'=>', '$1', '$3'}.
 
 literal -> STRING    : unwrap_bin('$1').
@@ -1449,10 +1468,39 @@ column_ref -> identifier '.' identifier '.' identifier JSON        : jpparse(lis
 %% data types
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-data_type -> STRING                                 : unwrap_bin('$1').
-data_type -> identifier                             : '$1'.
-data_type -> identifier '(' sgn_num ')'             : {'$1', '$3'}.
-data_type -> identifier '(' sgn_num ',' sgn_num ')' : {'$1', '$3', '$5'}.
+data_type -> BFILE                                 : unwrap_bin('$1').
+data_type -> BINARY_DOUBLE                         : unwrap_bin('$1').
+data_type -> BINARY_FLOAT                          : unwrap_bin('$1').
+data_type -> BLOB                                  : unwrap_bin('$1').
+data_type -> CHAR                                  : unwrap_bin('$1').
+data_type -> CLOB                                  : unwrap_bin('$1').
+data_type -> DATE                                  : unwrap_bin('$1').
+data_type -> FLOAT                                 : unwrap_bin('$1').
+data_type -> LONG                                  : unwrap_bin('$1').
+data_type -> LONG RAW                              : list_to_binary([unwrap_bin('$1'),".",unwrap_bin('$2')]).
+data_type -> NAME                                  : unwrap_bin('$1').
+data_type -> NAME '.' NAME                         : list_to_binary([unwrap_bin('$1'),".",unwrap_bin('$3')]).
+data_type -> NAME '.' NAME '.' NAME                : list_to_binary([unwrap_bin('$1'),".",unwrap_bin('$3'),".",unwrap_bin('$5')]).
+data_type -> NCLOB                                 : unwrap_bin('$1').
+data_type -> NUMBER                                : unwrap_bin('$1').
+data_type -> RAW                                   : unwrap_bin('$1').
+data_type -> ROWID                                 : unwrap_bin('$1').
+data_type -> TIMESTAMP                             : unwrap_bin('$1').
+data_type -> UROWID                                : unwrap_bin('$1').
+data_type -> VARCHAR2                              : unwrap_bin('$1').
+data_type -> XMLTYPE                               : unwrap_bin('$1').
+data_type -> CHAR      '(' sgn_num ')'             : {unwrap_bin('$1'), '$3'}.
+data_type -> FLOAT     '(' sgn_num ')'             : {unwrap_bin('$1'), '$3'}.
+data_type -> NAME      '(' sgn_num ')'             : {unwrap_bin('$1'), '$3'}.
+data_type -> NCHAR     '(' sgn_num ')'             : {unwrap_bin('$1'), '$3'}.
+data_type -> NUMBER    '(' sgn_num ')'             : {unwrap_bin('$1'), '$3'}.
+data_type -> NVARCHAR2 '(' sgn_num ')'             : {unwrap_bin('$1'), '$3'}.
+data_type -> RAW       '(' sgn_num ')'             : {unwrap_bin('$1'), '$3'}.
+data_type -> TIMESTAMP '(' sgn_num ')'             : {unwrap_bin('$1'), '$3'}.
+data_type -> UROWID    '(' sgn_num ')'             : {unwrap_bin('$1'), '$3'}.
+data_type -> VARCHAR2  '(' sgn_num ')'             : {unwrap_bin('$1'), '$3'}.
+data_type -> NAME      '(' sgn_num ',' sgn_num ')' : {unwrap_bin('$1'), '$3', '$5'}.
+data_type -> NUMBER    '(' sgn_num ',' sgn_num ')' : {unwrap_bin('$1'), '$3', '$5'}.
 
 sgn_num ->     INTNUM : unwrap_bin('$1').
 sgn_num -> '-' INTNUM : list_to_binary(["-",unwrap_bin('$2')]).
@@ -1481,11 +1529,17 @@ identifier -> AUTHENTICATION  : unwrap_bin('$1').
 identifier -> AUTHORIZATION   : unwrap_bin('$1').
 identifier -> BAG             : unwrap_bin('$1').
 identifier -> BEGIN           : unwrap_bin('$1').
+identifier -> BFILE           : unwrap_bin('$1').
+identifier -> BINARY_DOUBLE   : unwrap_bin('$1').
+identifier -> BINARY_FLOAT    : unwrap_bin('$1').
 identifier -> BITMAP          : unwrap_bin('$1').
+identifier -> BLOB            : unwrap_bin('$1').
 identifier -> BODY            : unwrap_bin('$1').
 identifier -> CALL            : unwrap_bin('$1').
 identifier -> CASCADE         : unwrap_bin('$1').
 identifier -> CASE            : unwrap_bin('$1').
+identifier -> CHAR            : unwrap_bin('$1').
+identifier -> CLOB            : unwrap_bin('$1').
 identifier -> CLOSE           : unwrap_bin('$1').
 identifier -> COMMIT          : unwrap_bin('$1').
 identifier -> COMPARISON      : unwrap_bin('$1').
@@ -1499,6 +1553,7 @@ identifier -> CURRENT         : unwrap_bin('$1').
 identifier -> CURSOR          : unwrap_bin('$1').
 identifier -> DATABASE        : unwrap_bin('$1').
 identifier -> DATAFILES       : unwrap_bin('$1').
+identifier -> DATE           : unwrap_bin('$1').
 identifier -> DBLINK          : unwrap_bin('$1').
 identifier -> DEFERRED        : unwrap_bin('$1').
 identifier -> DELEGATE        : unwrap_bin('$1').
@@ -1511,6 +1566,7 @@ identifier -> EXECUTE         : unwrap_bin('$1').
 identifier -> EXTERNALLY      : unwrap_bin('$1').
 identifier -> FETCH           : unwrap_bin('$1').
 identifier -> FILTER_WITH     : unwrap_bin('$1').
+identifier -> FLOAT           : unwrap_bin('$1').
 identifier -> FORCE           : unwrap_bin('$1').
 identifier -> FOREIGN         : unwrap_bin('$1').
 identifier -> FOUND           : unwrap_bin('$1').
@@ -1538,13 +1594,18 @@ identifier -> LEFT            : unwrap_bin('$1').
 identifier -> LINK            : unwrap_bin('$1').
 identifier -> LOCAL           : unwrap_bin('$1').
 identifier -> LOG             : unwrap_bin('$1').
+identifier -> LONG            : unwrap_bin('$1').
 identifier -> MATERIALIZED    : unwrap_bin('$1').
 identifier -> NATURAL         : unwrap_bin('$1').
+identifier -> NCHAR           : unwrap_bin('$1').
+identifier -> NCLOB           : unwrap_bin('$1').
 identifier -> NO              : unwrap_bin('$1').
 % identifier -> NOCYCLE         : unwrap_bin('$1').
 identifier -> NONE            : unwrap_bin('$1').
 identifier -> NORM_WITH       : unwrap_bin('$1').
 % identifier -> NULLX           : unwrap_bin('$1').
+identifier -> NUMBER          : unwrap_bin('$1').
+identifier -> NVARCHAR2       : unwrap_bin('$1').
 identifier -> ONLINE          : unwrap_bin('$1').
 identifier -> OPEN            : unwrap_bin('$1').
 identifier -> ORDERED_SET     : unwrap_bin('$1').
@@ -1558,6 +1619,8 @@ identifier -> PRIVILEGES      : unwrap_bin('$1').
 identifier -> PROCEDURE       : unwrap_bin('$1').
 identifier -> PROFILE         : unwrap_bin('$1').
 identifier -> PURGE           : unwrap_bin('$1').
+identifier -> RAW             : unwrap_bin('$1').
+identifier -> ROWID           : unwrap_bin('$1').
 identifier -> QUOTA           : unwrap_bin('$1').
 identifier -> REFERENCES      : unwrap_bin('$1').
 identifier -> REQUIRED        : unwrap_bin('$1').
@@ -1578,16 +1641,20 @@ identifier -> STORAGE         : unwrap_bin('$1').
 % identifier -> TABLESPACE      : unwrap_bin('$1').
 % identifier -> TEMPORARY       : unwrap_bin('$1').
 % identifier -> THROUGH         : unwrap_bin('$1').
+identifier -> TIMESTAMP       : unwrap_bin('$1').
 % identifier -> TRUNCATE        : unwrap_bin('$1').
 identifier -> TYPE            : unwrap_bin('$1').
 identifier -> UNLIMITED       : unwrap_bin('$1').
+identifier -> UROWID          : unwrap_bin('$1').
 % identifier -> USER            : unwrap_bin('$1').
 identifier -> USERS           : unwrap_bin('$1').
 identifier -> USING           : unwrap_bin('$1').
 identifier -> VALIDATE        : unwrap_bin('$1').
+identifier -> VARCHAR2        : unwrap_bin('$1').
 identifier -> WHEN            : unwrap_bin('$1').
 identifier -> WHENEVER        : unwrap_bin('$1').
 identifier -> WORK            : unwrap_bin('$1').
+identifier -> XMLTYPE         : unwrap_bin('$1').
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% embedded condition things

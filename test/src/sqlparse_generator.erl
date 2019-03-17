@@ -133,6 +133,7 @@ create_code() ->
     create_code(grantee_revokee),
     create_code(hint),
     create_code(intnum),
+    create_code(identifier_keyword),
     create_code(json),
     create_code(name),
     create_code(object_privilege),
@@ -147,6 +148,8 @@ create_code() ->
     create_code(system_with_grant_option),
     create_code(tbl_scope),
     create_code(tbl_type),
+
+    create_code(identifier),
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Level 02
@@ -518,15 +521,15 @@ create_code(all_or_any_predicate = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% alter_user_def ::= ( 'ALTER' 'USER' NAME ( ',' NAME )* proxy_clause )
-%%                  | ( 'ALTER' 'USER' NAME spec_item ( spec_item )* )
-%%                  | ( 'ALTER' 'USER' NAME NAME NAME )
+%% alter_user_def ::= ( 'ALTER' 'USER' identifier ( ',' identifier )* proxy_clause )
+%%                  | ( 'ALTER' 'USER' identifier spec_item ( spec_item )* )
+%%                  | ( 'ALTER' 'USER' identifier NAME NAME )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(alter_user_def = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
-    Name_Length = length(Name),
+    [{identifier, Identifier}] = ets:lookup(?CODE_TEMPLATES, identifier),
+    Identifier_Length = length(Identifier),
     [{proxy_clause, Proxy_Clause}] = ets:lookup(?CODE_TEMPLATES, proxy_clause),
     Proxy_Clause_Length = length(Proxy_Clause),
     [{spec_item, Spec_Item}] = ets:lookup(?CODE_TEMPLATES, spec_item),
@@ -537,19 +540,22 @@ create_code(alter_user_def = Rule) ->
             lists:append([
                 "Alter User",
                 " ",
-                lists:nth(rand:uniform(Name_Length), Name),
+                lists:nth(rand:uniform(Identifier_Length), Identifier),
                 case rand:uniform(3) rem 3 of
                     1 -> lists:append([
                         case rand:uniform(3) rem 3 of
                             1 -> lists:append([
                                 ",",
-                                lists:nth(rand:uniform(Name_Length), Name),
+                                lists:nth(rand:uniform(Identifier_Length),
+                                    Identifier),
                                 ",",
-                                lists:nth(rand:uniform(Name_Length), Name)
+                                lists:nth(rand:uniform(Identifier_Length),
+                                    Identifier)
                             ]);
                             2 -> lists:append([
                                 ",",
-                                lists:nth(rand:uniform(Name_Length), Name)
+                                lists:nth(rand:uniform(Identifier_Length),
+                                    Identifier)
                             ]);
                             _ -> []
                         end,
@@ -941,7 +947,7 @@ create_code(column_def = Rule) ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% column_def_opt ::= ( 'NOT' 'NULL' ( 'UNIQUE' | 'PRIMARY' 'KEY' )? )
-%%                  | ( 'DEFAULT' ( function_ref | literal | NAME | 'NULL' | 'USER' ) )
+%%                  | ( 'DEFAULT' ( function_ref | literal | identifier | 'NULL' | 'USER' ) )
 %%                  | ( 'CHECK' '(' search_condition ')' )
 %%                  | ( 'REFERENCES' table ( '(' column_commalist ')' )? )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -953,10 +959,10 @@ create_code(column_def_opt = Rule) ->
     Column_Commalist_Length = length(Column_Commalist),
     [{function_ref, Function_Ref}] = ets:lookup(?CODE_TEMPLATES, function_ref),
     Function_Ref_Length = length(Function_Ref),
+    [{identifier, Identifier}] = ets:lookup(?CODE_TEMPLATES, identifier),
+    Identifier_Length = length(Identifier),
     [{literal, Literal}] = ets:lookup(?CODE_TEMPLATES, literal),
     Literal_Length = length(Literal),
-    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
-    Name_Length = length(Name),
     [{search_condition, Search_Condition}] =
         ets:lookup(?CODE_TEMPLATES, search_condition),
     Search_Condition_Length = length(Search_Condition),
@@ -980,7 +986,8 @@ create_code(column_def_opt = Rule) ->
                         1 -> lists:nth(rand:uniform(Function_Ref_Length),
                             Function_Ref);
                         2 -> lists:nth(rand:uniform(Literal_Length), Literal);
-                        _ -> lists:nth(rand:uniform(Name_Length), Name)
+                        _ -> lists:nth(rand:uniform(Identifier_Length),
+                            Identifier)
                     end
                 ]);
                 2 -> lists:append([
@@ -1010,78 +1017,78 @@ create_code(column_def_opt = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% column_ref ::= ( ( ( ( NAME '.' )? NAME '.' )? ( 'FUNCTION' | NAME | 'TYPE' )? JSON )
-%%              | ( ( ( NAME '.' )? NAME '.' )? ( 'FUNCTION' | NAME | 'TYPE' ) )
-%%              | ( ( ( NAME '.' )? NAME '.' )? ( 'FUNCTION' | NAME | 'TYPE' ) '(' '+' ')' )
-%%              | ( ( NAME '.' )? NAME '.' '*' )
+%% wwe
+%% column_ref ::= ( ( ( ( identifier '.' )? identifier '.' )? identifier | 'TYPE' )? JSON )
+%%              | ( ( ( identifier '.' )? identifier '.' )? ( 'FUNCTION' | identifier | 'TYPE' ) )
+%%              | ( ( ( identifier '.' )? identifier '.' )? ( 'FUNCTION' | identifier | 'TYPE' ) '(' '+' ')' )
+%%              | ( ( identifier '.' )? identifier '.' '*' )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(column_ref = Rule) ->
     ?CREATE_CODE_START,
+    [{identifier, Identifier}] = ets:lookup(?CODE_TEMPLATES, identifier),
+    Identifier_Length = length(Identifier),
     [{json, Json}] = ets:lookup(?CODE_TEMPLATES, json),
     Json_Length = length(Json),
-    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
-    Name_Length = length(Name),
-    ColumnName = lists:append([Name, ["Funktion"], ["Type"]]),
-    ColumnName_Length = length(ColumnName),
 
     Code =
         [
             case rand:uniform(11) rem 11 of
                 1 -> lists:append([
-                    lists:nth(rand:uniform(Name_Length), Name),
+                    lists:nth(rand:uniform(Identifier_Length), Identifier),
                     ".",
-                    lists:nth(rand:uniform(Name_Length), Name),
+                    lists:nth(rand:uniform(Identifier_Length), Identifier),
                     ".",
-                    lists:nth(rand:uniform(ColumnName_Length), ColumnName)
+                    lists:nth(rand:uniform(Identifier_Length), Identifier)
                 ]);
                 2 -> lists:append([
-                    lists:nth(rand:uniform(Name_Length), Name),
+                    lists:nth(rand:uniform(Identifier_Length), Identifier),
                     ".",
-                    lists:nth(rand:uniform(ColumnName_Length), ColumnName)
+                    lists:nth(rand:uniform(Identifier_Length), Identifier)
                 ]);
-                3 -> lists:nth(rand:uniform(ColumnName_Length), ColumnName);
+                3 -> lists:nth(rand:uniform(Identifier_Length), Identifier);
                 4 -> lists:append([
-                    lists:nth(rand:uniform(Name_Length), Name),
+                    lists:nth(rand:uniform(Identifier_Length), Identifier),
                     ".",
-                    lists:nth(rand:uniform(Name_Length), Name),
+                    lists:nth(rand:uniform(Identifier_Length), Identifier),
                     ".",
-                    lists:nth(rand:uniform(ColumnName_Length), ColumnName),
+                    lists:nth(rand:uniform(Identifier_Length), Identifier),
                     lists:nth(rand:uniform(Json_Length), Json)
                 ]);
                 5 -> lists:append([
-                    lists:nth(rand:uniform(Name_Length), Name),
+                    lists:nth(rand:uniform(Identifier_Length), Identifier),
                     ".",
-                    lists:nth(rand:uniform(ColumnName_Length), ColumnName),
+                    lists:nth(rand:uniform(Identifier_Length), Identifier),
                     lists:nth(rand:uniform(Json_Length), Json)
                 ]);
                 6 -> lists:append([
-                    lists:nth(rand:uniform(ColumnName_Length), ColumnName),
+                    lists:nth(rand:uniform(Identifier_Length), Identifier),
                     lists:nth(rand:uniform(Json_Length), Json)
                 ]);
                 7 -> lists:append([
-                    lists:nth(rand:uniform(Name_Length), Name),
+                    lists:nth(rand:uniform(Identifier_Length), Identifier),
                     ".",
-                    lists:nth(rand:uniform(Name_Length), Name),
+                    lists:nth(rand:uniform(Identifier_Length), Identifier),
                     ".",
-                    lists:nth(rand:uniform(ColumnName_Length), ColumnName),
+                    lists:nth(rand:uniform(Identifier_Length), Identifier),
                     "(+)"
                 ]);
                 8 -> lists:append([
-                    lists:nth(rand:uniform(Name_Length), Name),
+                    lists:nth(rand:uniform(Identifier_Length), Identifier),
                     ".",
-                    lists:nth(rand:uniform(ColumnName_Length), ColumnName),
+                    lists:nth(rand:uniform(Identifier_Length), Identifier),
                     "(+)"
                 ]);
-                9 -> lists:nth(rand:uniform(ColumnName_Length), ColumnName) ++
+                9 -> lists:nth(rand:uniform(Identifier_Length), Identifier) ++
                 "(+)";
                 10 -> lists:append([
-                    lists:nth(rand:uniform(Name_Length), Name),
+                    lists:nth(rand:uniform(Identifier_Length), Identifier),
                     ".",
-                    lists:nth(rand:uniform(Name_Length), Name),
+                    lists:nth(rand:uniform(Identifier_Length), Identifier),
                     ".*"
                 ]);
-                _ -> lists:nth(rand:uniform(Name_Length), Name) ++ ".*"
+                _ -> lists:nth(rand:uniform(Identifier_Length), Identifier) ++
+                ".*"
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
@@ -1228,18 +1235,18 @@ create_code(comparison_predicate = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% create_index_def ::= 'CREATE' ( 'BITMAP' | 'KEYLIST' | 'HASHMAP' | 'UNIQUE' )? 'INDEX' ( index_name )? 'ON' table_alias ( '(' ( NAME JSON? ) ( ',' NAME JSON? )* ')' )?
+%% create_index_def ::= 'CREATE' ( 'BITMAP' | 'KEYLIST' | 'HASHMAP' | 'UNIQUE' )? 'INDEX' ( index_name )? 'ON' table_alias ( '(' ( identifier JSON? ) ( ',' identifier JSON? )* ')' )?
 %%                      ( 'NORM_WITH' STRING )?  ( 'FILTER_WITH' STRING )?
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(create_index_def = Rule) ->
     ?CREATE_CODE_START,
+    [{identifier, Identifier}] = ets:lookup(?CODE_TEMPLATES, identifier),
+    Identifier_Length = length(Identifier),
     [{index_name, Index_Name}] = ets:lookup(?CODE_TEMPLATES, index_name),
     Index_Name_Length = length(Index_Name),
     [{json, Json}] = ets:lookup(?CODE_TEMPLATES, json),
     Json_Length = length(Json),
-    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
-    Name_Length = length(Name),
     [{string, String}] = ets:lookup(?CODE_TEMPLATES, string),
     String_Length = length(String),
     [{table_alias, Table_Alias}] = ets:lookup(?CODE_TEMPLATES, table_alias),
@@ -1271,20 +1278,24 @@ create_code(create_index_def = Rule) ->
                         "( ",
                         case rand:uniform(2) rem 2 of
                             1 -> lists:append([
-                                lists:nth(rand:uniform(Name_Length), Name),
+                                lists:nth(rand:uniform(Identifier_Length),
+                                    Identifier),
                                 " ",
                                 lists:nth(rand:uniform(Json_Length), Json)
                             ]);
-                            _ -> lists:nth(rand:uniform(Name_Length), Name)
+                            _ -> lists:nth(rand:uniform(Identifier_Length),
+                                Identifier)
                         end,
                         ", ",
                         case rand:uniform(2) rem 2 of
                             1 -> lists:append([
-                                lists:nth(rand:uniform(Name_Length), Name),
+                                lists:nth(rand:uniform(Identifier_Length),
+                                    Identifier),
                                 " ",
                                 lists:nth(rand:uniform(Json_Length), Json)
                             ]);
-                            _ -> lists:nth(rand:uniform(Name_Length), Name)
+                            _ -> lists:nth(rand:uniform(Identifier_Length),
+                                Identifier)
                         end,
                         ") "
                     ]);
@@ -1292,11 +1303,13 @@ create_code(create_index_def = Rule) ->
                         "( ",
                         case rand:uniform(2) rem 2 of
                             1 -> lists:append([
-                                lists:nth(rand:uniform(Name_Length), Name),
+                                lists:nth(rand:uniform(Identifier_Length),
+                                    Identifier),
                                 " ",
                                 lists:nth(rand:uniform(Json_Length), Json)
                             ]);
-                            _ -> lists:nth(rand:uniform(Name_Length), Name)
+                            _ -> lists:nth(rand:uniform(Identifier_Length),
+                                Identifier)
                         end,
                         ") "
                     ]);
@@ -1321,16 +1334,16 @@ create_code(create_index_def = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% create_role_def ::= 'CREATE' 'ROLE' NAME
+%% create_role_def ::= 'CREATE' 'ROLE' identifier
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(create_role_def = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
+    [{identifier, Identifier}] = ets:lookup(?CODE_TEMPLATES, identifier),
 
     Code =
         [
-                "Create Role " ++ N || N <- Name
+                "Create Role " ++ N || N <- Identifier
         ],
     store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
     store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
@@ -1396,15 +1409,15 @@ create_code(create_table_def = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% create_user_def ::= 'CREATE' 'USER' NAME identified ( user_opt )*
+%% create_user_def ::= 'CREATE' 'USER' identifier identified ( user_opt )*
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(create_user_def = Rule) ->
     ?CREATE_CODE_START,
     [{identified, Identified}] = ets:lookup(?CODE_TEMPLATES, identified),
     Identified_Length = length(Identified),
-    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
-    Name_Length = length(Name),
+    [{identifier, Identifier}] = ets:lookup(?CODE_TEMPLATES, identifier),
+    Identifier_Length = length(Identifier),
     [{user_opt, User_Opt}] = ets:lookup(?CODE_TEMPLATES, user_opt),
     User_Opt_Length = length(User_Opt),
 
@@ -1412,7 +1425,7 @@ create_code(create_user_def = Rule) ->
         [
             lists:append([
                 "Create User ",
-                lists:nth(rand:uniform(Name_Length), Name),
+                lists:nth(rand:uniform(Identifier_Length), Identifier),
                 " ",
                 lists:nth(rand:uniform(Identified_Length), Identified),
                 case rand:uniform(3) rem 3 of
@@ -1436,16 +1449,17 @@ create_code(create_user_def = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% cursor ::= NAME
+%% cursor ::= identifier
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(cursor = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
+    [{identifier, Identifier}] = ets:lookup(?CODE_TEMPLATES, identifier),
 
     Code_1 =
         [
-            re:replace(N, "ident", "cursor", [{return, list}]) || N <- Name
+            re:replace(N, "ident", "cursor",
+                [{return, list}]) || N <- Identifier
         ],
 
     Code =
@@ -1482,9 +1496,9 @@ create_code(cursor_def = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% data_type ::= STRING
-%%             | ( NAME ( '(' opt_sgn_num ')' )? )
-%%             | ( NAME '(' sgn_num ',' sgn_num ')' )
+%% wwe data_type ::= STRING
+%%             | ( identifier ( '(' opt_sgn_num ')' )? )
+%%             | ( identifier '(' sgn_num ',' sgn_num ')' )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(data_type = Rule) ->
@@ -1496,24 +1510,58 @@ create_code(data_type = Rule) ->
 
     Code =
         [
-            case rand:uniform(2) rem 2 of
-                1 -> lists:append([
-                    lists:nth(rand:uniform(Name_Length), Name),
-                    " (",
-                    lists:nth(rand:uniform(Sgn_Num_Length), Sgn_Num),
-                    ")"
-                ]);
-                _ -> lists:append([
-                    lists:nth(rand:uniform(Name_Length), Name),
-                    " (",
-                    lists:nth(rand:uniform(Sgn_Num_Length), Sgn_Num),
-                    ",",
-                    lists:nth(rand:uniform(Sgn_Num_Length), Sgn_Num),
-                    ")"
-                ])
-            end
-            || _ <- lists:seq(1, ?MAX_BASIC * 2)
-        ],
+            "Bfile ",
+            "Binary_Double ",
+            "Binary_Float ",
+            "Blob ",
+            "Char ",
+            "Clob ",
+            "Date ",
+            "Float ",
+            "Long ",
+            "Long Raw ",
+            "Nclob ",
+            "Number ",
+            "Raw ",
+            "Rowid ",
+            "Timestamp ",
+            "Urowid ",
+            "Varchar2 ",
+            "Xmltype "
+        ] ++ [
+        case rand:uniform(3) rem 3 of
+            1 -> lists:nth(rand:uniform(Name_Length), Name) ++ " ";
+            2 -> lists:append([
+                case rand:uniform(10) rem 10 of
+                    1 -> "Char";
+                    2 -> "Float";
+                    3 -> "Nchar";
+                    4 -> "Number";
+                    5 -> "Nvarchar2";
+                    6 -> "Raw";
+                    7 -> "Timestamp";
+                    8 -> "Urowid";
+                    9 -> "Varchar2";
+                    _ -> lists:nth(rand:uniform(Name_Length), Name)
+                end,
+                " (",
+                lists:nth(rand:uniform(Sgn_Num_Length), Sgn_Num),
+                ")"
+            ]);
+            _ -> lists:append([
+                case rand:uniform(2) rem 2 of
+                    1 -> "Number";
+                    _ -> lists:nth(rand:uniform(Name_Length), Name)
+                end,
+                " (",
+                lists:nth(rand:uniform(Sgn_Num_Length), Sgn_Num),
+                ",",
+                lists:nth(rand:uniform(Sgn_Num_Length), Sgn_Num),
+                ")"
+            ])
+        end
+        || _ <- lists:seq(1, ?MAX_BASIC * 2)
+    ],
     store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
@@ -1662,7 +1710,7 @@ create_code(drop_cluster_extensions = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% drop_context_def ::= 'DROP' 'CONTEXT' NAME
+%% drop_context_def ::= 'DROP' 'CONTEXT' identifier
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(drop_context_def = Rule) ->
@@ -1695,7 +1743,7 @@ create_code(drop_database_def = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% drop_database_link_def ::= 'DROP' 'PUBLIC'? 'DATABASE' 'LINK' NAME
+%% drop_database_link_def ::= 'DROP' 'PUBLIC'? 'DATABASE' 'LINK' identifier
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(drop_database_link_def = Rule) ->
@@ -1722,7 +1770,7 @@ create_code(drop_database_link_def = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% drop_directory_def ::= 'DROP' 'DIRECTORY' NAME
+%% drop_directory_def ::= 'DROP' 'DIRECTORY' identifier
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(drop_directory_def = Rule) ->
@@ -1941,7 +1989,7 @@ create_code(drop_procedure_def = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% drop_profile_def ::= 'DROP' 'PROFILE' NAME 'CASCADE'?
+%% drop_profile_def ::= 'DROP' 'PROFILE' identifier 'CASCADE'?
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(drop_profile_def = Rule) ->
@@ -1968,7 +2016,7 @@ create_code(drop_profile_def = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% drop_role_def ::= 'DROP' 'ROLE' NAME
+%% drop_role_def ::= 'DROP' 'ROLE' identifier
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(drop_role_def = Rule) ->
@@ -2052,13 +2100,13 @@ create_code(drop_synonym_def = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% drop_table_def ::= 'DROP' NAME? 'TABLE' exists? table_list drop_table_extensions?
+%% drop_table_def ::= 'DROP' identifier? 'TABLE' exists? table_list drop_table_extensions?
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(drop_table_def = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
-    Name_Length = length(Name),
+    [{identifier, Identifier}] = ets:lookup(?CODE_TEMPLATES, identifier),
+    Identifier_Length = length(Identifier),
     [{table_list, Table_List}] = ets:lookup(?CODE_TEMPLATES, table_list),
     Table_List_Length = length(Table_List),
     [{drop_table_extensions, Drop_Table_Extensions}] =
@@ -2071,7 +2119,8 @@ create_code(drop_table_def = Rule) ->
                 "Drop",
                 case rand:uniform(2) rem 2 of
                     1 ->
-                        " " ++ lists:nth(rand:uniform(Name_Length), Name);
+                        " " ++
+                        lists:nth(rand:uniform(Identifier_Length), Identifier);
                     _ -> []
                 end,
                 " Table",
@@ -2115,7 +2164,7 @@ create_code(drop_table_extensions = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% drop_tablespace_def ::= 'DROP' 'TABLESPACE' NAME drop_tablespace_extensions?
+%% drop_tablespace_def ::= 'DROP' 'TABLESPACE' identifier drop_tablespace_extensions?
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(drop_tablespace_def = Rule) ->
@@ -2269,19 +2318,19 @@ create_code(drop_type_def = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% drop_user_def ::= 'DROP' 'USER' NAME 'CASCADE'?
+%% drop_user_def ::= 'DROP' 'USER' identifier 'CASCADE'?
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(drop_user_def = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
-    Name_Length = length(Name),
+    [{identifier, Identifier}] = ets:lookup(?CODE_TEMPLATES, identifier),
+    Identifier_Length = length(Identifier),
 
     Code =
         [
             lists:append([
                 "Drop User ",
-                lists:nth(rand:uniform(Name_Length), Name),
+                lists:nth(rand:uniform(Identifier_Length), Identifier),
                 case rand:uniform(2) rem 2 of
                     1 -> " Cascade";
                     _ -> []
@@ -2341,7 +2390,7 @@ create_code(existence_test = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% extra ::= NAME  ';'
+%% extra ::= identifier  ';'
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(extra = Rule) ->
@@ -2472,15 +2521,15 @@ create_code(fun_arg = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% fun_arg_named ::= NAME '=>' scalar_opt_as_exp
+%% fun_arg_named ::= identifier '=>' scalar_opt_as_exp
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(fun_arg_named = Rule) ->
     ?CREATE_CODE_START,
+    [{identifier, Identifier}] = ets:lookup(?CODE_TEMPLATES, identifier),
+    Identifier_Length = length(Identifier),
     [{literal, Literal}] = ets:lookup(?CODE_TEMPLATES, literal),
     Literal_Length = length(Literal),
-    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
-    Name_Length = length(Name),
     [{parameter, Parameter}] = ets:lookup(?CODE_TEMPLATES, parameter),
     Parameter_Length = length(Parameter),
 
@@ -2488,11 +2537,12 @@ create_code(fun_arg_named = Rule) ->
         lists:append([
             [
                 lists:append([
-                    lists:nth(rand:uniform(Name_Length), Name),
+                    lists:nth(rand:uniform(Identifier_Length), Identifier),
                     " => ",
                     case rand:uniform(3) rem 3 of
                         1 -> lists:nth(rand:uniform(Literal_Length), Literal);
-                        2 -> lists:nth(rand:uniform(Name_Length), Name);
+                        2 -> lists:nth(rand:uniform(Identifier_Length),
+                            Identifier);
                         _ ->
                             lists:nth(rand:uniform(Parameter_Length), Parameter)
                     end
@@ -2564,7 +2614,7 @@ create_code(fun_args_named = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% function_ref ::= ( ( ( NAME '.' )?  NAME '.' )? NAME '(' ( fun_args | fun_args_named)? ')' )
+%% function_ref ::= ( ( ( identifier '.' )?  identifier '.' )? identifier '(' ( fun_args | fun_args_named)? ')' )
 %%                | ( 'FUNS' ( '(' ( fun_args | fun_args_named | '*' | ( 'DISTINCT' column_ref ) | ( 'ALL' scalar_exp ) )? ')' )? )
 %%                | ( function_ref JSON )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -2580,8 +2630,8 @@ create_code(function_ref = Rule) ->
     [{fun_args_named, Fun_Args_Named}] =
         ets:lookup(?CODE_TEMPLATES, fun_args_named),
     Fun_Args_Named_Length = length(Fun_Args_Named),
-    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
-    Name_Length = length(Name),
+    [{identifier, Identifier}] = ets:lookup(?CODE_TEMPLATES, identifier),
+    Identifier_Length = length(Identifier),
     [{scalar_exp, Scalar_Exp}] = ets:lookup(?CODE_TEMPLATES, scalar_exp),
     Scalar_Exp_Length = length(Scalar_Exp),
 
@@ -2590,19 +2640,25 @@ create_code(function_ref = Rule) ->
             case rand:uniform(2) rem 2 of
                 1 -> case rand:uniform(6) rem 6 of
                          1 -> lists:append([
-                             lists:nth(rand:uniform(Name_Length), Name),
+                             lists:nth(rand:uniform(Identifier_Length),
+                                 Identifier),
                              ".",
-                             lists:nth(rand:uniform(Name_Length), Name),
+                             lists:nth(rand:uniform(Identifier_Length),
+                                 Identifier),
                              ".",
-                             lists:nth(rand:uniform(Name_Length), Name),
+                             lists:nth(rand:uniform(Identifier_Length),
+                                 Identifier),
                              " ()"
                          ]);
                          2 -> lists:append([
-                             lists:nth(rand:uniform(Name_Length), Name),
+                             lists:nth(rand:uniform(Identifier_Length),
+                                 Identifier),
                              ".",
-                             lists:nth(rand:uniform(Name_Length), Name),
+                             lists:nth(rand:uniform(Identifier_Length),
+                                 Identifier),
                              ".",
-                             lists:nth(rand:uniform(Name_Length), Name),
+                             lists:nth(rand:uniform(Identifier_Length),
+                                 Identifier),
                              " (",
                              case rand:uniform(2) rem 2 of
                                  1 -> lists:nth(rand:uniform(Fun_Args_Length),
@@ -2614,15 +2670,19 @@ create_code(function_ref = Rule) ->
                              ")"
                          ]);
                          3 -> lists:append([
-                             lists:nth(rand:uniform(Name_Length), Name),
+                             lists:nth(rand:uniform(Identifier_Length),
+                                 Identifier),
                              ".",
-                             lists:nth(rand:uniform(Name_Length), Name),
+                             lists:nth(rand:uniform(Identifier_Length),
+                                 Identifier),
                              " ()"
                          ]);
                          4 -> lists:append([
-                             lists:nth(rand:uniform(Name_Length), Name),
+                             lists:nth(rand:uniform(Identifier_Length),
+                                 Identifier),
                              ".",
-                             lists:nth(rand:uniform(Name_Length), Name),
+                             lists:nth(rand:uniform(Identifier_Length),
+                                 Identifier),
                              " (",
                              case rand:uniform(2) rem 2 of
                                  1 -> lists:nth(rand:uniform(Fun_Args_Length),
@@ -2634,11 +2694,13 @@ create_code(function_ref = Rule) ->
                              ")"
                          ]);
                          5 -> lists:append([
-                             lists:nth(rand:uniform(Name_Length), Name),
+                             lists:nth(rand:uniform(Identifier_Length),
+                                 Identifier),
                              " ()"
                          ]);
                          _ -> lists:append([
-                             lists:nth(rand:uniform(Name_Length), Name),
+                             lists:nth(rand:uniform(Identifier_Length),
+                                 Identifier),
                              " (",
                              case rand:uniform(2) rem 2 of
                                  1 -> lists:nth(rand:uniform(Fun_Args_Length),
@@ -2872,20 +2934,20 @@ create_code(grant_def = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% grantee_identified_by ::= NAME 'IDENTIFIED' 'BY' STRING
+%% grantee_identified_by ::= identifier 'IDENTIFIED' 'BY' STRING
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(grantee_identified_by = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
-    Name_Length = length(Name),
+    [{identifier, Identifier}] = ets:lookup(?CODE_TEMPLATES, identifier),
+    Identifier_Length = length(Identifier),
     [{string, String}] = ets:lookup(?CODE_TEMPLATES, string),
     String_Length = length(String),
 
     Code =
         [
             lists:append([
-                lists:nth(rand:uniform(Name_Length), Name),
+                lists:nth(rand:uniform(Identifier_Length), Identifier),
                 " Identified By ",
                 lists:nth(rand:uniform(String_Length), String)
             ])
@@ -2895,7 +2957,7 @@ create_code(grantee_identified_by = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% grantee_revokee ::= NAME
+%% grantee_revokee ::= identifier
 %%                  | 'PUBLIC'
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -3023,13 +3085,13 @@ create_code(hint = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% identified ::= IDENTIFIED ( ( 'BY' NAME ) | ( EXTERNALLY ( 'AS' NAME ) ) | ( 'GLOBALLY' ( 'AS' NAME )? ) )
+%% identified ::= IDENTIFIED ( ( 'BY' identifier ) | ( EXTERNALLY ( 'AS' identifier ) ) | ( 'GLOBALLY' ( 'AS' identifier )? ) )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(identified = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
-    Name_Length = length(Name),
+    [{identifier, Identifier}] = ets:lookup(?CODE_TEMPLATES, identifier),
+    Identifier_Length = length(Identifier),
 
     Code =
         [
@@ -3044,12 +3106,267 @@ create_code(identified = Rule) ->
                     2 -> " Externally As ";
                     _ -> " Globally As "
                 end,
-                lists:nth(rand:uniform(Name_Length), Name)
+                lists:nth(rand:uniform(Identifier_Length), Identifier)
             ])
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
     store_code(Rule, Code, ?MAX_BASIC, false),
     store_code(spec_item, Code, ?MAX_BASIC, false),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% wwe
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(identifier = Rule) ->
+    ?CREATE_CODE_START,
+
+    [{identifier_keyword, Identifier_Keyword}] =
+        ets:lookup(?CODE_TEMPLATES, identifier_keyword),
+    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
+
+    Code = Identifier_Keyword ++ Name,
+    store_code(Rule, Code, ?MAX_BASIC, false),
+    store_code(cluster_name,
+        [re:replace(re:replace(C, "ident", "ident_cluster", [{return, list}]),
+            "IDENT", "IDENT_CLUSTER", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
+        false),
+    store_code(column,
+        [re:replace(re:replace(C, "ident", "ident_column", [{return, list}]),
+            "IDENT", "IDENT_COLUMN", [{return, list}]) || C <- Code],
+        ?MAX_BASIC, false),
+    store_code(column_ref, [re:replace(
+        re:replace(C, "ident", "ident_column_ref", [{return, list}]), "IDENT",
+        "IDENT_COLUMN_REF", [{return, list}]) || C <- Code], ?MAX_BASIC, false),
+    store_code(context_name,
+        [re:replace(re:replace(C, "ident", "ident_context", [{return, list}]),
+            "IDENT", "IDENT_CONTEXT", [{return, list}]) || C <- Code],
+        ?MAX_BASIC, false),
+    store_code(directory_name,
+        [re:replace(re:replace(C, "ident", "ident_directory", [{return, list}]),
+            "IDENT", "IDENT_DIRECTORY", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
+        false),
+    store_code(from_column, [re:replace(
+        re:replace(C, "ident", "ident_from_column", [{return, list}]), "IDENT",
+        "IDENT_FROM_COLUMN", [{return, list}]) || C <- Code], ?MAX_BASIC,
+        false),
+    store_code(grantee_revokee, [re:replace(
+        re:replace(C, "ident", "ident_grantee_revokee", [{return, list}]),
+        "IDENT", "IDENT_GRANTEE_REVOKEE", [{return, list}]) || C <- Code],
+        ?MAX_BASIC, false),
+    store_code(index_name,
+        [re:replace(re:replace(C, "ident", "ident_index", [{return, list}]),
+            "IDENT", "IDENT_INDEX", [{return, list}]) || C <- Code],
+        ?MAX_BASIC, false),
+    store_code(materialized_view_name,
+        [re:replace(
+            re:replace(C, "ident", "ident_materialized_view", [{return, list}]),
+            "IDENT", "IDENT_MATERIALIZED_VIEW", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
+        false),
+    store_code(package_name,
+        [re:replace(re:replace(C, "ident", "ident_package", [{return, list}]),
+            "IDENT", "IDENT_PACKAGE", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
+        false),
+    store_code(procedure_name,
+        [re:replace(re:replace(C, "ident", "ident_procedure", [{return, list}]),
+            "IDENT", "IDENT_PROCEDURE", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
+        false),
+    store_code(profile_name,
+        [re:replace(re:replace(C, "ident", "ident_profile", [{return, list}]),
+            "IDENT", "IDENT_PROFILE", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
+        false),
+    store_code(role_name,
+        [re:replace(re:replace(C, "ident", "ident_role", [{return, list}]),
+            "IDENT", "IDENT_ROLE", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
+        false),
+    store_code(scalar_exp, [re:replace(
+        re:replace(C, "ident", "ident_scalar_exp", [{return, list}]), "IDENT",
+        "IDENT_SCALAR_EXP", [{return, list}]) || C <- Code], ?MAX_BASIC, false),
+    store_code(scalar_sub_exp, [re:replace(
+        re:replace(C, "ident", "ident_scalar_sub_exp", [{return, list}]),
+        "IDENT", "IDENT_SCALAR_SUB_EXP", [{return, list}]) || C <- Code],
+        ?MAX_BASIC, false),
+    store_code(schema_name,
+        [re:replace(re:replace(C, "ident", "ident_schema", [{return, list}]),
+            "IDENT", "IDENT_SCHEMA", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
+        false),
+    store_code(sequence_name,
+        [re:replace(re:replace(C, "ident", "ident_sequence", [{return, list}]),
+            "IDENT", "IDENT_SEQUENCE", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
+        false),
+    store_code(synonym_name,
+        [re:replace(re:replace(C, "ident", "ident_synonym", [{return, list}]),
+            "IDENT", "IDENT_SYNONYM", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
+        false),
+    store_code(table,
+        [re:replace(re:replace(C, "ident", "ident_table", [{return, list}]),
+            "IDENT", "IDENT_TABLE", [{return, list}]) || C <- Code], ?MAX_BASIC,
+        false),
+    store_code(table_name,
+        [re:replace(re:replace(C, "ident", "ident_table", [{return, list}]),
+            "IDENT", "IDENT_TABLE", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
+        false),
+    store_code(tablespace_name,
+        [re:replace(
+            re:replace(C, "ident", "ident_tablespace", [{return, list}]),
+            "IDENT", "IDENT_TABLESPACE", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
+        false),
+    store_code(target,
+        [re:replace(re:replace(C, "ident", "ident_target", [{return, list}]),
+            "IDENT", "IDENT_TARGET", [{return, list}]) || C <- Code],
+        ?MAX_BASIC, false),
+    store_code(trigger_name,
+        [re:replace(re:replace(C, "ident", "ident_trigger", [{return, list}]),
+            "IDENT", "IDENT_TRIGGER", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
+        false),
+    store_code(type_name,
+        [re:replace(re:replace(C, "ident", "ident_type", [{return, list}]),
+            "IDENT", "IDENT_TYPE", [{return, list}]) || C <- Code],
+        ?MAX_BASIC,
+        false),
+    ?CREATE_CODE_END;
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% wwe
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+create_code(identifier_keyword = Rule) ->
+    ?CREATE_CODE_START,
+
+    Code =
+        [
+            "ADMIN",
+            "AUTHENTICATION",
+            "AUTHORIZATION",
+            "BAG",
+            "BEGIN",
+            "BFILE",
+            "BINARY_DOUBLE",
+            "BINARY_FLOAT",
+            "BITMAP",
+            "BLOB",
+            "BODY",
+            "CALL",
+            "CASCADE",
+            "CASE",
+            "CHAR",
+            "CLOB",
+            "CLOSE",
+            "COMMIT",
+            "COMPARISON",
+            "CONSTRAINT",
+            "CONSTRAINTS",
+            "CONTENTS",
+            "CONTEXT",
+            "CONTINUE",
+            "CROSS",
+            "CURRENT",
+            "CURSOR",
+            "DATABASE",
+            "DATAFILES",
+            "DATE",
+            "DBLINK",
+            "DEFERRED",
+            "DELEGATE",
+            "DIRECTORY",
+            "END",
+            "ENTERPRISE",
+            "ESCAPE",
+            "EXCEPT",
+            "EXECUTE",
+            "EXTERNALLY",
+            "FETCH",
+            "FILTER_WITH",
+            "FLOAT",
+            "FORCE",
+            "FOREIGN",
+            "FOUND",
+            "FULL",
+            "FUNCTION",
+            "GLOBALLY",
+            "GOTO",
+            "HASHMAP",
+            "HIERARCHY",
+            "IF",
+            "IMMEDIATE",
+            "INCLUDING",
+            "INDICATOR",
+            "INNER",
+            "INVALIDATION",
+            "JOIN",
+            "JSON",
+            "KEEP",
+            "KEY",
+            "KEYLIST",
+            "LEFT",
+            "LINK",
+            "LOCAL",
+            "LOG",
+            "LONG",
+            "MATERIALIZED",
+            "NATURAL",
+            "NCHAR",
+            "NCLOB",
+            "NO",
+            "NONE",
+            "NORM_WITH",
+            "NUMBER",
+            "NVARCHAR2",
+            "ONLINE",
+            "OPEN",
+            "ORDERED_SET",
+            "OUTER",
+            "PACKAGE",
+            "PARTITION",
+            "PRESERVE",
+            "PRIMARY",
+            "PRIVILEGES",
+            "PROCEDURE",
+            "PROFILE",
+            "PURGE",
+            "QUOTA",
+            "RAW",
+            "REFERENCES",
+            "REQUIRED",
+            "RETURN",
+            "RETURNING",
+            "REUSE",
+            "RIGHT",
+            "ROLE",
+            "ROLES",
+            "ROLLBACK",
+            "ROWID",
+            "SCHEMA",
+            "SEQUENCE",
+            "SQLERROR",
+            "STORAGE",
+            "TIMESTAMP",
+            "TYPE",
+            "UNLIMITED",
+            "UROWID",
+            "USERS",
+            "USING",
+            "VALIDATE",
+            "VARCHAR2",
+            "WHEN",
+            "WHENEVER",
+            "WORK",
+            "XMLTYPE"
+        ],
+    store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3093,23 +3410,23 @@ create_code(in_predicate = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% index_name ::= ( NAME '.' )? NAME
+%% index_name ::= ( identifier '.' )? identifier
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(index_name = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
-    Name_Length = length(Name),
+    [{identifier, Identifier}] = ets:lookup(?CODE_TEMPLATES, identifier),
+    Identifier_Length = length(Identifier),
 
     Code =
         [
             case rand:uniform(2) rem 2 of
                 1 -> lists:append([
-                    lists:nth(rand:uniform(Name_Length), Name),
+                    lists:nth(rand:uniform(Identifier_Length), Identifier),
                     ".",
-                    lists:nth(rand:uniform(Name_Length), Name)
+                    lists:nth(rand:uniform(Identifier_Length), Identifier)
                 ]);
-                _ -> lists:nth(rand:uniform(Name_Length), Name)
+                _ -> lists:nth(rand:uniform(Identifier_Length), Identifier)
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
@@ -3520,145 +3837,19 @@ create_code(name = Rule) ->
             "X@YZ_ident"
         ],
     store_code(Rule, Code, ?MAX_BASIC, false),
-    store_code(cluster_name,
-        [re:replace(re:replace(C, "ident", "ident_cluster", [{return, list}]),
-            "IDENT", "IDENT_CLUSTER", [{return, list}]) || C <- Code],
-        ?MAX_BASIC,
-        false),
-    store_code(column,
-        [re:replace(re:replace(C, "ident", "ident_column", [{return, list}]),
-            "IDENT", "IDENT_COLUMN", [{return, list}]) || C <- Code],
-        ?MAX_BASIC, false),
-    store_code(column_ref, [re:replace(
-        re:replace(C, "ident", "ident_column_ref", [{return, list}]), "IDENT",
-        "IDENT_COLUMN_REF", [{return, list}]) || C <- Code], ?MAX_BASIC, false),
-    store_code(context_name,
-        [re:replace(re:replace(C, "ident", "ident_context", [{return, list}]),
-            "IDENT", "IDENT_CONTEXT", [{return, list}]) || C <- Code],
-        ?MAX_BASIC, false),
-    store_code(directory_name,
-        [re:replace(re:replace(C, "ident", "ident_directory", [{return, list}]),
-            "IDENT", "IDENT_DIRECTORY", [{return, list}]) || C <- Code],
-        ?MAX_BASIC,
-        false),
-    store_code(from_column, [re:replace(
-        re:replace(C, "ident", "ident_from_column", [{return, list}]), "IDENT",
-        "IDENT_FROM_COLUMN", [{return, list}]) || C <- Code], ?MAX_BASIC,
-        false),
     store_code(function_name,
         [re:replace(re:replace(C, "ident", "ident_function", [{return, list}]),
             "IDENT", "IDENT_FUNCTION", [{return, list}]) || C <- Code],
-        ?MAX_BASIC,
-        false),
-    store_code(grantee_revokee, [re:replace(
-        re:replace(C, "ident", "ident_grantee_revokee", [{return, list}]),
-        "IDENT", "IDENT_GRANTEE_REVOKEE", [{return, list}]) || C <- Code],
-        ?MAX_BASIC, false),
-    store_code(index_name,
-        [re:replace(re:replace(C, "ident", "ident_index", [{return, list}]),
-            "IDENT", "IDENT_INDEX", [{return, list}]) || C <- Code],
-        ?MAX_BASIC, false),
-    store_code(join_ref,
-        [re:replace(re:replace(C, "ident", "ident_join_ref", [{return, list}]),
-            "IDENT", "IDENT_JOIN_REF", [{return, list}]) || C <- Code],
-        ?MAX_BASIC, false),
-    store_code(materialized_view_name,
-        [re:replace(
-            re:replace(C, "ident", "ident_materialized_view", [{return, list}]),
-            "IDENT", "IDENT_MATERIALIZED_VIEW", [{return, list}]) || C <- Code],
-        ?MAX_BASIC,
-        false),
-    store_code(package_name,
-        [re:replace(re:replace(C, "ident", "ident_package", [{return, list}]),
-            "IDENT", "IDENT_PACKAGE", [{return, list}]) || C <- Code],
-        ?MAX_BASIC,
-        false),
-    store_code(procedure_name,
-        [re:replace(re:replace(C, "ident", "ident_procedure", [{return, list}]),
-            "IDENT", "IDENT_PROCEDURE", [{return, list}]) || C <- Code],
-        ?MAX_BASIC,
-        false),
-    store_code(profile_name,
-        [re:replace(re:replace(C, "ident", "ident_profile", [{return, list}]),
-            "IDENT", "IDENT_PROFILE", [{return, list}]) || C <- Code],
-        ?MAX_BASIC,
-        false),
-    store_code(role_name,
-        [re:replace(re:replace(C, "ident", "ident_role", [{return, list}]),
-            "IDENT", "IDENT_ROLE", [{return, list}]) || C <- Code],
-        ?MAX_BASIC,
-        false),
-    store_code(scalar_exp, [re:replace(
-        re:replace(C, "ident", "ident_scalar_exp", [{return, list}]), "IDENT",
-        "IDENT_SCALAR_EXP", [{return, list}]) || C <- Code], ?MAX_BASIC, false),
-    store_code(scalar_sub_exp, [re:replace(
-        re:replace(C, "ident", "ident_scalar_sub_exp", [{return, list}]),
-        "IDENT", "IDENT_SCALAR_SUB_EXP", [{return, list}]) || C <- Code],
-        ?MAX_BASIC, false),
-    store_code(schema_name,
-        [re:replace(re:replace(C, "ident", "ident_schema", [{return, list}]),
-            "IDENT", "IDENT_SCHEMA", [{return, list}]) || C <- Code],
-        ?MAX_BASIC,
-        false),
-    store_code(sequence_name,
-        [re:replace(re:replace(C, "ident", "ident_sequence", [{return, list}]),
-            "IDENT", "IDENT_SEQUENCE", [{return, list}]) || C <- Code],
-        ?MAX_BASIC,
-        false),
-    store_code(synonym_name,
-        [re:replace(re:replace(C, "ident", "ident_synonym", [{return, list}]),
-            "IDENT", "IDENT_SYNONYM", [{return, list}]) || C <- Code],
         ?MAX_BASIC,
         false),
     store_code(system_privilege,
         [re:replace(re:replace(C, "ident", "ident_sys_priv", [{return, list}]),
             "IDENT", "IDENT_SYS_PRIV", [{return, list}]) || C <- Code],
         ?MAX_BASIC, false),
-    store_code(table,
-        [re:replace(re:replace(C, "ident", "ident_table", [{return, list}]),
-            "IDENT", "IDENT_TABLE", [{return, list}]) || C <- Code], ?MAX_BASIC,
-        false),
-    store_code(table_alias, [re:replace(
-        re:replace(C, "ident", "ident_table_alias", [{return, list}]), "IDENT",
-        "IDENT_TABLE_ALIAS", [{return, list}]) || C <- Code], ?MAX_BASIC,
-        false),
-    store_code(table_dblink, [re:replace(
-        re:replace(C, "ident", "ident_table_dblink", [{return, list}]), "IDENT",
-        "IDENT_TABLE_DBLINK", [{return, list}]) || C <- Code], ?MAX_BASIC,
-        false),
-    store_code(table_name,
-        [re:replace(re:replace(C, "ident", "ident_table", [{return, list}]),
-            "IDENT", "IDENT_TABLE", [{return, list}]) || C <- Code],
-        ?MAX_BASIC,
-        false),
-    store_code(table_ref,
-        [re:replace(re:replace(C, "ident", "ident_table_ref", [{return, list}]),
-            "IDENT", "IDENT_TABLE_REF", [{return, list}]) || C <- Code],
-        ?MAX_BASIC, false),
-    store_code(tablespace_name,
-        [re:replace(
-            re:replace(C, "ident", "ident_tablespace", [{return, list}]),
-            "IDENT", "IDENT_TABLESPACE", [{return, list}]) || C <- Code],
-        ?MAX_BASIC,
-        false),
-    store_code(target,
-        [re:replace(re:replace(C, "ident", "ident_target", [{return, list}]),
-            "IDENT", "IDENT_TARGET", [{return, list}]) || C <- Code],
-        ?MAX_BASIC, false),
     store_code(tbl_type,
         [re:replace(re:replace(C, "ident", "ident_tbl_type", [{return, list}]),
             "IDENT", "IDENT_TBL_TYPE", [{return, list}]) || C <- Code],
         ?MAX_BASIC, false),
-    store_code(trigger_name,
-        [re:replace(re:replace(C, "ident", "ident_trigger", [{return, list}]),
-            "IDENT", "IDENT_TRIGGER", [{return, list}]) || C <- Code],
-        ?MAX_BASIC,
-        false),
-    store_code(type_name,
-        [re:replace(re:replace(C, "ident", "ident_type", [{return, list}]),
-            "IDENT", "IDENT_TYPE", [{return, list}]) || C <- Code],
-        ?MAX_BASIC,
-        false),
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3751,13 +3942,13 @@ create_code(object_with_revoke_option = Rule) ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% on_obj_clause ::= ( 'ON' table )
-%%                 | ( 'ON' 'DIRECTORY' NAME )
+%%                 | ( 'ON' 'DIRECTORY' identifier )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(on_obj_clause = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
-    Name_Length = length(Name),
+    [{identifier, Identifier}] = ets:lookup(?CODE_TEMPLATES, identifier),
+    Identifier_Length = length(Identifier),
     [{table, Table}] = ets:lookup(?CODE_TEMPLATES, table),
     Table_Length = length(Table),
 
@@ -3767,7 +3958,7 @@ create_code(on_obj_clause = Rule) ->
                 case rand:uniform(3) rem 3 of
                     1 -> " " ++ lists:nth(rand:uniform(Table_Length), Table);
                     _ -> " Directory " ++
-                    lists:nth(rand:uniform(Name_Length), Name)
+                    lists:nth(rand:uniform(Identifier_Length), Identifier)
                 end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
@@ -4287,36 +4478,36 @@ create_code(query_term_json = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% quota ::= ( 'QUOTA' 'UNLIMITED' 'ON' NAME )
-%%         | ( 'QUOTA' INTNUM ( NAME )? 'ON' NAME )
+%% quota ::= ( 'QUOTA' 'UNLIMITED' 'ON' identifier )
+%%         | ( 'QUOTA' INTNUM ( identifier )? 'ON' identifier )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(quota = Rule) ->
     ?CREATE_CODE_START,
+    [{identifier, Identifier}] = ets:lookup(?CODE_TEMPLATES, identifier),
+    Identifier_Length = length(Identifier),
     [{intnum, Intnum}] = ets:lookup(?CODE_TEMPLATES, intnum),
     Intnum_Length = length(Intnum),
-    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
-    Name_Length = length(Name),
 
     Code =
         [
             case rand:uniform(3) rem 3 of
                 1 ->
                     "Quota Unlimited On " ++
-                    lists:nth(rand:uniform(Name_Length), Name);
+                    lists:nth(rand:uniform(Identifier_Length), Identifier);
                 2 -> lists:append([
                     "Quota ",
                     lists:nth(rand:uniform(Intnum_Length), Intnum),
                     " ",
-                    lists:nth(rand:uniform(Name_Length), Name),
+                    lists:nth(rand:uniform(Identifier_Length), Identifier),
                     " On ",
-                    lists:nth(rand:uniform(Name_Length), Name)
+                    lists:nth(rand:uniform(Identifier_Length), Identifier)
                 ]);
                 _ -> lists:append([
                     "Quota ",
                     lists:nth(rand:uniform(Intnum_Length), Intnum),
                     " On ",
-                    lists:nth(rand:uniform(Name_Length), Name)
+                    lists:nth(rand:uniform(Identifier_Length), Identifier)
                 ])
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
@@ -4739,13 +4930,13 @@ create_code(scalar_sub_exp_json = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% schema ::= 'CREATE' 'SCHEMA' 'AUTHORIZATION' NAME ( schema_element ( schema_element )* )?
+%% schema ::= 'CREATE' 'SCHEMA' 'AUTHORIZATION' identifier ( schema_element ( schema_element )* )?
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(schema = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
-    Name_Length = length(Name),
+    [{identifier, Identifier}] = ets:lookup(?CODE_TEMPLATES, identifier),
+    Identifier_Length = length(Identifier),
     [{schema_element, Schema_Element}] =
         ets:lookup(?CODE_TEMPLATES, schema_element),
     Schema_Element_Length = length(Schema_Element),
@@ -4754,7 +4945,7 @@ create_code(schema = Rule) ->
         [
             lists:append([
                 "Create Schema Authorization ",
-                lists:nth(rand:uniform(Name_Length), Name),
+                lists:nth(rand:uniform(Identifier_Length), Identifier),
                 case rand:uniform(3) rem 3 of
                     1 -> lists:append([
                         " ",
@@ -4938,14 +5129,14 @@ create_code(special = Rule) ->
 %% ---------------------------------------------------------------------
 %% changed: JSON
 %% ---------------------------------------------------------------------
-%% create_index_spec_items -> NAME JSON?
-%% create_index_spec_items -> NAME JSON? ',' create_index_spec_items
+%% create_index_spec_items -> identifier JSON?
+%% create_index_spec_items -> identifier JSON? ',' create_index_spec_items
 %% ---------------------------------------------------------------------
         "Create Index a On b (c|:d{}|)",
         "Create Index a On b (c, d|:d{}|)",
 %% ---------------------------------------------------------------------
-%% column_ref -> NAME     JSON
-%% column_ref -> NAME '.' NAME     JSON
+%% column_ref -> identifier     JSON
+%% column_ref -> identifier '.' identifier     JSON
 %% ---------------------------------------------------------------------
         "Select col|:a:b| From x",
         "Select column_name|:a:b| From x",
@@ -4961,22 +5152,22 @@ create_code(special = Rule) ->
         "Begin Call Upper (All Null); End;",
         "Begin Call Upper (All 5); End;",
         "Begin Call Upper (All 'text'); End;",
-        "Begin Call Upper (All name|:_a1:f()|); End;",
-        "Begin Call Upper (All name|:_a1:f()|); End;",
+        "Begin Call Upper (All identifier|:_a1:f()|); End;",
+        "Begin Call Upper (All identifier|:_a1:f()|); End;",
         "Begin Call Upper (All name1.name2|:_a1:f()|); End;",
-        "Begin Call Upper (All name); End;",
+        "Begin Call Upper (All identifier); End;",
         "Begin Call Upper (All name1.name2); End;",
         "Begin Call Upper (All name1.name2.name3); End;",
 %% ---------------------------------------------------------------------
 %% Problem: data_type with parenteheses
 %% ---------------------------------------------------------------------
-%% data_type -> NAME '(' sgn_num ')'
-%% data_type -> NAME '(' sgn_num ',' sgn_num ')'
+%% data_type -> identifier '(' sgn_num ')'
+%% data_type -> identifier '(' sgn_num ',' sgn_num ')'
 %% ---------------------------------------------------------------------
-        "Create Table table_name (column_name name (1))",
-        "Create Table table_name (column_name name (-1))",
-        "Create Table table_name (column_name name (1, 2))",
-        "Create Table table_name (column_name name (-1, -2))",
+        "Create Table table_name (column_name identifier (1))",
+        "Create Table table_name (column_name identifier (-1))",
+        "Create Table table_name (column_name identifier (1, 2))",
+        "Create Table table_name (column_name identifier (-1, -2))",
 %% ---------------------------------------------------------------------
 %% Problem: INSERT
 %% ---------------------------------------------------------------------
@@ -5132,9 +5323,6 @@ create_code(string = Rule) ->
         [re:replace(re:replace(C, "string", "string_atom", [{return, list}]),
             "STRING", "STRING_ATOM", [{return, list}]) || C <- Code],
         ?MAX_BASIC, false),
-    store_code(data_type, [re:replace(
-        re:replace(C, "string", "string_data_type", [{return, list}]), "STRING",
-        "STRING_DATA_TYPE", [{return, list}]) || C <- Code], ?MAX_BASIC, false),
     store_code(fun_arg,
         [re:replace(re:replace(C, "string", "string_fun_arg", [{return, list}]),
             "STRING", "STRING_FUN_ARG", [{return, list}]) || C <- Code],
@@ -5236,7 +5424,7 @@ create_code(system_with_grant_option = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% table ::= ( ( NAME '.' )? NAME )
+%% table ::= ( ( identifier '.' )? identifier )
 %%         | parameter
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -5324,7 +5512,7 @@ create_code(table_coll_expr = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% table_constraint_def ::= ( 'CONSTRAINT' NAME )? ( 'UNIQUE'        '(' column_commalist ')' )
+%% table_constraint_def ::= ( 'CONSTRAINT' identifier )? ( 'UNIQUE'        '(' column_commalist ')' )
 %%                                               | ( 'PRIMARY' 'KEY' '(' column_commalist ')' )
 %%                                               | ( 'FOREIGN' 'KEY' '(' column_commalist ')' 'REFERENCES' table ( '(' column_commalist ')' )? )
 %%                                               | ( 'CHECK' '(' search_condition ')' )
@@ -5335,8 +5523,8 @@ create_code(table_constraint_def = Rule) ->
     [{column_commalist, Column_Commalist}] =
         ets:lookup(?CODE_TEMPLATES, column_commalist),
     Column_Commalist_Length = length(Column_Commalist),
-    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
-    Name_Length = length(Name),
+    [{identifier, Identifier}] = ets:lookup(?CODE_TEMPLATES, identifier),
+    Identifier_Length = length(Identifier),
     [{search_condition, Search_Condition}] =
         ets:lookup(?CODE_TEMPLATES, search_condition),
     Search_Condition_Length = length(Search_Condition),
@@ -5348,7 +5536,7 @@ create_code(table_constraint_def = Rule) ->
                 case rand:uniform(2) rem 2 of
                     1 -> lists:append([
                         "Constraint ",
-                        lists:nth(rand:uniform(Name_Length), Name),
+                        lists:nth(rand:uniform(Identifier_Length), Identifier),
                         " "
                     ]);
                     _ -> []
@@ -5397,8 +5585,8 @@ create_code(table_constraint_def = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% table_dblink ::= ( ( NAME '.' )? NAME DBLINK NAME? )
-%%                | ( parameter          DBLINK NAME? )
+%% table_dblink ::= ( ( identifier '.' )? identifier DBLINK NAME? )
+%%                | ( parameter                      DBLINK NAME? )
 %%                | table_alias
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -5406,6 +5594,8 @@ create_code(table_dblink = Rule) ->
     ?CREATE_CODE_START,
     [{dblink, Dblink}] = ets:lookup(?CODE_TEMPLATES, dblink),
     Dblink_Length = length(Dblink),
+    [{identifier, Identifier}] = ets:lookup(?CODE_TEMPLATES, identifier),
+    Identifier_Length = length(Identifier),
     [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
     [{parameter, Parameter}] = ets:lookup(?CODE_TEMPLATES, parameter),
@@ -5415,7 +5605,7 @@ create_code(table_dblink = Rule) ->
         [
             case rand:uniform(3) rem 3 of
                 1 -> lists:append([
-                    lists:nth(rand:uniform(Name_Length), Name),
+                    lists:nth(rand:uniform(Identifier_Length), Identifier),
                     lists:nth(rand:uniform(Dblink_Length), Dblink),
                     case rand:uniform(1) rem 2 of
                         1 -> " " ++ lists:nth(rand:uniform(Name_Length), Name);
@@ -5423,9 +5613,9 @@ create_code(table_dblink = Rule) ->
                     end
                 ]);
                 2 -> lists:append([
-                    lists:nth(rand:uniform(Name_Length), Name),
+                    lists:nth(rand:uniform(Identifier_Length), Identifier),
                     ".",
-                    lists:nth(rand:uniform(Name_Length), Name),
+                    lists:nth(rand:uniform(Identifier_Length), Identifier),
                     lists:nth(rand:uniform(Dblink_Length), Dblink),
                     case rand:uniform(1) rem 2 of
                         1 -> " " ++ lists:nth(rand:uniform(Name_Length), Name);
@@ -5791,15 +5981,15 @@ create_code(update_statement = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% user_opt ::= ( ( 'DEFAULT' | 'TEMPORARY' ) 'TABLESPACE' NAME )
+%% user_opt ::= ( ( 'DEFAULT' | 'TEMPORARY' ) 'TABLESPACE' identifier )
 %%            | ( quota  ( quota )* )
-%%            | ( 'PROFILE' NAME )
+%%            | ( 'PROFILE' identifier )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(user_opt = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
-    Name_Length = length(Name),
+    [{identifier, Identifier}] = ets:lookup(?CODE_TEMPLATES, identifier),
+    Identifier_Length = length(Identifier),
     [{quota, Quota}] = ets:lookup(?CODE_TEMPLATES, quota),
     Quota_Length = length(Quota),
 
@@ -5812,7 +6002,7 @@ create_code(user_opt = Rule) ->
                         _ -> "Temporary"
                     end,
                     " Tablespace ",
-                    lists:nth(rand:uniform(Name_Length), Name)
+                    lists:nth(rand:uniform(Identifier_Length), Identifier)
                 ]);
                 2 -> case rand:uniform(2) rem 2 of
                          1 -> lists:append([
@@ -5822,7 +6012,8 @@ create_code(user_opt = Rule) ->
                          ]);
                          _ -> lists:nth(rand:uniform(Quota_Length), Quota)
                      end;
-                _ -> "Profile " ++ lists:nth(rand:uniform(Name_Length), Name)
+                _ -> "Profile " ++
+                lists:nth(rand:uniform(Identifier_Length), Identifier)
             end
             || _ <- lists:seq(1, ?MAX_BASIC * 2)
         ],
@@ -5905,20 +6096,20 @@ create_code(view_def = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% when_action ::= ( 'GOTO' NAME )
+%% when_action ::= ( 'GOTO' identifier )
 %%               | 'CONTINUE'
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(when_action = Rule) ->
     ?CREATE_CODE_START,
-    [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
+    [{identifier, Identifier}] = ets:lookup(?CODE_TEMPLATES, identifier),
 
     Code =
         [
             "Continue"
         ] ++
         [
-                "Goto " ++ N || N <- Name
+                "Goto " ++ N || N <- Identifier
         ],
     store_code(Rule, Code, ?MAX_BASIC, false),
     ?CREATE_CODE_END;

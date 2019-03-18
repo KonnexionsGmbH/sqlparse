@@ -266,6 +266,20 @@ fold(LOpts, _FunState, Ctx, {_Value, Alias} = _PTree, {as, Step} = _FoldState)
 % explicit_as
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+fold(LOpts, _FunState, Ctx, {Value, Alias} = _PTree, {explicit_as, Step} =
+    _FoldState)
+    when is_binary(Value), is_binary(Alias) ->
+    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
+    RT = case Step of
+             start -> lists:append([
+                 Ctx,
+                 format_identifier(LOpts, Value),
+                 " AS ",
+                 format_identifier(LOpts, Alias)
+             ]);
+             _ -> Ctx
+         end,
+    ?CUSTOM_RESULT(RT);
 fold(LOpts, _FunState, Ctx, {_Value, Alias} = _PTree, {explicit_as, Step} =
     _FoldState)
     when is_binary(Alias) ->

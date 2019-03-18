@@ -24,7 +24,7 @@
 "insert into def (col1,col2) values ('C', 5+1)".
 "insert into def (col1,col2) values ('C', \"undefined\")".
 "INSERT INTO default_values_into_table".
-"insert into number (float,integer) values ('C', \"undefined\")".
+"insert into numbers (float_value,integer) values ('C', \"undefined\")".
 "INSERT INTO Persons VALUES (4,'Nilsen', 'Johan', 'Bakken 2', 'Stavanger')".
 "insert into schema_1.table_1 alias_1".
 "insert into schema_1.table_1".

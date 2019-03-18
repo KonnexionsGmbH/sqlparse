@@ -228,11 +228,11 @@ CreateIndexOpts02.                CreateIndexOpts ::= "KEYLIST" ;
 CreateIndexOpts03.                CreateIndexOpts ::= "HASHMAP" ;
 CreateIndexOpts04.                CreateIndexOpts ::= "UNIQUE"  ;
 
--- index_name -> identifier                : '$1'.
+-- index_name ->                identifier : '$1'.
 -- index_name -> identifier '.' identifier : list_to_binary(['$1', ".", '$3']).
 
-IndexName01.                      IndexName ::= Identifier            ;
-IndexName02.                      IndexName ::= Identifier "." "NAME" ;
+IndexName01.                      IndexName ::=                Identifier ;
+IndexName02.                      IndexName ::= Identifier "." Identifier ;
 
 -- create_index_spec -> '(' create_index_spec_items ')' : '$2'.
 
@@ -809,10 +809,10 @@ DropClusterDef02.                 DropClusterDef ::= "DROP" "CLUSTER" ClusterNam
 DropClusterExtensions01.          DropClusterExtensions ::= "INCLUDING" "TABLES"                         ;
 DropClusterExtensions02.          DropClusterExtensions ::= "INCLUDING" "TABLES" "CASCADE" "CONSTRAINTS" ;
 
--- cluster_name -> identifier                : '$1'.
+-- cluster_name ->                identifier : '$1'.
 -- cluster_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 
-ClusterName01.                    ClusterName ::= Identifier                ;
+ClusterName01.                    ClusterName ::=                Identifier ;
 ClusterName02.                    ClusterName ::= Identifier "." Identifier ;
 
 -- drop_context_def -> DROP CONTEXT identifier : {'drop context', '$3'}.
@@ -837,11 +837,11 @@ DropDirectoryDef01.               DropDirectoryDef ::= "DROP" "DIRECTORY" Identi
 
 DropFunctionDef01.                DropFunctionDef ::= "DROP" "FUNCTION" FunctionName ;
 
--- function_name -> NAME          : unwrap_bin('$1').
--- function_name -> NAME '.' NAME : list_to_binary([unwrap_bin('$1'),".",unwrap_bin('$3')]).
+-- function_name ->                NAME : unwrap_bin('$1').
+-- function_name -> identifier '.' NAME : list_to_binary(['$1',".",unwrap_bin('$3')]).
 
-FunctionName01.                   FunctionName ::= "NAME"            ;
-FunctionName02.                   FunctionName ::= "NAME" "." "NAME" ;
+FunctionName01.                   FunctionName ::=                "NAME" ;
+FunctionName02.                   FunctionName ::= Identifier "." "NAME" ;
 
 -- drop_index_def -> DROP INDEX            FROM table                       : {'drop index', {},   '$4'}.
 -- drop_index_def -> DROP INDEX            FROM table drop_index_extensions : {'drop index', {},   '$4', '$5'}.
@@ -887,10 +887,10 @@ DropIndexExtensions11.            DropIndexExtensions ::= "ONLINE" "FORCE" "IMME
 DropMaterializedViewDef01.        DropMaterializedViewDef ::= "DROP" "MATERIALIZED" "VIEW" MaterializedViewName                    ;
 DropMaterializedViewDef02.        DropMaterializedViewDef ::= "DROP" "MATERIALIZED" "VIEW" MaterializedViewName "PRESERVE" "TABLE" ;
 
--- materialized_view_name -> identifier                : '$1'.
+-- materialized_view_name ->                identifier : '$1'.
 -- materialized_view_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 
-MaterializedViewName01.           MaterializedViewName ::= Identifier                ;
+MaterializedViewName01.           MaterializedViewName ::=                Identifier ;
 MaterializedViewName02.           MaterializedViewName ::= Identifier "." Identifier ;
 
 -- drop_package_def -> DROP PACKAGE      package_name : {'drop package', '$3', {}}.
@@ -898,20 +898,20 @@ MaterializedViewName02.           MaterializedViewName ::= Identifier "." Identi
 
 DropPackageDef01.                 DropPackageDef ::= "DROP" "PACKAGE" "BODY" PackageName ;
 
--- package_name -> identifier                : '$1'.
+-- package_name ->                identifier : '$1'.
 -- package_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 
-PackageName01.                    PackageName ::= Identifier                ;
+PackageName01.                    PackageName ::=                Identifier ;
 PackageName02.                    PackageName ::= Identifier "." Identifier ;
 
 -- drop_procedure_def -> DROP PROCEDURE procedure_name : {'drop procedure', '$3'}.
 
 DropProcedureDef01.               DropProcedureDef ::= "DROP" "PROCEDURE" ProcedureName ;
 
--- procedure_name -> identifier                : '$1'.
+-- procedure_name ->                identifier : '$1'.
 -- procedure_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 
-ProcedureName01.                  ProcedureName ::= Identifier            ;
+ProcedureName01.                  ProcedureName ::=                Identifier ;
 ProcedureName02.                  ProcedureName ::= Identifier "." Identifier ;
 
 -- drop_profile_def -> DROP PROFILE identifier         : {'drop profile', '$3', {}}.
@@ -928,10 +928,10 @@ DropRoleDef01.                    DropRoleDef ::= "DROP" "ROLE" Identifier ;
 
 DropSequenceDef01.                DropSequenceDef ::= "DROP" "SEQUENCE" SequenceName ;
 
--- sequence_name -> identifier                : '$1'.
+-- sequence_name ->                identifier : '$1'.
 -- sequence_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 
-SequenceName01.                   SequenceName ::= Identifier                ;
+SequenceName01.                   SequenceName ::=                Identifier ;
 SequenceName02.                   SequenceName ::= Identifier "." Identifier ;
 
 -- drop_synonym_def -> DROP        SYNONYM synonym_name       : {'drop synonym', '$3', {},     {}}.
@@ -944,10 +944,10 @@ DropSynonymDef02.                 DropSynonymDef ::= "DROP"          "SYNONYM" S
 DropSynonymDef03.                 DropSynonymDef ::= "DROP" "PUBLIC" "SYNONYM" SynonymName         ;
 DropSynonymDef04.                 DropSynonymDef ::= "DROP" "PUBLIC" "SYNONYM" SynonymName "FORCE" ;
 
--- synonym_name -> identifier                : '$1'.
+-- synonym_name ->                identifier : '$1'.
 -- synonym_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 
-SynonymName01.                    SynonymName ::= Identifier            ;
+SynonymName01.                    SynonymName ::=                Identifier ;
 SynonymName02.                    SynonymName ::= Identifier "." Identifier ;
 
 -- drop_table_def -> DROP            TABLE        table_list                       : {'drop table', {'tables', '$3'}, {},   {},   []}.
@@ -1016,10 +1016,10 @@ DropTablespaceExtensions14.       DropTablespaceExtensions ::= "KEEP" "QUOTA" "I
 
 DropTriggerDef01.                 DropTriggerDef ::= "DROP" "TRIGGER" TriggerName ;
 
--- trigger_name -> identifier                : '$1'.
+-- trigger_name ->                identifier : '$1'.
 -- trigger_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 
-TriggerName01.                    TriggerName ::= Identifier                ;
+TriggerName01.                    TriggerName ::=                Identifier ;
 TriggerName02.                    TriggerName ::= Identifier "." Identifier ;
 
 -- drop_type_def -> DROP TYPE type_name          : {'drop type', '$3', {}}.
@@ -1030,10 +1030,10 @@ DropTypeDef01.                    DropTypeDef ::= "DROP" "TYPE" TypeName        
 DropTypeDef02.                    DropTypeDef ::= "DROP" "TYPE" TypeName "FORCE"    ;
 DropTypeDef03.                    DropTypeDef ::= "DROP" "TYPE" TypeName "VALIDATE" ;
 
--- type_name -> identifier                : '$1'.
+-- type_name ->                identifier : '$1'.
 -- type_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 
-TypeName01.                       TypeName ::= Identifier            ;
+TypeName01.                       TypeName ::=                Identifier ;
 TypeName02.                       TypeName ::= Identifier "." Identifier ;
 
 -- drop_type_body_def -> DROP TYPE BODY type_name : {'drop type body', '$4'}.
@@ -1940,10 +1940,9 @@ ColumnRef11.                      ColumnRef ::= Identifier "." Identifier "." "*
 -- data_type -> DATE                                  : unwrap_bin('$1').
 -- data_type -> FLOAT                                 : unwrap_bin('$1').
 -- data_type -> LONG                                  : unwrap_bin('$1').
--- data_type -> LONG RAW                              : list_to_binary([unwrap_bin('$1'),".",unwrap_bin('$2')]).
+-- data_type -> LONG RAW                              : list_to_binary([unwrap_bin('$1')," ",unwrap_bin('$2')]).
 -- data_type -> NAME                                  : unwrap_bin('$1').
--- data_type -> NAME '.' NAME                         : list_to_binary([unwrap_bin('$1'),".",unwrap_bin('$3')]).
--- data_type -> NAME '.' NAME '.' NAME                : list_to_binary([unwrap_bin('$1'),".",unwrap_bin('$3'),".",unwrap_bin('$5')]).
+-- data_type -> identifier '.' NAME                   : list_to_binary(['$1',".",unwrap_bin('$3')]).
 -- data_type -> NCLOB                                 : unwrap_bin('$1').
 -- data_type -> NUMBER                                : unwrap_bin('$1').
 -- data_type -> RAW                                   : unwrap_bin('$1').
@@ -1965,37 +1964,38 @@ ColumnRef11.                      ColumnRef ::= Identifier "." Identifier "." "*
 -- data_type -> NAME      '(' sgn_num ',' sgn_num ')' : {unwrap_bin('$1'), '$3', '$5'}.
 -- data_type -> NUMBER    '(' sgn_num ',' sgn_num ')' : {unwrap_bin('$1'), '$3', '$5'}.
 
-DataType01.                       DataType ::= "BFILE"                                  ;
-DataType02.                       DataType ::= "BINARY_DOUBLE"                          ;
-DataType03.                       DataType ::= "BINARY_FLOAT"                           ;
-DataType04.                       DataType ::= "BLOB"                                   ;
-DataType05.                       DataType ::= "CHAR"                                   ;
-DataType06.                       DataType ::= "CLOB"                                   ;
-DataType07.                       DataType ::= "DATE"                                   ;
-DataType08.                       DataType ::= "FLOAT"                                  ;
-DataType09.                       DataType ::= "LONG"                                   ;
-DataType10.                       DataType ::= "LONG RAW"                               ;
-DataType11.                       DataType ::= Identifier                               ;
-DataType12.                       DataType ::= Identifier "." Identifier                ;
-DataType13.                       DataType ::= Identifier "." Identifier "." Identifier ;
-DataType14.                       DataType ::= "NCLOB"                                  ;
-DataType15.                       DataType ::= "NUMBER"                                 ;
-DataType16.                       DataType ::= "RAW"                                    ;
-DataType17.                       DataType ::= "ROWID"                                  ;
-DataType18.                       DataType ::= "TIMESTAMP"                              ;
-DataType19.                       DataType ::= "UROWID"                                 ;
-DataType20.                       DataType ::= "VARCHAR2"                               ;
-DataType21.                       DataType ::= "XMLTYPE"                                ;
-DataType22.                       DataType ::= "CHAR"      "(" SgnNum ")"               ;
-DataType23.                       DataType ::= "FLOAT"     "(" SgnNum ")"               ;
-DataType24.                       DataType ::= "NCHAR"     "(" SgnNum ")"               ;
-DataType25.                       DataType ::= "NUMBER"    "(" SgnNum ")"               ;
-DataType26.                       DataType ::= "NVARCHAR2" "(" SgnNum ")"               ;
-DataType27.                       DataType ::= "RAW"       "(" SgnNum ")"               ;
-DataType28.                       DataType ::= "TIMESTAMP" "(" SgnNum ")"               ;
-DataType29.                       DataType ::= "UROWID"    "(" SgnNum ")"               ;
-DataType30.                       DataType ::= "VARCHAR2"  "(" SgnNum ")"               ;
-DataType31.                       DataType ::= "NUMBER"    "(" SgnNum "," SgnNum ")"    ;
+DataType01.                       DataType ::= "BFILE"                               ;
+DataType02.                       DataType ::= "BINARY_DOUBLE"                       ;
+DataType03.                       DataType ::= "BINARY_FLOAT"                        ;
+DataType04.                       DataType ::= "BLOB"                                ;
+DataType05.                       DataType ::= "CHAR"                                ;
+DataType06.                       DataType ::= "CLOB"                                ;
+DataType07.                       DataType ::= "DATE"                                ;
+DataType08.                       DataType ::= "FLOAT"                               ;
+DataType09.                       DataType ::= "LONG"                                ;
+DataType10.                       DataType ::= "LONG RAW"                            ;
+DataType11.                       DataType ::= Identifier                            ;
+DataType12.                       DataType ::= Identifier "." NAME                   ;
+DataType13.                       DataType ::= "NCLOB"                               ;
+DataType14.                       DataType ::= "NUMBER"                              ;
+DataType15.                       DataType ::= "RAW"                                 ;
+DataType16.                       DataType ::= "ROWID"                               ;
+DataType17.                       DataType ::= "TIMESTAMP"                           ;
+DataType18.                       DataType ::= "UROWID"                              ;
+DataType19.                       DataType ::= "VARCHAR2"                            ;
+DataType20.                       DataType ::= "XMLTYPE"                             ;
+DataType21.                       DataType ::= "CHAR"      "(" SgnNum ")"            ;
+DataType22.                       DataType ::= "FLOAT"     "(" SgnNum ")"            ;
+DataType23.                       DataType ::= NAME        "(" SgnNum ")"            ;
+DataType24.                       DataType ::= "NCHAR"     "(" SgnNum ")"            ;
+DataType25.                       DataType ::= "NUMBER"    "(" SgnNum ")"            ;
+DataType26.                       DataType ::= "NVARCHAR2" "(" SgnNum ")"            ;
+DataType27.                       DataType ::= "RAW"       "(" SgnNum ")"            ;
+DataType28.                       DataType ::= "TIMESTAMP" "(" SgnNum ")"            ;
+DataType29.                       DataType ::= "UROWID"    "(" SgnNum ")"            ;
+DataType30.                       DataType ::= "VARCHAR2"  "(" SgnNum ")"            ;
+DataType31.                       DataType ::= NAME        "(" SgnNum "," SgnNum ")" ;
+DataType32.                       DataType ::= "NUMBER"    "(" SgnNum "," SgnNum ")" ;
 
 -- sgn_num ->     INTNUM : unwrap_bin('$1').
 -- sgn_num -> '-' INTNUM : list_to_binary(["-",unwrap_bin('$2')]).
@@ -2028,7 +2028,6 @@ Parameter01.                      Parameter ::= "PARAMETER" ;
 -- identifier -> NAME            : unwrap_bin('$1').
 
 -- identifier -> ADMIN           : unwrap_bin('$1').
--- % identifier -> APPROXNUM       : unwrap_bin('$1').
 -- identifier -> AUTHENTICATION  : unwrap_bin('$1').
 -- identifier -> AUTHORIZATION   : unwrap_bin('$1').
 -- identifier -> BAG             : unwrap_bin('$1').
@@ -2041,13 +2040,10 @@ Parameter01.                      Parameter ::= "PARAMETER" ;
 -- identifier -> BODY            : unwrap_bin('$1').
 -- identifier -> CALL            : unwrap_bin('$1').
 -- identifier -> CASCADE         : unwrap_bin('$1').
--- identifier -> CASE            : unwrap_bin('$1').
--- identifier -> CHAR            : unwrap_bin('$1').
 -- identifier -> CLOB            : unwrap_bin('$1').
 -- identifier -> CLOSE           : unwrap_bin('$1').
 -- identifier -> COMMIT          : unwrap_bin('$1').
 -- identifier -> COMPARISON      : unwrap_bin('$1').
--- identifier -> CONSTRAINT      : unwrap_bin('$1').
 -- identifier -> CONSTRAINTS     : unwrap_bin('$1').
 -- identifier -> CONTENTS        : unwrap_bin('$1').
 -- identifier -> CONTEXT         : unwrap_bin('$1').
@@ -2057,7 +2053,6 @@ Parameter01.                      Parameter ::= "PARAMETER" ;
 -- identifier -> CURSOR          : unwrap_bin('$1').
 -- identifier -> DATABASE        : unwrap_bin('$1').
 -- identifier -> DATAFILES       : unwrap_bin('$1').
--- identifier -> DATE           : unwrap_bin('$1').
 -- identifier -> DBLINK          : unwrap_bin('$1').
 -- identifier -> DEFERRED        : unwrap_bin('$1').
 -- identifier -> DELEGATE        : unwrap_bin('$1').
@@ -2070,24 +2065,20 @@ Parameter01.                      Parameter ::= "PARAMETER" ;
 -- identifier -> EXTERNALLY      : unwrap_bin('$1').
 -- identifier -> FETCH           : unwrap_bin('$1').
 -- identifier -> FILTER_WITH     : unwrap_bin('$1').
--- identifier -> FLOAT           : unwrap_bin('$1').
 -- identifier -> FORCE           : unwrap_bin('$1').
 -- identifier -> FOREIGN         : unwrap_bin('$1').
 -- identifier -> FOUND           : unwrap_bin('$1').
 -- identifier -> FULL            : unwrap_bin('$1').
 -- identifier -> FUNCTION        : unwrap_bin('$1').
--- % identifier -> FUNS            : unwrap_bin('$1').
 -- identifier -> GLOBALLY        : unwrap_bin('$1').
 -- identifier -> GOTO            : unwrap_bin('$1').
 -- identifier -> HASHMAP         : unwrap_bin('$1').
 -- identifier -> HIERARCHY       : unwrap_bin('$1').
--- % identifier -> HINT            : unwrap_bin('$1').
 -- identifier -> IF              : unwrap_bin('$1').
 -- identifier -> IMMEDIATE       : unwrap_bin('$1').
 -- identifier -> INCLUDING       : unwrap_bin('$1').
 -- identifier -> INDICATOR       : unwrap_bin('$1').
 -- identifier -> INNER           : unwrap_bin('$1').
--- % identifier -> INTNUM          : unwrap_bin('$1').
 -- identifier -> INVALIDATION    : unwrap_bin('$1').
 -- identifier -> JOIN            : unwrap_bin('$1').
 -- identifier -> JSON            : unwrap_bin('$1').
@@ -2098,24 +2089,19 @@ Parameter01.                      Parameter ::= "PARAMETER" ;
 -- identifier -> LINK            : unwrap_bin('$1').
 -- identifier -> LOCAL           : unwrap_bin('$1').
 -- identifier -> LOG             : unwrap_bin('$1').
--- identifier -> LONG            : unwrap_bin('$1').
 -- identifier -> MATERIALIZED    : unwrap_bin('$1').
 -- identifier -> NATURAL         : unwrap_bin('$1').
 -- identifier -> NCHAR           : unwrap_bin('$1').
 -- identifier -> NCLOB           : unwrap_bin('$1').
 -- identifier -> NO              : unwrap_bin('$1').
--- % identifier -> NOCYCLE         : unwrap_bin('$1').
 -- identifier -> NONE            : unwrap_bin('$1').
 -- identifier -> NORM_WITH       : unwrap_bin('$1').
--- % identifier -> NULLX           : unwrap_bin('$1').
--- identifier -> NUMBER          : unwrap_bin('$1').
 -- identifier -> NVARCHAR2       : unwrap_bin('$1').
 -- identifier -> ONLINE          : unwrap_bin('$1').
 -- identifier -> OPEN            : unwrap_bin('$1').
 -- identifier -> ORDERED_SET     : unwrap_bin('$1').
 -- identifier -> OUTER           : unwrap_bin('$1').
 -- identifier -> PACKAGE         : unwrap_bin('$1').
--- % identifier -> PARAMETER       : unwrap_bin('$1').
 -- identifier -> PARTITION       : unwrap_bin('$1').
 -- identifier -> PRESERVE        : unwrap_bin('$1').
 -- identifier -> PRIMARY         : unwrap_bin('$1').
@@ -2123,7 +2109,6 @@ Parameter01.                      Parameter ::= "PARAMETER" ;
 -- identifier -> PROCEDURE       : unwrap_bin('$1').
 -- identifier -> PROFILE         : unwrap_bin('$1').
 -- identifier -> PURGE           : unwrap_bin('$1').
--- identifier -> RAW             : unwrap_bin('$1').
 -- identifier -> ROWID           : unwrap_bin('$1').
 -- identifier -> QUOTA           : unwrap_bin('$1').
 -- identifier -> REFERENCES      : unwrap_bin('$1').
@@ -2137,25 +2122,15 @@ Parameter01.                      Parameter ::= "PARAMETER" ;
 -- identifier -> ROLLBACK        : unwrap_bin('$1').
 -- identifier -> SCHEMA          : unwrap_bin('$1').
 -- identifier -> SEQUENCE        : unwrap_bin('$1').
--- % identifier -> SOME            : unwrap_bin('$1').
 -- identifier -> SQLERROR        : unwrap_bin('$1').
 -- identifier -> STORAGE         : unwrap_bin('$1').
--- % identifier -> STRING          : unwrap_bin('$1').
--- % identifier -> TABLES          : unwrap_bin('$1').
--- % identifier -> TABLESPACE      : unwrap_bin('$1').
--- % identifier -> TEMPORARY       : unwrap_bin('$1').
--- % identifier -> THROUGH         : unwrap_bin('$1').
 -- identifier -> TIMESTAMP       : unwrap_bin('$1').
--- % identifier -> TRUNCATE        : unwrap_bin('$1').
 -- identifier -> TYPE            : unwrap_bin('$1').
 -- identifier -> UNLIMITED       : unwrap_bin('$1').
 -- identifier -> UROWID          : unwrap_bin('$1').
--- % identifier -> USER            : unwrap_bin('$1').
 -- identifier -> USERS           : unwrap_bin('$1').
 -- identifier -> USING           : unwrap_bin('$1').
 -- identifier -> VALIDATE        : unwrap_bin('$1').
--- identifier -> VARCHAR2        : unwrap_bin('$1').
--- identifier -> WHEN            : unwrap_bin('$1').
 -- identifier -> WHENEVER        : unwrap_bin('$1').
 -- identifier -> WORK            : unwrap_bin('$1').
 -- identifier -> XMLTYPE         : unwrap_bin('$1').
@@ -2174,110 +2149,100 @@ Identifier011.                     Identifier ::= "BLOB"           ;
 Identifier012.                     Identifier ::= "BODY"           ;
 Identifier013.                     Identifier ::= "CALL"           ;
 Identifier014.                     Identifier ::= "CASCADE"        ;
-Identifier015.                     Identifier ::= "CASE"           ;
-Identifier016.                     Identifier ::= "CHAR"           ;
-Identifier017.                     Identifier ::= "CLOB"           ;
-Identifier018.                     Identifier ::= "CLOSE"          ;
-Identifier019.                     Identifier ::= "COMMIT"         ;
-Identifier020.                     Identifier ::= "COMPARISON"     ;
-Identifier021.                     Identifier ::= "CONSTRAINT"     ;
-Identifier022.                     Identifier ::= "CONSTRAINTS"    ;
-Identifier023.                     Identifier ::= "CONTENTS"       ;
-Identifier024.                     Identifier ::= "CONTEXT"        ;
-Identifier025.                     Identifier ::= "CONTINUE"       ;
-Identifier026.                     Identifier ::= "CROSS"          ;
-Identifier027.                     Identifier ::= "CURRENT"        ;
-Identifier028.                     Identifier ::= "CURSOR"         ;
-Identifier029.                     Identifier ::= "DATABASE"       ;
-Identifier030.                     Identifier ::= "DATAFILES"      ;
-Identifier031.                     Identifier ::= "DATE"           ;
-Identifier032.                     Identifier ::= "DBLINK"         ;
-Identifier033.                     Identifier ::= "DEFERRED"       ;
-Identifier034.                     Identifier ::= "DELEGATE"       ;
-Identifier035.                     Identifier ::= "DIRECTORY"      ;
-Identifier036.                     Identifier ::= "END"            ;
-Identifier037.                     Identifier ::= "ENTERPRISE"     ;
-Identifier038.                     Identifier ::= "ESCAPE"         ;
-Identifier039.                     Identifier ::= "EXCEPT"         ;
-Identifier040.                     Identifier ::= "EXECUTE"        ;
-Identifier041.                     Identifier ::= "EXTERNALLY"     ;
-Identifier042.                     Identifier ::= "FETCH"          ;
-Identifier043.                     Identifier ::= "FILTER_WITH"    ;
-Identifier044.                     Identifier ::= "FLOAT"          ;
-Identifier045.                     Identifier ::= "FORCE"          ;
-Identifier046.                     Identifier ::= "FOREIGN"        ;
-Identifier047.                     Identifier ::= "FOUND"          ;
-Identifier048.                     Identifier ::= "FULL"           ;
-Identifier049.                     Identifier ::= "FUNCTION"       ;
-Identifier050.                     Identifier ::= "GLOBALLY"       ;
-Identifier051.                     Identifier ::= "GOTO"           ;
-Identifier052.                     Identifier ::= "HASHMAP"        ;
-Identifier053.                     Identifier ::= "HIERARCHY"      ;
-Identifier054.                     Identifier ::= "IF"             ;
-Identifier055.                     Identifier ::= "IMMEDIATE"      ;
-Identifier056.                     Identifier ::= "INCLUDING"      ;
-Identifier057.                     Identifier ::= "INDICATOR"      ;
-Identifier058.                     Identifier ::= "INNER"          ;
-Identifier059.                     Identifier ::= "INVALIDATION"   ;
-Identifier060.                     Identifier ::= "JOIN"           ;
-Identifier061.                     Identifier ::= "JSON"           ;
-Identifier062.                     Identifier ::= "KEEP"           ;
-Identifier063.                     Identifier ::= "KEY"            ;
-Identifier064.                     Identifier ::= "KEYLIST"        ;
-Identifier065.                     Identifier ::= "LEFT"           ;
-Identifier066.                     Identifier ::= "LINK"           ;
-Identifier067.                     Identifier ::= "LOCAL"          ;
-Identifier068.                     Identifier ::= "LOG"            ;
-Identifier069.                     Identifier ::= "LONG"           ;
-Identifier070.                     Identifier ::= "MATERIALIZED"   ;
-Identifier071.                     Identifier ::= "NATURAL"        ;
-Identifier072.                     Identifier ::= "NCHAR"          ;
-Identifier073.                     Identifier ::= "NCLOB"          ;
-Identifier074.                     Identifier ::= "NO"             ;
-Identifier075.                     Identifier ::= "NONE"           ;
-Identifier076.                     Identifier ::= "NORM_WITH"      ;
-Identifier077.                     Identifier ::= "NUMBER"         ;
-Identifier078.                     Identifier ::= "NVARCHAR2"      ;
-Identifier079.                     Identifier ::= "ONLINE"         ;
-Identifier080.                     Identifier ::= "OPEN"           ;
-Identifier081.                     Identifier ::= "ORDERED_SET"    ;
-Identifier082.                     Identifier ::= "OUTER"          ;
-Identifier083.                     Identifier ::= "PACKAGE"        ;
-Identifier084.                     Identifier ::= "PARTITION"      ;
-Identifier085.                     Identifier ::= "PRESERVE"       ;
-Identifier086.                     Identifier ::= "PRIMARY"        ;
-Identifier087.                     Identifier ::= "PRIVILEGES"     ;
-Identifier088.                     Identifier ::= "PROCEDURE"      ;
-Identifier089.                     Identifier ::= "PROFILE"        ;
-Identifier090.                     Identifier ::= "PURGE"          ;
-Identifier091.                     Identifier ::= "QUOTA"          ;
-Identifier092.                     Identifier ::= "RAW"            ;
-Identifier093.                     Identifier ::= "REFERENCES"     ;
-Identifier094.                     Identifier ::= "REQUIRED"       ;
-Identifier095.                     Identifier ::= "RETURN"         ;
-Identifier096.                     Identifier ::= "RETURNING"      ;
-Identifier097.                     Identifier ::= "REUSE"          ;
-Identifier098.                     Identifier ::= "RIGHT"          ;
-Identifier099.                     Identifier ::= "ROLE"           ;
-Identifier100.                     Identifier ::= "ROLES"          ;
-Identifier101.                     Identifier ::= "ROLLBACK"       ;
-Identifier102.                     Identifier ::= "ROWID"          ;
-Identifier103.                     Identifier ::= "SCHEMA"         ;
-Identifier104.                     Identifier ::= "SEQUENCE"       ;
-Identifier105.                     Identifier ::= "SQLERROR"       ;
-Identifier106.                     Identifier ::= "STORAGE"        ;
-Identifier107.                     Identifier ::= "TIMESTAMP"      ;
-Identifier108.                     Identifier ::= "TYPE"           ;
-Identifier109.                     Identifier ::= "UNLIMITED"      ;
-Identifier110.                     Identifier ::= "UROWID"         ;
-Identifier111.                     Identifier ::= "USERS"          ;
-Identifier112.                     Identifier ::= "USING"          ;
-Identifier113.                     Identifier ::= "VALIDATE"       ;
-Identifier114.                     Identifier ::= "VARCHAR2"       ;
-Identifier115.                     Identifier ::= "WHEN"           ;
-Identifier116.                     Identifier ::= "WHENEVER"       ;
-Identifier117.                     Identifier ::= "WORK"           ;
-Identifier118.                     Identifier ::= "XMLTYPE"        ;
+Identifier015.                     Identifier ::= "CLOB"           ;
+Identifier016.                     Identifier ::= "CLOSE"          ;
+Identifier017.                     Identifier ::= "COMMIT"         ;
+Identifier018.                     Identifier ::= "COMPARISON"     ;
+Identifier019.                     Identifier ::= "CONSTRAINTS"    ;
+Identifier020.                     Identifier ::= "CONTENTS"       ;
+Identifier021.                     Identifier ::= "CONTEXT"        ;
+Identifier022.                     Identifier ::= "CONTINUE"       ;
+Identifier023.                     Identifier ::= "CROSS"          ;
+Identifier024.                     Identifier ::= "CURRENT"        ;
+Identifier025.                     Identifier ::= "CURSOR"         ;
+Identifier026.                     Identifier ::= "DATABASE"       ;
+Identifier027.                     Identifier ::= "DATAFILES"      ;
+Identifier028.                     Identifier ::= "DBLINK"         ;
+Identifier029.                     Identifier ::= "DEFERRED"       ;
+Identifier030.                     Identifier ::= "DELEGATE"       ;
+Identifier031.                     Identifier ::= "DIRECTORY"      ;
+Identifier032.                     Identifier ::= "END"            ;
+Identifier033.                     Identifier ::= "ENTERPRISE"     ;
+Identifier034.                     Identifier ::= "ESCAPE"         ;
+Identifier035.                     Identifier ::= "EXCEPT"         ;
+Identifier036.                     Identifier ::= "EXECUTE"        ;
+Identifier037.                     Identifier ::= "EXTERNALLY"     ;
+Identifier038.                     Identifier ::= "FETCH"          ;
+Identifier039.                     Identifier ::= "FILTER_WITH"    ;
+Identifier040.                     Identifier ::= "FORCE"          ;
+Identifier041.                     Identifier ::= "FOREIGN"        ;
+Identifier042.                     Identifier ::= "FOUND"          ;
+Identifier043.                     Identifier ::= "FULL"           ;
+Identifier044.                     Identifier ::= "FUNCTION"       ;
+Identifier045.                     Identifier ::= "GLOBALLY"       ;
+Identifier046.                     Identifier ::= "GOTO"           ;
+Identifier047.                     Identifier ::= "HASHMAP"        ;
+Identifier048.                     Identifier ::= "HIERARCHY"      ;
+Identifier049.                     Identifier ::= "IF"             ;
+Identifier050.                     Identifier ::= "IMMEDIATE"      ;
+Identifier051.                     Identifier ::= "INCLUDING"      ;
+Identifier052.                     Identifier ::= "INDICATOR"      ;
+Identifier053.                     Identifier ::= "INNER"          ;
+Identifier054.                     Identifier ::= "INVALIDATION"   ;
+Identifier055.                     Identifier ::= "JOIN"           ;
+Identifier056.                     Identifier ::= "JSON"           ;
+Identifier057.                     Identifier ::= "KEEP"           ;
+Identifier058.                     Identifier ::= "KEY"            ;
+Identifier059.                     Identifier ::= "KEYLIST"        ;
+Identifier060.                     Identifier ::= "LEFT"           ;
+Identifier061.                     Identifier ::= "LINK"           ;
+Identifier062.                     Identifier ::= "LOCAL"          ;
+Identifier063.                     Identifier ::= "LOG"            ;
+Identifier064.                     Identifier ::= "MATERIALIZED"   ;
+Identifier065.                     Identifier ::= "NATURAL"        ;
+Identifier066.                     Identifier ::= "NCHAR"          ;
+Identifier067.                     Identifier ::= "NCLOB"          ;
+Identifier068.                     Identifier ::= "NO"             ;
+Identifier069.                     Identifier ::= "NONE"           ;
+Identifier070.                     Identifier ::= "NORM_WITH"      ;
+Identifier071.                     Identifier ::= "NVARCHAR2"      ;
+Identifier072.                     Identifier ::= "ONLINE"         ;
+Identifier073.                     Identifier ::= "OPEN"           ;
+Identifier074.                     Identifier ::= "ORDERED_SET"    ;
+Identifier075.                     Identifier ::= "OUTER"          ;
+Identifier076.                     Identifier ::= "PACKAGE"        ;
+Identifier077.                     Identifier ::= "PARTITION"      ;
+Identifier078.                     Identifier ::= "PRESERVE"       ;
+Identifier079.                     Identifier ::= "PRIMARY"        ;
+Identifier080.                     Identifier ::= "PRIVILEGES"     ;
+Identifier081.                     Identifier ::= "PROCEDURE"      ;
+Identifier082.                     Identifier ::= "PROFILE"        ;
+Identifier083.                     Identifier ::= "PURGE"          ;
+Identifier084.                     Identifier ::= "QUOTA"          ;
+Identifier085.                     Identifier ::= "RAW"            ;
+Identifier086.                     Identifier ::= "REFERENCES"     ;
+Identifier087.                     Identifier ::= "REQUIRED"       ;
+Identifier088.                     Identifier ::= "RETURN"         ;
+Identifier089.                     Identifier ::= "RETURNING"      ;
+Identifier090.                     Identifier ::= "REUSE"          ;
+Identifier091.                     Identifier ::= "RIGHT"          ;
+Identifier092.                     Identifier ::= "ROLE"           ;
+Identifier093.                     Identifier ::= "ROLES"          ;
+Identifier094.                     Identifier ::= "ROLLBACK"       ;
+Identifier095.                     Identifier ::= "SCHEMA"         ;
+Identifier096.                     Identifier ::= "SEQUENCE"       ;
+Identifier097.                     Identifier ::= "SQLERROR"       ;
+Identifier098.                     Identifier ::= "STORAGE"        ;
+Identifier099.                     Identifier ::= "TIMESTAMP"      ;
+Identifier100.                     Identifier ::= "TYPE"           ;
+Identifier101.                     Identifier ::= "UNLIMITED"      ;
+Identifier102.                     Identifier ::= "UROWID"         ;
+Identifier103.                     Identifier ::= "USERS"          ;
+Identifier104.                     Identifier ::= "USING"          ;
+Identifier105.                     Identifier ::= "VALIDATE"       ;
+Identifier106.                     Identifier ::= "WHENEVER"       ;
+Identifier107.                     Identifier ::= "WORK"           ;
+Identifier108.                     Identifier ::= "XMLTYPE"        ;
 
 -- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 -- embedded condition things

@@ -574,7 +574,7 @@ create_index_opts -> KEYLIST : keylist.
 create_index_opts -> HASHMAP : hashmap.
 create_index_opts -> UNIQUE  : unique.
 
-index_name -> identifier                : '$1'.
+index_name ->                identifier : '$1'.
 index_name -> identifier '.' identifier : list_to_binary(['$1', ".", '$3']).
 
 create_index_spec -> '(' create_index_spec_items ')' : '$2'.
@@ -875,7 +875,7 @@ drop_cluster_def -> DROP CLUSTER cluster_name drop_cluster_extensions : {'drop c
 drop_cluster_extensions -> INCLUDING TABLES                     : {'including tables'}.
 drop_cluster_extensions -> INCLUDING TABLES CASCADE CONSTRAINTS : {'including tables cascade constraints'}.
 
-cluster_name -> identifier                : '$1'.
+cluster_name ->                identifier : '$1'.
 cluster_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 
 drop_context_def -> DROP CONTEXT identifier : {'drop context', '$3'}.
@@ -889,8 +889,8 @@ drop_directory_def -> DROP DIRECTORY identifier : {'drop directory', '$3'}.
 
 drop_function_def -> DROP FUNCTION function_name : {'drop function', '$3'}.
 
-function_name -> NAME          : unwrap_bin('$1').
-function_name -> NAME '.' NAME : list_to_binary([unwrap_bin('$1'),".",unwrap_bin('$3')]).
+function_name ->                NAME : unwrap_bin('$1').
+function_name -> identifier '.' NAME : list_to_binary(['$1',".",unwrap_bin('$3')]).
 
 drop_index_def -> DROP INDEX            FROM table                       : {'drop index', {},   '$4'}.
 drop_index_def -> DROP INDEX            FROM table drop_index_extensions : {'drop index', {},   '$4', '$5'}.
@@ -914,18 +914,18 @@ drop_index_extensions -> ONLINE FORCE IMMEDIATE INVALIDATION : {'online force im
 drop_materialized_view_def -> DROP MATERIALIZED VIEW materialized_view_name                : {'drop materialized view', '$4', {}}.
 drop_materialized_view_def -> DROP MATERIALIZED VIEW materialized_view_name PRESERVE TABLE : {'drop materialized view', '$4', 'preserve table'}.
 
-materialized_view_name -> identifier                : '$1'.
+materialized_view_name ->                identifier : '$1'.
 materialized_view_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 
 drop_package_def -> DROP PACKAGE      package_name : {'drop package', '$3', {}}.
 drop_package_def -> DROP PACKAGE BODY package_name : {'drop package', '$4', body}.
 
-package_name -> identifier                : '$1'.
+package_name ->                identifier : '$1'.
 package_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 
 drop_procedure_def -> DROP PROCEDURE procedure_name : {'drop procedure', '$3'}.
 
-procedure_name -> identifier                : '$1'.
+procedure_name ->                identifier : '$1'.
 procedure_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 
 drop_profile_def -> DROP PROFILE identifier         : {'drop profile', '$3', {}}.
@@ -935,7 +935,7 @@ drop_role_def -> DROP ROLE identifier : {'drop role', '$3'}.
 
 drop_sequence_def -> DROP SEQUENCE sequence_name : {'drop sequence', '$3'}.
 
-sequence_name -> identifier                : '$1'.
+sequence_name ->                identifier : '$1'.
 sequence_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 
 drop_synonym_def -> DROP        SYNONYM synonym_name       : {'drop synonym', '$3', {},     {}}.
@@ -943,7 +943,7 @@ drop_synonym_def -> DROP        SYNONYM synonym_name FORCE : {'drop synonym', '$
 drop_synonym_def -> DROP PUBLIC SYNONYM synonym_name       : {'drop synonym', '$4', public, {}}.
 drop_synonym_def -> DROP PUBLIC SYNONYM synonym_name FORCE : {'drop synonym', '$4', public, force}.
 
-synonym_name -> identifier                : '$1'.
+synonym_name ->                identifier : '$1'.
 synonym_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 
 drop_table_def -> DROP            TABLE        table_list                       : {'drop table', {'tables', '$3'}, {},   {},   []}.
@@ -979,14 +979,14 @@ drop_tablespace_extensions -> KEEP QUOTA INCLUDING CONTENTS KEEP DATAFILES CASCA
 
 drop_trigger_def -> DROP TRIGGER trigger_name : {'drop trigger', '$3'}.
 
-trigger_name -> identifier                : '$1'.
+trigger_name ->                identifier : '$1'.
 trigger_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 
 drop_type_def -> DROP TYPE type_name          : {'drop type', '$3', {}}.
 drop_type_def -> DROP TYPE type_name FORCE    : {'drop type', '$3', force}.
 drop_type_def -> DROP TYPE type_name VALIDATE : {'drop type', '$3', validate}.
 
-type_name -> identifier                : '$1'.
+type_name ->                identifier : '$1'.
 type_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 
 drop_type_body_def -> DROP TYPE BODY type_name : {'drop type body', '$4'}.
@@ -1477,10 +1477,9 @@ data_type -> CLOB                                  : unwrap_bin('$1').
 data_type -> DATE                                  : unwrap_bin('$1').
 data_type -> FLOAT                                 : unwrap_bin('$1').
 data_type -> LONG                                  : unwrap_bin('$1').
-data_type -> LONG RAW                              : list_to_binary([unwrap_bin('$1'),".",unwrap_bin('$2')]).
+data_type -> LONG RAW                              : list_to_binary([unwrap_bin('$1')," ",unwrap_bin('$2')]).
 data_type -> NAME                                  : unwrap_bin('$1').
-data_type -> NAME '.' NAME                         : list_to_binary([unwrap_bin('$1'),".",unwrap_bin('$3')]).
-data_type -> NAME '.' NAME '.' NAME                : list_to_binary([unwrap_bin('$1'),".",unwrap_bin('$3'),".",unwrap_bin('$5')]).
+data_type -> identifier '.' NAME                   : list_to_binary(['$1',".",unwrap_bin('$3')]).
 data_type -> NCLOB                                 : unwrap_bin('$1').
 data_type -> NUMBER                                : unwrap_bin('$1').
 data_type -> RAW                                   : unwrap_bin('$1').
@@ -1517,109 +1516,147 @@ parameter -> PARAMETER : {param, unwrap_bin('$1')}.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% identifier
-%%
-%% Attention: The commented out terminals cause reduce/reduce problems.
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 identifier -> NAME            : unwrap_bin('$1').
 
 identifier -> ADMIN           : unwrap_bin('$1').
-% identifier -> APPROXNUM       : unwrap_bin('$1').
+% identifier -> ALL             : unwrap_bin('$1').    Oracle reserved
+% identifier -> ALTER           : unwrap_bin('$1').    Oracle reserved
+% identifier -> AND             : unwrap_bin('$1').    Oracle reserved
+% identifier -> ANY             : unwrap_bin('$1').    Oracle reserved
+% identifier -> APPROXNUM       : unwrap_bin('$1').    reduce/reduce problem
+% identifier -> AS              : unwrap_bin('$1').    Oracle reserved
+% identifier -> ASC             : unwrap_bin('$1').    Oracle reserved
 identifier -> AUTHENTICATION  : unwrap_bin('$1').
 identifier -> AUTHORIZATION   : unwrap_bin('$1').
 identifier -> BAG             : unwrap_bin('$1').
 identifier -> BEGIN           : unwrap_bin('$1').
+% identifier -> BETWEEN         : unwrap_bin('$1').    Oracle reserved
 identifier -> BFILE           : unwrap_bin('$1').
 identifier -> BINARY_DOUBLE   : unwrap_bin('$1').
 identifier -> BINARY_FLOAT    : unwrap_bin('$1').
 identifier -> BITMAP          : unwrap_bin('$1').
 identifier -> BLOB            : unwrap_bin('$1').
 identifier -> BODY            : unwrap_bin('$1').
+% identifier -> BY              : unwrap_bin('$1').    Oracle reserved
 identifier -> CALL            : unwrap_bin('$1').
 identifier -> CASCADE         : unwrap_bin('$1').
-identifier -> CASE            : unwrap_bin('$1').
-identifier -> CHAR            : unwrap_bin('$1').
+% identifier -> CASE            : unwrap_bin('$1').    syntax problem
+% identifier -> CHAR            : unwrap_bin('$1').    Oracle reserved
+% identifier -> CHECK           : unwrap_bin('$1').    Oracle reserved
 identifier -> CLOB            : unwrap_bin('$1').
 identifier -> CLOSE           : unwrap_bin('$1').
+% identifier -> CLUSTER         : unwrap_bin('$1').    Oracle reserved
 identifier -> COMMIT          : unwrap_bin('$1').
+% identifier -> CONNECT         : unwrap_bin('$1').    Oracle reserved
 identifier -> COMPARISON      : unwrap_bin('$1').
-identifier -> CONSTRAINT      : unwrap_bin('$1').
+% identifier -> CONSTRAINT      : unwrap_bin('$1').    syntax problem
 identifier -> CONSTRAINTS     : unwrap_bin('$1').
 identifier -> CONTENTS        : unwrap_bin('$1').
 identifier -> CONTEXT         : unwrap_bin('$1').
 identifier -> CONTINUE        : unwrap_bin('$1').
+% identifier -> CREATE          : unwrap_bin('$1').    Oracle reserved
 identifier -> CROSS           : unwrap_bin('$1').
 identifier -> CURRENT         : unwrap_bin('$1').
 identifier -> CURSOR          : unwrap_bin('$1').
 identifier -> DATABASE        : unwrap_bin('$1').
 identifier -> DATAFILES       : unwrap_bin('$1').
-identifier -> DATE           : unwrap_bin('$1').
+% identifier -> DATE            : unwrap_bin('$1').    Oracle reserved
 identifier -> DBLINK          : unwrap_bin('$1').
+% identifier -> DEFAULT         : unwrap_bin('$1').    Oracle reserved
 identifier -> DEFERRED        : unwrap_bin('$1').
 identifier -> DELEGATE        : unwrap_bin('$1').
+% identifier -> DELETE          : unwrap_bin('$1').    Oracle reserved
+% identifier -> DESC            : unwrap_bin('$1').    Oracle reserved
 identifier -> DIRECTORY       : unwrap_bin('$1').
+% identifier -> DISTINCT        : unwrap_bin('$1').    Oracle reserved
+% identifier -> DROP            : unwrap_bin('$1').    Oracle reserved
+% identifier -> ELSE            : unwrap_bin('$1').    Oracle reserved
 identifier -> END             : unwrap_bin('$1').
 identifier -> ENTERPRISE      : unwrap_bin('$1').
 identifier -> ESCAPE          : unwrap_bin('$1').
 identifier -> EXCEPT          : unwrap_bin('$1').
 identifier -> EXECUTE         : unwrap_bin('$1').
+% identifier -> EXISTS          : unwrap_bin('$1').    Oracle reserved
 identifier -> EXTERNALLY      : unwrap_bin('$1').
 identifier -> FETCH           : unwrap_bin('$1').
 identifier -> FILTER_WITH     : unwrap_bin('$1').
-identifier -> FLOAT           : unwrap_bin('$1').
+% identifier -> FLOAT           : unwrap_bin('$1').    Oracle reserved
 identifier -> FORCE           : unwrap_bin('$1').
 identifier -> FOREIGN         : unwrap_bin('$1').
 identifier -> FOUND           : unwrap_bin('$1').
+% identifier -> FROM            : unwrap_bin('$1').    Oracle reserved
 identifier -> FULL            : unwrap_bin('$1').
 identifier -> FUNCTION        : unwrap_bin('$1').
-% identifier -> FUNS            : unwrap_bin('$1').
+% identifier -> FUNS            : unwrap_bin('$1').    reduce/reduce problem
 identifier -> GLOBALLY        : unwrap_bin('$1').
 identifier -> GOTO            : unwrap_bin('$1').
+% identifier -> GRANT           : unwrap_bin('$1').    Oracle reserved
+% identifier -> GROUP           : unwrap_bin('$1').    Oracle reserved
 identifier -> HASHMAP         : unwrap_bin('$1').
+% identifier -> HAVING          : unwrap_bin('$1').    Oracle reserved
 identifier -> HIERARCHY       : unwrap_bin('$1').
-% identifier -> HINT            : unwrap_bin('$1').
+% identifier -> HINT            : unwrap_bin('$1').    reduce/reduce problem
+% identifier -> IDENTIFIED      : unwrap_bin('$1').    Oracle reserved
 identifier -> IF              : unwrap_bin('$1').
 identifier -> IMMEDIATE       : unwrap_bin('$1').
+% identifier -> IN              : unwrap_bin('$1').    Oracle reserved
 identifier -> INCLUDING       : unwrap_bin('$1').
+% identifier -> INDEX           : unwrap_bin('$1').    Oracle reserved
 identifier -> INDICATOR       : unwrap_bin('$1').
 identifier -> INNER           : unwrap_bin('$1').
-% identifier -> INTNUM          : unwrap_bin('$1').
+% identifier -> INSERT          : unwrap_bin('$1').    Oracle reserved
+% identifier -> INTERSECT       : unwrap_bin('$1').    Oracle reserved
+% identifier -> INTNUM          : unwrap_bin('$1').    reduce/reduce problem
+% identifier -> INTO            : unwrap_bin('$1').    Oracle reserved
 identifier -> INVALIDATION    : unwrap_bin('$1').
+% identifier -> IS              : unwrap_bin('$1').    Oracle reserved
 identifier -> JOIN            : unwrap_bin('$1').
 identifier -> JSON            : unwrap_bin('$1').
 identifier -> KEEP            : unwrap_bin('$1').
 identifier -> KEY             : unwrap_bin('$1').
 identifier -> KEYLIST         : unwrap_bin('$1').
 identifier -> LEFT            : unwrap_bin('$1').
+% identifier -> LIKE            : unwrap_bin('$1').    Oracle reserved
 identifier -> LINK            : unwrap_bin('$1').
 identifier -> LOCAL           : unwrap_bin('$1').
 identifier -> LOG             : unwrap_bin('$1').
-identifier -> LONG            : unwrap_bin('$1').
+% identifier -> LONG            : unwrap_bin('$1').    Oracle reserved
 identifier -> MATERIALIZED    : unwrap_bin('$1').
+% identifier -> MINUS           : unwrap_bin('$1').    Oracle reserved
 identifier -> NATURAL         : unwrap_bin('$1').
 identifier -> NCHAR           : unwrap_bin('$1').
 identifier -> NCLOB           : unwrap_bin('$1').
 identifier -> NO              : unwrap_bin('$1').
-% identifier -> NOCYCLE         : unwrap_bin('$1').
+% identifier -> NOCYCLE         : unwrap_bin('$1').    reduce/reduce problem
 identifier -> NONE            : unwrap_bin('$1').
 identifier -> NORM_WITH       : unwrap_bin('$1').
-% identifier -> NULLX           : unwrap_bin('$1').
-identifier -> NUMBER          : unwrap_bin('$1').
+% identifier -> NOT             : unwrap_bin('$1').    Oracle reserved
+% identifier -> NULLX           : unwrap_bin('$1').    reduce/reduce problem
+% identifier -> NUMBER          : unwrap_bin('$1').    Oracle reserved
 identifier -> NVARCHAR2       : unwrap_bin('$1').
+% identifier -> OF              : unwrap_bin('$1').    Oracle reserved
+% identifier -> ON              : unwrap_bin('$1').    Oracle reserved
 identifier -> ONLINE          : unwrap_bin('$1').
 identifier -> OPEN            : unwrap_bin('$1').
+% identifier -> OPTION          : unwrap_bin('$1').    Oracle reserved
+% identifier -> OR              : unwrap_bin('$1').    Oracle reserved
+% identifier -> ORDER           : unwrap_bin('$1').    Oracle reserved
 identifier -> ORDERED_SET     : unwrap_bin('$1').
 identifier -> OUTER           : unwrap_bin('$1').
 identifier -> PACKAGE         : unwrap_bin('$1').
-% identifier -> PARAMETER       : unwrap_bin('$1').
+% identifier -> PARAMETER       : unwrap_bin('$1').    reduce/reduce problem
 identifier -> PARTITION       : unwrap_bin('$1').
 identifier -> PRESERVE        : unwrap_bin('$1').
 identifier -> PRIMARY         : unwrap_bin('$1').
+% identifier -> PRIO            : unwrap_bin('$1').    Oracle reserved
 identifier -> PRIVILEGES      : unwrap_bin('$1').
 identifier -> PROCEDURE       : unwrap_bin('$1').
 identifier -> PROFILE         : unwrap_bin('$1').
+% identifier -> PUBLIC          : unwrap_bin('$1').    Oracle reserved
 identifier -> PURGE           : unwrap_bin('$1').
-identifier -> RAW             : unwrap_bin('$1').
+% identifier -> RAW             : unwrap_bin('$1').    Oracle reserved
 identifier -> ROWID           : unwrap_bin('$1').
 identifier -> QUOTA           : unwrap_bin('$1').
 identifier -> REFERENCES      : unwrap_bin('$1').
@@ -1627,32 +1664,48 @@ identifier -> REQUIRED        : unwrap_bin('$1').
 identifier -> RETURN          : unwrap_bin('$1').
 identifier -> RETURNING       : unwrap_bin('$1').
 identifier -> REUSE           : unwrap_bin('$1').
+% identifier -> REVOKE          : unwrap_bin('$1').    Oracle reserved
 identifier -> RIGHT           : unwrap_bin('$1').
 identifier -> ROLE            : unwrap_bin('$1').
 identifier -> ROLES           : unwrap_bin('$1').
 identifier -> ROLLBACK        : unwrap_bin('$1').
 identifier -> SCHEMA          : unwrap_bin('$1').
+% identifier -> SELECT          : unwrap_bin('$1').    Oracle reserved
 identifier -> SEQUENCE        : unwrap_bin('$1').
-% identifier -> SOME            : unwrap_bin('$1').
+% identifier -> SET             : unwrap_bin('$1').    Oracle reserved
+% identifier -> SOME            : unwrap_bin('$1').    reduce/reduce problem
 identifier -> SQLERROR        : unwrap_bin('$1').
+% identifier -> START           : unwrap_bin('$1').    Oracle reserved
 identifier -> STORAGE         : unwrap_bin('$1').
-% identifier -> STRING          : unwrap_bin('$1').
-% identifier -> TABLES          : unwrap_bin('$1').
-% identifier -> TABLESPACE      : unwrap_bin('$1').
-% identifier -> TEMPORARY       : unwrap_bin('$1').
-% identifier -> THROUGH         : unwrap_bin('$1').
+% identifier -> STRING          : unwrap_bin('$1').    reduce/reduce problem
+% identifier -> SYNONYM         : unwrap_bin('$1').    Oracle reserved
+% identifier -> TABLE           : unwrap_bin('$1').    Oracle reserved
+% identifier -> TABLES          : unwrap_bin('$1').    reduce/reduce problem
+% identifier -> TABLESPACE      : unwrap_bin('$1').    reduce/reduce problem
+% identifier -> TEMPORARY       : unwrap_bin('$1').    reduce/reduce problem
+% identifier -> THEN            : unwrap_bin('$1').    Oracle reserved
+% identifier -> THROUGH         : unwrap_bin('$1').    reduce/reduce problem
 identifier -> TIMESTAMP       : unwrap_bin('$1').
-% identifier -> TRUNCATE        : unwrap_bin('$1').
+% identifier -> TO              : unwrap_bin('$1').    Oracle reserved
+% identifier -> TRIGGER         : unwrap_bin('$1').    Oracle reserved
+% identifier -> TRUNCATE        : unwrap_bin('$1').    reduce/reduce problem
 identifier -> TYPE            : unwrap_bin('$1').
+% identifier -> UNION           : unwrap_bin('$1').    Oracle reserved
+% identifier -> UNIQUE          : unwrap_bin('$1').    Oracle reserved
 identifier -> UNLIMITED       : unwrap_bin('$1').
+% identifier -> UPDATE          : unwrap_bin('$1').    Oracle reserved
 identifier -> UROWID          : unwrap_bin('$1').
-% identifier -> USER            : unwrap_bin('$1').
+% identifier -> USER            : unwrap_bin('$1').    reduce/reduce problem
 identifier -> USERS           : unwrap_bin('$1').
 identifier -> USING           : unwrap_bin('$1').
 identifier -> VALIDATE        : unwrap_bin('$1').
-identifier -> VARCHAR2        : unwrap_bin('$1').
-identifier -> WHEN            : unwrap_bin('$1').
+% identifier -> VALUES          : unwrap_bin('$1').    Oracle reserved
+% identifier -> VARCHAR2        : unwrap_bin('$1').    Oracle reserved
+% identifier -> VIEW            : unwrap_bin('$1').    Oracle reserved
+% identifier -> WHEN            : unwrap_bin('$1').    syntax problem
 identifier -> WHENEVER        : unwrap_bin('$1').
+% identifier -> WHERE           : unwrap_bin('$1').    Oracle reserved
+% identifier -> WITH            : unwrap_bin('$1').    Oracle reserved
 identifier -> WORK            : unwrap_bin('$1').
 identifier -> XMLTYPE         : unwrap_bin('$1').
 

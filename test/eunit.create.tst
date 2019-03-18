@@ -651,7 +651,7 @@
 "create table table_1(column_1 date,constraint constraint_1 foreign key(column_1)references \"__..__\")".
 "create table table_1(column_1 date,constraint constraint_1 foreign key(column_1)references table_2)".
 "create table table_1(column_1 number(1,2)not null default 0)".
-"create table table_1(column_1 number(1,2)not null default date)".
+"create table table_1(column_1 number(1,2)not null default special_date)".
 "create table table_1(column_1 number(1,2)not null default function_1(column_1,column_2))".
 "create table table_1(column_1 number(1,2)not null default null)".
 "create table table_1(column_1 number(1,2)not null default package_1.function_1(column_1,column_2))".

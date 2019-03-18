@@ -521,8 +521,8 @@ create_code(all_or_any_predicate = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% alter_user_def ::= ( 'ALTER' 'USER' identifier ( ',' identifier )* proxy_clause )
-%%                  | ( 'ALTER' 'USER' identifier spec_item ( spec_item )* )
+%% alter_user_def ::= ( 'ALTER' 'USER' user_list proxy_clause )
+%%                  | ( 'ALTER' 'USER' identifier spec_list )
 %%                  | ( 'ALTER' 'USER' identifier NAME NAME )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -947,7 +947,7 @@ create_code(column_def = Rule) ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% column_def_opt ::= ( 'NOT' 'NULL' ( 'UNIQUE' | 'PRIMARY' 'KEY' )? )
-%%                  | ( 'DEFAULT' ( function_ref | literal | identifier | 'NULL' | 'USER' ) )
+%%                  | ( 'DEFAULT' ( function_ref | identifier | literal | 'NULL' | 'USER' ) )
 %%                  | ( 'CHECK' '(' search_condition ')' )
 %%                  | ( 'REFERENCES' table ( '(' column_commalist ')' )? )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1017,10 +1017,9 @@ create_code(column_def_opt = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% wwe
-%% column_ref ::= ( ( ( ( identifier '.' )? identifier '.' )? identifier | 'TYPE' )? JSON )
-%%              | ( ( ( identifier '.' )? identifier '.' )? ( 'FUNCTION' | identifier | 'TYPE' ) )
-%%              | ( ( ( identifier '.' )? identifier '.' )? ( 'FUNCTION' | identifier | 'TYPE' ) '(' '+' ')' )
+%% column_ref ::= ( ( ( identifier '.' )? identifier '.' )? identifier JSON )
+%%              | ( ( ( identifier '.' )? identifier '.' )? identifier )
+%%              | ( ( ( identifier '.' )? identifier '.' )? identifier '(' '+' ')' )
 %%              | ( ( identifier '.' )? identifier '.' '*' )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1409,7 +1408,7 @@ create_code(create_table_def = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% create_user_def ::= 'CREATE' 'USER' identifier identified ( user_opt )*
+%% create_user_def ::= 'CREATE' 'USER' identifier identified user_opts_list?
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(create_user_def = Rule) ->
@@ -1496,13 +1495,15 @@ create_code(cursor_def = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% wwe data_type ::= STRING
-%%             | ( identifier ( '(' opt_sgn_num ')' )? )
-%%             | ( identifier '(' sgn_num ',' sgn_num ')' )
+%% data_type ::= ( BFILE | BINARY_DOUBLE | BINARY_FLOAT | BLOB | CHAR | CLOB | DATE | FLOAT | LONG | ( LONG RAW ) | ( identifier '.' )? NAME | NCLOB | NUMBER | RAW | ROWID | TIMESTAMP | UROWID | VARCHAR2 | XMLTYPE )
+%%             | ( ( CHAR | FLOAT | NAME | NCHAR | NUMBER | NVARCHAR2 c| RAW | TIMESTAMP | UROWID | VARCHAR2 ) '(' sgn_num ')' )
+%%             | ( ( NAME | NUMBER ) '(' sgn_num ',' sgn_num ')' )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(data_type = Rule) ->
     ?CREATE_CODE_START,
+    [{identifier, Identifier}] = ets:lookup(?CODE_TEMPLATES, identifier),
+    Identifier_Length = length(Identifier),
     [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
     Name_Length = length(Name),
     [{sgn_num, Sgn_Num}] = ets:lookup(?CODE_TEMPLATES, sgn_num),
@@ -1529,9 +1530,15 @@ create_code(data_type = Rule) ->
             "Varchar2 ",
             "Xmltype "
         ] ++ [
-        case rand:uniform(3) rem 3 of
+        case rand:uniform(4) rem 4 of
             1 -> lists:nth(rand:uniform(Name_Length), Name) ++ " ";
             2 -> lists:append([
+                lists:nth(rand:uniform(Identifier_Length), Identifier),
+                ".",
+                lists:nth(rand:uniform(Name_Length), Name),
+                " "
+            ]);
+            3 -> lists:append([
                 case rand:uniform(10) rem 10 of
                     1 -> "Char";
                     2 -> "Float";
@@ -1943,7 +1950,7 @@ create_code(drop_package_def = Rule) ->
     Code =
         [
             lists:append([
-                "Drop Function ",
+                "Drop Package ",
                 case rand:uniform(2) rem 2 of
                     1 -> lists:nth(rand:uniform(Schema_Name_Length),
                         Schema_Name) ++ ".";
@@ -2439,16 +2446,17 @@ create_code(fetch_statement = Rule) ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% fun_arg ::= ( '(' fun_arg ')' )
-%%           | function_ref
-%%           | column_ref
-%%           | ( fun_arg ( '+' | '-' | '*' | '/' | 'div' | '||' ) fun_arg )
-%%           | ( ( '+' | '-' ) fun_arg )
-%%           | ( ( '+' | '-' ) literal )                           RULE OBSOLETE
-%%           | 'NULL'
 %%           | atom
-%%           | subquery
+%%           | case_when_exp
+%%           | column_ref
+%%           | ( fun_arg      NAME )
+%%           | ( fun_arg ( '*' | '+' | '-' | '/' | '=' | 'div' | '||' ) fun_arg )
 %%           | ( fun_arg 'AS' NAME )
 %%           | ( fun_arg COMPARISON fun_arg )
+%%           | function_ref
+%%           | 'NULL'
+%%           | subquery
+%%           | ( ( '+' | '-' ) fun_arg )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(fun_arg = Rule) ->
@@ -2521,7 +2529,7 @@ create_code(fun_arg = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% fun_arg_named ::= identifier '=>' scalar_opt_as_exp
+%% fun_arg_named ::= identifier '=>' ( identifier | literal | parameter)
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(fun_arg_named = Rule) ->
@@ -2958,7 +2966,7 @@ create_code(grantee_identified_by = Rule) ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% grantee_revokee ::= identifier
-%%                  | 'PUBLIC'
+%%                   | 'PUBLIC'
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(grantee_revokee = Rule) ->
@@ -3115,7 +3123,114 @@ create_code(identified = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% wwe
+%% identifier ::= NAME
+%%             | ADMIN
+%%             | AUTHENTICATION
+%%             | AUTHORIZATION
+%%             | BAG
+%%             | BEGIN
+%%             | BFILE
+%%             | BINARY_DOUBLE
+%%             | BINARY_FLOAT
+%%             | BITMAP
+%%             | BLOB
+%%             | BODY
+%%             | CALL
+%%             | CASCADE
+%%             | CLOB
+%%             | CLOSE
+%%             | COMMIT
+%%             | COMPARISON
+%%             | CONSTRAINTS
+%%             | CONTENTS
+%%             | CONTEXT
+%%             | CONTINUE
+%%             | CROSS
+%%             | CURRENT
+%%             | CURSOR
+%%             | DATABASE
+%%             | DATAFILES
+%%             | DBLINK
+%%             | DEFERRED
+%%             | DELEGATE
+%%             | DIRECTORY
+%%             | END
+%%             | ENTERPRISE
+%%             | ESCAPE
+%%             | EXCEPT
+%%             | EXECUTE
+%%             | EXTERNALLY
+%%             | FETCH
+%%             | FILTER_WITH
+%%             | FORCE
+%%             | FOREIGN
+%%             | FOUND
+%%             | FULL
+%%             | FUNCTION
+%%             | GLOBALLY
+%%             | GOTO
+%%             | HASHMAP
+%%             | HIERARCHY
+%%             | IF
+%%             | IMMEDIATE
+%%             | INCLUDING
+%%             | INDICATOR
+%%             | INNER
+%%             | INVALIDATION
+%%             | JOIN
+%%             | JSON
+%%             | KEEP
+%%             | KEY
+%%             | KEYLIST
+%%             | LEFT
+%%             | LINK
+%%             | LOCAL
+%%             | LOG
+%%             | MATERIALIZED
+%%             | NATURAL
+%%             | NCHAR
+%%             | NCLOB
+%%             | NO
+%%             | NONE
+%%             | NORM_WITH
+%%             | NVARCHAR2
+%%             | ONLINE
+%%             | OPEN
+%%             | ORDERED_SET
+%%             | OUTER
+%%             | PACKAGE
+%%             | PARTITION
+%%             | PRESERVE
+%%             | PRIMARY
+%%             | PRIVILEGES
+%%             | PROCEDURE
+%%             | PROFILE
+%%             | PURGE
+%%             | QUOTA
+%%             | REFERENCES
+%%             | REQUIRED
+%%             | RETURN
+%%             | RETURNING
+%%             | REUSE
+%%             | RIGHT
+%%             | ROLE
+%%             | ROLES
+%%             | ROLLBACK
+%%             | ROWID
+%%             | SCHEMA
+%%             | SEQUENCE
+%%             | SQLERROR
+%%             | STORAGE
+%%             | TIMESTAMP
+%%             | TYPE
+%%             | UNLIMITED
+%%             | UROWID
+%%             | USERS
+%%             | USING
+%%             | VALIDATE
+%%             | WHENEVER
+%%             | WORK
+%%             | XMLTYPE
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(identifier = Rule) ->
@@ -3240,7 +3355,7 @@ create_code(identifier = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% wwe
+%% identifier_keyword ::=  identifier except NAME
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(identifier_keyword = Rule) ->
@@ -3261,13 +3376,10 @@ create_code(identifier_keyword = Rule) ->
             "BODY",
             "CALL",
             "CASCADE",
-            "CASE",
-            "CHAR",
             "CLOB",
             "CLOSE",
             "COMMIT",
             "COMPARISON",
-            "CONSTRAINT",
             "CONSTRAINTS",
             "CONTENTS",
             "CONTEXT",
@@ -3277,7 +3389,6 @@ create_code(identifier_keyword = Rule) ->
             "CURSOR",
             "DATABASE",
             "DATAFILES",
-            "DATE",
             "DBLINK",
             "DEFERRED",
             "DELEGATE",
@@ -3290,7 +3401,6 @@ create_code(identifier_keyword = Rule) ->
             "EXTERNALLY",
             "FETCH",
             "FILTER_WITH",
-            "FLOAT",
             "FORCE",
             "FOREIGN",
             "FOUND",
@@ -3315,7 +3425,6 @@ create_code(identifier_keyword = Rule) ->
             "LINK",
             "LOCAL",
             "LOG",
-            "LONG",
             "MATERIALIZED",
             "NATURAL",
             "NCHAR",
@@ -3323,7 +3432,6 @@ create_code(identifier_keyword = Rule) ->
             "NO",
             "NONE",
             "NORM_WITH",
-            "NUMBER",
             "NVARCHAR2",
             "ONLINE",
             "OPEN",
@@ -3338,7 +3446,6 @@ create_code(identifier_keyword = Rule) ->
             "PROFILE",
             "PURGE",
             "QUOTA",
-            "RAW",
             "REFERENCES",
             "REQUIRED",
             "RETURN",
@@ -3360,8 +3467,6 @@ create_code(identifier_keyword = Rule) ->
             "USERS",
             "USING",
             "VALIDATE",
-            "VARCHAR2",
-            "WHEN",
             "WHENEVER",
             "WORK",
             "XMLTYPE"
@@ -3941,8 +4046,7 @@ create_code(object_with_revoke_option = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% on_obj_clause ::= ( 'ON' table )
-%%                 | ( 'ON' 'DIRECTORY' identifier )
+%% on_obj_clause ::= 'ON' ( table | ( 'DIRECTORY' identifier ) )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(on_obj_clause = Rule) ->
@@ -4478,8 +4582,7 @@ create_code(query_term_json = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% quota ::= ( 'QUOTA' 'UNLIMITED' 'ON' identifier )
-%%         | ( 'QUOTA' INTNUM ( identifier )? 'ON' identifier )
+%% quota ::= 'QUOTA' ( 'UNLIMITED' | ( INTNUM identifier? ) ) 'ON' identifier
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(quota = Rule) ->
@@ -4930,7 +5033,7 @@ create_code(scalar_sub_exp_json = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% schema ::= 'CREATE' 'SCHEMA' 'AUTHORIZATION' identifier ( schema_element ( schema_element )* )?
+%% schema ::= 'CREATE' 'SCHEMA' 'AUTHORIZATION' identifier schema_element_list?
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(schema = Rule) ->
@@ -5452,8 +5555,8 @@ create_code(table = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% table_alias ::= ( ( NAME '.' )? NAME NAME )
-%%               | ( parameter          NAME )
+%% table_alias ::= ( ( identifier '.' )? identifier NAME )
+%%               | ( parameter                      NAME )
 %%               | table
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -5513,9 +5616,9 @@ create_code(table_coll_expr = Rule) ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% table_constraint_def ::= ( 'CONSTRAINT' identifier )? ( 'UNIQUE'        '(' column_commalist ')' )
-%%                                               | ( 'PRIMARY' 'KEY' '(' column_commalist ')' )
-%%                                               | ( 'FOREIGN' 'KEY' '(' column_commalist ')' 'REFERENCES' table ( '(' column_commalist ')' )? )
-%%                                               | ( 'CHECK' '(' search_condition ')' )
+%%                                                     | ( 'PRIMARY' 'KEY' '(' column_commalist ')' )
+%%                                                     | ( 'FOREIGN' 'KEY' '(' column_commalist ')' 'REFERENCES' table ( '(' column_commalist ')' )? )
+%%                                                     | ( 'CHECK' '(' search_condition ')' )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(table_constraint_def = Rule) ->
@@ -5585,9 +5688,10 @@ create_code(table_constraint_def = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% table_dblink ::= ( ( identifier '.' )? identifier DBLINK NAME? )
-%%                | ( parameter                      DBLINK NAME? )
+%% table_dblink ::= ( ( identifier '.' )? identifier DBLINK ( NAME )? )
+%%                | ( parameter                      DBLINK ( NAME )? )
 %%                | table_alias
+%%                | table_coll_expr
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 create_code(table_dblink = Rule) ->
@@ -5982,7 +6086,7 @@ create_code(update_statement = Rule) ->
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% user_opt ::= ( ( 'DEFAULT' | 'TEMPORARY' ) 'TABLESPACE' identifier )
-%%            | ( quota  ( quota )* )
+%%            | quota_list
 %%            | ( 'PROFILE' identifier )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

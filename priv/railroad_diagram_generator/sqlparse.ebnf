@@ -227,7 +227,7 @@ create_index_opts ::= 'BITMAP'
                     | 'UNIQUE'
 
 /* =============================================================================
-index_name -> identifier                : '$1'.
+index_name ->                identifier : '$1'.
 index_name -> identifier '.' identifier : list_to_binary(['$1', ".", '$3']).
 ============================================================================= */
 
@@ -839,7 +839,7 @@ drop_cluster_extensions -> INCLUDING TABLES CASCADE CONSTRAINTS : {'including ta
 drop_cluster_extensions ::= 'INCLUDING' 'TABLES' ( 'CASCADE' 'CONSTRAINTS' )?
 
 /* =============================================================================
-cluster_name -> identifier                : '$1'.
+cluster_name ->                identifier : '$1'.
 cluster_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 ============================================================================= */
 
@@ -877,11 +877,11 @@ drop_function_def -> DROP FUNCTION function_name : {'drop function', '$3'}.
 drop_function_def ::= 'DROP' 'FUNCTION' function_name
 
 /* =============================================================================
-function_name -> NAME          : unwrap_bin('$1').
-function_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+function_name ->                NAME : unwrap_bin('$1').
+function_name -> identifier '.' NAME : list_to_binary(['$1',".",unwrap_bin('$3')]).
 ============================================================================= */
 
-function_name ::= ( NAME '.' )? NAME
+function_name ::= ( identifier '.' )? NAME
 
 /* =============================================================================
 drop_index_def -> DROP INDEX            FROM table                       : {'drop index', {},   '$4'}.
@@ -926,7 +926,7 @@ drop_materialized_view_def -> DROP MATERIALIZED VIEW materialized_view_name PRES
 drop_materialized_view_def ::= 'DROP' 'MATERIALIZED' 'VIEW' materialized_view_name ( 'PRESERVE' 'TABLE' )?
 
 /* =============================================================================
-materialized_view_name -> identifier                : '$1'.
+materialized_view_name ->                identifier : '$1'.
 materialized_view_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 ============================================================================= */
 
@@ -940,7 +940,7 @@ drop_package_def -> DROP PACKAGE BODY package_name : {'drop package', '$4', body
 drop_package_def ::= 'DROP' 'PACKAGE' 'BODY'? package_name
 
 /* =============================================================================
-package_name -> identifier                : '$1'.
+package_name ->                identifier : '$1'.
 package_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 ============================================================================= */
 
@@ -953,7 +953,7 @@ drop_procedure_def -> DROP PROCEDURE procedure_name : {'drop procedure', '$3'}.
 drop_procedure_def ::= 'DROP' 'PROCEDURE' procedure_name
 
 /* =============================================================================
-procedure_name -> identifier                : '$1'.
+procedure_name ->                identifier : '$1'.
 procedure_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 ============================================================================= */
 
@@ -979,7 +979,7 @@ drop_sequence_def -> DROP SEQUENCE sequence_name : {'drop sequence', '$3'}.
 drop_sequence_def ::= 'DROP' 'SEQUENCE' sequence_name
 
 /* =============================================================================
-sequence_name -> identifier                : '$1'.
+sequence_name ->                identifier : '$1'.
 sequence_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 ============================================================================= */
 
@@ -995,7 +995,7 @@ drop_synonym_def -> DROP PUBLIC SYNONYM synonym_name FORCE : {'drop synonym', '$
 drop_synonym_def ::= 'DROP' 'PUBLIC'? 'SYNONYM' synonym_name 'FORCE'?
 
 /* =============================================================================
-synonym_name -> identifier                : '$1'.
+synonym_name ->                identifier : '$1'.
 synonym_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 ============================================================================= */
 
@@ -1059,7 +1059,7 @@ drop_trigger_def -> DROP TRIGGER trigger_name : {'drop trigger', '$3'}.
 drop_trigger_def ::= 'DROP' 'TRIGGER' trigger_name
 
 /* =============================================================================
-trigger_name -> identifier                : '$1'.
+trigger_name ->                identifier : '$1'.
 trigger_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 ============================================================================= */
 
@@ -1074,7 +1074,7 @@ drop_type_def -> DROP TYPE type_name VALIDATE : {'drop type', '$3', validate}.
 drop_type_def ::= 'DROP' 'TYPE' type_name ( 'FORCE' | 'VALIDATE' )?
 
 /* =============================================================================
-type_name -> identifier                : '$1'.
+type_name ->                identifier : '$1'.
 type_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 ============================================================================= */
 
@@ -1989,10 +1989,9 @@ data_type -> CLOB                                  : unwrap_bin('$1').
 data_type -> DATE                                  : unwrap_bin('$1').
 data_type -> FLOAT                                 : unwrap_bin('$1').
 data_type -> LONG                                  : unwrap_bin('$1').
-data_type -> LONG RAW                              : list_to_binary([unwrap_bin('$1'),".",unwrap_bin('$2')]).
+data_type -> LONG RAW                              : list_to_binary([unwrap_bin('$1')," ",unwrap_bin('$2')]).
 data_type -> NAME                                  : unwrap_bin('$1').
-data_type -> NAME '.' NAME                         : list_to_binary([unwrap_bin('$1'),".",unwrap_bin('$3')]).
-data_type -> NAME '.' NAME '.' NAME                : list_to_binary([unwrap_bin('$1'),".",unwrap_bin('$3'),".",unwrap_bin('$5')]).
+data_type -> identifier '.' NAME                   : list_to_binary(['$1',".",unwrap_bin('$3')]).
 data_type -> NCLOB                                 : unwrap_bin('$1').
 data_type -> NUMBER                                : unwrap_bin('$1').
 data_type -> RAW                                   : unwrap_bin('$1').
@@ -2015,7 +2014,7 @@ data_type -> NAME      '(' sgn_num ',' sgn_num ')' : {unwrap_bin('$1'), '$3', '$
 data_type -> NUMBER    '(' sgn_num ',' sgn_num ')' : {unwrap_bin('$1'), '$3', '$5'}.
 ============================================================================= */
 
-data_type ::= ( BFILE | BINARY_DOUBLE | BINARY_FLOAT | BLOB | CHAR | CLOB | DATE | FLOAT | LONG | ( LONG RAW ) | ( ( NAME '.' )? NAME '.' )? NAME | NCLOB | NUMBER | RAW | ROWID | TIMESTAMP | UROWID | VARCHAR2 | XMLTYPE )
+data_type ::= ( BFILE | BINARY_DOUBLE | BINARY_FLOAT | BLOB | CHAR | CLOB | DATE | FLOAT | LONG | ( LONG RAW ) | ( identifier '.' )? NAME | NCLOB | NUMBER | RAW | ROWID | TIMESTAMP | UROWID | VARCHAR2 | XMLTYPE )
              | ( ( CHAR | FLOAT | NAME | NCHAR | NUMBER | NVARCHAR2 c| RAW | TIMESTAMP | UROWID | VARCHAR2 ) '(' sgn_num ')' )
              | ( ( NAME | NUMBER ) '(' sgn_num ',' sgn_num ')' )
 
@@ -2050,7 +2049,6 @@ PARAMETER ::= ':' [A-Za-z0-9_\.]+
 identifier -> NAME            : unwrap_bin('$1').
 
 identifier -> ADMIN           : unwrap_bin('$1').
-% identifier -> APPROXNUM       : unwrap_bin('$1').
 identifier -> AUTHENTICATION  : unwrap_bin('$1').
 identifier -> AUTHORIZATION   : unwrap_bin('$1').
 identifier -> BAG             : unwrap_bin('$1').
@@ -2063,13 +2061,10 @@ identifier -> BLOB            : unwrap_bin('$1').
 identifier -> BODY            : unwrap_bin('$1').
 identifier -> CALL            : unwrap_bin('$1').
 identifier -> CASCADE         : unwrap_bin('$1').
-identifier -> CASE            : unwrap_bin('$1').
-identifier -> CHAR            : unwrap_bin('$1').
 identifier -> CLOB            : unwrap_bin('$1').
 identifier -> CLOSE           : unwrap_bin('$1').
 identifier -> COMMIT          : unwrap_bin('$1').
 identifier -> COMPARISON      : unwrap_bin('$1').
-identifier -> CONSTRAINT      : unwrap_bin('$1').
 identifier -> CONSTRAINTS     : unwrap_bin('$1').
 identifier -> CONTENTS        : unwrap_bin('$1').
 identifier -> CONTEXT         : unwrap_bin('$1').
@@ -2079,7 +2074,6 @@ identifier -> CURRENT         : unwrap_bin('$1').
 identifier -> CURSOR          : unwrap_bin('$1').
 identifier -> DATABASE        : unwrap_bin('$1').
 identifier -> DATAFILES       : unwrap_bin('$1').
-identifier -> DATE           : unwrap_bin('$1').
 identifier -> DBLINK          : unwrap_bin('$1').
 identifier -> DEFERRED        : unwrap_bin('$1').
 identifier -> DELEGATE        : unwrap_bin('$1').
@@ -2092,24 +2086,20 @@ identifier -> EXECUTE         : unwrap_bin('$1').
 identifier -> EXTERNALLY      : unwrap_bin('$1').
 identifier -> FETCH           : unwrap_bin('$1').
 identifier -> FILTER_WITH     : unwrap_bin('$1').
-identifier -> FLOAT           : unwrap_bin('$1').
 identifier -> FORCE           : unwrap_bin('$1').
 identifier -> FOREIGN         : unwrap_bin('$1').
 identifier -> FOUND           : unwrap_bin('$1').
 identifier -> FULL            : unwrap_bin('$1').
 identifier -> FUNCTION        : unwrap_bin('$1').
-% identifier -> FUNS            : unwrap_bin('$1').
 identifier -> GLOBALLY        : unwrap_bin('$1').
 identifier -> GOTO            : unwrap_bin('$1').
 identifier -> HASHMAP         : unwrap_bin('$1').
 identifier -> HIERARCHY       : unwrap_bin('$1').
-% identifier -> HINT            : unwrap_bin('$1').
 identifier -> IF              : unwrap_bin('$1').
 identifier -> IMMEDIATE       : unwrap_bin('$1').
 identifier -> INCLUDING       : unwrap_bin('$1').
 identifier -> INDICATOR       : unwrap_bin('$1').
 identifier -> INNER           : unwrap_bin('$1').
-% identifier -> INTNUM          : unwrap_bin('$1').
 identifier -> INVALIDATION    : unwrap_bin('$1').
 identifier -> JOIN            : unwrap_bin('$1').
 identifier -> JSON            : unwrap_bin('$1').
@@ -2120,24 +2110,19 @@ identifier -> LEFT            : unwrap_bin('$1').
 identifier -> LINK            : unwrap_bin('$1').
 identifier -> LOCAL           : unwrap_bin('$1').
 identifier -> LOG             : unwrap_bin('$1').
-identifier -> LONG            : unwrap_bin('$1').
 identifier -> MATERIALIZED    : unwrap_bin('$1').
 identifier -> NATURAL         : unwrap_bin('$1').
 identifier -> NCHAR           : unwrap_bin('$1').
 identifier -> NCLOB           : unwrap_bin('$1').
 identifier -> NO              : unwrap_bin('$1').
-% identifier -> NOCYCLE         : unwrap_bin('$1').
 identifier -> NONE            : unwrap_bin('$1').
 identifier -> NORM_WITH       : unwrap_bin('$1').
-% identifier -> NULLX           : unwrap_bin('$1').
-identifier -> NUMBER          : unwrap_bin('$1').
 identifier -> NVARCHAR2       : unwrap_bin('$1').
 identifier -> ONLINE          : unwrap_bin('$1').
 identifier -> OPEN            : unwrap_bin('$1').
 identifier -> ORDERED_SET     : unwrap_bin('$1').
 identifier -> OUTER           : unwrap_bin('$1').
 identifier -> PACKAGE         : unwrap_bin('$1').
-% identifier -> PARAMETER       : unwrap_bin('$1').
 identifier -> PARTITION       : unwrap_bin('$1').
 identifier -> PRESERVE        : unwrap_bin('$1').
 identifier -> PRIMARY         : unwrap_bin('$1').
@@ -2145,7 +2130,6 @@ identifier -> PRIVILEGES      : unwrap_bin('$1').
 identifier -> PROCEDURE       : unwrap_bin('$1').
 identifier -> PROFILE         : unwrap_bin('$1').
 identifier -> PURGE           : unwrap_bin('$1').
-identifier -> RAW             : unwrap_bin('$1').
 identifier -> ROWID           : unwrap_bin('$1').
 identifier -> QUOTA           : unwrap_bin('$1').
 identifier -> REFERENCES      : unwrap_bin('$1').
@@ -2159,25 +2143,15 @@ identifier -> ROLES           : unwrap_bin('$1').
 identifier -> ROLLBACK        : unwrap_bin('$1').
 identifier -> SCHEMA          : unwrap_bin('$1').
 identifier -> SEQUENCE        : unwrap_bin('$1').
-% identifier -> SOME            : unwrap_bin('$1').
 identifier -> SQLERROR        : unwrap_bin('$1').
 identifier -> STORAGE         : unwrap_bin('$1').
-% identifier -> STRING          : unwrap_bin('$1').
-% identifier -> TABLES          : unwrap_bin('$1').
-% identifier -> TABLESPACE      : unwrap_bin('$1').
-% identifier -> TEMPORARY       : unwrap_bin('$1').
-% identifier -> THROUGH         : unwrap_bin('$1').
 identifier -> TIMESTAMP       : unwrap_bin('$1').
-% identifier -> TRUNCATE        : unwrap_bin('$1').
 identifier -> TYPE            : unwrap_bin('$1').
 identifier -> UNLIMITED       : unwrap_bin('$1').
 identifier -> UROWID          : unwrap_bin('$1').
-% identifier -> USER            : unwrap_bin('$1').
 identifier -> USERS           : unwrap_bin('$1').
 identifier -> USING           : unwrap_bin('$1').
 identifier -> VALIDATE        : unwrap_bin('$1').
-identifier -> VARCHAR2        : unwrap_bin('$1').
-identifier -> WHEN            : unwrap_bin('$1').
 identifier -> WHENEVER        : unwrap_bin('$1').
 identifier -> WORK            : unwrap_bin('$1').
 identifier -> XMLTYPE         : unwrap_bin('$1').
@@ -2197,13 +2171,10 @@ identifier ::= NAME
              | BODY
              | CALL
              | CASCADE
-             | CASE
-             | CHAR
              | CLOB
              | CLOSE
              | COMMIT
              | COMPARISON
-             | CONSTRAINT
              | CONSTRAINTS
              | CONTENTS
              | CONTEXT
@@ -2213,7 +2184,6 @@ identifier ::= NAME
              | CURSOR
              | DATABASE
              | DATAFILES
-             | DATE
              | DBLINK
              | DEFERRED
              | DELEGATE
@@ -2226,7 +2196,6 @@ identifier ::= NAME
              | EXTERNALLY
              | FETCH
              | FILTER_WITH
-             | FLOAT
              | FORCE
              | FOREIGN
              | FOUND
@@ -2251,7 +2220,6 @@ identifier ::= NAME
              | LINK
              | LOCAL
              | LOG
-             | LONG
              | MATERIALIZED
              | NATURAL
              | NCHAR
@@ -2259,7 +2227,6 @@ identifier ::= NAME
              | NO
              | NONE
              | NORM_WITH
-             | NUMBER
              | NVARCHAR2
              | ONLINE
              | OPEN
@@ -2274,7 +2241,6 @@ identifier ::= NAME
              | PROFILE
              | PURGE
              | QUOTA
-             | RAW
              | REFERENCES
              | REQUIRED
              | RETURN
@@ -2296,8 +2262,6 @@ identifier ::= NAME
              | USERS
              | USING
              | VALIDATE
-             | VARCHAR2
-             | WHEN
              | WHENEVER
              | WORK
              | XMLTYPE

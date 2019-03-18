@@ -202,7 +202,7 @@
 "CREATE CLUSTER SET TABLE test(fld CHAR)".
 "CREATE imem_dal_skvh TABLE test()".
 "CREATE LOCAL BAG TABLE test(fld CHAR)".
-"CREATE LOCAL BAG TABLE test(fld CHAR,fld VARCHAR2(13)DEFAULT '123',fld BLOB(2000),fld INT DEFAULT 99999999999999999,fld FLOAT(-3)DEFAULT 123456,fld DECIMAL(10,3)DEFAULT 1.1234,fld DATE DEFAULT SYSDATE,fld DATETIME,fld TIMESTAMP,fld INT)".
+"CREATE LOCAL BAG TABLE test(fld CHAR,fld VARCHAR2(13)DEFAULT '123',fld BLOB,fld INT DEFAULT 99999999999999999,fld FLOAT(-3)DEFAULT 123456,fld DECIMAL(10,3)DEFAULT 1.1234,fld DATE DEFAULT SYSDATE,fld DATETIME,fld TIMESTAMP,fld INT)".
 "create local set table schema_1.table_1(column_1 char,column_2 number(10,2),column_3 varchar_2(10) not null primary key,column_4 lob not null default avg(column_1,column_2),column_5 lob not null default my_sum(column_1,column_2)|:b|,column_6 char(10) references table_2(column_3,column_4))".
 "create local set table table_1(column_1 date)".
 "create local set table table_1(column_1 date);test".
@@ -230,7 +230,7 @@
 "CREATE TABLE hr_job_history( employee_id number(6,0)NOT NULL,start_date date NOT NULL,end_date date NOT NULL,job_id varchar2(10)NOT NULL,department_id number(4,0));".
 "CREATE TABLE hr_job_history( employee_id number(6,0)NOT NULL,start_date date NOT NULL,end_date date NOT NULL,job_id varchar2(10)NOT NULL,department_id number(4,0),CHECK(end_date > start_date));".
 "CREATE TABLE hr_job_history( employee_id number(6,0)NOT NULL,start_date date NOT NULL,end_date date NOT NULL,job_id varchar2(10)NOT NULL,department_id number(4,0),PRIMARY KEY(employee_id,start_date));".
-"create table key_test(col1 '{atom,integer}',col2 '{string,binstr}')".
+"create table key_test(col1 atom,col2 integer,col3 string,col4 binstr)".
 "CREATE TABLE Persons(P_Id int,LastName varchar2,LastName varchar2(255),FirstName varchar2(255),Address varchar2(255),City varchar2(255),testfield varchar(10))".
 "create table schema_1.table_1(column_1 date,column_2 date,foreign key(fkey_1,fkey_2) references schema_1.table_2(column_8,column_9))".
 "create table schema_1.table_1(column_1 date,column_2 date,constraint constraint_1 foreign key(fkey_1,fkey_2) references schema_1.table_2(column_8,column_9))".
@@ -651,7 +651,7 @@
 "create table table_1(column_1 date,constraint constraint_1 foreign key(column_1)references \"__..__\")".
 "create table table_1(column_1 date,constraint constraint_1 foreign key(column_1)references table_2)".
 "create table table_1(column_1 number(1,2)not null default 0)".
-"create table table_1(column_1 number(1,2)not null default date)".
+"create table table_1(column_1 number(1,2)not null default special_date)".
 "create table table_1(column_1 number(1,2)not null default function_1(column_1,column_2))".
 "create table table_1(column_1 number(1,2)not null default null)".
 "create table table_1(column_1 number(1,2)not null default package_1.function_1(column_1,column_2))".

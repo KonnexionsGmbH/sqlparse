@@ -122,6 +122,7 @@ Nonterminals
  hierarchical_query_clause
  hint
  identified
+ identifier
  in_predicate
  index_name
  inner_cross_join
@@ -255,13 +256,19 @@ Terminals
  BAG
  BEGIN
  BETWEEN
+ BFILE
+ BINARY_DOUBLE
+ BINARY_FLOAT
  BITMAP
+ BLOB
  BODY
  BY
  CALL
  CASCADE
  CASE
+ CHAR
  CHECK
+ CLOB
  CLOSE
  CLUSTER
  COMMIT
@@ -278,6 +285,7 @@ Terminals
  CURSOR
  DATABASE
  DATAFILES
+ DATE
  DBLINK
  DEFAULT
  DEFERRED
@@ -297,6 +305,7 @@ Terminals
  EXTERNALLY
  FETCH
  FILTER_WITH
+ FLOAT
  FORCE
  FOREIGN
  FOUND
@@ -336,16 +345,21 @@ Terminals
  LINK
  LOCAL
  LOG
+ LONG
  MATERIALIZED
  MINUS
  NAME
  NATURAL
+ NCHAR
+ NCLOB
  NO
  NOCYCLE
  NONE
  NORM_WITH
  NOT
  NULLX
+ NUMBER
+ NVARCHAR2
  OF
  ON
  ONLINE
@@ -367,6 +381,7 @@ Terminals
  PUBLIC
  PURGE
  QUOTA
+ RAW
  REFERENCES
  REQUIRED
  RETURN
@@ -377,6 +392,7 @@ Terminals
  ROLE
  ROLES
  ROLLBACK
+ ROWID
  SCHEMA
  SELECT
  SEQUENCE
@@ -393,6 +409,7 @@ Terminals
  TEMPORARY
  THEN
  THROUGH
+ TIMESTAMP
  TO
  TRIGGER
  TRUNCATE
@@ -401,17 +418,20 @@ Terminals
  UNIQUE
  UNLIMITED
  UPDATE
+ UROWID
  USER
  USERS
  USING
  VALIDATE
  VALUES
+ VARCHAR2
  VIEW
  WHEN
  WHENEVER
  WHERE
  WITH
  WORK
+ XMLTYPE
  '('
  ')'
  '*'
@@ -496,8 +516,8 @@ procedure_call -> CALL function_ref : {'call procedure',  '$2'}.
 %% schema definition language
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-schema -> CREATE SCHEMA AUTHORIZATION NAME                     : {'create schema authorization', unwrap('$4'), []}.
-schema -> CREATE SCHEMA AUTHORIZATION NAME schema_element_list : {'create schema authorization', unwrap('$4'), '$5'}.
+schema -> CREATE SCHEMA AUTHORIZATION identifier                     : {'create schema authorization', binary_to_list('$4'), []}.
+schema -> CREATE SCHEMA AUTHORIZATION identifier schema_element_list : {'create schema authorization', binary_to_list('$4'), '$5'}.
 
 schema_element_list ->                     schema_element :         ['$1'].
 schema_element_list -> schema_element_list schema_element : '$1' ++ ['$2'].
@@ -506,15 +526,15 @@ schema_element -> create_table_def : '$1'.
 schema_element -> view_def         : '$1'.
 schema_element -> grant_def        : '$1'.
 
-create_role_def -> CREATE ROLE NAME : {'create role', unwrap_bin('$3')}.
+create_role_def -> CREATE ROLE identifier : {'create role', '$3'}.
 
 create_table_def -> CREATE             TABLE table '('                              ')' : {'create table', '$3', [],   []}.
 create_table_def -> CREATE             TABLE table '(' base_table_element_commalist ')' : {'create table', '$3', '$5', []}.
 create_table_def -> CREATE create_opts TABLE table '('                              ')' : {'create table', '$4', [],   '$2'}.
 create_table_def -> CREATE create_opts TABLE table '(' base_table_element_commalist ')' : {'create table', '$4', '$6', '$2'}.
 
-create_user_def -> CREATE USER NAME identified                : {'create user', unwrap_bin('$3'), '$4', []}.
-create_user_def -> CREATE USER NAME identified user_opts_list : {'create user', unwrap_bin('$3'), '$4', '$5'}.
+create_user_def -> CREATE USER identifier identified                : {'create user', '$3', '$4', []}.
+create_user_def -> CREATE USER identifier identified user_opts_list : {'create user', '$3', '$4', '$5'}.
 
 create_index_def -> CREATE                   INDEX            ON table_alias                                                         : {'create index', {},   {},   '$4', [],   {},   {}}.
 create_index_def -> CREATE                   INDEX            ON table_alias                                     create_index_filter : {'create index', {},   {},   '$4', [],   {},   '$5'}.
@@ -554,16 +574,16 @@ create_index_opts -> KEYLIST : keylist.
 create_index_opts -> HASHMAP : hashmap.
 create_index_opts -> UNIQUE  : unique.
 
-index_name -> NAME          : unwrap_bin('$1').
-index_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+index_name ->                identifier : '$1'.
+index_name -> identifier '.' identifier : list_to_binary(['$1', ".", '$3']).
 
 create_index_spec -> '(' create_index_spec_items ')' : '$2'.
 
 create_index_spec_items -> create_index_spec_column                             : ['$1'].
 create_index_spec_items -> create_index_spec_column ',' create_index_spec_items : ['$1' | '$3'].
 
-create_index_spec_column -> NAME      : unwrap_bin('$1').
-create_index_spec_column -> NAME JSON : jpparse(list_to_binary([unwrap('$1'),unwrap('$2')])).
+create_index_spec_column -> identifier      : '$1'.
+create_index_spec_column -> identifier JSON : jpparse(list_to_binary(['$1',unwrap('$2')])).
 
 create_index_norm -> NORM_WITH STRING : {norm, unwrap_bin('$2')}.
 
@@ -582,19 +602,19 @@ tbl_type -> ORDERED_SET : [{type, <<"ordered_set">>}].
 tbl_type -> BAG         : [{type, <<"bag">>}].
 tbl_type -> NAME        : [{type, unwrap_bin('$1')}].
 
-alter_user_def -> ALTER USER user_list proxy_clause : {'alter user', '$3', '$4'}.
-alter_user_def -> ALTER USER NAME spec_list         : {'alter user', unwrap_bin('$3'), {spec, '$4'}}.
-alter_user_def -> ALTER USER NAME NAME NAME         : {'alter user', unwrap_bin('$3'), {'spec', [case {string:to_lower(unwrap('$4')), string:to_lower(unwrap('$5'))} of
-                                                                                                     {"account", "lock"} -> {account, lock};
-                                                                                                     {"account", "unlock"} -> {account, unlock};
-                                                                                                     {"password", "expire"} -> {password, expire};
-                                                                                                     Unknown -> exit({invalid_option, Unknown})
-                                                                                                 end]
-                                                                                       }
-                                                      }.
+alter_user_def -> ALTER USER user_list  proxy_clause      : {'alter user', '$3', '$4'}.
+alter_user_def -> ALTER USER identifier spec_list         : {'alter user', '$3', {spec, '$4'}}.
+alter_user_def -> ALTER USER identifier NAME         NAME : {'alter user', '$3', {spec, [case {string:to_lower(unwrap('$4')), string:to_lower(unwrap('$5'))} of
+                                                                                             {"account", "lock"} -> {account, lock};
+                                                                                             {"account", "unlock"} -> {account, unlock};
+                                                                                             {"password", "expire"} -> {password, expire};
+                                                                                             Unknown -> exit({invalid_option, Unknown})
+                                                                                         end]
+                                                                                     }
+                                                            }.
 
-user_list -> NAME               : [unwrap_bin('$1')].
-user_list -> NAME ',' user_list : [unwrap_bin('$1') | '$3'].
+user_list -> identifier               : ['$1'].
+user_list -> identifier ',' user_list : ['$1' | '$3'].
 
 proxy_clause -> GRANT  CONNECT THROUGH ENTERPRISE USERS : {'grant connect', 'enterprise users'}.
 proxy_clause -> GRANT  CONNECT THROUGH db_user_proxy    : {'grant connect', '$4'}.
@@ -626,26 +646,26 @@ user_role -> DEFAULT ROLE            role_list : {'default role', '$3'}.
 role_list -> NAME               : [unwrap_bin('$1')].
 role_list -> NAME ',' role_list : [unwrap_bin('$1') | '$3'].
 
-identified -> IDENTIFIED            BY NAME : {'identified by',       unwrap_bin('$3')}.
-identified -> IDENTIFIED EXTERNALLY         : {'identified extern',   {}}.
-identified -> IDENTIFIED EXTERNALLY AS NAME : {'identified extern',   unwrap_bin('$4')}.
-identified -> IDENTIFIED GLOBALLY           : {'identified globally', {}}.
-identified -> IDENTIFIED GLOBALLY   AS NAME : {'identified globally', unwrap_bin('$4')}.
+identified -> IDENTIFIED            BY identifier : {'identified by',       '$3'}.
+identified -> IDENTIFIED EXTERNALLY               : {'identified extern',   {}}.
+identified -> IDENTIFIED EXTERNALLY AS identifier : {'identified extern',   '$4'}.
+identified -> IDENTIFIED GLOBALLY                 : {'identified globally', {}}.
+identified -> IDENTIFIED GLOBALLY   AS identifier : {'identified globally', '$4'}.
 
 user_opts_list -> user_opt                : ['$1'].
 user_opts_list -> user_opt user_opts_list : ['$1'] ++ '$2'.
 
-user_opt -> DEFAULT   TABLESPACE NAME : [{'default tablespace', unwrap_bin('$3')}].
-user_opt -> TEMPORARY TABLESPACE NAME : [{'temporary tablespace', unwrap_bin('$3')}].
-user_opt -> quota_list                : [{quotas, '$1'}].
-user_opt -> PROFILE NAME              : [{profile, unwrap_bin('$2')}].
+user_opt -> DEFAULT   TABLESPACE identifier : [{'default tablespace',   '$3'}].
+user_opt -> TEMPORARY TABLESPACE identifier : [{'temporary tablespace', '$3'}].
+user_opt -> quota_list                      : [{quotas,  '$1'}].
+user_opt -> PROFILE              identifier : [{profile, '$2'}].
 
 quota_list -> quota            : ['$1'].
 quota_list -> quota quota_list : ['$1'] ++ '$2'.
 
-quota -> QUOTA UNLIMITED   ON NAME : {'unlimited on', unwrap_bin('$4')}.
-quota -> QUOTA INTNUM      ON NAME : {limited, unwrap_bin('$2'), <<"">>,           unwrap_bin('$4')}.
-quota -> QUOTA INTNUM NAME ON NAME : {limited, unwrap_bin('$2'), unwrap_bin('$3'), unwrap_bin('$5')}.
+quota -> QUOTA UNLIMITED         ON identifier : {'unlimited on', '$4'}.
+quota -> QUOTA INTNUM            ON identifier : {limited, unwrap_bin('$2'), <<"">>, '$4'}.
+quota -> QUOTA INTNUM identifier ON identifier : {limited, unwrap_bin('$2'), '$3',   '$5'}.
 
 table_list ->                table :         ['$1'].
 table_list -> table_list ',' table : '$1' ++ ['$3'].
@@ -668,24 +688,24 @@ column_def_opt -> NOT NULLX                                 : 'not null'.
 column_def_opt -> NOT NULLX UNIQUE                          : 'not null unique'.
 column_def_opt -> NOT NULLX PRIMARY KEY                     : 'not null primary key'.
 column_def_opt -> DEFAULT function_ref                      : {default, '$2'}.
+column_def_opt -> DEFAULT identifier                        : {default, '$2'}.
 column_def_opt -> DEFAULT literal                           : {default, '$2'}.
-column_def_opt -> DEFAULT NAME                              : {default, unwrap_bin('$2')}.
 column_def_opt -> DEFAULT NULLX                             : {default, 'null'}.
 column_def_opt -> DEFAULT USER                              : {default, 'user'}.
 column_def_opt -> CHECK '(' search_condition ')'            : {check, '$3'}.
 column_def_opt -> REFERENCES table                          : {ref, '$2'}.
 column_def_opt -> REFERENCES table '(' column_commalist ')' : {ref, {'$2', '$4'}}.
 
-table_constraint_def ->                 UNIQUE      '(' column_commalist ')'                                           : {unique,        [],               '$3'}.
-table_constraint_def ->                 PRIMARY KEY '(' column_commalist ')'                                           : {'primary key', [],               '$4'}.
-table_constraint_def ->                 FOREIGN KEY '(' column_commalist ')' REFERENCES table                          : {'foreign key', [],               '$4', {'ref', '$7'}}.
-table_constraint_def ->                 FOREIGN KEY '(' column_commalist ')' REFERENCES table '(' column_commalist ')' : {'foreign key', [],               '$4', {'ref', {'$7', '$9'}}}.
-table_constraint_def ->                 CHECK '(' search_condition ')'                                                 : {check,         [],               '$3'}.
-table_constraint_def -> CONSTRAINT NAME UNIQUE      '(' column_commalist ')'                                           : {unique,        unwrap_bin('$2'), '$5'}.
-table_constraint_def -> CONSTRAINT NAME PRIMARY KEY '(' column_commalist ')'                                           : {'primary key', unwrap_bin('$2'), '$6'}.
-table_constraint_def -> CONSTRAINT NAME FOREIGN KEY '(' column_commalist ')' REFERENCES table                          : {'foreign key', unwrap_bin('$2'), '$6', {'ref', '$9'}}.
-table_constraint_def -> CONSTRAINT NAME FOREIGN KEY '(' column_commalist ')' REFERENCES table '(' column_commalist ')' : {'foreign key', unwrap_bin('$2'), '$6', {'ref', {'$9', '$11'}}}.
-table_constraint_def -> CONSTRAINT NAME CHECK '(' search_condition ')'                                                 : {check,         unwrap_bin('$2'), '$5'}.
+table_constraint_def ->                       UNIQUE      '(' column_commalist ')'                                           : {unique,        [],   '$3'}.
+table_constraint_def ->                       PRIMARY KEY '(' column_commalist ')'                                           : {'primary key', [],   '$4'}.
+table_constraint_def ->                       FOREIGN KEY '(' column_commalist ')' REFERENCES table                          : {'foreign key', [],   '$4', {'ref', '$7'}}.
+table_constraint_def ->                       FOREIGN KEY '(' column_commalist ')' REFERENCES table '(' column_commalist ')' : {'foreign key', [],   '$4', {'ref', {'$7', '$9'}}}.
+table_constraint_def ->                       CHECK '(' search_condition ')'                                                 : {check,         [],   '$3'}.
+table_constraint_def -> CONSTRAINT identifier UNIQUE      '(' column_commalist ')'                                           : {unique,        '$2', '$5'}.
+table_constraint_def -> CONSTRAINT identifier PRIMARY KEY '(' column_commalist ')'                                           : {'primary key', '$2', '$6'}.
+table_constraint_def -> CONSTRAINT identifier FOREIGN KEY '(' column_commalist ')' REFERENCES table                          : {'foreign key', '$2', '$6', {'ref', '$9'}}.
+table_constraint_def -> CONSTRAINT identifier FOREIGN KEY '(' column_commalist ')' REFERENCES table '(' column_commalist ')' : {'foreign key', '$2', '$6', {'ref', {'$9', '$11'}}}.
+table_constraint_def -> CONSTRAINT identifier CHECK '(' search_condition ')'                                                 : {check,         '$2', '$5'}.
 
 column_commalist -> column                      : ['$1'].
 column_commalist -> column ',' column_commalist : ['$1' | '$3'].
@@ -719,10 +739,10 @@ revoke_def -> REVOKE object_privilege_list on_obj_clause FROM grantee_revokee_co
 revoke_def -> REVOKE ALL PRIVILEGES                      FROM grantee_revokee_commalist                           : {revoke, ['all privileges'], {on, <<"">>}, {from, '$5'}, ''}.
 revoke_def -> REVOKE system_privilege_list               FROM grantee_revokee_commalist                           : {revoke, '$2',               {on, <<"">>}, {from, '$4'}, ''}.
 
-grantee_identified_by -> NAME IDENTIFIED BY STRING : {'identified by', unwrap_bin('$1'), unwrap_bin('$4')}.
+grantee_identified_by -> identifier IDENTIFIED BY STRING : {'identified by', '$1', unwrap_bin('$4')}.
 
-grantee_revokee -> NAME   : unwrap_bin('$1').
-grantee_revokee -> PUBLIC : 'public'.
+grantee_revokee -> identifier : '$1'.
+grantee_revokee -> PUBLIC     : 'public'.
 
 grantee_revokee_commalist ->                               grantee_revokee :         ['$1'].
 grantee_revokee_commalist -> grantee_revokee_commalist ',' grantee_revokee : '$1' ++ ['$3'].
@@ -746,8 +766,8 @@ object_with_grant_option -> WITH HIERARCHY OPTION : 'with hierarchy option'.
 object_with_revoke_option -> CASCADE CONSTRAINTS : 'cascade constraints'.
 object_with_revoke_option -> FORCE               : 'force'.
 
-on_obj_clause -> ON DIRECTORY NAME : {'on directory', unwrap_bin('$3')}.
-on_obj_clause -> ON table          : {on,            '$2'}.
+on_obj_clause -> ON DIRECTORY identifier : {'on directory','$3'}.
+on_obj_clause -> ON table                : {on,            '$2'}.
 
 system_privilege -> ADMIN                        : 'admin'.
 system_privilege -> ALTER ANY INDEX              : 'alter any index'.
@@ -855,22 +875,22 @@ drop_cluster_def -> DROP CLUSTER cluster_name drop_cluster_extensions : {'drop c
 drop_cluster_extensions -> INCLUDING TABLES                     : {'including tables'}.
 drop_cluster_extensions -> INCLUDING TABLES CASCADE CONSTRAINTS : {'including tables cascade constraints'}.
 
-cluster_name -> NAME          : unwrap_bin('$1').
-cluster_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+cluster_name ->                identifier : '$1'.
+cluster_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 
-drop_context_def -> DROP CONTEXT NAME : {'drop context', unwrap_bin('$3')}.
+drop_context_def -> DROP CONTEXT identifier : {'drop context', '$3'}.
 
 drop_database_def -> DROP DATABASE : {'drop database'}.
 
 drop_database_link_def -> DROP        DATABASE LINK DBLINK : {'drop database link', unwrap_bin('$4'), {}}.
 drop_database_link_def -> DROP PUBLIC DATABASE LINK DBLINK : {'drop database link', unwrap_bin('$5'), public}.
 
-drop_directory_def -> DROP DIRECTORY NAME : {'drop directory', unwrap_bin('$3')}.
+drop_directory_def -> DROP DIRECTORY identifier : {'drop directory', '$3'}.
 
 drop_function_def -> DROP FUNCTION function_name : {'drop function', '$3'}.
 
-function_name -> NAME          : unwrap_bin('$1').
-function_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+function_name ->                NAME : unwrap_bin('$1').
+function_name -> identifier '.' NAME : list_to_binary(['$1',".",unwrap_bin('$3')]).
 
 drop_index_def -> DROP INDEX            FROM table                       : {'drop index', {},   '$4'}.
 drop_index_def -> DROP INDEX            FROM table drop_index_extensions : {'drop index', {},   '$4', '$5'}.
@@ -894,53 +914,53 @@ drop_index_extensions -> ONLINE FORCE IMMEDIATE INVALIDATION : {'online force im
 drop_materialized_view_def -> DROP MATERIALIZED VIEW materialized_view_name                : {'drop materialized view', '$4', {}}.
 drop_materialized_view_def -> DROP MATERIALIZED VIEW materialized_view_name PRESERVE TABLE : {'drop materialized view', '$4', 'preserve table'}.
 
-materialized_view_name -> NAME          : unwrap_bin('$1').
-materialized_view_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+materialized_view_name ->                identifier : '$1'.
+materialized_view_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 
 drop_package_def -> DROP PACKAGE      package_name : {'drop package', '$3', {}}.
 drop_package_def -> DROP PACKAGE BODY package_name : {'drop package', '$4', body}.
 
-package_name -> NAME          : unwrap_bin('$1').
-package_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+package_name ->                identifier : '$1'.
+package_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 
 drop_procedure_def -> DROP PROCEDURE procedure_name : {'drop procedure', '$3'}.
 
-procedure_name -> NAME          : unwrap_bin('$1').
-procedure_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+procedure_name ->                identifier : '$1'.
+procedure_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 
-drop_profile_def -> DROP PROFILE NAME         : {'drop profile', unwrap_bin('$3'), {}}.
-drop_profile_def -> DROP PROFILE NAME CASCADE : {'drop profile', unwrap_bin('$3'), cascade}.
+drop_profile_def -> DROP PROFILE identifier         : {'drop profile', '$3', {}}.
+drop_profile_def -> DROP PROFILE identifier CASCADE : {'drop profile', '$3', cascade}.
 
-drop_role_def -> DROP ROLE NAME : {'drop role', unwrap_bin('$3')}.
+drop_role_def -> DROP ROLE identifier : {'drop role', '$3'}.
 
 drop_sequence_def -> DROP SEQUENCE sequence_name : {'drop sequence', '$3'}.
 
-sequence_name -> NAME          : unwrap_bin('$1').
-sequence_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+sequence_name ->                identifier : '$1'.
+sequence_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 
 drop_synonym_def -> DROP        SYNONYM synonym_name       : {'drop synonym', '$3', {},     {}}.
 drop_synonym_def -> DROP        SYNONYM synonym_name FORCE : {'drop synonym', '$3', {},     force}.
 drop_synonym_def -> DROP PUBLIC SYNONYM synonym_name       : {'drop synonym', '$4', public, {}}.
 drop_synonym_def -> DROP PUBLIC SYNONYM synonym_name FORCE : {'drop synonym', '$4', public, force}.
 
-synonym_name -> NAME          : unwrap_bin('$1').
-synonym_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+synonym_name ->                identifier : '$1'.
+synonym_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 
-drop_table_def -> DROP      TABLE        table_list                       : {'drop table', {'tables', '$3'}, {},   {},   []}.
-drop_table_def -> DROP      TABLE        table_list drop_table_extensions : {'drop table', {'tables', '$3'}, {},   '$4', []}.
-drop_table_def -> DROP      TABLE exists table_list                       : {'drop table', {'tables', '$4'}, '$3', {},   []}.
-drop_table_def -> DROP      TABLE exists table_list drop_table_extensions : {'drop table', {'tables', '$4'}, '$3', '$5', []}.
-drop_table_def -> DROP NAME TABLE        table_list                       : {'drop table', {'tables', '$4'}, {},   {},   unwrap('$2')}.
-drop_table_def -> DROP NAME TABLE        table_list drop_table_extensions : {'drop table', {'tables', '$4'}, {},   '$5', unwrap('$2')}.
-drop_table_def -> DROP NAME TABLE exists table_list                       : {'drop table', {'tables', '$5'}, '$4', {},   unwrap('$2')}.
-drop_table_def -> DROP NAME TABLE exists table_list drop_table_extensions : {'drop table', {'tables', '$5'}, '$4', '$6', unwrap('$2')}.
+drop_table_def -> DROP            TABLE        table_list                       : {'drop table', {'tables', '$3'}, {},   {},   []}.
+drop_table_def -> DROP            TABLE        table_list drop_table_extensions : {'drop table', {'tables', '$3'}, {},   '$4', []}.
+drop_table_def -> DROP            TABLE exists table_list                       : {'drop table', {'tables', '$4'}, '$3', {},   []}.
+drop_table_def -> DROP            TABLE exists table_list drop_table_extensions : {'drop table', {'tables', '$4'}, '$3', '$5', []}.
+drop_table_def -> DROP identifier TABLE        table_list                       : {'drop table', {'tables', '$4'}, {},   {},   binary_to_list('$2')}.
+drop_table_def -> DROP identifier TABLE        table_list drop_table_extensions : {'drop table', {'tables', '$4'}, {},   '$5', binary_to_list('$2')}.
+drop_table_def -> DROP identifier TABLE exists table_list                       : {'drop table', {'tables', '$5'}, '$4', {},   binary_to_list('$2')}.
+drop_table_def -> DROP identifier TABLE exists table_list drop_table_extensions : {'drop table', {'tables', '$5'}, '$4', '$6', binary_to_list('$2')}.
 
 drop_table_extensions ->                     PURGE : {'purge'}.
 drop_table_extensions -> CASCADE CONSTRAINTS       : {'cascade constraints'}.
 drop_table_extensions -> CASCADE CONSTRAINTS PURGE : {'cascade constraints purge'}.
 
-drop_tablespace_def -> DROP TABLESPACE NAME                            : {'drop tablespace', unwrap_bin('$3'), {}}.
-drop_tablespace_def -> DROP TABLESPACE NAME drop_tablespace_extensions : {'drop tablespace', unwrap_bin('$3'), '$4'}.
+drop_tablespace_def -> DROP TABLESPACE identifier                            : {'drop tablespace', '$3', {}}.
+drop_tablespace_def -> DROP TABLESPACE identifier drop_tablespace_extensions : {'drop tablespace', '$3', '$4'}.
 
 drop_tablespace_extensions ->            INCLUDING CONTENTS                                    : {'including contents'}.
 drop_tablespace_extensions ->            INCLUDING CONTENTS                CASCADE CONSTRAINTS : {'including contents cascade constraints'}.
@@ -959,20 +979,20 @@ drop_tablespace_extensions -> KEEP QUOTA INCLUDING CONTENTS KEEP DATAFILES CASCA
 
 drop_trigger_def -> DROP TRIGGER trigger_name : {'drop trigger', '$3'}.
 
-trigger_name -> NAME          : unwrap_bin('$1').
-trigger_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+trigger_name ->                identifier : '$1'.
+trigger_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 
 drop_type_def -> DROP TYPE type_name          : {'drop type', '$3', {}}.
 drop_type_def -> DROP TYPE type_name FORCE    : {'drop type', '$3', force}.
 drop_type_def -> DROP TYPE type_name VALIDATE : {'drop type', '$3', validate}.
 
-type_name -> NAME          : unwrap_bin('$1').
-type_name -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
+type_name ->                identifier : '$1'.
+type_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 
 drop_type_body_def -> DROP TYPE BODY type_name : {'drop type body', '$4'}.
 
-drop_user_def -> DROP USER NAME         : {'drop user', unwrap_bin('$3'), []}.
-drop_user_def -> DROP USER NAME CASCADE : {'drop user', unwrap_bin('$3'), ['cascade']}.
+drop_user_def -> DROP USER identifier         : {'drop user', '$3', []}.
+drop_user_def -> DROP USER identifier CASCADE : {'drop user', '$3', ['cascade']}.
 
 drop_view_def -> DROP VIEW table                     : {'drop view', '$3', {}}.
 drop_view_def -> DROP VIEW table CASCADE CONSTRAINTS : {'drop view', '$3', 'cascade constraints'}.
@@ -1042,7 +1062,7 @@ update_statement_searched -> UPDATE table_dblink SET assignment_commalist where_
 target_commalist ->                      target :         ['$1'].
 target_commalist -> target_commalist ',' target : '$1' ++ ['$3'].
 
-target -> NAME          : unwrap_bin('$1').
+target -> identifier    : '$1'.
 target -> parameter_ref : '$1'.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1215,13 +1235,13 @@ outer_join_type -> LEFT  OUTER : left_outer.
 outer_join_type -> RIGHT       : right.
 outer_join_type -> RIGHT OUTER : right_outer.
 
-table_ref -> table_dblink    : '$1'.
-table_ref -> query_term      : '$1'.
-table_ref -> query_term NAME : {as, '$1', unwrap_bin('$2')}.
+table_ref -> table_dblink      : '$1'.
+table_ref -> query_term        : '$1'.
+table_ref -> query_term   NAME : {as, '$1', unwrap_bin('$2')}.
 
-join_ref -> table_dblink    : '$1'.
-join_ref -> query_term      : '$1'.
-join_ref -> query_term NAME : {as, '$1', unwrap_bin('$2')}.
+join_ref -> table_dblink      : '$1'.
+join_ref -> query_term        : '$1'.
+join_ref -> query_term   NAME : {as, '$1', unwrap_bin('$2')}.
 
 hierarchical_query_clause -> START WITH         search_condition CONNECT BY         search_condition : {'hierarchical query', {{'start with', '$3'},       {'connect by', <<>>, '$6'}}}.
 hierarchical_query_clause -> START WITH         search_condition CONNECT BY nocycle search_condition : {'hierarchical query', {{'start with', '$3'},       {'connect by', '$6', '$7'}}}.
@@ -1359,23 +1379,23 @@ parameter_ref -> parameter                     : '$1'.
 parameter_ref -> parameter           parameter : {'$1', '$2'}.
 parameter_ref -> parameter INDICATOR parameter : {indicator, '$1', '$3'}.
 
-function_ref -> function_ref JSON                             : {'$1', jpparse(list_to_binary([unwrap('$2')])), []}.
-function_ref -> FUNS                                          : {'fun', unwrap_bin('$1'), []}.
-function_ref -> FUNS '('                     ')'              : {'fun', unwrap_bin('$1'), []}.
-function_ref -> FUNS '(' '*'                 ')'              : {'fun', unwrap_bin('$1'), [<<"*">>]}.
-function_ref -> FUNS '(' ALL      scalar_exp ')'              : {'fun', unwrap_bin('$1'), [{all,      '$4'}]}.
-function_ref -> FUNS '(' DISTINCT column_ref ')'              : {'fun', unwrap_bin('$1'), [{distinct, '$4'}]}.
-function_ref -> FUNS '(' fun_args            ')'              : {'fun', unwrap_bin('$1'), make_list('$3')}.
-function_ref -> FUNS '(' fun_args_named      ')'              : {'fun', unwrap_bin('$1'), make_list('$3')}.
-function_ref -> NAME                   '('                ')' : {'fun', unwrap_bin('$1'), []}.
-function_ref -> NAME                   '(' fun_args       ')' : {'fun', unwrap_bin('$1'), make_list('$3')}.
-function_ref -> NAME                   '(' fun_args_named ')' : {'fun', unwrap_bin('$1'), make_list('$3')}.
-function_ref -> NAME '.' NAME          '('                ')' : {'fun', list_to_binary([unwrap('$1'), ".", unwrap('$3')]), []}.
-function_ref -> NAME '.' NAME          '(' fun_args       ')' : {'fun', list_to_binary([unwrap('$1'), ".", unwrap('$3')]), make_list('$5')}.
-function_ref -> NAME '.' NAME          '(' fun_args_named ')' : {'fun', list_to_binary([unwrap('$1'), ".", unwrap('$3')]), make_list('$5')}.
-function_ref -> NAME '.' NAME '.' NAME '('                ')' : {'fun', list_to_binary([unwrap('$1'), ".", unwrap('$3'), ".", unwrap('$5')]), []}.
-function_ref -> NAME '.' NAME '.' NAME '(' fun_args       ')' : {'fun', list_to_binary([unwrap('$1'), ".", unwrap('$3'), ".", unwrap('$5')]), make_list('$7')}.
-function_ref -> NAME '.' NAME '.' NAME '(' fun_args_named ')' : {'fun', list_to_binary([unwrap('$1'), ".", unwrap('$3'), ".", unwrap('$5')]), make_list('$7')}.
+function_ref -> function_ref JSON                                               : {'$1', jpparse(list_to_binary([unwrap('$2')])), []}.
+function_ref -> FUNS                                                            : {'fun', unwrap_bin('$1'), []}.
+function_ref -> FUNS '('                     ')'                                : {'fun', unwrap_bin('$1'), []}.
+function_ref -> FUNS '(' '*'                 ')'                                : {'fun', unwrap_bin('$1'), [<<"*">>]}.
+function_ref -> FUNS '(' ALL      scalar_exp ')'                                : {'fun', unwrap_bin('$1'), [{all,      '$4'}]}.
+function_ref -> FUNS '(' DISTINCT column_ref ')'                                : {'fun', unwrap_bin('$1'), [{distinct, '$4'}]}.
+function_ref -> FUNS '(' fun_args            ')'                                : {'fun', unwrap_bin('$1'), make_list('$3')}.
+function_ref -> FUNS '(' fun_args_named      ')'                                : {'fun', unwrap_bin('$1'), make_list('$3')}.
+function_ref -> identifier                               '('                ')' : {'fun', '$1', []}.
+function_ref -> identifier                               '(' fun_args       ')' : {'fun', '$1', make_list('$3')}.
+function_ref -> identifier                               '(' fun_args_named ')' : {'fun', '$1', make_list('$3')}.
+function_ref -> identifier '.' identifier                '('                ')' : {'fun', list_to_binary(['$1', ".", '$3']), []}.
+function_ref -> identifier '.' identifier                '(' fun_args       ')' : {'fun', list_to_binary(['$1', ".", '$3']), make_list('$5')}.
+function_ref -> identifier '.' identifier                '(' fun_args_named ')' : {'fun', list_to_binary(['$1', ".", '$3']), make_list('$5')}.
+function_ref -> identifier '.' identifier '.' identifier '('                ')' : {'fun', list_to_binary(['$1', ".", '$3', ".", '$5']), []}.
+function_ref -> identifier '.' identifier '.' identifier '(' fun_args       ')' : {'fun', list_to_binary(['$1', ".", '$3', ".", '$5']), make_list('$7')}.
+function_ref -> identifier '.' identifier '.' identifier '(' fun_args_named ')' : {'fun', list_to_binary(['$1', ".", '$3', ".", '$5']), make_list('$7')}.
 
 fun_args -> fun_arg              : ['$1'].
 fun_args -> fun_arg ',' fun_args : ['$1' | '$3'].
@@ -1384,15 +1404,15 @@ fun_arg -> '(' fun_arg ')'               : '$2'.
 fun_arg -> atom                          : '$1'.
 fun_arg -> case_when_exp                 : '$1'.
 fun_arg -> column_ref                    : '$1'.
-fun_arg -> fun_arg       NAME            : {as,   '$1', unwrap_bin('$2')}.
+fun_arg -> fun_arg       NAME            : {as,   '$1',unwrap_bin('$2')}.
 fun_arg -> fun_arg '*'   fun_arg         : {'*',  '$1','$3'}.
 fun_arg -> fun_arg '+'   fun_arg         : {'+',  '$1','$3'}.
 fun_arg -> fun_arg '-'   fun_arg         : {'-',  '$1','$3'}.
 fun_arg -> fun_arg '/'   fun_arg         : {'/',  '$1','$3'}.
-fun_arg -> fun_arg '='   fun_arg         : {'=',  '$1', '$3'}.
+fun_arg -> fun_arg '='   fun_arg         : {'=',  '$1','$3'}.
 fun_arg -> fun_arg 'div' fun_arg         : {'div','$1','$3'}.
 fun_arg -> fun_arg '||'  fun_arg         : {'||', '$1','$3'}.
-fun_arg -> fun_arg AS NAME               : {explicit_as, '$1', unwrap_bin('$3')}.
+fun_arg -> fun_arg AS    NAME            : {explicit_as,  '$1', unwrap_bin('$3')}.
 fun_arg -> fun_arg COMPARISON fun_arg    : {unwrap('$2'), '$1', '$3'}.
 fun_arg -> function_ref                  : '$1'.
 fun_arg -> NULLX                         : <<"NULL">>.
@@ -1402,9 +1422,9 @@ fun_arg -> unary_add_or_subtract fun_arg : {'$1', '$2'}.
 fun_args_named -> fun_arg_named                    : ['$1'].
 fun_args_named -> fun_arg_named ',' fun_args_named : ['$1' | '$3'].
 
-fun_arg_named -> NAME '=>' literal   : {'=>', unwrap_bin('$1'), '$3'}.
-fun_arg_named -> NAME '=>' NAME      : {'=>', unwrap_bin('$1'), unwrap_bin('$3')}.
-fun_arg_named -> NAME '=>' parameter : {'=>', unwrap_bin('$1'), '$3'}.
+fun_arg_named -> identifier '=>' identifier : {'=>', '$1', '$3'}.
+fun_arg_named -> identifier '=>' literal    : {'=>', '$1', '$3'}.
+fun_arg_named -> identifier '=>' parameter  : {'=>', '$1', '$3'}.
 
 literal -> STRING    : unwrap_bin('$1').
 literal -> INTNUM    : unwrap_bin('$1').
@@ -1414,62 +1434,72 @@ literal -> APPROXNUM : unwrap_bin('$1').
 %% miscellaneous
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-table -> NAME          : unwrap_bin('$1').
-table -> NAME '.' NAME : list_to_binary([unwrap('$1'), ".", unwrap('$3')]).
-table -> parameter     : '$1'.
+table -> identifier                : '$1'.
+table -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
+table -> parameter                 : '$1'.
 
-table_alias -> NAME          NAME : {as, unwrap_bin('$1'),                                unwrap_bin('$2')}.
-table_alias -> NAME '.' NAME NAME : {as, list_to_binary([unwrap('$1'),".",unwrap('$3')]), unwrap_bin('$4')}.
-table_alias -> parameter     NAME : {as, '$1',                                            unwrap_bin('$2')}.
-table_alias -> table              : '$1'.
+table_alias -> identifier                NAME : {as, '$1',                            unwrap_bin('$2')}.
+table_alias -> identifier '.' identifier NAME : {as, list_to_binary(['$1',".",'$3']), unwrap_bin('$4')}.
+table_alias -> parameter                 NAME : {as, '$1',                            unwrap_bin('$2')}.
+table_alias -> table                          : '$1'.
 
-table_dblink -> NAME          DBLINK      : {    unwrap_bin('$1'),                                                    {dblink, unwrap_bin('$2')}}.
-table_dblink -> NAME          DBLINK NAME : {as, unwrap_bin('$1'),                                  unwrap_bin('$3'), {dblink, unwrap_bin('$2')}}.
-table_dblink -> NAME '.' NAME DBLINK      : {    list_to_binary([unwrap('$1'), ".", unwrap('$3')]),                   {dblink, unwrap_bin('$4')}}.
-table_dblink -> NAME '.' NAME DBLINK NAME : {as, list_to_binary([unwrap('$1'), ".", unwrap('$3')]), unwrap_bin('$5'), {dblink, unwrap_bin('$4')}}.
-table_dblink -> parameter     DBLINK      : {    '$1',                                                                {dblink, unwrap_bin('$2')}}.
-table_dblink -> parameter     DBLINK NAME : {as, '$1',                                              unwrap_bin('$3'), {dblink, unwrap_bin('$2')}}.
-table_dblink -> table_alias               : '$1'.
-table_dblink -> table_coll_expr           : '$1'.
+table_dblink -> identifier          DBLINK                 : {    '$1',                                              {dblink, unwrap_bin('$2')}}.
+table_dblink -> identifier          DBLINK            NAME : {as, '$1',                            unwrap_bin('$3'), {dblink, unwrap_bin('$2')}}.
+table_dblink -> identifier      '.' identifier DBLINK      : {    list_to_binary(['$1',".",'$3']),                   {dblink, unwrap_bin('$4')}}.
+table_dblink -> identifier      '.' identifier DBLINK NAME : {as, list_to_binary(['$1',".",'$3']), unwrap_bin('$5'), {dblink, unwrap_bin('$4')}}.
+table_dblink -> parameter           DBLINK                 : {    '$1',                                              {dblink, unwrap_bin('$2')}}.
+table_dblink -> parameter           DBLINK            NAME : {as, '$1',                            unwrap_bin('$3'), {dblink, unwrap_bin('$2')}}.
+table_dblink -> table_alias                                : '$1'.
+table_dblink -> table_coll_expr                            : '$1'.
 
-column_ref ->                   FUNCTION JSON        : jpparse(list_to_binary(["FUNCTION",unwrap('$2')])).
-column_ref ->                   NAME     JSON        : jpparse(list_to_binary([unwrap('$1'),unwrap('$2')])).
-column_ref ->                   TYPE     JSON        : jpparse(list_to_binary(["TYPE",unwrap('$2')])).
-column_ref ->          NAME '.' FUNCTION JSON        : jpparse(list_to_binary([unwrap('$1'),".","FUNCTION",unwrap('$4')])).
-column_ref ->          NAME '.' NAME     JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),unwrap('$4')])).
-column_ref ->          NAME '.' TYPE     JSON        : jpparse(list_to_binary([unwrap('$1'),".","TYPE",unwrap('$4')])).
-column_ref -> NAME '.' NAME '.' FUNCTION JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".","FUNCTION",unwrap('$6')])).
-column_ref -> NAME '.' NAME '.' NAME     JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5'),unwrap('$6')])).
-column_ref -> NAME '.' NAME '.' TYPE     JSON        : jpparse(list_to_binary([unwrap('$1'),".",unwrap('$3'),".","TYPE",unwrap('$6')])).
-column_ref ->                   FUNCTION             : list_to_binary("FUNCTION").
-column_ref ->                   NAME                 : unwrap_bin('$1').
-column_ref ->                   TYPE                 : list_to_binary("TYPE").
-column_ref ->          NAME '.' FUNCTION             : list_to_binary([unwrap('$1'),".","FUNCTION"]).
-column_ref ->          NAME '.' NAME                 : list_to_binary([unwrap('$1'),".",unwrap('$3')]).
-column_ref ->          NAME '.' TYPE                 : list_to_binary([unwrap('$1'),".","TYPE"]).
-column_ref -> NAME '.' NAME '.' FUNCTION             : list_to_binary([unwrap('$1'),".",unwrap('$3'),".","FUNCTION"]).
-column_ref -> NAME '.' NAME '.' NAME                 : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5')]).
-column_ref -> NAME '.' NAME '.' TYPE                 : list_to_binary([unwrap('$1'),".",unwrap('$3'),".","TYPE"]).
-column_ref ->                   FUNCTION '(' '+' ')' : list_to_binary(["FUNCTION","(+)"]).
-column_ref ->                   NAME     '(' '+' ')' : list_to_binary([unwrap('$1'),"(+)"]).
-column_ref ->                   TYPE     '(' '+' ')' : list_to_binary(["TYPE","(+)"]).
-column_ref ->          NAME '.' FUNCTION '(' '+' ')' : list_to_binary([unwrap('$1'),".","FUNCTION","(+)"]).
-column_ref ->          NAME '.' NAME     '(' '+' ')' : list_to_binary([unwrap('$1'),".",unwrap('$3'),"(+)"]).
-column_ref ->          NAME '.' TYPE     '(' '+' ')' : list_to_binary([unwrap('$1'),".","TYPE","(+)"]).
-column_ref -> NAME '.' NAME '.' FUNCTION '(' '+' ')' : list_to_binary([unwrap('$1'),".",unwrap('$3'),".","FUNCTION","(+)"]).
-column_ref -> NAME '.' NAME '.' NAME     '(' '+' ')' : list_to_binary([unwrap('$1'),".",unwrap('$3'),".",unwrap('$5'),"(+)"]).
-column_ref -> NAME '.' NAME '.' TYPE     '(' '+' ')' : list_to_binary([unwrap('$1'),".",unwrap('$3'),".","TYPE","(+)"]).
-column_ref ->                   NAME     '.' '*'     : list_to_binary([unwrap('$1'),".*"]).
-column_ref ->          NAME '.' NAME     '.' '*'     : list_to_binary([unwrap('$1'),".",unwrap('$3'),".*"]).
+column_ref ->                               identifier             : '$1'.
+column_ref ->                               identifier '(' '+' ')' : list_to_binary(['$1',"(+)"]).
+column_ref ->                               identifier JSON        : jpparse(list_to_binary(['$1',unwrap('$2')])).
+column_ref ->                               identifier '.' '*'     : list_to_binary(['$1',".*"]).
+column_ref ->                identifier '.' identifier             : list_to_binary(['$1',".",'$3']).
+column_ref ->                identifier '.' identifier '(' '+' ')' : list_to_binary(['$1',".",'$3',"(+)"]).
+column_ref ->                identifier '.' identifier JSON        : jpparse(list_to_binary(['$1',".",'$3',unwrap('$4')])).
+column_ref ->                identifier '.' identifier '.' '*'     : list_to_binary(['$1',".",'$3',".*"]).
+column_ref -> identifier '.' identifier '.' identifier             : list_to_binary(['$1',".",'$3',".",'$5']).
+column_ref -> identifier '.' identifier '.' identifier '(' '+' ')' : list_to_binary(['$1',".",'$3',".",'$5',"(+)"]).
+column_ref -> identifier '.' identifier '.' identifier JSON        : jpparse(list_to_binary(['$1',".",'$3',".",'$5',unwrap('$6')])).
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% data types
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-data_type -> STRING                           : unwrap_bin('$1').
-data_type -> NAME                             : unwrap_bin('$1').
-data_type -> NAME '(' sgn_num ')'             : {unwrap_bin('$1'), '$3'}.
-data_type -> NAME '(' sgn_num ',' sgn_num ')' : {unwrap_bin('$1'), '$3', '$5'}.
+data_type -> BFILE                                 : unwrap_bin('$1').
+data_type -> BINARY_DOUBLE                         : unwrap_bin('$1').
+data_type -> BINARY_FLOAT                          : unwrap_bin('$1').
+data_type -> BLOB                                  : unwrap_bin('$1').
+data_type -> CHAR                                  : unwrap_bin('$1').
+data_type -> CLOB                                  : unwrap_bin('$1').
+data_type -> DATE                                  : unwrap_bin('$1').
+data_type -> FLOAT                                 : unwrap_bin('$1').
+data_type -> LONG                                  : unwrap_bin('$1').
+data_type -> LONG RAW                              : list_to_binary([unwrap_bin('$1')," ",unwrap_bin('$2')]).
+data_type -> NAME                                  : unwrap_bin('$1').
+data_type -> identifier '.' NAME                   : list_to_binary(['$1',".",unwrap_bin('$3')]).
+data_type -> NCLOB                                 : unwrap_bin('$1').
+data_type -> NUMBER                                : unwrap_bin('$1').
+data_type -> RAW                                   : unwrap_bin('$1').
+data_type -> ROWID                                 : unwrap_bin('$1').
+data_type -> TIMESTAMP                             : unwrap_bin('$1').
+data_type -> UROWID                                : unwrap_bin('$1').
+data_type -> VARCHAR2                              : unwrap_bin('$1').
+data_type -> XMLTYPE                               : unwrap_bin('$1').
+data_type -> CHAR      '(' sgn_num ')'             : {unwrap_bin('$1'), '$3'}.
+data_type -> FLOAT     '(' sgn_num ')'             : {unwrap_bin('$1'), '$3'}.
+data_type -> NAME      '(' sgn_num ')'             : {unwrap_bin('$1'), '$3'}.
+data_type -> NCHAR     '(' sgn_num ')'             : {unwrap_bin('$1'), '$3'}.
+data_type -> NUMBER    '(' sgn_num ')'             : {unwrap_bin('$1'), '$3'}.
+data_type -> NVARCHAR2 '(' sgn_num ')'             : {unwrap_bin('$1'), '$3'}.
+data_type -> RAW       '(' sgn_num ')'             : {unwrap_bin('$1'), '$3'}.
+data_type -> TIMESTAMP '(' sgn_num ')'             : {unwrap_bin('$1'), '$3'}.
+data_type -> UROWID    '(' sgn_num ')'             : {unwrap_bin('$1'), '$3'}.
+data_type -> VARCHAR2  '(' sgn_num ')'             : {unwrap_bin('$1'), '$3'}.
+data_type -> NAME      '(' sgn_num ',' sgn_num ')' : {unwrap_bin('$1'), '$3', '$5'}.
+data_type -> NUMBER    '(' sgn_num ',' sgn_num ')' : {unwrap_bin('$1'), '$3', '$5'}.
 
 sgn_num ->     INTNUM : unwrap_bin('$1').
 sgn_num -> '-' INTNUM : list_to_binary(["-",unwrap_bin('$2')]).
@@ -1478,18 +1508,213 @@ sgn_num -> '-' INTNUM : list_to_binary(["-",unwrap_bin('$2')]).
 %% the various things you can name
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-column -> NAME : unwrap_bin('$1').
+column -> identifier : '$1'.
 
-cursor -> NAME : {cur, unwrap('$1')}.
+cursor -> identifier : {cur, binary_to_list('$1')}.
 
 parameter -> PARAMETER : {param, unwrap_bin('$1')}.
+
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% identifier
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+identifier -> NAME            : unwrap_bin('$1').
+
+identifier -> ADMIN           : unwrap_bin('$1').
+% identifier -> ALL             : unwrap_bin('$1').    Oracle reserved
+% identifier -> ALTER           : unwrap_bin('$1').    Oracle reserved
+% identifier -> AND             : unwrap_bin('$1').    Oracle reserved
+% identifier -> ANY             : unwrap_bin('$1').    Oracle reserved
+% identifier -> APPROXNUM       : unwrap_bin('$1').    reduce/reduce problem
+% identifier -> AS              : unwrap_bin('$1').    Oracle reserved
+% identifier -> ASC             : unwrap_bin('$1').    Oracle reserved
+identifier -> AUTHENTICATION  : unwrap_bin('$1').
+identifier -> AUTHORIZATION   : unwrap_bin('$1').
+identifier -> BAG             : unwrap_bin('$1').
+identifier -> BEGIN           : unwrap_bin('$1').
+% identifier -> BETWEEN         : unwrap_bin('$1').    Oracle reserved
+identifier -> BFILE           : unwrap_bin('$1').
+identifier -> BINARY_DOUBLE   : unwrap_bin('$1').
+identifier -> BINARY_FLOAT    : unwrap_bin('$1').
+identifier -> BITMAP          : unwrap_bin('$1').
+identifier -> BLOB            : unwrap_bin('$1').
+identifier -> BODY            : unwrap_bin('$1').
+% identifier -> BY              : unwrap_bin('$1').    Oracle reserved
+identifier -> CALL            : unwrap_bin('$1').
+identifier -> CASCADE         : unwrap_bin('$1').
+% identifier -> CASE            : unwrap_bin('$1').    syntax problem
+% identifier -> CHAR            : unwrap_bin('$1').    Oracle reserved
+% identifier -> CHECK           : unwrap_bin('$1').    Oracle reserved
+identifier -> CLOB            : unwrap_bin('$1').
+identifier -> CLOSE           : unwrap_bin('$1').
+% identifier -> CLUSTER         : unwrap_bin('$1').    Oracle reserved
+identifier -> COMMIT          : unwrap_bin('$1').
+% identifier -> CONNECT         : unwrap_bin('$1').    Oracle reserved
+identifier -> COMPARISON      : unwrap_bin('$1').
+% identifier -> CONSTRAINT      : unwrap_bin('$1').    syntax problem
+identifier -> CONSTRAINTS     : unwrap_bin('$1').
+identifier -> CONTENTS        : unwrap_bin('$1').
+identifier -> CONTEXT         : unwrap_bin('$1').
+identifier -> CONTINUE        : unwrap_bin('$1').
+% identifier -> CREATE          : unwrap_bin('$1').    Oracle reserved
+identifier -> CROSS           : unwrap_bin('$1').
+identifier -> CURRENT         : unwrap_bin('$1').
+identifier -> CURSOR          : unwrap_bin('$1').
+identifier -> DATABASE        : unwrap_bin('$1').
+identifier -> DATAFILES       : unwrap_bin('$1').
+% identifier -> DATE            : unwrap_bin('$1').    Oracle reserved
+identifier -> DBLINK          : unwrap_bin('$1').
+% identifier -> DEFAULT         : unwrap_bin('$1').    Oracle reserved
+identifier -> DEFERRED        : unwrap_bin('$1').
+identifier -> DELEGATE        : unwrap_bin('$1').
+% identifier -> DELETE          : unwrap_bin('$1').    Oracle reserved
+% identifier -> DESC            : unwrap_bin('$1').    Oracle reserved
+identifier -> DIRECTORY       : unwrap_bin('$1').
+% identifier -> DISTINCT        : unwrap_bin('$1').    Oracle reserved
+% identifier -> DROP            : unwrap_bin('$1').    Oracle reserved
+% identifier -> ELSE            : unwrap_bin('$1').    Oracle reserved
+identifier -> END             : unwrap_bin('$1').
+identifier -> ENTERPRISE      : unwrap_bin('$1').
+identifier -> ESCAPE          : unwrap_bin('$1').
+identifier -> EXCEPT          : unwrap_bin('$1').
+identifier -> EXECUTE         : unwrap_bin('$1').
+% identifier -> EXISTS          : unwrap_bin('$1').    Oracle reserved
+identifier -> EXTERNALLY      : unwrap_bin('$1').
+identifier -> FETCH           : unwrap_bin('$1').
+identifier -> FILTER_WITH     : unwrap_bin('$1').
+% identifier -> FLOAT           : unwrap_bin('$1').    Oracle reserved
+identifier -> FORCE           : unwrap_bin('$1').
+identifier -> FOREIGN         : unwrap_bin('$1').
+identifier -> FOUND           : unwrap_bin('$1').
+% identifier -> FROM            : unwrap_bin('$1').    Oracle reserved
+identifier -> FULL            : unwrap_bin('$1').
+identifier -> FUNCTION        : unwrap_bin('$1').
+% identifier -> FUNS            : unwrap_bin('$1').    reduce/reduce problem
+identifier -> GLOBALLY        : unwrap_bin('$1').
+identifier -> GOTO            : unwrap_bin('$1').
+% identifier -> GRANT           : unwrap_bin('$1').    Oracle reserved
+% identifier -> GROUP           : unwrap_bin('$1').    Oracle reserved
+identifier -> HASHMAP         : unwrap_bin('$1').
+% identifier -> HAVING          : unwrap_bin('$1').    Oracle reserved
+identifier -> HIERARCHY       : unwrap_bin('$1').
+% identifier -> HINT            : unwrap_bin('$1').    reduce/reduce problem
+% identifier -> IDENTIFIED      : unwrap_bin('$1').    Oracle reserved
+identifier -> IF              : unwrap_bin('$1').
+identifier -> IMMEDIATE       : unwrap_bin('$1').
+% identifier -> IN              : unwrap_bin('$1').    Oracle reserved
+identifier -> INCLUDING       : unwrap_bin('$1').
+% identifier -> INDEX           : unwrap_bin('$1').    Oracle reserved
+identifier -> INDICATOR       : unwrap_bin('$1').
+identifier -> INNER           : unwrap_bin('$1').
+% identifier -> INSERT          : unwrap_bin('$1').    Oracle reserved
+% identifier -> INTERSECT       : unwrap_bin('$1').    Oracle reserved
+% identifier -> INTNUM          : unwrap_bin('$1').    reduce/reduce problem
+% identifier -> INTO            : unwrap_bin('$1').    Oracle reserved
+identifier -> INVALIDATION    : unwrap_bin('$1').
+% identifier -> IS              : unwrap_bin('$1').    Oracle reserved
+identifier -> JOIN            : unwrap_bin('$1').
+identifier -> JSON            : unwrap_bin('$1').
+identifier -> KEEP            : unwrap_bin('$1').
+identifier -> KEY             : unwrap_bin('$1').
+identifier -> KEYLIST         : unwrap_bin('$1').
+identifier -> LEFT            : unwrap_bin('$1').
+% identifier -> LIKE            : unwrap_bin('$1').    Oracle reserved
+identifier -> LINK            : unwrap_bin('$1').
+identifier -> LOCAL           : unwrap_bin('$1').
+identifier -> LOG             : unwrap_bin('$1').
+% identifier -> LONG            : unwrap_bin('$1').    Oracle reserved
+identifier -> MATERIALIZED    : unwrap_bin('$1').
+% identifier -> MINUS           : unwrap_bin('$1').    Oracle reserved
+identifier -> NATURAL         : unwrap_bin('$1').
+identifier -> NCHAR           : unwrap_bin('$1').
+identifier -> NCLOB           : unwrap_bin('$1').
+identifier -> NO              : unwrap_bin('$1').
+% identifier -> NOCYCLE         : unwrap_bin('$1').    reduce/reduce problem
+identifier -> NONE            : unwrap_bin('$1').
+identifier -> NORM_WITH       : unwrap_bin('$1').
+% identifier -> NOT             : unwrap_bin('$1').    Oracle reserved
+% identifier -> NULLX           : unwrap_bin('$1').    reduce/reduce problem
+% identifier -> NUMBER          : unwrap_bin('$1').    Oracle reserved
+identifier -> NVARCHAR2       : unwrap_bin('$1').
+% identifier -> OF              : unwrap_bin('$1').    Oracle reserved
+% identifier -> ON              : unwrap_bin('$1').    Oracle reserved
+identifier -> ONLINE          : unwrap_bin('$1').
+identifier -> OPEN            : unwrap_bin('$1').
+% identifier -> OPTION          : unwrap_bin('$1').    Oracle reserved
+% identifier -> OR              : unwrap_bin('$1').    Oracle reserved
+% identifier -> ORDER           : unwrap_bin('$1').    Oracle reserved
+identifier -> ORDERED_SET     : unwrap_bin('$1').
+identifier -> OUTER           : unwrap_bin('$1').
+identifier -> PACKAGE         : unwrap_bin('$1').
+% identifier -> PARAMETER       : unwrap_bin('$1').    reduce/reduce problem
+identifier -> PARTITION       : unwrap_bin('$1').
+identifier -> PRESERVE        : unwrap_bin('$1').
+identifier -> PRIMARY         : unwrap_bin('$1').
+% identifier -> PRIO            : unwrap_bin('$1').    Oracle reserved
+identifier -> PRIVILEGES      : unwrap_bin('$1').
+identifier -> PROCEDURE       : unwrap_bin('$1').
+identifier -> PROFILE         : unwrap_bin('$1').
+% identifier -> PUBLIC          : unwrap_bin('$1').    Oracle reserved
+identifier -> PURGE           : unwrap_bin('$1').
+% identifier -> RAW             : unwrap_bin('$1').    Oracle reserved
+identifier -> ROWID           : unwrap_bin('$1').
+identifier -> QUOTA           : unwrap_bin('$1').
+identifier -> REFERENCES      : unwrap_bin('$1').
+identifier -> REQUIRED        : unwrap_bin('$1').
+identifier -> RETURN          : unwrap_bin('$1').
+identifier -> RETURNING       : unwrap_bin('$1').
+identifier -> REUSE           : unwrap_bin('$1').
+% identifier -> REVOKE          : unwrap_bin('$1').    Oracle reserved
+identifier -> RIGHT           : unwrap_bin('$1').
+identifier -> ROLE            : unwrap_bin('$1').
+identifier -> ROLES           : unwrap_bin('$1').
+identifier -> ROLLBACK        : unwrap_bin('$1').
+identifier -> SCHEMA          : unwrap_bin('$1').
+% identifier -> SELECT          : unwrap_bin('$1').    Oracle reserved
+identifier -> SEQUENCE        : unwrap_bin('$1').
+% identifier -> SET             : unwrap_bin('$1').    Oracle reserved
+% identifier -> SOME            : unwrap_bin('$1').    reduce/reduce problem
+identifier -> SQLERROR        : unwrap_bin('$1').
+% identifier -> START           : unwrap_bin('$1').    Oracle reserved
+identifier -> STORAGE         : unwrap_bin('$1').
+% identifier -> STRING          : unwrap_bin('$1').    reduce/reduce problem
+% identifier -> SYNONYM         : unwrap_bin('$1').    Oracle reserved
+% identifier -> TABLE           : unwrap_bin('$1').    Oracle reserved
+% identifier -> TABLES          : unwrap_bin('$1').    reduce/reduce problem
+% identifier -> TABLESPACE      : unwrap_bin('$1').    reduce/reduce problem
+% identifier -> TEMPORARY       : unwrap_bin('$1').    reduce/reduce problem
+% identifier -> THEN            : unwrap_bin('$1').    Oracle reserved
+% identifier -> THROUGH         : unwrap_bin('$1').    reduce/reduce problem
+identifier -> TIMESTAMP       : unwrap_bin('$1').
+% identifier -> TO              : unwrap_bin('$1').    Oracle reserved
+% identifier -> TRIGGER         : unwrap_bin('$1').    Oracle reserved
+% identifier -> TRUNCATE        : unwrap_bin('$1').    reduce/reduce problem
+identifier -> TYPE            : unwrap_bin('$1').
+% identifier -> UNION           : unwrap_bin('$1').    Oracle reserved
+% identifier -> UNIQUE          : unwrap_bin('$1').    Oracle reserved
+identifier -> UNLIMITED       : unwrap_bin('$1').
+% identifier -> UPDATE          : unwrap_bin('$1').    Oracle reserved
+identifier -> UROWID          : unwrap_bin('$1').
+% identifier -> USER            : unwrap_bin('$1').    reduce/reduce problem
+identifier -> USERS           : unwrap_bin('$1').
+identifier -> USING           : unwrap_bin('$1').
+identifier -> VALIDATE        : unwrap_bin('$1').
+% identifier -> VALUES          : unwrap_bin('$1').    Oracle reserved
+% identifier -> VARCHAR2        : unwrap_bin('$1').    Oracle reserved
+% identifier -> VIEW            : unwrap_bin('$1').    Oracle reserved
+% identifier -> WHEN            : unwrap_bin('$1').    syntax problem
+identifier -> WHENEVER        : unwrap_bin('$1').
+% identifier -> WHERE           : unwrap_bin('$1').    Oracle reserved
+% identifier -> WITH            : unwrap_bin('$1').    Oracle reserved
+identifier -> WORK            : unwrap_bin('$1').
+identifier -> XMLTYPE         : unwrap_bin('$1').
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% embedded condition things
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-when_action -> GOTO NAME : {goto, unwrap('$2')}.
-when_action -> CONTINUE  : 'continue'.
+when_action -> GOTO identifier : {goto, binary_to_list('$2')}.
+when_action -> CONTINUE        : 'continue'.
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Erlang code.
@@ -1519,7 +1744,6 @@ Erlang code.
 % parser and compiler interface
 -export([
     is_reserved/1,
-    is_reserved_column/1,
     parsetree/1,
     parsetree_with_tokens/1
 ]).
@@ -1536,9 +1760,11 @@ jpparse(X) ->
     {ok, Pt} = jpparse:parsetree(X),
     Pt.
 
+unwrap({X, _}) when is_atom(X) -> atom_to_list(X);
 unwrap({_, _, X}) -> X;
 unwrap(X) -> X.
 
+unwrap_bin({X, _}) when is_atom(X) -> atom_to_binary(X, unicode);
 unwrap_bin({_, _, X}) when is_list(X) -> list_to_binary([X]);
 unwrap_bin({_, _, X}) when is_atom(X) -> atom_to_binary(X, unicode).
 
@@ -1597,17 +1823,3 @@ is_reserved(Word) when is_atom(Word) ->
 is_reserved(Word) when is_list(Word) ->
     lists:member(erlang:list_to_atom(string:to_upper(Word)),
         sql_lex:reserved_keywords()).
-
--spec is_reserved_column(binary() | atom() | list()) -> true | false.
-is_reserved_column(Word) when is_binary(Word) ->
-    is_reserved_column(erlang:binary_to_list(Word));
-is_reserved_column(Word) when is_atom(Word) ->
-    is_reserved_column(erlang:atom_to_list(Word));
-is_reserved_column(Word) when is_list(Word) ->
-    WordUpper = string:to_upper(Word),
-    case WordUpper of
-        "FUNCTION" -> false;
-        "TYPE" -> false;
-        _ -> lists:member(erlang:list_to_atom(WordUpper),
-            sql_lex:reserved_keywords())
-    end.

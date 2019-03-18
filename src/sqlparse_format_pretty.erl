@@ -1565,21 +1565,6 @@ fold(LOpts, FunState, Ctx,
 % drop_table_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(LOpts, FunState, Ctx, {'drop table', _Tables, _Exists, DropOpt} = _PTree,
-    {drop_table_def, Step} = _FoldState) ->
-    ?CUSTOM_INIT(FunState, Ctx, _PTree, _FoldState),
-    RT = case Step of
-             start -> lists:append([
-                 Ctx,
-                 format_new_statement(LOpts, FunState, "drop "),
-                 case DropOpt of
-                     [] -> [];
-                     _ -> format_identifier(LOpts, DropOpt) ++ " "
-                 end
-             ]);
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
 fold(LOpts, FunState, Ctx,
     {'drop table', _Tables, _Exists, _DropExtensions, DropOpt} = _PTree,
     {drop_table_def, Step} = _FoldState) ->
@@ -1901,23 +1886,6 @@ fold(LOpts, FunState, Ctx, _PTree, {from, Step} = _FoldState) ->
 % fun_arg
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold(LOpts, _FunState, Ctx, {as, {'fun', _, _}, Alias} = _PTree,
-    {fun_arg, Step, Pos} = _FoldState) ->
-    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
-    RT = case Step of
-             'end' ->
-                 lists:append([
-                     Ctx,
-                     " ",
-                     format_identifier(LOpts, Alias),
-                     case Pos of
-                         other -> ", ";
-                         _ -> []
-                     end
-                 ]);
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
 fold(LOpts, _FunState, Ctx, {Type, Value} = _PTree, {fun_arg, Step, _Pos} =
     _FoldState)
     when (Type == all orelse Type == distinct) andalso is_binary(Value) ->

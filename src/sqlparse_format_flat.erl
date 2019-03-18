@@ -1053,18 +1053,6 @@ fold([], _FunState, Ctx, PTree, {Type, Step} = _FoldState)
              _ -> Ctx
          end,
     ?CUSTOM_RESULT(RT);
-fold([], _FunState, Ctx, PTree, {Type, Step} = _FoldState)
-    when Type == drop_extensions, is_list(PTree) ->
-    ?CUSTOM_INIT(_FunState, Ctx, PTree, _FoldState),
-    RT = case Step of
-             start -> lists:append([
-                 Ctx,
-                 " ",
-                 PTree
-             ]);
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % drop_function_def
@@ -1294,19 +1282,6 @@ fold([], _FunState, Ctx,
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fold([], _FunState, Ctx,
-    {'drop table', _Tables, _Exists, DropOpt} = _PTree, {drop_table_def, Step} =
-        _FoldState) ->
-    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
-    RT = case Step of
-             start -> lists:append([Ctx, "drop ",
-                 case DropOpt of
-                     [] -> [];
-                     _ -> DropOpt ++ " "
-                 end]);
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
-fold([], _FunState, Ctx,
     {'drop table', _Tables, _Exists, _DropExtensions, DropOpt} = _PTree,
     {drop_table_def, Step} = _FoldState) ->
     ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
@@ -1535,19 +1510,6 @@ fold([], _FunState, Ctx, _PTree, {from, Step} = _FoldState) ->
 % fun_arg
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fold([], _FunState, Ctx, {as, {'fun', _, _}, Alias} = _PTree,
-    {fun_arg, Step, Pos} = _FoldState) ->
-    ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
-    RT = case Step of
-             'end' ->
-                 lists:append([Ctx, " ", binary_to_list(Alias),
-                     case Pos of
-                         other -> ", ";
-                         _ -> []
-                     end]);
-             _ -> Ctx
-         end,
-    ?CUSTOM_RESULT(RT);
 fold([], _FunState, Ctx, {Type, Value} = _PTree, {fun_arg, Step, _Pos} =
     _FoldState)
     when (Type == all orelse Type == distinct) andalso is_binary(Value) ->

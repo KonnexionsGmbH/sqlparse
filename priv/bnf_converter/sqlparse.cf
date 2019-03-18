@@ -1975,7 +1975,7 @@ DataType08.                       DataType ::= "FLOAT"                          
 DataType09.                       DataType ::= "LONG"                                ;
 DataType10.                       DataType ::= "LONG RAW"                            ;
 DataType11.                       DataType ::= Identifier                            ;
-DataType12.                       DataType ::= Identifier "." NAME                   ;
+DataType12.                       DataType ::= Identifier "." "NAME"                 ;
 DataType13.                       DataType ::= "NCLOB"                               ;
 DataType14.                       DataType ::= "NUMBER"                              ;
 DataType15.                       DataType ::= "RAW"                                 ;
@@ -1986,7 +1986,7 @@ DataType19.                       DataType ::= "VARCHAR2"                       
 DataType20.                       DataType ::= "XMLTYPE"                             ;
 DataType21.                       DataType ::= "CHAR"      "(" SgnNum ")"            ;
 DataType22.                       DataType ::= "FLOAT"     "(" SgnNum ")"            ;
-DataType23.                       DataType ::= NAME        "(" SgnNum ")"            ;
+DataType23.                       DataType ::= "NAME"      "(" SgnNum ")"            ;
 DataType24.                       DataType ::= "NCHAR"     "(" SgnNum ")"            ;
 DataType25.                       DataType ::= "NUMBER"    "(" SgnNum ")"            ;
 DataType26.                       DataType ::= "NVARCHAR2" "(" SgnNum ")"            ;
@@ -1994,7 +1994,7 @@ DataType27.                       DataType ::= "RAW"       "(" SgnNum ")"       
 DataType28.                       DataType ::= "TIMESTAMP" "(" SgnNum ")"            ;
 DataType29.                       DataType ::= "UROWID"    "(" SgnNum ")"            ;
 DataType30.                       DataType ::= "VARCHAR2"  "(" SgnNum ")"            ;
-DataType31.                       DataType ::= NAME        "(" SgnNum "," SgnNum ")" ;
+DataType31.                       DataType ::= "NAME"      "(" SgnNum "," SgnNum ")" ;
 DataType32.                       DataType ::= "NUMBER"    "(" SgnNum "," SgnNum ")" ;
 
 -- sgn_num ->     INTNUM : unwrap_bin('$1').

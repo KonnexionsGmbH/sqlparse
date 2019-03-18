@@ -1484,6 +1484,7 @@ data_type -> NCLOB                                 : unwrap_bin('$1').
 data_type -> NUMBER                                : unwrap_bin('$1').
 data_type -> RAW                                   : unwrap_bin('$1').
 data_type -> ROWID                                 : unwrap_bin('$1').
+data_type -> STRING                                : unwrap_bin('$1').
 data_type -> TIMESTAMP                             : unwrap_bin('$1').
 data_type -> UROWID                                : unwrap_bin('$1').
 data_type -> VARCHAR2                              : unwrap_bin('$1').

@@ -1947,6 +1947,7 @@ ColumnRef11.                      ColumnRef ::= Identifier "." Identifier "." "*
 -- data_type -> NUMBER                                : unwrap_bin('$1').
 -- data_type -> RAW                                   : unwrap_bin('$1').
 -- data_type -> ROWID                                 : unwrap_bin('$1').
+-- data_type -> STRING                                : unwrap_bin('$1').
 -- data_type -> TIMESTAMP                             : unwrap_bin('$1').
 -- data_type -> UROWID                                : unwrap_bin('$1').
 -- data_type -> VARCHAR2                              : unwrap_bin('$1').
@@ -1980,22 +1981,23 @@ DataType13.                       DataType ::= "NCLOB"                          
 DataType14.                       DataType ::= "NUMBER"                              ;
 DataType15.                       DataType ::= "RAW"                                 ;
 DataType16.                       DataType ::= "ROWID"                               ;
-DataType17.                       DataType ::= "TIMESTAMP"                           ;
-DataType18.                       DataType ::= "UROWID"                              ;
-DataType19.                       DataType ::= "VARCHAR2"                            ;
-DataType20.                       DataType ::= "XMLTYPE"                             ;
-DataType21.                       DataType ::= "CHAR"      "(" SgnNum ")"            ;
-DataType22.                       DataType ::= "FLOAT"     "(" SgnNum ")"            ;
-DataType23.                       DataType ::= "NAME"      "(" SgnNum ")"            ;
-DataType24.                       DataType ::= "NCHAR"     "(" SgnNum ")"            ;
-DataType25.                       DataType ::= "NUMBER"    "(" SgnNum ")"            ;
-DataType26.                       DataType ::= "NVARCHAR2" "(" SgnNum ")"            ;
-DataType27.                       DataType ::= "RAW"       "(" SgnNum ")"            ;
-DataType28.                       DataType ::= "TIMESTAMP" "(" SgnNum ")"            ;
-DataType29.                       DataType ::= "UROWID"    "(" SgnNum ")"            ;
-DataType30.                       DataType ::= "VARCHAR2"  "(" SgnNum ")"            ;
-DataType31.                       DataType ::= "NAME"      "(" SgnNum "," SgnNum ")" ;
-DataType32.                       DataType ::= "NUMBER"    "(" SgnNum "," SgnNum ")" ;
+DataType17.                       DataType ::= "STRING"                           ;
+DataType18.                       DataType ::= "TIMESTAMP"                           ;
+DataType19.                       DataType ::= "UROWID"                              ;
+DataType20.                       DataType ::= "VARCHAR2"                            ;
+DataType21.                       DataType ::= "XMLTYPE"                             ;
+DataType22.                       DataType ::= "CHAR"      "(" SgnNum ")"            ;
+DataType23.                       DataType ::= "FLOAT"     "(" SgnNum ")"            ;
+DataType24.                       DataType ::= "NAME"      "(" SgnNum ")"            ;
+DataType25.                       DataType ::= "NCHAR"     "(" SgnNum ")"            ;
+DataType26.                       DataType ::= "NUMBER"    "(" SgnNum ")"            ;
+DataType27.                       DataType ::= "NVARCHAR2" "(" SgnNum ")"            ;
+DataType28.                       DataType ::= "RAW"       "(" SgnNum ")"            ;
+DataType29.                       DataType ::= "TIMESTAMP" "(" SgnNum ")"            ;
+DataType30.                       DataType ::= "UROWID"    "(" SgnNum ")"            ;
+DataType31.                       DataType ::= "VARCHAR2"  "(" SgnNum ")"            ;
+DataType32.                       DataType ::= "NAME"      "(" SgnNum "," SgnNum ")" ;
+DataType33.                       DataType ::= "NUMBER"    "(" SgnNum "," SgnNum ")" ;
 
 -- sgn_num ->     INTNUM : unwrap_bin('$1').
 -- sgn_num -> '-' INTNUM : list_to_binary(["-",unwrap_bin('$2')]).

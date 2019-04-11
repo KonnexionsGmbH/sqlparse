@@ -1495,8 +1495,12 @@ create_code(cursor_def = Rule) ->
     ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% data_type ::= ( BFILE | BINARY_DOUBLE | BINARY_FLOAT | BLOB | CHAR | CLOB | DATE | FLOAT | LONG | ( LONG RAW ) | ( identifier '.' )? NAME | NCLOB | NUMBER | RAW | ROWID | TIMESTAMP | UROWID | VARCHAR2 | XMLTYPE )
-%%             | ( ( CHAR | FLOAT | NAME | NCHAR | NUMBER | NVARCHAR2 c| RAW | TIMESTAMP | UROWID | VARCHAR2 ) '(' sgn_num ')' )
+%% data_type ::= ( BFILE | BINARY_DOUBLE | BINARY_FLOAT | BLOB | CHAR | CLOB
+%%               | DATE | FLOAT | LONG | ( LONG RAW ) | ( identifier '.' )? NAME
+%%               | NCLOB | NUMBER | RAW | ROWID | STRING | TIMESTAMP | UROWID
+%%               | VARCHAR2 | XMLTYPE )
+%%             | ( ( CHAR | FLOAT | NAME | NCHAR | NUMBER | NVARCHAR2 c| RAW
+%%                 | TIMESTAMP | UROWID | VARCHAR2 ) '(' sgn_num ')' )
 %%             | ( ( NAME | NUMBER ) '(' sgn_num ',' sgn_num ')' )
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1508,6 +1512,8 @@ create_code(data_type = Rule) ->
     Name_Length = length(Name),
     [{sgn_num, Sgn_Num}] = ets:lookup(?CODE_TEMPLATES, sgn_num),
     Sgn_Num_Length = length(Sgn_Num),
+    [{string, String}] = ets:lookup(?CODE_TEMPLATES, string),
+    String_Length = length(String),
 
     Code =
         [
@@ -1530,15 +1536,16 @@ create_code(data_type = Rule) ->
             "Varchar2 ",
             "Xmltype "
         ] ++ [
-        case rand:uniform(4) rem 4 of
+        case rand:uniform(5) rem 5 of
             1 -> lists:nth(rand:uniform(Name_Length), Name) ++ " ";
-            2 -> lists:append([
+            2 -> lists:nth(rand:uniform(String_Length), String) ++ " ";
+            3 -> lists:append([
                 lists:nth(rand:uniform(Identifier_Length), Identifier),
                 ".",
                 lists:nth(rand:uniform(Name_Length), Name),
                 " "
             ]);
-            3 -> lists:append([
+            4 -> lists:append([
                 case rand:uniform(10) rem 10 of
                     1 -> "Char";
                     2 -> "Float";

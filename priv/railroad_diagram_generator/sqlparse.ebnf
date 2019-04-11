@@ -1996,6 +1996,7 @@ data_type -> NCLOB                                 : unwrap_bin('$1').
 data_type -> NUMBER                                : unwrap_bin('$1').
 data_type -> RAW                                   : unwrap_bin('$1').
 data_type -> ROWID                                 : unwrap_bin('$1').
+data_type -> STRING                                : unwrap_bin('$1').
 data_type -> TIMESTAMP                             : unwrap_bin('$1').
 data_type -> UROWID                                : unwrap_bin('$1').
 data_type -> VARCHAR2                              : unwrap_bin('$1').
@@ -2014,7 +2015,7 @@ data_type -> NAME      '(' sgn_num ',' sgn_num ')' : {unwrap_bin('$1'), '$3', '$
 data_type -> NUMBER    '(' sgn_num ',' sgn_num ')' : {unwrap_bin('$1'), '$3', '$5'}.
 ============================================================================= */
 
-data_type ::= ( BFILE | BINARY_DOUBLE | BINARY_FLOAT | BLOB | CHAR | CLOB | DATE | FLOAT | LONG | ( LONG RAW ) | ( identifier '.' )? NAME | NCLOB | NUMBER | RAW | ROWID | TIMESTAMP | UROWID | VARCHAR2 | XMLTYPE )
+data_type ::= ( BFILE | BINARY_DOUBLE | BINARY_FLOAT | BLOB | CHAR | CLOB | DATE | FLOAT | LONG | ( LONG RAW ) | ( identifier '.' )? NAME | NCLOB | NUMBER | RAW | ROWID | STRING | TIMESTAMP | UROWID | VARCHAR2 | XMLTYPE )
              | ( ( CHAR | FLOAT | NAME | NCHAR | NUMBER | NVARCHAR2 c| RAW | TIMESTAMP | UROWID | VARCHAR2 ) '(' sgn_num ')' )
              | ( ( NAME | NUMBER ) '(' sgn_num ',' sgn_num ')' )
 

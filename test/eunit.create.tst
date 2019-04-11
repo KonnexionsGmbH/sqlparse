@@ -683,6 +683,7 @@ create table table_1 (
                      )
 ".
 "CREATE TABLE test(fld CHAR)".
+"create table key_test (col1 '{atom,integer}', col2 '{string,binstr}');".
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % create_user_def

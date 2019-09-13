@@ -106,7 +106,7 @@ SELECT column_a|:f()|, column_b
 
 The documentation for **sqlparse** is available here: [Wiki](https://github.com/K2InformaticsGmbH/sqlparse/wiki).
 
-## 3. Contributing
+## 3. Contributing :tada:
 
 1. Fork it
 2. Create your feature branch (`git checkout -b my-new-feature`)

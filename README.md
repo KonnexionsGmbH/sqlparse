@@ -1,14 +1,14 @@
 # sqlparse - LALR grammar based SQL parser
 
-![Travis (.org)](https://img.shields.io/travis/K2InformaticsGmbH/sqlparse.svg)
-![Coveralls github](https://img.shields.io/coveralls/github/K2InformaticsGmbH/sqlparse.svg)
-![GitHub](https://img.shields.io/github/license/K2InformaticsGmbH/sqlparse.svg)
-![GitHub release](https://img.shields.io/github/release/K2InformaticsGmbH/sqlparse.svg)
-![GitHub Release Date](https://img.shields.io/github/release-date/K2InformaticsGmbH/sqlparse.svg)
-![GitHub commits since latest release](https://img.shields.io/github/commits-since/K2InformaticsGmbH/sqlparse/4.6.1.svg)
+![Travis (.org)](https://img.shields.io/travis/KonnexionsGmbH/sqlparse.svg)
+![Coveralls github](https://img.shields.io/coveralls/github/KonnexionsGmbH/sqlparse.svg)
+![GitHub](https://img.shields.io/github/license/KonnexionsGmbH/sqlparse.svg)
+![GitHub release](https://img.shields.io/github/release/KonnexionsGmbH/sqlparse.svg)
+![GitHub Release Date](https://img.shields.io/github/release-date/KonnexionsGmbH/sqlparse.svg)
+![GitHub commits since latest release](https://img.shields.io/github/commits-since/KonnexionsGmbH/sqlparse/4.6.1.svg)
 
 **sqlparse** is a production-ready SQL parser written in pure Erlang. 
-**sqlparse** is aligned to the Oracle SQL language and enriched with [imem](https://github.com/K2InformaticsGmbH/imem) and [JSONPath](https://github.com/K2InformaticsGmbH/jpparse) specific features.
+**sqlparse** is aligned to the Oracle SQL language and enriched with [imem](https://github.com/KonnexionsGmbH/imem) and [JSONPath](https://github.com/KonnexionsGmbH/jpparse) specific features.
 
 ## 1. Usage
 
@@ -104,7 +104,7 @@ SELECT column_a|:f()|, column_b
 
 ## 2. Documentation
 
-The documentation for **sqlparse** is available here: [Wiki](https://github.com/K2InformaticsGmbH/sqlparse/wiki).
+The documentation for **sqlparse** is available here: [Wiki](https://github.com/KonnexionsGmbH/sqlparse/wiki).
 
 ## 3. Contributing
 

@@ -29,5 +29,7 @@
             stdlib,
             jpparse
         ]},
+        {licenses, ["Apache-2.0"]},
+        {links, [{"GitHub", "https://github.com/KonnexionsGmbH/sqlarse"}]},
         {modules, [sqlparse]}
     ]}.

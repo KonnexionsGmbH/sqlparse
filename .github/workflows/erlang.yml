@@ -21,14 +21,31 @@ jobs:
       run: rebar3 steamroll --check
     - name: Compile
       run: rebar3 compile
+    - name: CT
+      run: rebar3 ct
     - name: Run tests
       run: rebar3 eunit
+    - name: Generate tests
+      env:
+        GENERATE_COMPACTED: true
+		GENERATE_CT: true
+		GENERATE_EUNIT: false
+		GENERATE_PERFORMANCE: true
+		GENERATE_RELIABILITY: true
+		HEAP_SIZE: +hms 33554432
+		LOGGING: false
+		MAX_BASIC: 200
+      run: ./test/gen_tests.sh
+    - name: generated CT
+      run: rebar3 ct
     - name: Run cover
       run: rebar3 cover
     - name: Run geas
       run: rebar3 as test geas
+    - name: dialyzer
+      run rebar3 dialyzer
     - name: Coveralls
       env:
          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: rebar3 as test coveralls send
+      run: DEBUG=1 rebar3 as test coveralls send
 

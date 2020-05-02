@@ -28,13 +28,13 @@ jobs:
     - name: Generate tests
       env:
         GENERATE_COMPACTED: true
-		GENERATE_CT: true
-		GENERATE_EUNIT: false
-		GENERATE_PERFORMANCE: true
-		GENERATE_RELIABILITY: true
-		HEAP_SIZE: +hms 33554432
-		LOGGING: false
-		MAX_BASIC: 200
+        GENERATE_CT: true
+        GENERATE_EUNIT: false
+        GENERATE_PERFORMANCE: true
+        GENERATE_RELIABILITY: true
+        HEAP_SIZE: +hms 33554432
+        LOGGING: false
+        MAX_BASIC: 200
       run: ./test/gen_tests.sh
     - name: generated CT
       run: rebar3 ct
@@ -43,7 +43,7 @@ jobs:
     - name: Run geas
       run: rebar3 as test geas
     - name: dialyzer
-      run rebar3 dialyzer
+      run: rebar3 dialyzer
     - name: Coveralls
       env:
          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

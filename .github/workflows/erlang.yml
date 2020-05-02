@@ -27,9 +27,8 @@ jobs:
       run: rebar3 cover
     - name: Run geas
       run: rebar3 as test geas
-    - name: Coveralls Finished
-      uses: coverallsapp/github-action@master
-      with:
-        github-token: ${{ secrets.github_token }}
-        parallel-finished: true
+    - name: Coveralls
+      env:
+         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: rebar3 as test coveralls send
 

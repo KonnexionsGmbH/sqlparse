@@ -1,6 +1,7 @@
 # sqlparse - LALR grammar based SQL parser
 
-![Travis (.org)](https://img.shields.io/travis/KonnexionsGmbH/sqlparse.svg)
+![build](https://github.com/KonnexionsGmbH/sqlparse/workflows/Erlang%20CI/badge.svg)
+![Hex.pm](https://img.shields.io/hexpm/v/sqlparse.svg)
 ![Coveralls github](https://img.shields.io/coveralls/github/KonnexionsGmbH/sqlparse.svg)
 ![GitHub](https://img.shields.io/github/license/KonnexionsGmbH/sqlparse.svg)
 ![GitHub release](https://img.shields.io/github/release/KonnexionsGmbH/sqlparse.svg)

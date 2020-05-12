@@ -12,6 +12,7 @@
 % procedure_call
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+"BEGIN KILL_SESSION(1502,41617); END;".
 "begin dbms_output.put_line('Hello World!'); dbms_output.put_line('Goodbye cruel World!'); end;".
 "begin package_1.procedure_1(parameter_1);end".
 "begin package_1.procedure_1(parameter_1);sum(distinct parameter_1)|:b.f[f(p.r:q)]|;end".

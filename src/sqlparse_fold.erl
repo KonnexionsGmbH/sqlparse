@@ -1259,12 +1259,12 @@ fold_i(
   ?FOLD_RESULT(NewCtxE);
 
 fold_i(
-    FType,
-    Fun,
-    LOpts,
-    FunStateIn,
-    Ctx,
-    {'drop table', Tables, Exists, {DropTableExtensions}, Opts} = PTree
+  FType,
+  Fun,
+  LOpts,
+  FunStateIn,
+  Ctx,
+  {'drop table', Tables, Exists, {DropTableExtensions}, Opts} = PTree
 ) ->
   Rule = drop_table_def,
   FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),

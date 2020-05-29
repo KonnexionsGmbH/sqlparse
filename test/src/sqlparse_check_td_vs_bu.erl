@@ -1462,7 +1462,12 @@ fold(
 % drop_table_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fold(
-  LOpts, _FunState, Ctx, {'drop table', _Tables, _Exists, _CreateOpts} = _PTree, {drop_table_def = Rule, Step} = _FoldState) ->
+  LOpts,
+  _FunState,
+  Ctx,
+  {'drop table', _Tables, _Exists, _CreateOpts} = _PTree,
+  {drop_table_def = Rule, Step} = _FoldState
+) ->
   ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
   RT =
     case {LOpts, Step} of
@@ -1474,7 +1479,11 @@ fold(
   ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
 
 fold(
-  LOpts, _FunState, Ctx, {'drop table', _Tables, _Exists, _DropExtensions, _CreateOpts} = _PTree, {drop_table_def = Rule, Step} = _FoldState
+  LOpts,
+  _FunState,
+  Ctx,
+  {'drop table', _Tables, _Exists, _DropExtensions, _CreateOpts} = _PTree,
+  {drop_table_def = Rule, Step} = _FoldState
 ) ->
   ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
   RT =

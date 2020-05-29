@@ -73,7 +73,6 @@
     {"^(?i)(SYNONYM)$",         'SYNONYM'},
     {"^(?i)(TABLE)$",           'TABLE'},
     {"^(?i)(TABLESPACE)$",      'TABLESPACE'},
-    {"^(?i)(TABLES)$",          'TABLES'},
     {"^(?i)(TEMPORARY)$",       'TEMPORARY'},
     {"^(?i)(THEN)$",            'THEN'},
     {"^(?i)(THROUGH)$",         'THROUGH'},

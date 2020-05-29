@@ -11,7 +11,7 @@
   sqlparse,
   [
     {description, "A LALR SQL parser and compiler"},
-    {vsn, "4.6.2"},
+    {vsn, "4.6.3"},
     {applications, [kernel, stdlib, jpparse]},
     {licenses, ["Konnexions Public License (KX-PL)"]},
     {links, [{"GitHub", "https://github.com/KonnexionsGmbH/sqlarse"}]},

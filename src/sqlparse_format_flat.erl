@@ -1032,24 +1032,6 @@ fold([], _FunState, Ctx, _PTree, {delete_statement, Step} = _FoldState) ->
   ?CUSTOM_RESULT(RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% drop_cluster_def
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-fold(
-  [],
-  _FunState,
-  Ctx,
-  {'drop cluster', Name, _DropExtensions} = _PTree,
-  {drop_cluster_def, Step} = _FoldState
-) ->
-  ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
-  RT =
-    case Step of
-      start -> lists:append([Ctx, "drop cluster ", binary_to_list(Name)]);
-      _ -> Ctx
-    end,
-  ?CUSTOM_RESULT(RT);
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % drop_context_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fold([], _FunState, Ctx, {'drop context', Name} = _PTree, {drop_context_def, Step} = _FoldState) ->
@@ -1365,31 +1347,15 @@ fold(
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % drop_table_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-fold(
-  [],
-  _FunState,
-  Ctx,
-  {'drop table', _Tables, _Exists, _DropExtensions, DropOpt} = _PTree,
-  {drop_table_def, Step} = _FoldState
-) ->
+fold([], _FunState, Ctx, _PTree, {drop_table_def, Step} = _FoldState) ->
   ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
   RT =
     case Step of
-      start ->
-        lists:append(
-          [
-            Ctx,
-            "drop ",
-            case DropOpt of
-              [] -> [];
-              _ -> DropOpt ++ " "
-            end
-          ]
-        );
-
+      start -> Ctx ++ "drop ";
       _ -> Ctx
     end,
   ?CUSTOM_RESULT(RT);
+
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % drop_tablespace_def
@@ -3172,25 +3138,6 @@ fold([], _FunState, Ctx, _PTree, {then, Step} = _FoldState) ->
   RT =
     case Step of
       start -> Ctx ++ " then ";
-      _ -> Ctx
-    end,
-  ?CUSTOM_RESULT(RT);
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% truncate_cluster
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-fold(
-  [],
-  _FunState,
-  Ctx,
-  {'truncate cluster', Name, _Cascade} = _PTree,
-  {truncate_cluster, Step} = _FoldState
-)
-when is_binary(Name) ->
-  ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
-  RT =
-    case Step of
-      start -> lists:append([Ctx, "truncate cluster ", binary_to_list(Name)]);
       _ -> Ctx
     end,
   ?CUSTOM_RESULT(RT);

@@ -1282,7 +1282,7 @@ parameter_ok_test() ->
       list_to_binary(
         "SELECT"
         ++
-        ?CHAR_NEWLINE ++ "    Column_1" ++ ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "    Dual;"
+        "\n" ++ "    Column_1" ++ "\n" ++ "FROM" ++ "\n" ++ "    Dual;"
       )
     },
     sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL;", [{case_identifier, init_cap}])
@@ -1293,7 +1293,7 @@ parameter_ok_test() ->
       list_to_binary(
         "SELECT"
         ++
-        ?CHAR_NEWLINE ++ "    columN_1" ++ ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "    duaL;"
+        "\n" ++ "    columN_1" ++ "\n" ++ "FROM" ++ "\n" ++ "    duaL;"
       )
     },
     sqlparse_test_utils:eunit_test(
@@ -1307,7 +1307,7 @@ parameter_ok_test() ->
       list_to_binary(
         "SELECT"
         ++
-        ?CHAR_NEWLINE ++ "    column_1" ++ ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "    dual;"
+        "\n" ++ "    column_1" ++ "\n" ++ "FROM" ++ "\n" ++ "    dual;"
       )
     },
     sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL;", [{case_identifier, lower}])
@@ -1318,7 +1318,7 @@ parameter_ok_test() ->
       list_to_binary(
         "SELECT"
         ++
-        ?CHAR_NEWLINE ++ "    COLUMN_1" ++ ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "    DUAL;"
+        "\n" ++ "    COLUMN_1" ++ "\n" ++ "FROM" ++ "\n" ++ "    DUAL;"
       )
     },
     sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL;", [{case_identifier, upper}])
@@ -1329,7 +1329,7 @@ parameter_ok_test() ->
       list_to_binary(
         "Select"
         ++
-        ?CHAR_NEWLINE ++ "    columN_1" ++ ?CHAR_NEWLINE ++ "From" ++ ?CHAR_NEWLINE ++ "    duaL;"
+        "\n" ++ "    columN_1" ++ "\n" ++ "From" ++ "\n" ++ "    duaL;"
       )
     },
     sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL;", [{case_keyword, init_cap}])
@@ -1340,7 +1340,7 @@ parameter_ok_test() ->
       list_to_binary(
         "select"
         ++
-        ?CHAR_NEWLINE ++ "    columN_1" ++ ?CHAR_NEWLINE ++ "from" ++ ?CHAR_NEWLINE ++ "    duaL;"
+        "\n" ++ "    columN_1" ++ "\n" ++ "from" ++ "\n" ++ "    duaL;"
       )
     },
     sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL;", [{case_keyword, lower}])
@@ -1351,7 +1351,7 @@ parameter_ok_test() ->
       list_to_binary(
         "SELECT"
         ++
-        ?CHAR_NEWLINE ++ "    columN_1" ++ ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "    duaL;"
+        "\n" ++ "    columN_1" ++ "\n" ++ "FROM" ++ "\n" ++ "    duaL;"
       )
     },
     sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL;", [{case_keyword, upper}])
@@ -1362,7 +1362,7 @@ parameter_ok_test() ->
       list_to_binary(
         "SELECT"
         ++
-        ?CHAR_NEWLINE ++ "  columN_1" ++ ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "  duaL;"
+        "\n" ++ "  columN_1" ++ "\n" ++ "FROM" ++ "\n" ++ "  duaL;"
       )
     },
     sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL;", [{indent_space, 2}])
@@ -1373,7 +1373,7 @@ parameter_ok_test() ->
       list_to_binary(
         "SELECT"
         ++
-        ?CHAR_NEWLINE ++ "    columN_1" ++ ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "    duaL;"
+        "\n" ++ "    columN_1" ++ "\n" ++ "FROM" ++ "\n" ++ "    duaL;"
       )
     },
     sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL;", [{indent_with, space}])
@@ -1384,7 +1384,7 @@ parameter_ok_test() ->
       list_to_binary(
         "SELECT"
         ++
-        ?CHAR_NEWLINE ++ "\tcolumN_1" ++ ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "\tduaL;"
+        "\n" ++ "\tcolumN_1" ++ "\n" ++ "FROM" ++ "\n" ++ "\tduaL;"
       )
     },
     sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL;", [{indent_with, tab}])
@@ -1395,7 +1395,7 @@ parameter_ok_test() ->
       list_to_binary(
         "SELECT"
         ++
-        ?CHAR_NEWLINE ++ "    columN_1" ++ ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "    duaL;"
+        "\n" ++ "    columN_1" ++ "\n" ++ "FROM" ++ "\n" ++ "    duaL;"
       )
     },
     sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL;", [{line_break_after, 80}])
@@ -1406,7 +1406,7 @@ parameter_ok_test() ->
       list_to_binary(
         "SELECT"
         ++
-        ?CHAR_NEWLINE ++ "    columN_1" ++ ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "    duaL;"
+        "\n" ++ "    columN_1" ++ "\n" ++ "FROM" ++ "\n" ++ "    duaL;"
       )
     },
     sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL;", [{ws_operator, false}])
@@ -1417,7 +1417,7 @@ parameter_ok_test() ->
       list_to_binary(
         "SELECT"
         ++
-        ?CHAR_NEWLINE ++ "    columN_1" ++ ?CHAR_NEWLINE ++ "FROM" ++ ?CHAR_NEWLINE ++ "    duaL;"
+        "\n" ++ "    columN_1" ++ "\n" ++ "FROM" ++ "\n" ++ "    duaL;"
       )
     },
     sqlparse_test_utils:eunit_test("selecT columN_1 froM duaL;", [{ws_operator, true}])

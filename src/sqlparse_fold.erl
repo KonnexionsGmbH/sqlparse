@@ -912,35 +912,6 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {delete, Table, WhereClause, Returnin
   ?FOLD_RESULT(NewCtxE);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% drop_cluster_def
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop cluster', Name, {}} = PTree) when is_binary(Name) ->
-  Rule = drop_cluster_def,
-  FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
-  NewCtxS = Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
-  NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree, {Rule, get_start_end(FType, 'end')}),
-  ?FOLD_RESULT(NewCtxE);
-
-fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop cluster', _Name, {DropClusterExtensions}} = PTree) ->
-  Rule = drop_cluster_def,
-  FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
-  NewCtxS = Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
-  NewCtx1 = fold_i(FType, Fun, LOpts, FunState, NewCtxS, DropClusterExtensions),
-  NewCtxE = Fun(LOpts, FunState, NewCtx1, PTree, {Rule, get_start_end(FType, 'end')}),
-  ?FOLD_RESULT(NewCtxE);
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% drop_cluster_extensions
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-fold_i(FType, Fun, LOpts, FunStateIn, Ctx, Type = PTree)
-when Type == 'including tables'; Type == 'including tables cascade constraints' ->
-  Rule = drop_extensions,
-  FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
-  NewCtxS = Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
-  NewCtxE = Fun(LOpts, FunState, NewCtxS, PTree, {Rule, get_start_end(FType, 'end')}),
-  ?FOLD_RESULT(NewCtxE);
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % drop_context_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop context', Name} = PTree) when is_binary(Name) ->
@@ -1251,7 +1222,7 @@ when is_binary(Name) ->
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % drop_table_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop table', Tables, Exists, {}, _Name} = PTree) ->
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop table', Tables, Exists, {}, []} = PTree) ->
   Rule = drop_table_def,
   FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
   NewCtxS = Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
@@ -1260,13 +1231,23 @@ fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop table', Tables, Exists, {}, _N
   NewCtxE = Fun(LOpts, FunState, NewCtx2, PTree, {Rule, get_start_end(FType, 'end')}),
   ?FOLD_RESULT(NewCtxE);
 
+fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'drop table', Tables, Exists, {}, Opts} = PTree) ->
+  Rule = drop_table_def,
+  FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+  NewCtxS = Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+  NewCtx1 = fold_i(FType, Fun, LOpts, FunState, NewCtxS, {create_opts, Opts}),
+  NewCtx2 = fold_i(FType, Fun, LOpts, FunState, NewCtx1, {exists, Exists}),
+  NewCtx3 = fold_i(FType, Fun, LOpts, FunState, NewCtx2, Tables),
+  NewCtxE = Fun(LOpts, FunState, NewCtx3, PTree, {Rule, get_start_end(FType, 'end')}),
+  ?FOLD_RESULT(NewCtxE);
+
 fold_i(
   FType,
   Fun,
   LOpts,
   FunStateIn,
   Ctx,
-  {'drop table', Tables, Exists, {DropTableExtensions}, _Name} = PTree
+  {'drop table', Tables, Exists, {DropTableExtensions}, []} = PTree
 ) ->
   Rule = drop_table_def,
   FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
@@ -1275,6 +1256,24 @@ fold_i(
   NewCtx2 = fold_i(FType, Fun, LOpts, FunState, NewCtx1, Tables),
   NewCtx3 = fold_i(FType, Fun, LOpts, FunState, NewCtx2, DropTableExtensions),
   NewCtxE = Fun(LOpts, FunState, NewCtx3, PTree, {Rule, get_start_end(FType, 'end')}),
+  ?FOLD_RESULT(NewCtxE);
+
+fold_i(
+    FType,
+    Fun,
+    LOpts,
+    FunStateIn,
+    Ctx,
+    {'drop table', Tables, Exists, {DropTableExtensions}, Opts} = PTree
+) ->
+  Rule = drop_table_def,
+  FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
+  NewCtxS = Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
+  NewCtx1 = fold_i(FType, Fun, LOpts, FunState, NewCtxS, {create_opts, Opts}),
+  NewCtx2 = fold_i(FType, Fun, LOpts, FunState, NewCtx1, {exists, Exists}),
+  NewCtx3 = fold_i(FType, Fun, LOpts, FunState, NewCtx2, Tables),
+  NewCtx4 = fold_i(FType, Fun, LOpts, FunState, NewCtx3, DropTableExtensions),
+  NewCtxE = Fun(LOpts, FunState, NewCtx4, PTree, {Rule, get_start_end(FType, 'end')}),
   ?FOLD_RESULT(NewCtxE);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -3068,26 +3067,6 @@ fold_i(FType, Fun, LOpts, FunState, Ctx, {then = Rule, PTree}) ->
   ?FOLD_RESULT(NewCtxE);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% truncate_cluster
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'truncate cluster', Name, Cascade} = PTree) ->
-  Rule = truncate_cluster,
-  FunState = ?FOLD_INIT_STMNT(FunStateIn, Ctx, PTree, Rule),
-  NewCtxS = Fun(LOpts, FunState, Ctx, PTree, {Rule, get_start_end(FType, start)}),
-  NewCtx1 =
-    case is_binary(Name) of
-      true -> NewCtxS;
-      _ -> fold_i(FType, Fun, LOpts, FunState, NewCtxS, Name)
-    end,
-  NewCtx2 =
-    case Cascade of
-      {} -> NewCtx1;
-      _ -> fold_i(FType, Fun, LOpts, FunState, NewCtx1, Cascade)
-    end,
-  NewCtxE = Fun(LOpts, FunState, NewCtx2, PTree, {Rule, get_start_end(FType, 'end')}),
-  ?FOLD_RESULT(NewCtxE);
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % truncate_table
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fold_i(FType, Fun, LOpts, FunStateIn, Ctx, {'truncate table', Table, Materialized, Storage} = PTree) ->
@@ -3752,7 +3731,6 @@ set_state_rule(FunState, Rule) ->
 %     create_user_def
 %     cursor_def
 %     delete_statement
-%     drop_cluster_def,
 %     drop_context_def,
 %     drop_database_def,
 %     drop_database_link_def,
@@ -3783,7 +3761,6 @@ set_state_rule(FunState, Rule) ->
 %     revoke_def
 %     rollback_statement
 %     schema
-%     truncate_cluster
 %     truncate_table
 %     update_statement
 %     view_def

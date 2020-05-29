@@ -133,7 +133,6 @@ create_code() ->
   create_code(comparison),
   create_code(drop_database_def),
   create_code(dblink),
-  create_code(drop_cluster_extensions),
   create_code(drop_index_extensions),
   create_code(drop_table_extensions),
   create_code(drop_tablespace_extensions),
@@ -175,7 +174,6 @@ create_code() ->
   create_code(column_ref),
   create_code(create_role_def),
   create_code(cursor),
-  create_code(drop_cluster_def),
   create_code(drop_context_def),
   create_code(drop_database_link_def),
   create_code(drop_directory_def),
@@ -229,7 +227,6 @@ create_code() ->
   create_code(open_statement),
   create_code(parameter_ref),
   create_code(table_list),
-  create_code(truncate_cluster),
   create_code(truncate_table),
   create_code(user_opt),
   create_code(user_role),
@@ -1725,53 +1722,6 @@ create_code(delete_statement = Rule) ->
   ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% drop_cluster_def ::= 'DROP' 'CLUSTER' cluster_name drop_cluster_extensions?
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-create_code(drop_cluster_def = Rule) ->
-  ?CREATE_CODE_START,
-  [{cluster_name, Cluster_Name}] = ets:lookup(?CODE_TEMPLATES, cluster_name),
-  Cluster_Name_Length = length(Cluster_Name),
-  [{drop_cluster_extensions, Drop_Cluster_Extensions}] =
-    ets:lookup(?CODE_TEMPLATES, drop_cluster_extensions),
-  Drop_Cluster_Extensions_Length = length(Drop_Cluster_Extensions),
-  [{schema_name, Schema_Name}] = ets:lookup(?CODE_TEMPLATES, schema_name),
-  Schema_Name_Length = length(Schema_Name),
-  Code =
-    [
-      lists:append(
-        [
-          "Drop Cluster ",
-          case rand:uniform(2) rem 2 of
-            1 -> lists:nth(rand:uniform(Schema_Name_Length), Schema_Name) ++ ".";
-            _ -> []
-          end,
-          lists:nth(rand:uniform(Cluster_Name_Length), Cluster_Name),
-          case rand:uniform(2) rem 2 of
-            1 ->
-              " "
-              ++
-              lists:nth(rand:uniform(Drop_Cluster_Extensions_Length), Drop_Cluster_Extensions);
-
-            _ -> []
-          end
-        ]
-      ) || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
-    ],
-  store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
-  store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
-  store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
-  ?CREATE_CODE_END;
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% drop_cluster_extensions ::= 'INCLUDING' 'TABLES' ( 'CASCADE' 'CONSTRAINTS' )?
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-create_code(drop_cluster_extensions = Rule) ->
-  ?CREATE_CODE_START,
-  Code = ["Including Tables", "Including Tables Cascade Constraints"],
-  store_code(Rule, Code, ?MAX_BASIC, false),
-  ?CREATE_CODE_END;
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% drop_context_def ::= 'DROP' 'CONTEXT' identifier
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 create_code(drop_context_def = Rule) ->
@@ -2119,24 +2069,30 @@ create_code(drop_synonym_def = Rule) ->
   ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% drop_table_def ::= 'DROP' identifier? 'TABLE' exists? table_list drop_table_extensions?
+%% drop_table_def ::= 'DROP' ( tbl_scope )? ( tbl_type )? 'TABLE' exists? table_list drop_table_extensions?
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 create_code(drop_table_def = Rule) ->
   ?CREATE_CODE_START,
-  [{identifier, Identifier}] = ets:lookup(?CODE_TEMPLATES, identifier),
-  Identifier_Length = length(Identifier),
   [{table_list, Table_List}] = ets:lookup(?CODE_TEMPLATES, table_list),
   Table_List_Length = length(Table_List),
   [{drop_table_extensions, Drop_Table_Extensions}] =
     ets:lookup(?CODE_TEMPLATES, drop_table_extensions),
   Drop_Table_Extensions_Length = length(Drop_Table_Extensions),
+  [{tbl_scope, Tbl_Scope}] = ets:lookup(?CODE_TEMPLATES, tbl_scope),
+  Tbl_Scope_Length = length(Tbl_Scope),
+  [{tbl_type, Tbl_Type}] = ets:lookup(?CODE_TEMPLATES, tbl_type),
+  Tbl_Type_Length = length(Tbl_Type),
   Code =
     [
       lists:append(
         [
           "Drop",
           case rand:uniform(2) rem 2 of
-            1 -> " " ++ lists:nth(rand:uniform(Identifier_Length), Identifier);
+            1 -> " " ++ lists:nth(rand:uniform(Tbl_Scope_Length), Tbl_Scope);
+            _ -> []
+          end,
+          case rand:uniform(2) rem 2 of
+            1 -> " " ++ lists:nth(rand:uniform(Tbl_Type_Length), Tbl_Type);
             _ -> []
           end,
           " Table",
@@ -3170,20 +3126,6 @@ create_code(identifier = Rule) ->
   [{name, Name}] = ets:lookup(?CODE_TEMPLATES, name),
   Code = Identifier_Keyword ++ Name,
   store_code(Rule, Code, ?MAX_BASIC, false),
-  store_code(
-    cluster_name,
-    [
-      re:replace(
-        re:replace(C, "ident", "ident_cluster", [{return, list}]),
-        "IDENT",
-        "IDENT_CLUSTER",
-        [{return, list}]
-      )
-      || C <- Code
-    ],
-    ?MAX_BASIC,
-    false
-  ),
   store_code(
     column,
     [
@@ -6039,39 +5981,6 @@ create_code(test_for_null = Rule) ->
   store_code(Rule, Code, ?MAX_BASIC, false),
   store_code(predicate, Code, ?MAX_BASIC, false),
   store_code(search_condition, Code, ?MAX_BASIC, false),
-  ?CREATE_CODE_END;
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% truncate_cluster ::= 'TRUNCATE' 'CLUSTER' cluster_name storage?
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-create_code(truncate_cluster = Rule) ->
-  ?CREATE_CODE_START,
-  [{cluster_name, Cluster_Name}] = ets:lookup(?CODE_TEMPLATES, cluster_name),
-  Cluster_Name_Length = length(Cluster_Name),
-  [{schema_name, Schema_Name}] = ets:lookup(?CODE_TEMPLATES, schema_name),
-  Schema_Name_Length = length(Schema_Name),
-  Code =
-    [
-      lists:append(
-        [
-          "Truncate Cluster ",
-          case rand:uniform(2) rem 2 of
-            1 -> lists:nth(rand:uniform(Schema_Name_Length), Schema_Name) ++ ".";
-            _ -> []
-          end,
-          lists:nth(rand:uniform(Cluster_Name_Length), Cluster_Name),
-          case rand:uniform(4) rem 4 of
-            1 -> " Drop Storage";
-            2 -> " Drop All Storage";
-            3 -> " Reuse Storage";
-            _ -> []
-          end
-        ]
-      ) || _ <- lists:seq(1, ?MAX_STATEMENT_SIMPLE * 2)
-    ],
-  store_code(Rule, Code, ?MAX_STATEMENT_SIMPLE, true),
-  store_code(manipulative_statement, Code, ?MAX_STATEMENT_SIMPLE, true),
-  store_code(sql, Code, ?MAX_STATEMENT_SIMPLE, true),
   ?CREATE_CODE_END;
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

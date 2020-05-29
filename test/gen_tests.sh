@@ -7,7 +7,7 @@ sleep .1
 #
 # gen_tests.sh: SQL - generating test data.
 #
-%% Copyright (c) 2012-20 Konnexions GmbH.  All Rights Reserved.
+# Copyright (c) 2012-20 Konnexions GmbH.  All Rights Reserved.
 #
 # ----------------------------------------------------------------------------
 

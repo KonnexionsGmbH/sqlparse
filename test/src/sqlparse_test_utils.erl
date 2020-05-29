@@ -435,7 +435,7 @@ eunit_test(Source, LOpts) ->
         true -> ok
       end,
       ?assertEqual(ParseTreeLower, ParseTree_FORMATLower),
-      {ok, Source_FORMAT};
+      {ok, binary:replace(Source_FORMAT, <<"\r\n">>, <<"\n">>, [global])};
 
     {lex_error, _Error} ->
       io:format(user, "~n" ++ ?MODULE_STRING ++ " : Failed lex_error : Source~n > ~p", [Source]),

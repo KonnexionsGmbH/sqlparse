@@ -9,27 +9,6 @@
 %% -----------------------------------------------------------------------------
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% truncate_cluster
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-"truncate cluster cluster_name drop all storage".
-"truncate cluster cluster_name drop all storage;".
-"truncate cluster cluster_name drop storage".
-"truncate cluster cluster_name drop storage;".
-"truncate cluster cluster_name reuse storage".
-"truncate cluster cluster_name reuse storage;".
-"truncate cluster cluster_name".
-"truncate cluster cluster_name;".
-"truncate cluster schema_name.cluster_name drop all storage".
-"truncate cluster schema_name.cluster_name drop all storage;".
-"truncate cluster schema_name.cluster_name drop storage".
-"truncate cluster schema_name.cluster_name drop storage;".
-"truncate cluster schema_name.cluster_name reuse storage".
-"truncate cluster schema_name.cluster_name reuse storage;".
-"truncate cluster schema_name.cluster_name".
-"truncate cluster schema_name.cluster_name;".
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % truncate_table
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

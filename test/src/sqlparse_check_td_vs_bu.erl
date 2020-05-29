@@ -1080,26 +1080,6 @@ fold(LOpts, _FunState, Ctx, _PTree, {delete_statement = Rule, Step} = _FoldState
   ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% drop_cluster_def
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-fold(
-  LOpts,
-  _FunState,
-  Ctx,
-  {'drop cluster', Name, _DropExtensions} = _PTree,
-  {drop_cluster_def = Rule, Step} = _FoldState
-) ->
-  ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
-  RT =
-    case {LOpts, Step} of
-      {L, S} when L == top_down andalso S == start orelse L == bottom_up andalso S == 'end' ->
-        {"drop cluster", binary_to_list(Name)};
-
-      _ -> none
-    end,
-  ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % drop_context_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fold(
@@ -1485,17 +1465,14 @@ fold(
   LOpts,
   _FunState,
   Ctx,
-  {'drop table', _Tables, _Exists, DropOpt} = _PTree,
+  {'drop table', _Tables, _Exists, _CreateOpts} = _PTree,
   {drop_table_def = Rule, Step} = _FoldState
 ) ->
   ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
   RT =
     case {LOpts, Step} of
       {L, S} when L == top_down andalso S == start orelse L == bottom_up andalso S == 'end' ->
-        case DropOpt of
-          [] -> {"drop"};
-          _ -> {"drop", DropOpt}
-        end;
+        {"drop"};
 
       _ -> none
     end,
@@ -1505,17 +1482,14 @@ fold(
   LOpts,
   _FunState,
   Ctx,
-  {'drop table', _Tables, _Exists, _DropExtensions, DropOpt} = _PTree,
+  {'drop table', _Tables, _Exists, _DropExtensions, _CreateOpts} = _PTree,
   {drop_table_def = Rule, Step} = _FoldState
 ) ->
   ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
   RT =
     case {LOpts, Step} of
       {L, S} when L == top_down andalso S == start orelse L == bottom_up andalso S == 'end' ->
-        case DropOpt of
-          [] -> {"drop"};
-          _ -> {"drop", DropOpt}
-        end;
+        {"drop"};
 
       _ -> none
     end,
@@ -3364,44 +3338,6 @@ fold(LOpts, _FunState, Ctx, _PTree, {then = Rule, Step} = _FoldState) ->
     case {LOpts, Step} of
       {L, S} when L == top_down andalso S == start orelse L == bottom_up andalso S == 'end' ->
         {"then"};
-
-      _ -> none
-    end,
-  ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% truncate_cluster
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-fold(
-  LOpts,
-  _FunState,
-  Ctx,
-  {'truncate cluster', Name, _Cascade} = _PTree,
-  {truncate_cluster = Rule, Step} = _FoldState
-)
-when is_binary(Name) ->
-  ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
-  RT =
-    case {LOpts, Step} of
-      {L, S} when L == top_down andalso S == start orelse L == bottom_up andalso S == 'end' ->
-        {"truncate cluster", binary_to_list(Name)};
-
-      _ -> none
-    end,
-  ?LAYOUT_RESULT_CHECK(Ctx, Rule, RT);
-
-fold(
-  LOpts,
-  _FunState,
-  Ctx,
-  {'truncate cluster', _Name, _Cascade} = _PTree,
-  {truncate_cluster = Rule, Step} = _FoldState
-) ->
-  ?CUSTOM_INIT(_FunState, Ctx, _PTree, _FoldState),
-  RT =
-    case {LOpts, Step} of
-      {L, S} when L == top_down andalso S == start orelse L == bottom_up andalso S == 'end' ->
-        {"truncate cluster"};
 
       _ -> none
     end,

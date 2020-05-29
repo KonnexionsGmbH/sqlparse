@@ -31,7 +31,6 @@ Nonterminals
  case_when_then
  case_when_then_list
  close_statement
- cluster_name
  column
  column_commalist
  column_def
@@ -58,8 +57,6 @@ Nonterminals
  db_user_proxy
  delete_statement_positioned
  delete_statement_searched
- drop_cluster_def
- drop_cluster_extensions
  drop_context_def
  drop_database_def
  drop_database_link_def
@@ -206,7 +203,6 @@ Nonterminals
  tbl_type
  test_for_null
  trigger_name
- truncate_cluster
  truncate_table
  type_name
  unary_add_or_subtract
@@ -389,7 +385,6 @@ Terminals
  STRING
  SYNONYM
  TABLE
- TABLES
  TABLESPACE
  TEMPORARY
  THEN
@@ -810,7 +805,6 @@ manipulative_statement -> create_table_def            : '$1'.
 manipulative_statement -> create_user_def             : '$1'.
 manipulative_statement -> delete_statement_positioned : '$1'.
 manipulative_statement -> delete_statement_searched   : '$1'.
-manipulative_statement -> drop_cluster_def            : '$1'.
 manipulative_statement -> drop_context_def            : '$1'.
 manipulative_statement -> drop_database_def           : '$1'.
 manipulative_statement -> drop_database_link_def      : '$1'.
@@ -835,7 +829,6 @@ manipulative_statement -> grant_def                   : '$1'.
 manipulative_statement -> insert_statement            : '$1'.
 manipulative_statement -> revoke_def                  : '$1'.
 manipulative_statement -> select_statement            : '$1'.
-manipulative_statement -> truncate_cluster            : '$1'.
 manipulative_statement -> truncate_table              : '$1'.
 manipulative_statement -> update_statement_positioned : '$1'.
 manipulative_statement -> update_statement_searched   : '$1'.
@@ -853,15 +846,6 @@ delete_statement_searched -> DELETE FROM table_dblink                        : {
 delete_statement_searched -> DELETE FROM table_dblink              returning : {delete, '$3', [],   '$4'}.
 delete_statement_searched -> DELETE FROM table_dblink where_clause           : {delete, '$3', '$4', {returning, {}}}.
 delete_statement_searched -> DELETE FROM table_dblink where_clause returning : {delete, '$3', '$4', '$5'}.
-
-drop_cluster_def -> DROP CLUSTER cluster_name                         : {'drop cluster', '$3', {}}.
-drop_cluster_def -> DROP CLUSTER cluster_name drop_cluster_extensions : {'drop cluster', '$3', '$4'}.
-
-drop_cluster_extensions -> INCLUDING TABLES                     : {'including tables'}.
-drop_cluster_extensions -> INCLUDING TABLES CASCADE CONSTRAINTS : {'including tables cascade constraints'}.
-
-cluster_name ->                identifier : '$1'.
-cluster_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 
 drop_context_def -> DROP CONTEXT identifier : {'drop context', '$3'}.
 
@@ -931,14 +915,14 @@ drop_synonym_def -> DROP PUBLIC SYNONYM synonym_name FORCE : {'drop synonym', '$
 synonym_name ->                identifier : '$1'.
 synonym_name -> identifier '.' identifier : list_to_binary(['$1',".",'$3']).
 
-drop_table_def -> DROP            TABLE        table_list                       : {'drop table', {'tables', '$3'}, {},   {},   []}.
-drop_table_def -> DROP            TABLE        table_list drop_table_extensions : {'drop table', {'tables', '$3'}, {},   '$4', []}.
-drop_table_def -> DROP            TABLE exists table_list                       : {'drop table', {'tables', '$4'}, '$3', {},   []}.
-drop_table_def -> DROP            TABLE exists table_list drop_table_extensions : {'drop table', {'tables', '$4'}, '$3', '$5', []}.
-drop_table_def -> DROP identifier TABLE        table_list                       : {'drop table', {'tables', '$4'}, {},   {},   binary_to_list('$2')}.
-drop_table_def -> DROP identifier TABLE        table_list drop_table_extensions : {'drop table', {'tables', '$4'}, {},   '$5', binary_to_list('$2')}.
-drop_table_def -> DROP identifier TABLE exists table_list                       : {'drop table', {'tables', '$5'}, '$4', {},   binary_to_list('$2')}.
-drop_table_def -> DROP identifier TABLE exists table_list drop_table_extensions : {'drop table', {'tables', '$5'}, '$4', '$6', binary_to_list('$2')}.
+drop_table_def -> DROP             TABLE        table_list                       : {'drop table', {'tables', '$3'}, {},   {},   []}.
+drop_table_def -> DROP             TABLE        table_list drop_table_extensions : {'drop table', {'tables', '$3'}, {},   '$4', []}.
+drop_table_def -> DROP             TABLE exists table_list                       : {'drop table', {'tables', '$4'}, '$3', {},   []}.
+drop_table_def -> DROP             TABLE exists table_list drop_table_extensions : {'drop table', {'tables', '$4'}, '$3', '$5', []}.
+drop_table_def -> DROP create_opts TABLE        table_list                       : {'drop table', {'tables', '$4'}, {},   {},   '$2'}.
+drop_table_def -> DROP create_opts TABLE        table_list drop_table_extensions : {'drop table', {'tables', '$4'}, {},   '$5', '$2'}.
+drop_table_def -> DROP create_opts TABLE exists table_list                       : {'drop table', {'tables', '$5'}, '$4', {},   '$2'}.
+drop_table_def -> DROP create_opts TABLE exists table_list drop_table_extensions : {'drop table', {'tables', '$5'}, '$4', '$6', '$2'}.
 
 drop_table_extensions ->                     PURGE : {'purge'}.
 drop_table_extensions -> CASCADE CONSTRAINTS       : {'cascade constraints'}.
@@ -1011,9 +995,6 @@ hint -> HINT : {hints, unwrap_bin('$1')}.
 
 all_distinct -> ALL      : {opt, <<"all">>}.
 all_distinct -> DISTINCT : {opt, <<"distinct">>}.
-
-truncate_cluster -> TRUNCATE CLUSTER cluster_name         : {'truncate cluster', '$3', {}}.
-truncate_cluster -> TRUNCATE CLUSTER cluster_name storage : {'truncate cluster', '$3', '$4'}.
 
 truncate_table -> TRUNCATE TABLE table                              : {'truncate table', '$3', {},   {}}.
 truncate_table -> TRUNCATE TABLE table                      CASCADE : {'truncate table', '$3', {},   {},   cascade}.
@@ -1666,7 +1647,6 @@ identifier -> STORAGE         : unwrap_bin('$1').
 % identifier -> STRING          : unwrap_bin('$1').    reduce/reduce problem
 % identifier -> SYNONYM         : unwrap_bin('$1').    Oracle reserved
 % identifier -> TABLE           : unwrap_bin('$1').    Oracle reserved
-% identifier -> TABLES          : unwrap_bin('$1').    reduce/reduce problem
 % identifier -> TABLESPACE      : unwrap_bin('$1').    reduce/reduce problem
 % identifier -> TEMPORARY       : unwrap_bin('$1').    reduce/reduce problem
 % identifier -> THEN            : unwrap_bin('$1').    Oracle reserved

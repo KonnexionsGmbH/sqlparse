@@ -9,23 +9,6 @@
 %% -----------------------------------------------------------------------------
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% drop_cluster_def
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-"drop cluster cluster_name including tables cascade constraints".
-"drop cluster cluster_name including tables cascade constraints;".
-"drop cluster cluster_name including tables".
-"drop cluster cluster_name including tables;".
-"drop cluster cluster_name".
-"drop cluster cluster_name;".
-"drop cluster schema_name.cluster_name including tables cascade constraints".
-"drop cluster schema_name.cluster_name including tables cascade constraints;".
-"drop cluster schema_name.cluster_name including tables".
-"drop cluster schema_name.cluster_name including tables;".
-"drop cluster schema_name.cluster_name".
-"drop cluster schema_name.cluster_name;".
-
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % drop_context_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -237,6 +220,16 @@
 % drop_table_def
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+"drop anything_else table test".
+"drop bag table test".
+"drop cluster anything_else table test".
+"drop cluster anything_random table if exists test_1, test_2".
+"drop cluster anything_random table test".
+"drop cluster bag table test".
+"drop cluster ordered_set table test".
+"drop cluster set table test".
+"drop cluster table test".
+"drop diese table wwe_table_2".
 "drop imem_dal_skvh table :param_1 cascade constraints".
 "drop imem_dal_skvh table :param_1".
 "drop imem_dal_skvh table if exists :param_1 cascade constraints".
@@ -263,25 +256,47 @@
 "drop imem_dal_skvh table schema_name_1.table_name_1, schema_name_2.table_name_2 purge;".
 "drop imem_dal_skvh table schema_name_1.table_name_1, schema_name_2.table_name_2;".
 "drop imem_dal_skvh table schema_name_1.table_name_1;".
-"DROP imem_dal_skvh TABLE skvhtest".
+"drop imem_dal_skvh table skvhtest".
 "drop imem_dal_skvh table table_1 cascade constraints".
 "drop imem_dal_skvh table table_1".
 "drop imem_dal_skvh table table_1,:param_2 cascade constraints".
 "drop imem_dal_skvh table table_1,:param_2".
 "drop imem_dal_skvh table table_1,table_2 cascade constraints".
 "drop imem_dal_skvh table table_1,table_2".
+"drop imem_dal_skvh table test".
+"drop local anything_else table test".
+"drop local bag table test".
+"drop local bag table test_1, test_2".
+"drop local ordered_set table test".
+"drop local set table if exists table_1, table_2".
+"drop local set table schema_1.table_1".
+"drop local set table table_1".
+"drop local set table test".
+"drop local table fun_test".
+"drop local table table_1".
+"drop local table test".
+"drop ordered_set table test".
+"drop schema anything_else table test".
+"drop schema bag table test".
+"drop schema ordered_set table test".
+"drop schema set table test".
+"drop schema table test".
+"drop schema table test".
+"drop set table if exists table_1, table_2, table_3".
+"drop set table table_1".
+"drop set table table_1, table_2".
+"drop set table test".
 "drop table :param_1 cascade constraints".
-"Drop Table :param_1".
 "drop table :param_1".
-"Drop Table \"^&()\"".
+"drop table \"^&()\"".
 "drop table if exists :param_1 cascade constraints".
 "drop table if exists :param_1".
 "drop table if exists :param_1,table_2 cascade constraints".
 "drop table if exists :param_1,table_2".
-"DROP TABLE IF EXISTS name_table_1 CASCADE CONSTRAINTS".
-"DROP TABLE IF EXISTS name_table_1".
-"DROP TABLE IF EXISTS name_table_1,name_table_2 CASCADE CONSTRAINTS".
-"DROP TABLE IF EXISTS name_table_1,name_table_2".
+"drop table if exists name_table_1 cascade constraints".
+"drop table if exists name_table_1".
+"drop table if exists name_table_1,name_table_2 cascade constraints".
+"drop table if exists name_table_1,name_table_2".
 "drop table if exists schema_name_1.table_name_1 cascade constraints purge;".
 "drop table if exists schema_name_1.table_name_1 cascade constraints;".
 "drop table if exists schema_name_1.table_name_1 purge;".
@@ -296,11 +311,11 @@
 "drop table if exists table_1,:param_2".
 "drop table if exists table_1,table_2 cascade constraints".
 "drop table if exists table_1,table_2".
-"DROP TABLE name_table_1 CASCADE CONSTRAINTS".
-"DROP TABLE name_table_1".
-"DROP TABLE name_table_1,name_table_2 CASCADE CONSTRAINTS".
-"DROP TABLE name_table_1,name_table_2".
-"Drop Table schema_1.table_1".
+"drop table name_table_1 cascade constraints".
+"drop table name_table_1".
+"drop table name_table_1,name_table_2 cascade constraints".
+"drop table name_table_1,name_table_2".
+"drop table schema_1.table_1".
 "drop table schema_name_1.table_name_1 cascade constraints purge;".
 "drop table schema_name_1.table_name_1 cascade constraints;".
 "drop table schema_name_1.table_name_1 purge;".
@@ -310,11 +325,12 @@
 "drop table schema_name_1.table_name_1, schema_name_2.table_name_2;".
 "drop table schema_name_1.table_name_1;".
 "drop table table_1 cascade constraints".
-"Drop Table table_1".
+"drop table table_1".
 "drop table table_1,:param_2 cascade constraints".
 "drop table table_1,:param_2".
 "drop table table_1,table_2 cascade constraints".
 "drop table table_1,table_2".
+"drop table wwe_table_1".
 
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % drop_tablespace_def

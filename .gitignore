@@ -1,6 +1,7 @@
+*.log
+.idea
 _build
 erl_crash.dump
-*.log
 rebar.lock
 rebar3.crashdump
 src/*.dot

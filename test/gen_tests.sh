@@ -3,13 +3,13 @@
 exec > >(tee -i gen_tests.log)
 sleep .1
 
-# ----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # gen_tests.sh: SQL - generating test data.
 #
 # Copyright (c) 2012-20 Konnexions GmbH.  All Rights Reserved.
 #
-# ----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 echo "========================================================================="
 echo "Start $0"
@@ -28,7 +28,7 @@ fi
 
 rebar3 as test compile
 
-# Setting sqlparse options ...............................................
+# Setting sqlparse options .....................................................
 if [ "$GENERATE_COMPACTED" == "" ]; then
     # true: compacted / false: detailed.
     export GENERATE_COMPACTED="true"
@@ -41,7 +41,7 @@ if [ "$GENERATE_COMPACTED" == "" ]; then
     export MAX_BASIC=250
 fi
 
-# Starting test data generator ...........................................
+# Starting test data generator .................................................
 erl -noshell -pa _build/test/lib/sqlparse/test $HEAP_SIZE -s sqlparse_generator generate -s init stop
 
 if [ -f "code_templates" ]; then

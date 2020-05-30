@@ -3,13 +3,13 @@
 exec > >(tee -i stress_test.log)
 sleep .1
 
-# ----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 #
 # stress_test.sh: SQL - stress testing.
 #
 # Copyright (c) 2012-20 Konnexions GmbH.  All Rights Reserved.
 #
-# ----------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 NO_RUNS=$1
 if [ "$#" -ne 1 ]; then
@@ -33,7 +33,7 @@ if [ -d "tmp/backup" ]; then
 fi
 mkdir  tmp/backup
 
-# Setting sqlparse options ...............................................
+# Setting sqlparse options .....................................................
 # true: compacted / false: detailed.
 export GENERATE_COMPACTED="true"
 export GENERATE_CT="true"

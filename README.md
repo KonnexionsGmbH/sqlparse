@@ -3,7 +3,6 @@
 ![build](https://github.com/KonnexionsGmbH/sqlparse/workflows/Erlang%20CI/badge.svg)
 ![Hex.pm](https://img.shields.io/hexpm/v/sqlparse.svg)
 ![Coveralls github](https://img.shields.io/coveralls/github/KonnexionsGmbH/sqlparse.svg)
-![GitHub](https://img.shields.io/github/license/KonnexionsGmbH/sqlparse.svg)
 ![GitHub release](https://img.shields.io/github/release/KonnexionsGmbH/sqlparse.svg)
 ![GitHub Release Date](https://img.shields.io/github/release-date/KonnexionsGmbH/sqlparse.svg)
 ![GitHub commits since latest release](https://img.shields.io/github/commits-since/KonnexionsGmbH/sqlparse/4.6.3.svg)
